@@ -694,6 +694,12 @@ iface {self.BRIDGE_NAME} inet manual
                     # Reload networking on that node
                     reload_cmd = "ifreload -a"
                     await self.proxmox.execute_on_node(node, reload_cmd, allow_nonzero_exit=True)
+                    
+                    # Restart pve-cluster to ensure Proxmox recognizes the new bridge
+                    # This is critical for LXC containers to see the bridge
+                    restart_cmd = "systemctl restart pve-cluster"
+                    await self.proxmox.execute_on_node(node, restart_cmd, allow_nonzero_exit=True)
+                    logger.info(f"✓ Proxmox cluster service restarted on node {node}")
                 except Exception as e:
                     logger.warning(f"Could not persist bridge config on node {node}: {e}")
             
