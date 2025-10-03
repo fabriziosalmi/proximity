@@ -312,15 +312,27 @@ class ReverseProxyManager:
         """
         Generate Caddy configuration for a virtual host.
         
+        Multi-tier access strategy:
+        1. Hostname-based: app-name.prox.local (for internal DNS)
+        2. Path-based: /app-name (fallback for LAN clients without DNS)
+        
         Args:
-            hostname: Hostname for the vhost (e.g., "nginx.prox.local")
+            hostname: Hostname for the vhost (e.g., "nginx-01.prox.local")
             backend_ip: Backend IP address
             backend_port: Backend port
             
         Returns:
             Caddy configuration string
         """
+        # Extract app name from hostname (e.g., "nginx-01" from "nginx-01.prox.local")
+        app_name = hostname.replace(f".{self.DNS_DOMAIN}", "")
+        
         config = f"""# Virtual host for {hostname}
+# Accessible via:
+#   - http://{hostname} (with DNS)
+#   - http://<appliance-ip>/{app_name} (path-based fallback)
+
+# Method 1: Hostname-based routing (requires DNS or /etc/hosts)
 {hostname} {{
     reverse_proxy http://{backend_ip}:{backend_port} {{
         # Health checks
@@ -339,6 +351,21 @@ class ReverseProxyManager:
     log {{
         output file /var/log/caddy/{hostname}.log
         format json
+    }}
+}}
+
+# Method 2: Path-based routing (works without DNS)
+# Access via: http://<appliance-wan-ip>/{app_name}
+:80 {{
+    handle_path /{app_name} {{
+        reverse_proxy http://{backend_ip}:{backend_port} {{
+            # Headers for path-based proxy
+            header_up Host {{upstream_hostport}}
+            header_up X-Real-IP {{remote_host}}
+            header_up X-Forwarded-For {{remote_host}}
+            header_up X-Forwarded-Proto {{scheme}}
+            header_up X-Forwarded-Prefix /{app_name}
+        }}
     }}
 }}
 """

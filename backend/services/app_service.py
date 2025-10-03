@@ -585,13 +585,26 @@ class AppService:
                     )
                     
                     if vhost_created:
-                        # Access via hostname through network appliance
-                        # Apps are accessible via: http://<appliance-wan-ip>/<app-hostname>
-                        # Or via hostname: http://<app-hostname>.prox.local (with proper DNS)
-                        appliance_hostname = f"{app_data.hostname}.prox.local"
-                        access_url = f"http://{appliance_hostname}"
-                        await self._log_deployment(app_id, "info", f"✓ Reverse proxy configured: {appliance_hostname} → {container_ip}:{primary_port}")
-                        await self._log_deployment(app_id, "info", f"✓ Access via: {access_url}")
+                        # Get appliance WAN IP for path-based access
+                        appliance_wan_ip = None
+                        if hasattr(self.proxmox_service, 'network_manager') and self.proxmox_service.network_manager:
+                            appliance_info = self.proxmox_service.network_manager.appliance_info
+                            if appliance_info:
+                                appliance_wan_ip = appliance_info.wan_ip
+                        
+                        # Primary access URL: path-based (works without DNS)
+                        if appliance_wan_ip:
+                            access_url = f"http://{appliance_wan_ip}/{app_data.hostname}"
+                            await self._log_deployment(app_id, "info", f"✓ Reverse proxy configured")
+                            await self._log_deployment(app_id, "info", f"  • LAN access: {access_url}")
+                            await self._log_deployment(app_id, "info", f"  • DNS access: http://{app_data.hostname}.prox.local (requires DNS/hosts)")
+                            await self._log_deployment(app_id, "info", f"  • Direct access: http://{container_ip}:{primary_port}")
+                        else:
+                            # Fallback if we can't get appliance IP
+                            access_url = f"http://{app_data.hostname}.prox.local"
+                            await self._log_deployment(app_id, "warning", "Could not determine appliance WAN IP")
+                            await self._log_deployment(app_id, "info", f"  • DNS access: {access_url}")
+                            await self._log_deployment(app_id, "info", f"  • Direct access: http://{container_ip}:{primary_port}")
                     else:
                         # Fallback to direct access
                         access_url = f"http://{container_ip}:{primary_port}" if container_ip else None
