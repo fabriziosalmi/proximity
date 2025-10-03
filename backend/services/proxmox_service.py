@@ -405,13 +405,13 @@ class ProxmoxService:
             raise ProxmoxError(f"Failed to execute command via SSH: {e}")
     
     async def execute_on_node(self, node: str, command: str, timeout: int = 300, allow_nonzero_exit: bool = False) -> str:
-        """Execute a command directly on a specific Proxmox cluster node via SSH
+        """Execute a command directly on a specific Proxmox cluster node
         
-        This connects directly to the specified node, not through the main SSH host.
-        Useful for cluster operations where each node needs individual configuration.
+        In a Proxmox cluster, nodes can be accessed from any cluster member via their node name.
+        This method SSH's to the main Proxmox host, then uses SSH to reach the target node.
         
         Args:
-            node: Proxmox node hostname (e.g., 'opti2', 'pve')
+            node: Proxmox node name (e.g., 'opti2', 'pve')
             command: Shell command to execute on the node
             timeout: Command timeout in seconds
             allow_nonzero_exit: If True, don't raise error on non-zero exit codes
@@ -419,67 +419,14 @@ class ProxmoxService:
         Returns:
             Command output (stdout + stderr)
         """
-        try:
-            import paramiko
-            
-            ssh_password = settings.PROXMOX_SSH_PASSWORD or settings.PROXMOX_PASSWORD
-            
-            logger.debug(f"Connecting directly to node {node}:{settings.PROXMOX_SSH_PORT} as {settings.PROXMOX_SSH_USER}")
-            
-            # Create SSH client
-            ssh = paramiko.SSHClient()
-            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-            
-            # Connect directly to the node
-            await asyncio.to_thread(
-                ssh.connect,
-                hostname=node,  # Connect to the node directly
-                port=settings.PROXMOX_SSH_PORT,
-                username=settings.PROXMOX_SSH_USER,
-                password=ssh_password,
-                timeout=30,
-                banner_timeout=30
-            )
-            
-            # Execute command
-            logger.debug(f"Executing on {node}: {command}")
-            stdin, stdout, stderr = await asyncio.to_thread(
-                ssh.exec_command,
-                command,
-                timeout=timeout
-            )
-            
-            # Read output
-            stdout_text = await asyncio.to_thread(stdout.read)
-            stderr_text = await asyncio.to_thread(stderr.read)
-            exit_code = stdout.channel.recv_exit_status()
-            
-            ssh.close()
-            
-            output = stdout_text.decode('utf-8', errors='replace')
-            error = stderr_text.decode('utf-8', errors='replace')
-            
-            # Combine output for return
-            combined_output = output + error
-            
-            if exit_code != 0 and not allow_nonzero_exit:
-                raise ProxmoxError(
-                    f"Command failed on node {node} with exit code {exit_code}:\n"
-                    f"Command: {command}\n"
-                    f"Output: {output}\n"
-                    f"Error: {error}"
-                )
-            
-            logger.debug(f"Command output from {node} (exit={exit_code}): {combined_output}")
-            return combined_output
-            
-        except ImportError:
-            raise ProxmoxError(
-                "SSH execution requires 'paramiko' library. "
-                "Install it with: pip install paramiko"
-            )
-        except Exception as e:
-            raise ProxmoxError(f"Failed to execute command on node {node} via SSH: {e}")
+        # Escape single quotes in the command for SSH
+        escaped_command = command.replace("'", "'\\''")
+        
+        # SSH from main host to the target node, then execute the command
+        ssh_command = f"ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 root@{node} '{escaped_command}'"
+        
+        logger.debug(f"Executing on node {node} via cluster SSH: {command}")
+        return await self.execute_command_via_ssh(node, ssh_command, timeout, allow_nonzero_exit)
     
     async def execute_in_container(self, node: str, vmid: int, command: str, timeout: int = 300, allow_nonzero_exit: bool = False) -> str:
         """Execute a command inside an LXC container using pct exec via SSH
