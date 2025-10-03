@@ -88,7 +88,7 @@ class NetworkApplianceOrchestrator:
     # Network configuration constants
     BRIDGE_NAME = "proximity-lan"
     APPLIANCE_HOSTNAME = "prox-appliance"
-    APPLIANCE_VMID = 100  # Reserved VMID for the appliance
+    APPLIANCE_VMID = 9999  # Reserved VMID for the Proximity-managed appliance (changed from 100 to avoid conflicts)
     
     # Network addressing
     LAN_NETWORK = "10.20.0.0/24"
