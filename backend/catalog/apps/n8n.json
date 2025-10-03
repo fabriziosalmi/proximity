@@ -1,0 +1,41 @@
+{
+  "id": "n8n",
+  "name": "n8n",
+  "description": "Workflow automation tool - connect apps and automate tasks",
+  "version": "latest",
+  "icon": "https://cdn.simpleicons.org/n8n/EA4B71",
+  "category": "Automation",
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "n8n": {
+        "image": "n8nio/n8n:latest",
+        "ports": ["5678:5678"],
+        "environment": {
+          "N8N_HOST": "0.0.0.0",
+          "N8N_PORT": "5678",
+          "N8N_PROTOCOL": "http",
+          "NODE_ENV": "production",
+          "WEBHOOK_URL": "http://localhost:5678/",
+          "GENERIC_TIMEZONE": "UTC"
+        },
+        "volumes": ["n8n_data:/home/node/.n8n"],
+        "restart": "always"
+      }
+    },
+    "volumes": {
+      "n8n_data": {}
+    }
+  },
+  "ports": [5678],
+  "volumes": ["n8n_data"],
+  "environment": {
+    "WEBHOOK_URL": "http://localhost:5678/",
+    "GENERIC_TIMEZONE": "UTC"
+  },
+  "min_memory": 512,
+  "min_cpu": 1,
+  "tags": ["automation", "workflow", "integration", "webhook"],
+  "author": "n8n.io",
+  "website": "https://n8n.io"
+}

@@ -1,0 +1,50 @@
+{
+  "id": "nextcloud",
+  "name": "Nextcloud",
+  "description": "Self-hosted file sync and share platform",
+  "version": "latest",
+  "icon": "https://cdn.simpleicons.org/nextcloud/0082C9",
+  "category": "Storage",
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "nextcloud": {
+        "image": "nextcloud:latest",
+        "ports": ["80:80"],
+        "environment": {
+          "MYSQL_HOST": "db",
+          "MYSQL_USER": "nextcloud",
+          "MYSQL_PASSWORD": "nextcloud_password",
+          "MYSQL_DATABASE": "nextcloud"
+        },
+        "volumes": ["nextcloud_data:/var/www/html"],
+        "depends_on": ["db"]
+      },
+      "db": {
+        "image": "mysql:8.0",
+        "environment": {
+          "MYSQL_DATABASE": "nextcloud",
+          "MYSQL_USER": "nextcloud",
+          "MYSQL_PASSWORD": "nextcloud_password",
+          "MYSQL_ROOT_PASSWORD": "root_password"
+        },
+        "volumes": ["db_data:/var/lib/mysql"]
+      }
+    },
+    "volumes": {
+      "nextcloud_data": {},
+      "db_data": {}
+    }
+  },
+  "ports": [80],
+  "volumes": ["nextcloud_data", "db_data"],
+  "environment": {
+    "MYSQL_PASSWORD": "nextcloud_password",
+    "MYSQL_ROOT_PASSWORD": "root_password"
+  },
+  "min_memory": 2048,
+  "min_cpu": 2,
+  "tags": ["storage", "cloud", "sync", "php", "mysql"],
+  "author": "Nextcloud GmbH",
+  "website": "https://nextcloud.com"
+}

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proximity - App Delivery Platform</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">🚀</div>
+                    <span>Proximity</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Main</div>
+                    <a href="#" class="nav-item active" data-view="dashboard">
+                        <span class="nav-icon">📊</span>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="#" class="nav-item" data-view="apps">
+                        <span class="nav-icon">📦</span>
+                        <span>My Apps</span>
+                        <span class="nav-badge" id="appsCount">0</span>
+                    </a>
+                    <a href="#" class="nav-item" data-view="catalog">
+                        <span class="nav-icon">🎯</span>
+                        <span>App Store</span>
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">System</div>
+                    <a href="#" class="nav-item" data-view="nodes">
+                        <span class="nav-icon">🖥️</span>
+                        <span>Infrastructure</span>
+                    </a>
+                    <a href="#" class="nav-item" data-view="monitoring">
+                        <span class="nav-icon">📈</span>
+                        <span>Monitoring</span>
+                    </a>
+                    <a href="#" class="nav-item" data-view="settings">
+                        <span class="nav-icon">⚙️</span>
+                        <span>Settings</span>
+                    </a>
+                </div>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="user-avatar">PR</div>
+                    <div class="user-info">
+                        <div class="user-name">Proxmox Root</div>
+                        <div class="user-role">Administrator</div>
+                    </div>
+                    <span>⋮</span>
+                </div>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <div class="search-bar">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" class="search-input" placeholder="Search apps, categories, or actions...">
+                </div>
+                
+                <div class="header-actions">
+                    <div class="header-action" title="Notifications">
+                        <span>🔔</span>
+                        <span class="notification-badge">3</span>
+                    </div>
+                    <div class="header-action" title="Help">
+                        <span>❓</span>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Content -->
+            <div class="content">
+                <!-- Dashboard View -->
+                <div id="dashboardView" class="view">
+                    <div class="page-header">
+                        <div class="page-title-row">
+                            <div>
+                                <h1 class="page-title">Dashboard</h1>
+                                <p class="page-subtitle">Welcome back! Here's what's happening with your applications.</p>
+                            </div>
+                            <button class="btn btn-primary" onclick="showView('catalog')">
+                                <span>➕</span>
+                                <span>Deploy New App</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Stats -->
+                    <div class="stats-grid" id="statsGrid">
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-label">Total Applications</span>
+                                <div class="stat-icon primary">
+                                    <span>📦</span>
+                                </div>
+                            </div>
+                            <div class="stat-value" id="statTotalApps">0</div>
+                            <div class="stat-change positive">
+                                <span>↗</span>
+                                <span>+2 this week</span>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-label">Running</span>
+                                <div class="stat-icon success">
+                                    <span>✓</span>
+                                </div>
+                            </div>
+                            <div class="stat-value" id="statRunningApps">0</div>
+                            <div class="stat-change positive">
+                                <span>↗</span>
+                                <span>All systems operational</span>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-label">Infrastructure Nodes</span>
+                                <div class="stat-icon info">
+                                    <span>🖥️</span>
+                                </div>
+                            </div>
+                            <div class="stat-value" id="statNodes">0</div>
+                            <div class="stat-change positive">
+                                <span>●</span>
+                                <span>Online</span>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-label">Resources Used</span>
+                                <div class="stat-icon warning">
+                                    <span>⚡</span>
+                                </div>
+                            </div>
+                            <div class="stat-value" id="statResources">--</div>
+                            <div class="stat-change">
+                                <span>Normal usage</span>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-label">Reverse Proxy</span>
+                                <div class="stat-icon info">
+                                    <span>🌐</span>
+                                </div>
+                            </div>
+                            <div class="stat-value" id="statProxyStatus">--</div>
+                            <div class="stat-change" id="statProxyInfo">
+                                <span>●</span>
+                                <span>Not deployed</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Apps -->
+                    <div class="apps-section">
+                        <div class="section-header">
+                            <h2 class="section-title">Recent Applications</h2>
+                            <button class="btn btn-ghost btn-sm" onclick="showView('apps')">View All →</button>
+                        </div>
+                        <div class="apps-grid deployed" id="recentApps">
+                            <div class="empty-state">
+                                <div class="empty-icon">📦</div>
+                                <h3 class="empty-title">No applications yet</h3>
+                                <p class="empty-message">Deploy your first application from the catalog to get started.</p>
+                                <button class="btn btn-primary" onclick="showView('catalog')">Browse Catalog</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Apps View (Hidden by default) -->
+                <div id="appsView" class="view hidden"></div>
+                
+                <!-- Catalog View (Hidden by default) -->
+                <div id="catalogView" class="view hidden"></div>
+                
+                <!-- Nodes View (Hidden by default) -->
+                <div id="nodesView" class="view hidden"></div>
+                
+                <!-- Monitoring View (Hidden by default) -->
+                <div id="monitoringView" class="view hidden"></div>
+                
+                <!-- Settings View (Hidden by default) -->
+                <div id="settingsView" class="view hidden"></div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Deploy Modal -->
+    <div id="deployModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Deploy Application</h2>
+                <button class="modal-close" onclick="closeModal()">✕</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Dynamic content -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text" id="loadingText">Loading...</div>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>

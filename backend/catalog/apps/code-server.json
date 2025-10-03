@@ -1,0 +1,41 @@
+{
+  "id": "code-server",
+  "name": "Code Server",
+  "description": "VS Code in the browser - code anywhere from any device",
+  "version": "latest",
+  "icon": "https://cdn.simpleicons.org/visualstudiocode/007ACC",
+  "category": "DevOps",
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "code-server": {
+        "image": "codercom/code-server:latest",
+        "ports": ["8443:8080"],
+        "environment": {
+          "PASSWORD": "changeme",
+          "SUDO_PASSWORD": "changeme"
+        },
+        "volumes": [
+          "codeserver_config:/home/coder/.config",
+          "codeserver_data:/home/coder/project"
+        ],
+        "restart": "always"
+      }
+    },
+    "volumes": {
+      "codeserver_config": {},
+      "codeserver_data": {}
+    }
+  },
+  "ports": [8443],
+  "volumes": ["codeserver_config", "codeserver_data"],
+  "environment": {
+    "PASSWORD": "changeme",
+    "SUDO_PASSWORD": "changeme"
+  },
+  "min_memory": 1024,
+  "min_cpu": 2,
+  "tags": ["ide", "vscode", "development", "coding"],
+  "author": "Coder",
+  "website": "https://coder.com"
+}

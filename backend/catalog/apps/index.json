@@ -1,0 +1,30 @@
+{
+  "version": "1.0.0",
+  "last_updated": "2025-10-03",
+  "description": "Proximity App Catalog - Self-hosted Docker applications",
+  "apps": [
+    "wordpress.json",
+    "nextcloud.json",
+    "portainer.json",
+    "nginx.json",
+    "gitea.json",
+    "n8n.json",
+    "grafana.json",
+    "uptime-kuma.json",
+    "jellyfin.json",
+    "ghost.json",
+    "code-server.json"
+  ],
+  "categories": [
+    "CMS",
+    "Storage",
+    "DevOps",
+    "Web Server",
+    "Automation",
+    "Database",
+    "Monitoring",
+    "Media",
+    "Communication",
+    "Security"
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "id": "ghost",
+  "name": "Ghost",
+  "description": "Professional publishing platform with a beautiful editor",
+  "version": "latest",
+  "icon": "https://cdn.simpleicons.org/ghost/15171A",
+  "category": "CMS",
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "ghost": {
+        "image": "ghost:latest",
+        "ports": ["2368:2368"],
+        "environment": {
+          "url": "http://localhost:2368",
+          "database__client": "mysql",
+          "database__connection__host": "db",
+          "database__connection__user": "ghost",
+          "database__connection__password": "ghost_password",
+          "database__connection__database": "ghost"
+        },
+        "volumes": ["ghost_content:/var/lib/ghost/content"],
+        "depends_on": ["db"],
+        "restart": "always"
+      },
+      "db": {
+        "image": "mysql:8.0",
+        "environment": {
+          "MYSQL_ROOT_PASSWORD": "root_password",
+          "MYSQL_DATABASE": "ghost",
+          "MYSQL_USER": "ghost",
+          "MYSQL_PASSWORD": "ghost_password"
+        },
+        "volumes": ["ghost_db:/var/lib/mysql"],
+        "restart": "always"
+      }
+    },
+    "volumes": {
+      "ghost_content": {},
+      "ghost_db": {}
+    }
+  },
+  "ports": [2368],
+  "volumes": ["ghost_content", "ghost_db"],
+  "environment": {
+    "database__connection__password": "ghost_password",
+    "MYSQL_PASSWORD": "ghost_password",
+    "MYSQL_ROOT_PASSWORD": "root_password"
+  },
+  "min_memory": 1024,
+  "min_cpu": 1,
+  "tags": ["blog", "cms", "publishing", "nodejs", "mysql"],
+  "author": "Ghost Foundation",
+  "website": "https://ghost.org"
+}

@@ -1,0 +1,39 @@
+{
+  "id": "jellyfin",
+  "name": "Jellyfin",
+  "description": "Free media server for your movies, music, and TV shows",
+  "version": "latest",
+  "icon": "https://cdn.simpleicons.org/jellyfin/00A4DC",
+  "category": "Media",
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "jellyfin": {
+        "image": "jellyfin/jellyfin:latest",
+        "ports": ["8096:8096"],
+        "environment": {
+          "TZ": "UTC"
+        },
+        "volumes": [
+          "jellyfin_config:/config",
+          "jellyfin_cache:/cache"
+        ],
+        "restart": "always"
+      }
+    },
+    "volumes": {
+      "jellyfin_config": {},
+      "jellyfin_cache": {}
+    }
+  },
+  "ports": [8096],
+  "volumes": ["jellyfin_config", "jellyfin_cache"],
+  "environment": {
+    "TZ": "UTC"
+  },
+  "min_memory": 1024,
+  "min_cpu": 2,
+  "tags": ["media", "streaming", "movies", "music", "tv"],
+  "author": "Jellyfin Project",
+  "website": "https://jellyfin.org"
+}
