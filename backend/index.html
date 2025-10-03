@@ -29,16 +29,16 @@
                 <div class="nav-section">
                     <div class="nav-section-title">Main</div>
                     <a href="#" class="nav-item active" data-view="dashboard">
-                        <span class="nav-icon">📊</span>
+                        <i data-lucide="layout-dashboard" class="nav-icon"></i>
                         <span>Dashboard</span>
                     </a>
                     <a href="#" class="nav-item" data-view="apps">
-                        <span class="nav-icon">📦</span>
+                        <i data-lucide="package" class="nav-icon"></i>
                         <span>My Apps</span>
                         <span class="nav-badge" id="appsCount">0</span>
                     </a>
                     <a href="#" class="nav-item" data-view="catalog">
-                        <span class="nav-icon">🎯</span>
+                        <i data-lucide="store" class="nav-icon"></i>
                         <span>App Store</span>
                     </a>
                 </div>
@@ -46,15 +46,15 @@
                 <div class="nav-section">
                     <div class="nav-section-title">System</div>
                     <a href="#" class="nav-item" data-view="nodes">
-                        <span class="nav-icon">🖥️</span>
+                        <i data-lucide="server" class="nav-icon"></i>
                         <span>Infrastructure</span>
                     </a>
                     <a href="#" class="nav-item" data-view="monitoring">
-                        <span class="nav-icon">📈</span>
+                        <i data-lucide="activity" class="nav-icon"></i>
                         <span>Monitoring</span>
                     </a>
                     <a href="#" class="nav-item" data-view="settings">
-                        <span class="nav-icon">⚙️</span>
+                        <i data-lucide="settings" class="nav-icon"></i>
                         <span>Settings</span>
                     </a>
                 </div>
@@ -74,24 +74,6 @@
         
         <!-- Main Content -->
         <main class="main-content">
-            <!-- Header -->
-            <header class="header">
-                <div class="search-bar">
-                    <span class="search-icon">🔍</span>
-                    <input type="text" class="search-input" placeholder="Search apps, categories, or actions...">
-                </div>
-                
-                <div class="header-actions">
-                    <div class="header-action" title="Notifications">
-                        <span>🔔</span>
-                        <span class="notification-badge">3</span>
-                    </div>
-                    <div class="header-action" title="Help">
-                        <span>❓</span>
-                    </div>
-                </div>
-            </header>
-            
             <!-- Content -->
             <div class="content">
                 <!-- Dashboard View -->
@@ -115,12 +97,12 @@
                             <div class="stat-header">
                                 <span class="stat-label">Total Applications</span>
                                 <div class="stat-icon primary">
-                                    <span>📦</span>
+                                    <i data-lucide="package"></i>
                                 </div>
                             </div>
                             <div class="stat-value" id="statTotalApps">0</div>
                             <div class="stat-change positive">
-                                <span>↗</span>
+                                <i data-lucide="trending-up" style="width: 14px; height: 14px;"></i>
                                 <span>+2 this week</span>
                             </div>
                         </div>
@@ -129,12 +111,12 @@
                             <div class="stat-header">
                                 <span class="stat-label">Running</span>
                                 <div class="stat-icon success">
-                                    <span>✓</span>
+                                    <i data-lucide="check-circle"></i>
                                 </div>
                             </div>
                             <div class="stat-value" id="statRunningApps">0</div>
                             <div class="stat-change positive">
-                                <span>↗</span>
+                                <i data-lucide="trending-up" style="width: 14px; height: 14px;"></i>
                                 <span>All systems operational</span>
                             </div>
                         </div>
@@ -143,7 +125,7 @@
                             <div class="stat-header">
                                 <span class="stat-label">Infrastructure Nodes</span>
                                 <div class="stat-icon info">
-                                    <span>🖥️</span>
+                                    <i data-lucide="server"></i>
                                 </div>
                             </div>
                             <div class="stat-value" id="statNodes">0</div>
@@ -157,7 +139,7 @@
                             <div class="stat-header">
                                 <span class="stat-label">Resources Used</span>
                                 <div class="stat-icon warning">
-                                    <span>⚡</span>
+                                    <i data-lucide="zap"></i>
                                 </div>
                             </div>
                             <div class="stat-value" id="statResources">--</div>
@@ -170,7 +152,7 @@
                             <div class="stat-header">
                                 <span class="stat-label">Reverse Proxy</span>
                                 <div class="stat-icon info">
-                                    <span>🌐</span>
+                                    <i data-lucide="globe"></i>
                                 </div>
                             </div>
                             <div class="stat-value" id="statProxyStatus">--</div>
@@ -189,7 +171,9 @@
                         </div>
                         <div class="apps-grid deployed" id="recentApps">
                             <div class="empty-state">
-                                <div class="empty-icon">📦</div>
+                                <div class="empty-icon">
+                                    <i data-lucide="package" style="width: 48px; height: 48px;"></i>
+                                </div>
                                 <h3 class="empty-title">No applications yet</h3>
                                 <p class="empty-message">Deploy your first application from the catalog to get started.</p>
                                 <button class="btn btn-primary" onclick="showView('catalog')">Browse Catalog</button>

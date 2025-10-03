@@ -591,6 +591,31 @@ import /etc/caddy/sites-enabled/*
         """
         return self.appliance_info
     
+    async def get_container_network_config(self, hostname: str) -> str:
+        """
+        Get network configuration string for a container to be deployed.
+        
+        This method provides compatibility with ProxmoxService's network_manager interface.
+        Returns a network configuration string that connects the container to proximity-lan bridge.
+        
+        Args:
+            hostname: Hostname for the container (used for logging)
+            
+        Returns:
+            str: Network configuration string (e.g., "name=eth0,bridge=proximity-lan,ip=dhcp")
+        """
+        if not self.appliance_info:
+            logger.warning(f"Network appliance not initialized for {hostname}, using default bridge")
+            return "name=eth0,bridge=vmbr0,ip=dhcp,firewall=1"
+        
+        # Container connects to proximity-lan bridge with DHCP
+        # The appliance's dnsmasq will assign IP addresses from 10.20.0.100-250
+        net_config = f"name=eth0,bridge={self.bridge_name},ip=dhcp,firewall=1"
+        
+        logger.info(f"Container {hostname} will use proximity-lan network (DHCP-managed)")
+        
+        return net_config
+    
     async def get_infrastructure_status(self) -> Dict[str, Any]:
         """
         Get comprehensive infrastructure status for the Infrastructure page.

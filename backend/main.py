@@ -35,38 +35,58 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     
     # Startup tasks
     try:
-        # Step 1: Initialize Network Infrastructure
+        # Step 1: Initialize Proxmox Connection
         logger.info("=" * 60)
-        logger.info("STEP 1: Initializing Network Infrastructure")
-        logger.info("=" * 60)
-        
-        from services.network_manager import NetworkManager
-        
-        network_manager = NetworkManager()
-        network_init_success = await network_manager.initialize()
-        
-        if not network_init_success:
-            logger.warning("⚠️  Network infrastructure not available (development mode or initialization failed)")
-            logger.info("ℹ️  Containers will use default Proxmox networking (vmbr0)")
-            network_manager = None  # Clear reference so ProxmoxService knows to use fallback
-        else:
-            logger.info("✅ Network infrastructure ready")
-        
-        # Step 2: Test Proxmox connection and inject NetworkManager
-        logger.info("=" * 60)
-        logger.info("STEP 2: Connecting to Proxmox")
+        logger.info("STEP 1: Connecting to Proxmox")
         logger.info("=" * 60)
         
         from services.proxmox_service import proxmox_service
-        
-        # Inject NetworkManager into ProxmoxService (None if not available)
-        proxmox_service.network_manager = network_manager
         
         is_connected = await proxmox_service.test_connection()
         if is_connected:
             logger.info("✓ Proxmox connection successful")
         else:
             logger.warning("⚠ Proxmox connection failed - some features may not work")
+        
+        # Step 2: Initialize Network Appliance (Platinum Edition with proximity-lan)
+        logger.info("=" * 60)
+        logger.info("STEP 2: Initializing Network Appliance (Platinum Edition)")
+        logger.info("=" * 60)
+        logger.info("🌐 Deploying proximity-lan bridge and network appliance...")
+        
+        from services.network_appliance_orchestrator import NetworkApplianceOrchestrator
+        
+        orchestrator = NetworkApplianceOrchestrator(proxmox_service)
+        network_init_success = await orchestrator.initialize()
+        
+        if not network_init_success:
+            logger.warning("⚠️  Network appliance initialization failed")
+            logger.info("ℹ️  Containers will use default Proxmox networking (vmbr0)")
+            orchestrator = None
+        else:
+            logger.info("✅ Network Appliance ready:")
+            if orchestrator.appliance_info:
+                logger.info(f"   • Bridge: proximity-lan (10.20.0.0/24)")
+                logger.info(f"   • Appliance: {orchestrator.appliance_info.hostname} (VMID {orchestrator.appliance_info.vmid})")
+                logger.info(f"   • Gateway: 10.20.0.1")
+                logger.info(f"   • DHCP Range: 10.20.0.100-250")
+                logger.info(f"   • DNS Domain: .prox.local")
+                if orchestrator.appliance_info.management_url:
+                    logger.info(f"   • Management UI: {orchestrator.appliance_info.management_url}")
+        
+        # Inject orchestrator into ProxmoxService for network config
+        # Note: orchestrator may be None if initialization failed (will use vmbr0 fallback)
+        proxmox_service.network_manager = orchestrator
+        
+        if orchestrator:
+            logger.info("✓ Network orchestrator injected into ProxmoxService")
+            logger.info("  → New containers will use proximity-lan network")
+        else:
+            logger.warning("⚠ No network orchestrator available")
+            logger.info("  → New containers will use default vmbr0 network")
+        
+        # Store orchestrator in app state for API endpoints
+        app.state.orchestrator = orchestrator
         
         # Step 3: Initialize app service (loads catalog)
         logger.info("=" * 60)
@@ -78,41 +98,34 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         catalog = await app_service.get_catalog()
         logger.info(f"✓ Loaded catalog with {catalog.total} applications")
         
-        # Step 4: Deploy Caddy proxy in background (non-blocking)
+        # Step 4: Initialize Reverse Proxy Manager (integrated with Network Appliance)
         logger.info("=" * 60)
-        logger.info("STEP 4: Deploying Caddy Reverse Proxy")
+        logger.info("STEP 4: Initializing Reverse Proxy Manager")
         logger.info("=" * 60)
         
-        try:
-            from services.caddy_service import get_caddy_service
-            import asyncio
-            
-            async def deploy_caddy_background():
-                """Deploy Caddy proxy in background"""
-                try:
-                    logger.info("🌐 Deploying Caddy reverse proxy...")
-                    caddy_service = get_caddy_service(proxmox_service)
-                    
-                    # Get best node for deployment
-                    nodes = await proxmox_service.get_nodes()
-                    if nodes:
-                        target_node = nodes[0].node
-                        success = await caddy_service.ensure_caddy_deployed(target_node)
-                        if success:
-                            logger.info("✓ Caddy reverse proxy deployed successfully")
-                        else:
-                            logger.warning("⚠ Caddy proxy deployment failed - apps will work but without unified proxy")
-                    else:
-                        logger.warning("⚠ No Proxmox nodes available for Caddy deployment")
-                except Exception as e:
-                    logger.error(f"Failed to deploy Caddy proxy: {e}")
-                    logger.warning("⚠ Continuing without reverse proxy - apps will still work")
-            
-            # Start Caddy deployment in background
-            asyncio.create_task(deploy_caddy_background())
-            
-        except Exception as e:
-            logger.error(f"Failed to initialize Caddy service: {e}")
+        if orchestrator and orchestrator.appliance_info:
+            try:
+                from services.reverse_proxy_manager import ReverseProxyManager
+                
+                proxy_manager = ReverseProxyManager(
+                    proxmox_service=proxmox_service,
+                    appliance_vmid=orchestrator.appliance_info.vmid
+                )
+                
+                # Store in app state
+                app.state.proxy_manager = proxy_manager
+                
+                logger.info("✓ Reverse Proxy Manager initialized")
+                logger.info(f"   • Using Caddy on appliance VMID {orchestrator.appliance_info.vmid}")
+                logger.info(f"   • Vhosts will be created automatically for deployed apps")
+                
+            except Exception as e:
+                logger.error(f"Failed to initialize Reverse Proxy Manager: {e}")
+                logger.warning("⚠ Continuing without reverse proxy manager")
+                app.state.proxy_manager = None
+        else:
+            logger.warning("⚠ Network appliance not available - reverse proxy disabled")
+            app.state.proxy_manager = None
         
     except Exception as e:
         logger.error(f"Failed to initialize services: {e}")

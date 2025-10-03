@@ -71,12 +71,14 @@ async function init() {
         // Initialize Lucide icons
         initLucideIcons();
         
-        showNotification('Connected to Proximity', 'success');
         console.log('✓ Proximity UI initialized successfully');
     } catch (error) {
         hideLoading();
-        showNotification('Failed to connect to API: ' + error.message, 'error');
         console.error('Failed to initialize:', error);
+        // Show error notification only if it's a real connection issue
+        if (error.message.includes('fetch') || error.message.includes('network')) {
+            showNotification('Failed to connect to API. Please check the backend is running.', 'error');
+        }
     }
     
     // Auto-refresh every 30 seconds
@@ -772,7 +774,12 @@ async function deployApp(catalogId) {
         hideDeploymentProgress();
         showNotification(`Application deployed successfully!`, 'success');
         
-        // Reload apps and proxy status
+        // Wait a moment for proxy vhost to be fully propagated
+        // Then reload to get the correct proxy URL instead of direct LXC IP
+        console.log('Waiting for proxy vhost propagation...');
+        await new Promise(resolve => setTimeout(resolve, 2000)); // 2 second delay
+        
+        // Reload apps and proxy status to get updated URLs
         await loadDeployedApps();
         await loadSystemInfo();
         await loadProxyStatus();
@@ -1704,18 +1711,6 @@ function setupEventListeners() {
         if (e.target.id === 'deployModal') {
             closeModal();
         }
-    });
-    
-    // Search functionality
-    const searchInput = document.querySelector('.search-input');
-    let searchTimeout;
-    searchInput.addEventListener('input', (e) => {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
-            const query = e.target.value.toLowerCase();
-            // Implement search functionality
-            console.log('Searching for:', query);
-        }, 300);
     });
 }
 
