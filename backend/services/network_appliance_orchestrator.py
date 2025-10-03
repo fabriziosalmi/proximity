@@ -167,18 +167,22 @@ class NetworkApplianceOrchestrator:
             logger.error(f"Failed to initialize network appliance: {e}", exc_info=True)
             return False
     
-    async def setup_host_bridge(self) -> bool:
+    async def setup_host_bridge(self, target_node: str = None) -> bool:
         """
-        Provision the proximity-lan bridge on the Proxmox host.
+        Provision the proximity-lan bridge on the Proxmox host (or specific node).
         
         This creates a simple, unconfigured bridge that will be managed
         entirely by the appliance LXC. The bridge has no IP on the host itself.
+        
+        Args:
+            target_node: Optional specific node to create bridge on. If None, uses default SSH host.
         
         Returns:
             bool: True if bridge exists or was created successfully
         """
         try:
-            logger.info(f"Checking for {self.BRIDGE_NAME} bridge on Proxmox host...")
+            node_info = f" on node {target_node}" if target_node else ""
+            logger.info(f"Checking for {self.BRIDGE_NAME} bridge{node_info}...")
             
             # Check if bridge already exists
             check_cmd = f"ip link show {self.BRIDGE_NAME}"
@@ -193,17 +197,39 @@ class NetworkApplianceOrchestrator:
             
             commands = [
                 f"ip link add name {self.BRIDGE_NAME} type bridge",
-                f"ip link set {self.BRIDGE_NAME} up"
+                f"ip link set {self.BRIDGE_NAME} up",
+                f"ip link set {self.BRIDGE_NAME} master {self.BRIDGE_NAME} 2>/dev/null || true"  # Ensure bridge is its own master
             ]
             
             for cmd in commands:
                 result = await self._exec_on_host(cmd)
-                if result.get('exitcode') != 0:
+                if result.get('exitcode') != 0 and "already exists" not in result.get('error', '').lower():
                     logger.error(f"Failed to execute: {cmd}")
                     return False
             
             # Make persistent in /etc/network/interfaces
-            await self._persist_bridge_config()
+            persist_success = await self._persist_bridge_config()
+            
+            if persist_success:
+                # Reload Proxmox networking to register the bridge
+                logger.info("Reloading Proxmox network configuration...")
+                reload_cmd = "ifreload -a"
+                reload_result = await self._exec_on_host(reload_cmd)
+                
+                if reload_result.get('exitcode') == 0:
+                    logger.info("✓ Proxmox network configuration reloaded")
+                else:
+                    logger.warning("⚠ Could not reload network config (bridge active but may need manual reload)")
+            
+            # Verify bridge is visible to Proxmox
+            verify_cmd = f"pvesh get /nodes/$(hostname)/network --type bridge 2>/dev/null || brctl show"
+            verify_result = await self._exec_on_host(verify_cmd)
+            
+            if verify_result and self.BRIDGE_NAME in verify_result.get('output', ''):
+                logger.info(f"✓ Bridge {self.BRIDGE_NAME} verified in Proxmox network list")
+            else:
+                logger.warning(f"⚠ Bridge {self.BRIDGE_NAME} not yet visible in Proxmox network list")
+                logger.warning("  This is normal - bridge will be available after networking reload")
             
             logger.info(f"✓ Created {self.BRIDGE_NAME} bridge successfully")
             return True
@@ -238,6 +264,16 @@ iface {self.BRIDGE_NAME} inet manual
             
             if result.get('exitcode') == 0:
                 logger.info(f"✓ Persisted {self.BRIDGE_NAME} configuration")
+                
+                # Bring up the bridge using ifup to ensure it's properly registered
+                ifup_cmd = f"ifup {self.BRIDGE_NAME}"
+                ifup_result = await self._exec_on_host(ifup_cmd)
+                
+                if ifup_result.get('exitcode') == 0:
+                    logger.info(f"✓ Bridge {self.BRIDGE_NAME} activated via ifup")
+                else:
+                    logger.warning(f"Could not activate bridge via ifup (may already be up)")
+                
                 return True
             else:
                 logger.warning("Could not persist bridge config (will work until reboot)")
@@ -591,15 +627,91 @@ import /etc/caddy/sites-enabled/*
         """
         return self.appliance_info
     
-    async def get_container_network_config(self, hostname: str) -> str:
+    async def ensure_bridge_on_node(self, node: str) -> bool:
+        """
+        Ensure the proximity-lan bridge exists on a specific Proxmox node.
+        
+        This is critical for Proxmox clusters where each node needs its own bridge.
+        The bridge must exist on the node where a container will be deployed.
+        
+        Args:
+            node: Name of the Proxmox node (e.g., 'opti2', 'pve')
+            
+        Returns:
+            bool: True if bridge exists or was created successfully on the node
+        """
+        try:
+            logger.info(f"Ensuring {self.BRIDGE_NAME} bridge exists on node {node}...")
+            
+            # Check if bridge exists on this node
+            check_cmd = f"ssh root@{node} 'ip link show {self.BRIDGE_NAME}' 2>/dev/null"
+            result = await self._exec_on_host(check_cmd)
+            
+            if result and result.get('exitcode') == 0:
+                logger.info(f"✓ Bridge {self.BRIDGE_NAME} already exists on node {node}")
+                return True
+            
+            # Bridge doesn't exist, create it
+            logger.info(f"Creating {self.BRIDGE_NAME} bridge on node {node}...")
+            
+            create_cmds = [
+                f"ssh root@{node} 'ip link add name {self.BRIDGE_NAME} type bridge'",
+                f"ssh root@{node} 'ip link set {self.BRIDGE_NAME} up'",
+            ]
+            
+            for cmd in create_cmds:
+                result = await self._exec_on_host(cmd)
+                if result.get('exitcode') != 0 and "already exists" not in result.get('error', '').lower():
+                    logger.error(f"Failed to create bridge on {node}: {cmd}")
+                    return False
+            
+            # Persist the configuration on the target node
+            config = f"""
+# Proximity isolated network bridge (auto-generated)
+auto {self.BRIDGE_NAME}
+iface {self.BRIDGE_NAME} inet manual
+    bridge-ports none
+    bridge-stp off
+    bridge-fd 0
+"""
+            
+            # Check if already in config
+            check_config_cmd = f"ssh root@{node} 'grep -q {self.BRIDGE_NAME} /etc/network/interfaces'"
+            check_result = await self._exec_on_host(check_config_cmd)
+            
+            if check_result.get('exitcode') != 0:
+                # Not in config, add it
+                persist_cmd = f"ssh root@{node} 'echo \"{config}\" >> /etc/network/interfaces'"
+                persist_result = await self._exec_on_host(persist_cmd)
+                
+                if persist_result.get('exitcode') == 0:
+                    logger.info(f"✓ Bridge configuration persisted on node {node}")
+                    
+                    # Reload networking on that node
+                    reload_cmd = f"ssh root@{node} 'ifreload -a'"
+                    await self._exec_on_host(reload_cmd)
+                else:
+                    logger.warning(f"Could not persist bridge config on node {node}")
+            
+            logger.info(f"✓ Bridge {self.BRIDGE_NAME} ready on node {node}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to ensure bridge on node {node}: {e}")
+            return False
+    
+    async def get_container_network_config(self, hostname: str, node: str = None) -> str:
         """
         Get network configuration string for a container to be deployed.
         
         This method provides compatibility with ProxmoxService's network_manager interface.
         Returns a network configuration string that connects the container to proximity-lan bridge.
         
+        Automatically ensures the bridge exists on the target node before returning config.
+        
         Args:
             hostname: Hostname for the container (used for logging)
+            node: Target Proxmox node where container will be deployed (optional)
             
         Returns:
             str: Network configuration string (e.g., "name=eth0,bridge=proximity-lan,ip=dhcp")
@@ -608,11 +720,19 @@ import /etc/caddy/sites-enabled/*
             logger.warning(f"Network appliance not initialized for {hostname}, using default bridge")
             return "name=eth0,bridge=vmbr0,ip=dhcp,firewall=1"
         
+        # Ensure bridge exists on target node before returning config
+        if node:
+            logger.info(f"Ensuring {self.BRIDGE_NAME} bridge exists on node {node}...")
+            bridge_ready = await self.ensure_bridge_on_node(node)
+            if not bridge_ready:
+                logger.warning(f"Failed to ensure bridge on {node}, falling back to vmbr0")
+                return "name=eth0,bridge=vmbr0,ip=dhcp,firewall=1"
+        
         # Container connects to proximity-lan bridge with DHCP
         # The appliance's dnsmasq will assign IP addresses from 10.20.0.100-250
-        net_config = f"name=eth0,bridge={self.bridge_name},ip=dhcp,firewall=1"
+        net_config = f"name=eth0,bridge={self.BRIDGE_NAME},ip=dhcp,firewall=1"
         
-        logger.info(f"Container {hostname} will use proximity-lan network (DHCP-managed)")
+        logger.info(f"Container {hostname} will use proximity-lan network on node {node} (DHCP-managed)")
         
         return net_config
     

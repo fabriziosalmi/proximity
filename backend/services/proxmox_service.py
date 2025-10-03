@@ -202,7 +202,7 @@ class ProxmoxService:
             hostname = config.get('hostname', f"ct{vmid}")
             
             if self.network_manager:
-                net_config = await self.network_manager.get_container_network_config(hostname)
+                net_config = await self.network_manager.get_container_network_config(hostname, node)
                 logger.info(f"Using managed network config: {net_config}")
             else:
                 # Fallback to default bridge (vmbr0) with DHCP when NetworkManager not available

@@ -71,8 +71,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                 logger.info(f"   • Gateway: 10.20.0.1")
                 logger.info(f"   • DHCP Range: 10.20.0.100-250")
                 logger.info(f"   • DNS Domain: .prox.local")
-                if orchestrator.appliance_info.management_url:
-                    logger.info(f"   • Management UI: {orchestrator.appliance_info.management_url}")
+                logger.info(f"   • Management UI: http://{orchestrator.appliance_info.wan_ip}:9090")
         
         # Inject orchestrator into ProxmoxService for network config
         # Note: orchestrator may be None if initialization failed (will use vmbr0 fallback)
@@ -108,7 +107,6 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                 from services.reverse_proxy_manager import ReverseProxyManager
                 
                 proxy_manager = ReverseProxyManager(
-                    proxmox_service=proxmox_service,
                     appliance_vmid=orchestrator.appliance_info.vmid
                 )
                 

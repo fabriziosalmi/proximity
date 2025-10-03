@@ -45,6 +45,9 @@ class AppService:
 
     async def _load_apps(self) -> None:
         """Load deployed apps from disk"""
+        if self._apps_loaded:
+            return  # Already loaded
+        
         try:
             if self._apps_file.exists():
                 with open(self._apps_file, 'r') as f:
@@ -60,8 +63,11 @@ class AppService:
             else:
                 # Create empty apps file
                 await self._save_apps()
+            
+            self._apps_loaded = True  # Mark as loaded
         except Exception as e:
             logger.error(f"Failed to load apps: {e}")
+            self._apps_loaded = True  # Mark as attempted to prevent retry loops
 
     async def _save_apps(self) -> None:
         """Save deployed apps to disk"""
@@ -75,6 +81,9 @@ class AppService:
 
     async def _load_catalog(self) -> None:
         """Load application catalog from individual app files"""
+        if self._catalog_loaded and self._catalog_cache is not None:
+            return  # Already loaded
+        
         try:
             # Default to ./catalog relative to backend directory in development
             if settings.APP_CATALOG_PATH:
@@ -138,10 +147,13 @@ class AppService:
                 # Create default catalog
                 logger.warning("No catalog found, creating default catalog...")
                 await self._create_default_catalog()
+            
+            self._catalog_loaded = True  # Mark as loaded
                 
         except Exception as e:
             logger.error(f"Failed to load catalog: {e}", exc_info=True)
             await self._create_default_catalog()
+            self._catalog_loaded = True  # Mark as attempted
 
     async def _create_default_catalog(self) -> None:
         """Create a default catalog with common applications"""
@@ -256,12 +268,20 @@ class AppService:
 
     async def get_all_apps(self) -> List[App]:
         """Get all deployed applications"""
+        # Lazy load apps from disk if not already loaded
+        if not self._apps_loaded:
+            await self._load_apps()
+        
         # Sync with actual LXC containers
         await self._sync_apps_with_containers()
         return list(self._apps_db.values())
 
     async def get_app(self, app_id: str) -> App:
         """Get specific application"""
+        # Lazy load apps from disk if not already loaded
+        if not self._apps_loaded:
+            await self._load_apps()
+        
         if app_id not in self._apps_db:
             raise AppServiceError(f"App '{app_id}' not found")
         
