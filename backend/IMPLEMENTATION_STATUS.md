@@ -39,7 +39,7 @@
 
 ---
 
-### **PHASE 2: MVP PRO** - P1-1 SETTINGS PAGE COMPLETE ✅
+### **PHASE 2: MVP PRO** - P1-1 SETTINGS + P1-2 INFRASTRUCTURE COMPLETE ✅
 
 #### **P1-1: Settings Page (Full Stack)** ✅
 
@@ -114,6 +114,39 @@
 
 ---
 
+#### **P1-2: Infrastructure Page (Full Stack)** ✅
+
+**Backend Endpoints Added** (`api/endpoints/system.py`):
+1. ✅ `POST /infrastructure/appliance/restart` - Restart network appliance container
+2. ✅ `GET /infrastructure/appliance/logs` - View system logs, service status, NAT rules
+3. ✅ `POST /infrastructure/test-nat` - Test NAT connectivity (DNS, ping, routes)
+4. ✅ `POST /infrastructure/rebuild-bridge` - Rebuild proximity-lan bridge
+5. ✅ `GET /infrastructure/status` - Comprehensive infrastructure status (already existed)
+
+**Frontend Features** (`app.js` + `styles.css`):
+- 🌐 Network Appliance status dashboard with real-time data
+- 📊 Service health grid (DNSMASQ, Caddy, NAT) with visual indicators
+- 🔧 Diagnostic tools (Restart, View Logs, Test NAT)
+- 📡 Network configuration display (bridge, subnet, DHCP, DNS)
+- 📋 Connected applications table with IP addresses and DNS names
+- 🖥️ Proxmox nodes resource monitoring
+- 🔄 Auto-refresh infrastructure status
+- 📝 Logs viewer modal with system logs, service status, network status, NAT rules
+- ✅ NAT connectivity test with pass/fail indicators
+- 🎨 Modern UI with service health cards and responsive tables
+
+**Features Implemented**:
+- ✅ Real-time appliance monitoring (VMID, uptime, resources)
+- ✅ Service health monitoring (DNSMASQ, Caddy, NAT)
+- ✅ Restart appliance with confirmation dialog
+- ✅ View appliance logs in formatted modal
+- ✅ Test NAT connectivity with detailed results
+- ✅ Connected apps listing with IP/DNS information
+- ✅ Health status indicators (healthy/degraded/not_initialized)
+- ✅ Responsive design for mobile and desktop
+
+---
+
 ## 🚧 REMAINING WORK
 
 ### **PHASE 1 Remaining** (40%):
@@ -134,18 +167,6 @@
 ---
 
 ### **PHASE 2 Remaining**:
-
-#### **P1-2: Infrastructure Page** (Days 4-5)
-- [ ] Add diagnostic endpoints to `system.py`:
-  - [ ] `POST /infrastructure/appliance/restart`
-  - [ ] `GET /infrastructure/appliance/logs`
-  - [ ] `POST /infrastructure/test-nat`
-  - [ ] `POST /infrastructure/rebuild-bridge`
-- [ ] Create Infrastructure UI:
-  - [ ] Appliance status dashboard
-  - [ ] Service health grid (dnsmasq, Caddy, NAT)
-  - [ ] Connected apps table
-  - [ ] Diagnostic tools (restart, logs, test)
 
 #### **P1-3: Backup/Restore** (Days 6-7)
 - [ ] Create `services/backup_service.py`:
@@ -195,14 +216,14 @@
 | **Encryption Service** | ✅ Complete | 100% |
 | **Settings Backend** | ✅ Complete | 100% |
 | **Settings Frontend** | ✅ Complete | 100% |
-| **Infrastructure Backend** | ⚠️ Partial (API exists) | 50% |
-| **Infrastructure Frontend** | 🔜 TODO | 0% |
+| **Infrastructure Backend** | ✅ Complete | 100% |
+| **Infrastructure Frontend** | ✅ Complete | 100% |
 | **Backup/Restore** | 🔜 TODO | 0% |
 | **Update/Rollback** | 🔜 TODO | 0% |
 | **Monitoring** | 🔜 TODO | 0% |
 | **Documentation** | ✅ Excellent | 90% |
 
-**Overall Progress**: ████████░░ **75%** of Phase 1 + **30%** of Phase 2 = **50%** total
+**Overall Progress**: ████████░░ **75%** of Phase 1 + **50%** of Phase 2 = **60%** total
 
 ---
 
@@ -280,17 +301,17 @@ curl http://localhost:8765/api/v1/settings/all \
 3. ✅ Verify audit logging (check audit_logs table)
 4. ✅ Settings Frontend Complete (tabs, forms, validation, connection testing)
 
-### **Up Next (Infrastructure Page)**:
-1. 📝 Add diagnostic endpoints to `system.py`
-2. 📝 Create Infrastructure UI
-3. 📝 Add service health monitoring
-4. 📝 Implement appliance restart/logs functionality
+### **Up Next (Backup & Restore)**:
+1. 📝 Create backup service with vzdump integration
+2. 📝 Create backup API endpoints
+3. 📝 Create backup UI with restore functionality
+4. 📝 Implement scheduled backups
 
 ### **Week 3 Remaining**:
-1. 📝 Infrastructure diagnostic endpoints
-2. 📝 Infrastructure UI
-3. 📝 Backup service implementation
-4. 📝 Backup UI
+1. 📝 Backup service implementation
+2. 📝 Backup UI
+3. 📝 Update/rollback functionality
+4. 📝 Monitoring integration
 
 ---
 
@@ -342,4 +363,4 @@ curl http://localhost:8765/api/v1/settings/all \
 
 ---
 
-*Current focus: Settings page complete! Next: Infrastructure page diagnostics and UI*
+*Current focus: Settings + Infrastructure pages complete (60% total)! Next: Backup/Restore functionality*

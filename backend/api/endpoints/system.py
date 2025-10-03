@@ -422,3 +422,274 @@ async def get_infrastructure_status():
     except Exception as e:
         logger.error(f"Failed to get infrastructure status: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/infrastructure/appliance/restart")
+async def restart_network_appliance():
+    """
+    Restart the Network Appliance container.
+
+    This will restart all services (dnsmasq, Caddy, NAT).
+    Use this to recover from service failures or apply configuration changes.
+    """
+    try:
+        from main import app
+        from services.proxmox_service import proxmox_service
+
+        orchestrator = getattr(app.state, 'orchestrator', None)
+
+        if not orchestrator or not orchestrator.appliance_info:
+            raise HTTPException(
+                status_code=404,
+                detail="Network appliance not found. Infrastructure may not be initialized."
+            )
+
+        vmid = orchestrator.appliance_info.vmid
+        node = orchestrator.appliance_info.node
+
+        logger.info(f"Restarting network appliance VMID {vmid} on node {node}")
+
+        # Stop the container
+        await proxmox_service.stop_container(node, vmid)
+
+        # Wait a moment for clean shutdown
+        import asyncio
+        await asyncio.sleep(2)
+
+        # Start the container
+        await proxmox_service.start_container(node, vmid)
+
+        # Wait for services to come up
+        await asyncio.sleep(3)
+
+        logger.info(f"Network appliance VMID {vmid} restarted successfully")
+
+        return APIResponse(
+            message="Network appliance restarted successfully",
+            data={
+                "vmid": vmid,
+                "node": node,
+                "hostname": orchestrator.appliance_info.hostname,
+                "status": "restarted",
+                "note": "Services should be available in a few seconds"
+            }
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to restart network appliance: {e}")
+        raise HTTPException(status_code=500, detail=f"Restart failed: {str(e)}")
+
+
+@router.get("/infrastructure/appliance/logs")
+async def get_appliance_logs(lines: int = 100):
+    """
+    Get recent logs from the Network Appliance.
+
+    Returns system logs, service status, and diagnostic information.
+    Query parameter 'lines' controls how many log lines to retrieve (default: 100).
+    """
+    try:
+        from main import app
+
+        orchestrator = getattr(app.state, 'orchestrator', None)
+
+        if not orchestrator or not orchestrator.appliance_info:
+            raise HTTPException(
+                status_code=404,
+                detail="Network appliance not found"
+            )
+
+        vmid = orchestrator.appliance_info.vmid
+        node = orchestrator.appliance_info.node
+
+        # Get logs via LXC exec
+        from services.proxmox_service import proxmox_service
+
+        # Get system logs
+        system_logs_cmd = f"tail -n {lines} /var/log/messages 2>/dev/null || dmesg | tail -n {lines}"
+        system_logs = await proxmox_service.exec_command(node, vmid, system_logs_cmd)
+
+        # Get dnsmasq status
+        dnsmasq_status_cmd = "rc-status | grep dnsmasq || echo 'dnsmasq status unknown'"
+        dnsmasq_status = await proxmox_service.exec_command(node, vmid, dnsmasq_status_cmd)
+
+        # Get network interface status
+        network_status_cmd = "ip addr show proximity-lan 2>/dev/null || echo 'Bridge not found'"
+        network_status = await proxmox_service.exec_command(node, vmid, network_status_cmd)
+
+        # Get NAT rules
+        nat_rules_cmd = "iptables -t nat -L POSTROUTING -n -v 2>/dev/null || echo 'Cannot read NAT rules'"
+        nat_rules = await proxmox_service.exec_command(node, vmid, nat_rules_cmd)
+
+        return APIResponse(
+            message="Appliance logs retrieved",
+            data={
+                "vmid": vmid,
+                "node": node,
+                "logs": {
+                    "system": system_logs.strip(),
+                    "dnsmasq_status": dnsmasq_status.strip(),
+                    "network_status": network_status.strip(),
+                    "nat_rules": nat_rules.strip()
+                },
+                "timestamp": None
+            }
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get appliance logs: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve logs: {str(e)}")
+
+
+@router.post("/infrastructure/test-nat")
+async def test_nat_connectivity():
+    """
+    Test NAT connectivity from the Network Appliance.
+
+    Attempts to ping external hosts and verify DNS resolution
+    to ensure NAT and routing are working correctly.
+    """
+    try:
+        from main import app
+        from services.proxmox_service import proxmox_service
+
+        orchestrator = getattr(app.state, 'orchestrator', None)
+
+        if not orchestrator or not orchestrator.appliance_info:
+            raise HTTPException(
+                status_code=404,
+                detail="Network appliance not found"
+            )
+
+        vmid = orchestrator.appliance_info.vmid
+        node = orchestrator.appliance_info.node
+
+        logger.info(f"Testing NAT connectivity for appliance VMID {vmid}")
+
+        # Test DNS resolution
+        dns_test = await proxmox_service.exec_command(
+            node, vmid,
+            "nslookup google.com 2>&1 || echo 'DNS test failed'"
+        )
+        dns_working = "Address" in dns_test or "answer" in dns_test.lower()
+
+        # Test internet connectivity
+        ping_test = await proxmox_service.exec_command(
+            node, vmid,
+            "ping -c 3 -W 2 8.8.8.8 2>&1 || echo 'Ping failed'"
+        )
+        ping_working = "3 packets transmitted, 3 received" in ping_test or "0% packet loss" in ping_test
+
+        # Check default route
+        route_test = await proxmox_service.exec_command(
+            node, vmid,
+            "ip route show default 2>&1"
+        )
+        route_configured = "default via" in route_test
+
+        # Check NAT rules
+        nat_check = await proxmox_service.exec_command(
+            node, vmid,
+            "iptables -t nat -L POSTROUTING -n 2>&1 | grep -i masquerade || echo 'No NAT rules'"
+        )
+        nat_configured = "MASQUERADE" in nat_check
+
+        overall_success = dns_working and ping_working and route_configured and nat_configured
+
+        return APIResponse(
+            message="NAT connectivity test complete" if overall_success else "NAT connectivity issues detected",
+            data={
+                "success": overall_success,
+                "tests": {
+                    "dns_resolution": {
+                        "passed": dns_working,
+                        "output": dns_test.strip()
+                    },
+                    "internet_connectivity": {
+                        "passed": ping_working,
+                        "output": ping_test.strip()
+                    },
+                    "default_route": {
+                        "passed": route_configured,
+                        "output": route_test.strip()
+                    },
+                    "nat_rules": {
+                        "passed": nat_configured,
+                        "output": nat_check.strip()
+                    }
+                },
+                "timestamp": None
+            }
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"NAT connectivity test failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Test failed: {str(e)}")
+
+
+@router.post("/infrastructure/rebuild-bridge")
+async def rebuild_network_bridge():
+    """
+    Rebuild the proximity-lan bridge on the Proxmox host.
+
+    WARNING: This will temporarily disconnect all containers on the bridge.
+    Use only if bridge configuration is corrupted or missing.
+    """
+    try:
+        from main import app
+        from services.proxmox_service import proxmox_service
+
+        orchestrator = getattr(app.state, 'orchestrator', None)
+
+        if not orchestrator or not orchestrator.appliance_info:
+            raise HTTPException(
+                status_code=404,
+                detail="Network appliance not found"
+            )
+
+        node = orchestrator.appliance_info.node
+
+        logger.warning(f"Rebuilding proximity-lan bridge on node {node}")
+
+        # Execute bridge rebuild via orchestrator
+        success = await orchestrator._ensure_bridge_exists(node)
+
+        if not success:
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to rebuild bridge. Check Proxmox host permissions."
+            )
+
+        # Restart appliance to apply new bridge configuration
+        vmid = orchestrator.appliance_info.vmid
+        await proxmox_service.stop_container(node, vmid)
+
+        import asyncio
+        await asyncio.sleep(2)
+
+        await proxmox_service.start_container(node, vmid)
+
+        logger.info(f"Bridge rebuilt and appliance restarted on node {node}")
+
+        return APIResponse(
+            message="Network bridge rebuilt successfully",
+            data={
+                "node": node,
+                "bridge": "proximity-lan",
+                "status": "rebuilt",
+                "appliance_restarted": True,
+                "note": "All containers on this bridge have been reconnected"
+            }
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to rebuild bridge: {e}")
+        raise HTTPException(status_code=500, detail=f"Bridge rebuild failed: {str(e)}")

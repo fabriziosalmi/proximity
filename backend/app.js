@@ -503,58 +503,294 @@ function renderCatalogView() {
     view.innerHTML = content;
 }
 
-function renderNodesView() {
+async function renderNodesView() {
     const view = document.getElementById('nodesView');
-    
+
+    // Load infrastructure status
+    showLoading('Loading infrastructure status...');
+    let infrastructure = null;
+
+    try {
+        const token = localStorage.getItem('auth_token');
+        if (token) {
+            const response = await fetch(`${API_BASE}/system/infrastructure/status`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.ok) {
+                const result = await response.json();
+                infrastructure = result.data;
+            }
+        }
+    } catch (error) {
+        console.error('Error loading infrastructure:', error);
+    }
+    hideLoading();
+
+    // Prepare appliance info
+    const appliance = infrastructure?.appliance || null;
+    const services = infrastructure?.services || {};
+    const network = infrastructure?.network || {};
+    const connected_apps = infrastructure?.connected_apps || [];
+    const health_status = infrastructure?.health_status || 'unknown';
+
     const content = `
         <div class="page-header">
             <div class="page-title-row">
                 <div>
                     <h1 class="page-title">Infrastructure</h1>
-                    <p class="page-subtitle">Proxmox nodes and resources</p>
+                    <p class="page-subtitle">Network appliance and service health</p>
+                </div>
+                <button class="btn btn-secondary" onclick="refreshInfrastructure()">
+                    <i data-lucide="refresh-cw"></i>
+                    <span>Refresh</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Health Overview -->
+        <div class="alert ${health_status === 'healthy' ? 'success' : health_status === 'degraded' ? 'warning' : 'info'}">
+            <span class="alert-icon">${health_status === 'healthy' ? '✅' : health_status === 'degraded' ? '⚠️' : 'ℹ️'}</span>
+            <div class="alert-content">
+                <div class="alert-title">Infrastructure Status: ${health_status.charAt(0).toUpperCase() + health_status.slice(1)}</div>
+                <div class="alert-message">
+                    ${health_status === 'healthy' ? 'All services operational' :
+                      health_status === 'degraded' ? 'Some services may be experiencing issues' :
+                      'Infrastructure not initialized or unavailable'}
                 </div>
             </div>
         </div>
-        
-        <div class="apps-grid">
-            ${state.nodes.map(node => `
-                <div class="app-card">
-                    <div class="app-card-header">
-                        <div class="app-icon-lg">🖥️</div>
-                        <div class="app-info">
-                            <h3 class="app-name">${node.node}</h3>
-                            <span class="status-badge ${node.status === 'online' ? 'running' : 'stopped'}">
-                                <span class="status-dot"></span>
-                                ${node.status}
-                            </span>
-                        </div>
-                    </div>
-                    <div class="app-meta">
-                        <div class="app-meta-item">
-                            <span>💾</span>
-                            <span>${formatBytes(node.mem || 0)} / ${formatBytes(node.maxmem || 0)}</span>
-                        </div>
-                        <div class="app-meta-item">
-                            <span>⚡</span>
-                            <span>${node.maxcpu || 0} vCPU</span>
-                        </div>
-                    </div>
-                    <div class="app-meta">
-                        <div class="app-meta-item">
-                            <span>📊</span>
-                            <span>${node.maxcpu > 0 ? Math.round((node.cpu / node.maxcpu) * 100) : 0}% CPU</span>
-                        </div>
-                        <div class="app-meta-item">
-                            <span>💿</span>
-                            <span>${formatBytes(node.disk || 0)} / ${formatBytes(node.maxdisk || 0)}</span>
-                        </div>
+
+        <!-- Network Appliance Card -->
+        ${appliance ? `
+        <div class="infrastructure-section">
+            <h2 class="section-title">Network Appliance</h2>
+            <div class="app-card">
+                <div class="app-card-header">
+                    <div class="app-icon-lg">🌐</div>
+                    <div class="app-info">
+                        <h3 class="app-name">${appliance.hostname || 'Network Appliance'}</h3>
+                        <span class="status-badge ${appliance.status === 'running' ? 'running' : 'stopped'}">
+                            <span class="status-dot"></span>
+                            ${appliance.status || 'unknown'}
+                        </span>
                     </div>
                 </div>
-            `).join('')}
+
+                <div class="app-meta" style="margin-top: 1rem;">
+                    <div class="app-meta-item">
+                        <span>🔢</span>
+                        <span>VMID: ${appliance.vmid || 'N/A'}</span>
+                    </div>
+                    <div class="app-meta-item">
+                        <span>🖥️</span>
+                        <span>Node: ${appliance.node || 'N/A'}</span>
+                    </div>
+                    <div class="app-meta-item">
+                        <span>🌍</span>
+                        <span>WAN IP: ${appliance.wan_ip || 'N/A'}</span>
+                    </div>
+                    <div class="app-meta-item">
+                        <span>🔌</span>
+                        <span>LAN IP: ${appliance.lan_ip || 'N/A'}</span>
+                    </div>
+                </div>
+
+                <div class="app-meta" style="margin-top: 0.75rem;">
+                    <div class="app-meta-item">
+                        <span>💾</span>
+                        <span>RAM: ${appliance.memory || 'N/A'} MB</span>
+                    </div>
+                    <div class="app-meta-item">
+                        <span>⚡</span>
+                        <span>CPU: ${appliance.cores || 'N/A'} cores</span>
+                    </div>
+                    <div class="app-meta-item">
+                        <span>💿</span>
+                        <span>Disk: ${appliance.disk || 'N/A'} GB</span>
+                    </div>
+                    <div class="app-meta-item">
+                        <span>⏱️</span>
+                        <span>Uptime: ${appliance.uptime || 'N/A'}</span>
+                    </div>
+                </div>
+
+                <div class="infrastructure-actions" style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
+                    <button class="btn btn-secondary btn-sm" onclick="restartAppliance()">
+                        <i data-lucide="rotate-cw"></i>
+                        <span>Restart Appliance</span>
+                    </button>
+                    <button class="btn btn-secondary btn-sm" onclick="viewApplianceLogs()">
+                        <i data-lucide="file-text"></i>
+                        <span>View Logs</span>
+                    </button>
+                    <button class="btn btn-secondary btn-sm" onclick="testNAT()">
+                        <i data-lucide="zap"></i>
+                        <span>Test NAT</span>
+                    </button>
+                </div>
+
+                <div id="infrastructureStatus" style="margin-top: 1rem;"></div>
+            </div>
+        </div>
+        ` : `
+        <div class="infrastructure-section">
+            <h2 class="section-title">Network Appliance</h2>
+            <div class="alert warning">
+                <span class="alert-icon">⚠️</span>
+                <div class="alert-content">
+                    <div class="alert-title">Network Appliance Not Found</div>
+                    <div class="alert-message">The network appliance may not be deployed yet. It will be created automatically when you deploy your first app.</div>
+                </div>
+            </div>
+        </div>
+        `}
+
+        <!-- Services Health Grid -->
+        ${Object.keys(services).length > 0 ? `
+        <div class="infrastructure-section">
+            <h2 class="section-title">Services Health</h2>
+            <div class="services-grid">
+                ${Object.entries(services).map(([name, service]) => `
+                    <div class="service-card ${service.healthy ? 'healthy' : 'unhealthy'}">
+                        <div class="service-header">
+                            <div class="service-icon">
+                                ${name === 'dnsmasq' ? '🌐' :
+                                  name === 'caddy' ? '🔀' :
+                                  name === 'nat' ? '🔗' : '⚙️'}
+                            </div>
+                            <div class="service-info">
+                                <h3 class="service-name">${name.charAt(0).toUpperCase() + name.slice(1)}</h3>
+                                <span class="service-status ${service.healthy ? 'healthy' : 'unhealthy'}">
+                                    ${service.healthy ? '● Running' : '○ Stopped'}
+                                </span>
+                            </div>
+                        </div>
+                        ${service.details ? `
+                        <div class="service-details">
+                            <small>${service.details}</small>
+                        </div>
+                        ` : ''}
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+        ` : ''}
+
+        <!-- Network Configuration -->
+        ${network.subnet ? `
+        <div class="infrastructure-section">
+            <h2 class="section-title">Network Configuration</h2>
+            <div class="app-card">
+                <div class="app-meta">
+                    <div class="app-meta-item">
+                        <span>🌐</span>
+                        <span>Bridge: ${network.bridge || 'proximity-lan'}</span>
+                    </div>
+                    <div class="app-meta-item">
+                        <span>📡</span>
+                        <span>Subnet: ${network.subnet || 'N/A'}</span>
+                    </div>
+                    <div class="app-meta-item">
+                        <span>🚪</span>
+                        <span>Gateway: ${network.gateway || 'N/A'}</span>
+                    </div>
+                    <div class="app-meta-item">
+                        <span>🔧</span>
+                        <span>DHCP: ${network.dhcp_range || 'N/A'}</span>
+                    </div>
+                </div>
+                <div class="app-meta" style="margin-top: 0.75rem;">
+                    <div class="app-meta-item">
+                        <span>📛</span>
+                        <span>DNS Domain: ${network.dns_domain || 'prox.local'}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        ` : ''}
+
+        <!-- Connected Apps -->
+        ${connected_apps && connected_apps.length > 0 ? `
+        <div class="infrastructure-section">
+            <h2 class="section-title">Connected Applications (${connected_apps.length})</h2>
+            <div class="connected-apps-table">
+                <table class="infrastructure-table">
+                    <thead>
+                        <tr>
+                            <th>App Name</th>
+                            <th>VMID</th>
+                            <th>IP Address</th>
+                            <th>Status</th>
+                            <th>DNS Name</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${connected_apps.map(app => `
+                            <tr>
+                                <td><strong>${app.name || 'N/A'}</strong></td>
+                                <td>${app.vmid || 'N/A'}</td>
+                                <td><code>${app.ip_address || 'N/A'}</code></td>
+                                <td>
+                                    <span class="status-badge ${app.status === 'running' ? 'running' : 'stopped'}">
+                                        <span class="status-dot"></span>
+                                        ${app.status || 'unknown'}
+                                    </span>
+                                </td>
+                                <td><code>${app.dns_name || app.name + '.prox.local' || 'N/A'}</code></td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        ` : ''}
+
+        <!-- Proxmox Nodes -->
+        <div class="infrastructure-section">
+            <h2 class="section-title">Proxmox Nodes</h2>
+            <div class="apps-grid">
+                ${state.nodes.map(node => `
+                    <div class="app-card">
+                        <div class="app-card-header">
+                            <div class="app-icon-lg">🖥️</div>
+                            <div class="app-info">
+                                <h3 class="app-name">${node.node}</h3>
+                                <span class="status-badge ${node.status === 'online' ? 'running' : 'stopped'}">
+                                    <span class="status-dot"></span>
+                                    ${node.status}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="app-meta">
+                            <div class="app-meta-item">
+                                <span>💾</span>
+                                <span>${formatBytes(node.mem || 0)} / ${formatBytes(node.maxmem || 0)}</span>
+                            </div>
+                            <div class="app-meta-item">
+                                <span>⚡</span>
+                                <span>${node.maxcpu || 0} vCPU</span>
+                            </div>
+                        </div>
+                        <div class="app-meta">
+                            <div class="app-meta-item">
+                                <span>📊</span>
+                                <span>${node.maxcpu > 0 ? Math.round((node.cpu / node.maxcpu) * 100) : 0}% CPU</span>
+                            </div>
+                            <div class="app-meta-item">
+                                <span>💿</span>
+                                <span>${formatBytes(node.disk || 0)} / ${formatBytes(node.maxdisk || 0)}</span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
         </div>
     `;
-    
+
     view.innerHTML = content;
+
+    // Initialize icons
+    initLucideIcons();
 }
 
 function renderMonitoringView() {
@@ -2267,6 +2503,230 @@ async function saveResourceSettings(formData) {
             </div>
         `;
         showNotification('Failed to save resource settings', 'error');
+    }
+}
+
+// Infrastructure Page Helpers
+async function refreshInfrastructure() {
+    showNotification('Refreshing infrastructure status...', 'info');
+    await renderNodesView();
+    showNotification('Infrastructure status refreshed', 'success');
+}
+
+async function restartAppliance() {
+    const statusDiv = document.getElementById('infrastructureStatus');
+    const token = localStorage.getItem('auth_token');
+
+    if (!token) {
+        statusDiv.innerHTML = `
+            <div class="alert error">
+                <span class="alert-icon">❌</span>
+                <div class="alert-content">
+                    <div class="alert-message">Not authenticated. Please log in.</div>
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    if (!confirm('Restart the Network Appliance? This will temporarily interrupt network services for all containers.')) {
+        return;
+    }
+
+    try {
+        showLoading('Restarting network appliance...');
+
+        const response = await fetch(`${API_BASE}/system/infrastructure/appliance/restart`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const result = await response.json();
+        hideLoading();
+
+        if (response.ok) {
+            statusDiv.innerHTML = `
+                <div class="alert success">
+                    <span class="alert-icon">✅</span>
+                    <div class="alert-content">
+                        <div class="alert-title">Appliance Restarted</div>
+                        <div class="alert-message">${result.message || 'Network appliance restarted successfully'}</div>
+                    </div>
+                </div>
+            `;
+            showNotification('Network appliance restarted successfully', 'success');
+
+            // Refresh infrastructure view after delay
+            setTimeout(async () => {
+                await refreshInfrastructure();
+            }, 5000);
+        } else {
+            statusDiv.innerHTML = `
+                <div class="alert error">
+                    <span class="alert-icon">❌</span>
+                    <div class="alert-content">
+                        <div class="alert-title">Restart Failed</div>
+                        <div class="alert-message">${result.detail || result.error || 'Failed to restart appliance'}</div>
+                    </div>
+                </div>
+            `;
+            showNotification('Failed to restart appliance', 'error');
+        }
+    } catch (error) {
+        hideLoading();
+        console.error('Error restarting appliance:', error);
+        statusDiv.innerHTML = `
+            <div class="alert error">
+                <span class="alert-icon">❌</span>
+                <div class="alert-content">
+                    <div class="alert-message">Network error: ${error.message}</div>
+                </div>
+            </div>
+        `;
+        showNotification('Failed to restart appliance', 'error');
+    }
+}
+
+async function viewApplianceLogs() {
+    const token = localStorage.getItem('auth_token');
+
+    if (!token) {
+        showNotification('Not authenticated', 'error');
+        return;
+    }
+
+    try {
+        showLoading('Fetching appliance logs...');
+
+        const response = await fetch(`${API_BASE}/system/infrastructure/appliance/logs?lines=50`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const result = await response.json();
+        hideLoading();
+
+        if (response.ok && result.data) {
+            const logs = result.data.logs;
+
+            // Display logs in a modal
+            const modalBody = document.getElementById('modalBody');
+            const modalTitle = document.getElementById('modalTitle');
+
+            modalTitle.textContent = 'Network Appliance Logs';
+            modalBody.innerHTML = `
+                <div class="logs-viewer">
+                    <div class="log-section">
+                        <h4 class="log-section-title">System Logs</h4>
+                        <pre class="log-output">${logs.system || 'No system logs available'}</pre>
+                    </div>
+
+                    <div class="log-section">
+                        <h4 class="log-section-title">DNSMASQ Status</h4>
+                        <pre class="log-output">${logs.dnsmasq_status || 'No dnsmasq status available'}</pre>
+                    </div>
+
+                    <div class="log-section">
+                        <h4 class="log-section-title">Network Status</h4>
+                        <pre class="log-output">${logs.network_status || 'No network status available'}</pre>
+                    </div>
+
+                    <div class="log-section">
+                        <h4 class="log-section-title">NAT Rules</h4>
+                        <pre class="log-output">${logs.nat_rules || 'No NAT rules available'}</pre>
+                    </div>
+                </div>
+
+                <div class="modal-actions" style="margin-top: 1.5rem; display: flex; justify-content: flex-end;">
+                    <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+                </div>
+            `;
+
+            document.getElementById('deployModal').classList.add('show');
+        } else {
+            showNotification('Failed to fetch logs', 'error');
+        }
+    } catch (error) {
+        hideLoading();
+        console.error('Error fetching logs:', error);
+        showNotification('Failed to fetch logs', 'error');
+    }
+}
+
+async function testNAT() {
+    const statusDiv = document.getElementById('infrastructureStatus');
+    const token = localStorage.getItem('auth_token');
+
+    if (!token) {
+        statusDiv.innerHTML = `
+            <div class="alert error">
+                <span class="alert-icon">❌</span>
+                <div class="alert-content">
+                    <div class="alert-message">Not authenticated. Please log in.</div>
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    try {
+        showLoading('Testing NAT connectivity...');
+
+        const response = await fetch(`${API_BASE}/system/infrastructure/test-nat`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const result = await response.json();
+        hideLoading();
+
+        if (response.ok && result.data) {
+            const { success, tests } = result.data;
+
+            const testResults = Object.entries(tests).map(([name, test]) => `
+                <div class="test-result ${test.passed ? 'passed' : 'failed'}">
+                    <div class="test-name">
+                        ${test.passed ? '✅' : '❌'}
+                        ${name.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                    </div>
+                </div>
+            `).join('');
+
+            statusDiv.innerHTML = `
+                <div class="alert ${success ? 'success' : 'error'}">
+                    <span class="alert-icon">${success ? '✅' : '❌'}</span>
+                    <div class="alert-content">
+                        <div class="alert-title">NAT Connectivity Test ${success ? 'Passed' : 'Failed'}</div>
+                        <div class="test-results" style="margin-top: 0.75rem;">
+                            ${testResults}
+                        </div>
+                    </div>
+                </div>
+            `;
+            showNotification(`NAT test ${success ? 'passed' : 'failed'}`, success ? 'success' : 'error');
+        } else {
+            statusDiv.innerHTML = `
+                <div class="alert error">
+                    <span class="alert-icon">❌</span>
+                    <div class="alert-content">
+                        <div class="alert-title">Test Failed</div>
+                        <div class="alert-message">${result.detail || result.error || 'Failed to run NAT test'}</div>
+                    </div>
+                </div>
+            `;
+            showNotification('NAT test failed', 'error');
+        }
+    } catch (error) {
+        hideLoading();
+        console.error('Error testing NAT:', error);
+        statusDiv.innerHTML = `
+            <div class="alert error">
+                <span class="alert-icon">❌</span>
+                <div class="alert-content">
+                    <div class="alert-message">Network error: ${error.message}</div>
+                </div>
+            </div>
+        `;
+        showNotification('NAT test failed', 'error');
     }
 }
 
