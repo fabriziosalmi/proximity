@@ -34,13 +34,14 @@ class AppService:
         self._catalog_cache: Optional[CatalogResponse] = None
         self._apps_file = Path(__file__).parent.parent / "data" / "apps.json"
         self._caddy_service = None  # Lazy-loaded Caddy service
+        self._catalog_loaded = False  # Track if catalog has been loaded
+        self._apps_loaded = False  # Track if apps have been loaded
         
         # Ensure data directory exists
         self._apps_file.parent.mkdir(parents=True, exist_ok=True)
         
-        # Load catalog and apps on startup
-        asyncio.create_task(self._load_catalog())
-        asyncio.create_task(self._load_apps())
+        # Note: Catalog and apps are now loaded lazily on first access
+        # to avoid event loop issues during dependency injection
 
     async def _load_apps(self) -> None:
         """Load deployed apps from disk"""
