@@ -1033,7 +1033,7 @@ import /etc/caddy/sites-enabled/*
     
     async def _exec_on_host(self, command: str) -> Optional[Dict[str, Any]]:
         """
-        Execute a command on the Proxmox host.
+        Execute a command on the Proxmox host via SSH.
         
         Args:
             command: Shell command to execute
@@ -1042,27 +1042,33 @@ import /etc/caddy/sites-enabled/*
             Dict with 'exitcode' and 'output', or None if failed
         """
         try:
-            # Use subprocess to execute on local host
-            proc = await asyncio.create_subprocess_shell(
-                command,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+            # Use ProxmoxService SSH to execute on remote host
+            output = await self.proxmox.execute_command_via_ssh(
+                node="",  # Not used by execute_command_via_ssh
+                command=command,
+                allow_nonzero_exit=True
             )
-            stdout, stderr = await proc.communicate()
             
+            # SSH method only raises on error if allow_nonzero_exit=False
+            # If we get here, command succeeded (exitcode 0)
             return {
-                'exitcode': proc.returncode,
-                'output': stdout.decode() if stdout else '',
-                'error': stderr.decode() if stderr else ''
+                'exitcode': 0,
+                'output': output,
+                'error': ''
             }
             
         except Exception as e:
+            # Command failed (non-zero exit or SSH error)
             logger.error(f"Failed to execute on host: {command} - {e}")
-            return None
+            return {
+                'exitcode': 1,
+                'output': '',
+                'error': str(e)
+            }
     
     async def _exec_in_lxc(self, vmid: int, command: str) -> Optional[Dict[str, Any]]:
         """
-        Execute a command inside an LXC container.
+        Execute a command inside an LXC container via SSH + pct exec.
         
         Args:
             vmid: VMID of the LXC container
@@ -1072,22 +1078,26 @@ import /etc/caddy/sites-enabled/*
             Dict with 'exitcode' and 'output', or None if failed
         """
         try:
-            # Use pct exec to run command in container
-            full_cmd = f"pct exec {vmid} -- sh -c '{command}'"
-            
-            proc = await asyncio.create_subprocess_shell(
-                full_cmd,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+            # Use ProxmoxService to execute via SSH + pct exec
+            output = await self.proxmox.execute_in_container(
+                node="",  # Not used by execute_in_container
+                vmid=vmid,
+                command=command,
+                allow_nonzero_exit=True
             )
-            stdout, stderr = await proc.communicate()
             
+            # If we get here, command succeeded (exitcode 0)
             return {
-                'exitcode': proc.returncode,
-                'output': stdout.decode() if stdout else '',
-                'error': stderr.decode() if stderr else ''
+                'exitcode': 0,
+                'output': output,
+                'error': ''
             }
             
         except Exception as e:
+            # Command failed (non-zero exit or SSH error)
             logger.error(f"Failed to execute in LXC {vmid}: {command} - {e}")
-            return None
+            return {
+                'exitcode': 1,
+                'output': '',
+                'error': str(e)
+            }
