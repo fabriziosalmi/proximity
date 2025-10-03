@@ -643,32 +643,35 @@ import /etc/caddy/sites-enabled/*
         try:
             logger.info(f"Ensuring {self.BRIDGE_NAME} bridge exists on node {node}...")
             
+            bridge_exists = False
+            
             # Check if bridge exists on this node (connect directly to the node)
             check_cmd = f"ip link show {self.BRIDGE_NAME}"
             try:
                 result = await self.proxmox.execute_on_node(node, check_cmd, allow_nonzero_exit=True)
                 if "does not exist" not in result.lower() and result.strip():
                     logger.info(f"✓ Bridge {self.BRIDGE_NAME} already exists on node {node}")
-                    return True
+                    bridge_exists = True
             except Exception as e:
                 logger.debug(f"Bridge check on {node}: {e}")
                 # Bridge doesn't exist, continue to creation
                 pass
             
-            # Bridge doesn't exist, create it
-            logger.info(f"Creating {self.BRIDGE_NAME} bridge on node {node}...")
+            # Create bridge if it doesn't exist
+            if not bridge_exists:
+                logger.info(f"Creating {self.BRIDGE_NAME} bridge on node {node}...")
+                
+                try:
+                    create_cmd = f"ip link add name {self.BRIDGE_NAME} type bridge && ip link set {self.BRIDGE_NAME} up"
+                    await self.proxmox.execute_on_node(node, create_cmd, allow_nonzero_exit=True)
+                    logger.info(f"✓ Bridge {self.BRIDGE_NAME} created on node {node}")
+                except Exception as e:
+                    if "already exists" not in str(e).lower():
+                        logger.error(f"Failed to create bridge on {node}: {e}")
+                        return False
             
-            # Create bridge directly on the target node
-            try:
-                create_cmd = f"ip link add name {self.BRIDGE_NAME} type bridge && ip link set {self.BRIDGE_NAME} up"
-                await self.proxmox.execute_on_node(node, create_cmd, allow_nonzero_exit=True)
-                logger.info(f"✓ Bridge {self.BRIDGE_NAME} created on node {node}")
-            except Exception as e:
-                if "already exists" not in str(e).lower():
-                    logger.error(f"Failed to create bridge on {node}: {e}")
-                    return False
-            
-            # Persist the configuration on the target node
+            # Always check and persist the configuration (even if bridge already existed)
+            # This ensures the bridge survives reboots
             config = f"""
 # Proximity isolated network bridge (auto-generated)
 auto {self.BRIDGE_NAME}
@@ -680,12 +683,18 @@ iface {self.BRIDGE_NAME} inet manual
             
             # Check if already in config on this specific node
             check_config_cmd = f"grep -q {self.BRIDGE_NAME} /etc/network/interfaces"
+            config_exists = False
             try:
-                await self.proxmox.execute_on_node(node, check_config_cmd, allow_nonzero_exit=True)
-                logger.info(f"✓ Bridge already persisted in config on node {node}")
+                result = await self.proxmox.execute_on_node(node, check_config_cmd, allow_nonzero_exit=True)
+                if result and "exitcode" not in str(result).lower():
+                    logger.info(f"✓ Bridge already persisted in config on node {node}")
+                    config_exists = True
             except:
-                # Not in config, add it
-                escaped_config = config.replace("'", "'\\''")
+                pass
+            
+            # Add to config if not already there
+            if not config_exists:
+                escaped_config = config.replace("'", "'\\''").replace('\n', '\\n')
                 persist_cmd = f"echo '{escaped_config}' >> /etc/network/interfaces"
                 try:
                     await self.proxmox.execute_on_node(node, persist_cmd)
@@ -694,6 +703,7 @@ iface {self.BRIDGE_NAME} inet manual
                     # Reload networking on that node
                     reload_cmd = "ifreload -a"
                     await self.proxmox.execute_on_node(node, reload_cmd, allow_nonzero_exit=True)
+                    logger.info(f"✓ Network configuration reloaded on node {node}")
                     
                     # Restart pve-cluster to ensure Proxmox recognizes the new bridge
                     # This is critical for LXC containers to see the bridge
@@ -701,14 +711,14 @@ iface {self.BRIDGE_NAME} inet manual
                     await self.proxmox.execute_on_node(node, restart_cmd, allow_nonzero_exit=True)
                     logger.info(f"✓ Proxmox cluster service restarted on node {node}")
                 except Exception as e:
-                    logger.warning(f"Could not persist bridge config on node {node}: {e}")
+                    logger.error(f"Failed to persist bridge config on node {node}: {e}")
+                    return False
             
             logger.info(f"✓ Bridge {self.BRIDGE_NAME} ready on node {node}")
             return True
             
         except Exception as e:
             logger.error(f"Failed to ensure bridge on node {node}: {e}")
-            return False
             return False
     
     async def get_container_network_config(self, hostname: str, node: str = None) -> str:
