@@ -164,12 +164,18 @@ class ProxmoxService:
             logger.warning(f"Failed to get LXC {vmid} IP: {e}")
             return None
 
-    async def create_lxc(self, node: str, vmid: int, config: Dict[str, Any]) -> Dict[str, Any]:
+    async def create_lxc(self, node: str, vmid: int, config: Dict[str, Any], bypass_network_manager: bool = False) -> Dict[str, Any]:
         """
         Create a new LXC container with automatic storage selection.
         
         Containers are now provisioned exclusively on the prox-net isolated network
         with DHCP-assigned IPs and DNS resolution via the managed dnsmasq service.
+        
+        Args:
+            node: Target Proxmox node
+            vmid: Container VMID
+            config: LXC configuration dict
+            bypass_network_manager: If True, use net0/net1 from config directly (for appliance creation)
         """
         try:
             client = await self._get_client()
@@ -197,11 +203,15 @@ class ProxmoxService:
             template_to_use = await self.ensure_alpine_template(node, version='3.22')
             logger.info(f"✓ Template ready: {template_to_use}")
             
-            # Get network configuration from NetworkManager
-            # This provisions the container on prox-net with DHCP
+            # Get network configuration
             hostname = config.get('hostname', f"ct{vmid}")
             
-            if self.network_manager:
+            # If bypass_network_manager is True, use net0/net1 from config directly
+            # This is used when creating the network appliance itself
+            if bypass_network_manager:
+                logger.info(f"Bypassing NetworkManager - using explicit network config from parameters")
+                net_config = config.get('net0', "name=eth0,bridge=vmbr0,ip=dhcp,firewall=1")
+            elif self.network_manager:
                 net_config = await self.network_manager.get_container_network_config(hostname, node)
                 logger.info(f"Using managed network config: {net_config}")
             else:
@@ -225,9 +235,10 @@ class ProxmoxService:
                 **config
             }
             
-            # Remove any static IP configuration from the override
-            if 'net0' in config:
-                logger.warning("Ignoring net0 override - using managed network configuration")
+            # If bypassing network manager, preserve net1 (for dual-homed appliance)
+            if bypass_network_manager and 'net1' in config:
+                lxc_config['net1'] = config['net1']
+                logger.info(f"Appliance will use dual network interfaces: net0={config.get('net0')}, net1={config.get('net1')}")
             
             task_id = await asyncio.to_thread(
                 client.nodes(node).lxc.create, **lxc_config

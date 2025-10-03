@@ -338,8 +338,9 @@ iface {self.BRIDGE_NAME} inet manual
             # Create LXC via Proxmox API
             logger.info(f"Creating LXC on node {node} with VMID {self.APPLIANCE_VMID}...")
             
-            # Create the appliance LXC - note: vmid is separate parameter
-            result = await self.proxmox.create_lxc(node, self.APPLIANCE_VMID, config)
+            # Create the appliance LXC with explicit network config
+            # bypass_network_manager=True tells create_lxc to use net0/net1 from config directly
+            result = await self.proxmox.create_lxc(node, self.APPLIANCE_VMID, config, bypass_network_manager=True)
             
             if not result:
                 logger.error("Failed to create appliance LXC")
