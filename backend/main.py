@@ -46,10 +46,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         network_init_success = await network_manager.initialize()
         
         if not network_init_success:
-            logger.error("❌ Network infrastructure initialization failed!")
-            logger.error("Application containers will not be able to function properly.")
-            logger.error("Please check logs and resolve network configuration issues.")
-            # We continue but warn - operator may need to fix manually
+            logger.warning("⚠️  Network infrastructure not available (development mode or initialization failed)")
+            logger.info("ℹ️  Containers will use default Proxmox networking (vmbr0)")
+            network_manager = None  # Clear reference so ProxmoxService knows to use fallback
         else:
             logger.info("✅ Network infrastructure ready")
         
@@ -60,7 +59,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         
         from services.proxmox_service import proxmox_service
         
-        # Inject NetworkManager into ProxmoxService
+        # Inject NetworkManager into ProxmoxService (None if not available)
         proxmox_service.network_manager = network_manager
         
         is_connected = await proxmox_service.test_connection()

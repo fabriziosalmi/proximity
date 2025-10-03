@@ -21,13 +21,28 @@ Proximity is a cloud-native application delivery platform that abstracts the com
 - **FastAPI Backend**: High-performance async API built with Python
 - **Direct Proxmox Integration**: Native API integration for maximum performance
 - **LXC + Docker**: Efficient containerization with LXC containers running Docker
+- **Isolated Network**: Dedicated managed network with DHCP/DNS for containers
 - **Microservices Design**: Clean separation of concerns with service layers
 
 ### Core Components
+- **Network Manager**: Automated network infrastructure setup with isolated bridge, NAT, and DHCP/DNS
 - **Proxmox Service**: Direct integration with Proxmox VE API
 - **App Service**: Business logic for application lifecycle management
+- **Caddy Service**: Automatic reverse proxy with SSL certificate management
 - **REST API**: RESTful endpoints for all operations
-- **Web Interface**: Modern web UI (SvelteKit/Vue - coming soon)
+- **Web Interface**: Modern web UI with Lucide Icons
+
+### Network Architecture
+
+Proximity provides a **fully isolated, managed network environment** (`prox-net`) for all application containers:
+
+- **Isolated Bridge**: Private 10.10.0.0/24 network (prox-net)
+- **NAT Gateway**: Automatic internet access via host's external interface
+- **DHCP Service**: Automatic IP assignment (10.10.0.100-250 range)
+- **DNS Resolution**: Container hostname resolution (.prox.local domain)
+- **Service Discovery**: Containers can reach each other by hostname
+
+📖 **Detailed documentation**: See [NETWORK_ARCHITECTURE.md](NETWORK_ARCHITECTURE.md) for complete network design, troubleshooting, and operational guides.
 
 ## 🚀 Quick Start
 
@@ -68,18 +83,29 @@ proximity/
 │   │   └── endpoints/
 │   │       ├── apps.py        # Application endpoints
 │   │       └── system.py      # System endpoints
+│   ├── catalog/
+│   │   └── apps/              # Application catalog JSON files
 │   ├── core/
 │   │   └── config.py          # Configuration management
+│   ├── data/
+│   │   └── apps.json          # Deployed applications state
 │   ├── models/
 │   │   └── schemas.py         # Pydantic models
 │   ├── services/
+│   │   ├── network_manager.py # Network infrastructure management
 │   │   ├── app_service.py     # Business logic
+│   │   ├── caddy_service.py   # Reverse proxy management
 │   │   └── proxmox_service.py # Proxmox API wrapper
 │   ├── main.py                # FastAPI application
+│   ├── app.js                 # Frontend JavaScript
+│   ├── index.html             # Web interface
+│   ├── styles.css             # UI styling
 │   └── requirements.txt
-├── frontend/                   # Web interface (coming soon)
 ├── scripts/
 │   └── install.sh             # Installation script
+├── NETWORK_ARCHITECTURE.md    # Network design documentation
+├── DEPLOYMENT.md              # Deployment guides
+├── TESTING.md                 # Testing documentation
 └── README.md
 ```
 
@@ -123,6 +149,7 @@ Once installed, access the interactive API documentation at:
 - `GET /api/v1/system/info` - System information
 - `GET /api/v1/system/nodes` - Proxmox nodes
 - `GET /api/v1/system/health` - Health check
+- `GET /api/v1/system/network/status` - Network infrastructure status
 
 #### Catalog
 - `GET /api/v1/apps/catalog` - Available applications
@@ -165,11 +192,14 @@ Applications are defined in `/opt/proximity/catalog/catalog.json`. Each applicat
 
 ## 🛡️ Security
 
+- **Isolated Network**: All containers run on dedicated prox-net bridge (10.10.0.0/24)
+- **NAT Protection**: Containers not directly accessible from external network
 - **Isolated Containers**: Each application runs in its own LXC container
 - **Unprivileged Containers**: All containers run unprivileged for security
-- **Nginx Reverse Proxy**: SSL termination and security headers
-- **Firewall Integration**: Automatic firewall configuration
+- **Automatic Reverse Proxy**: Caddy provides SSL termination and security headers
+- **Firewall Ready**: Network configuration supports iptables firewall rules
 - **Credential Management**: Secure storage of sensitive configuration
+- **Service Discovery**: DNS-based container communication without exposed IPs
 
 ## 📊 Monitoring
 
@@ -248,20 +278,32 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 - [x] REST API with FastAPI
 - [x] Application deployment pipeline
 - [x] Basic application catalog
+- [x] Isolated network infrastructure (prox-net)
+- [x] Automatic DHCP/DNS with dnsmasq
+- [x] NAT gateway for internet access
+- [x] Caddy reverse proxy integration
+- [x] Modern web interface with Lucide Icons
 
 ### Phase 2 - Web Interface 🚧
-- [ ] SvelteKit/Vue.js web interface
-- [ ] Application deployment wizard
-- [ ] Real-time monitoring dashboard
-- [ ] Application management interface
+- [x] Basic web UI with modern design
+- [x] Application catalog browser
+- [x] Deployment interface
+- [x] Application status monitoring
+- [ ] Advanced dashboard with real-time metrics
+- [ ] Application logs viewer
+- [ ] Configuration management UI
 
 ### Phase 3 - Advanced Features 📋
+- [ ] Multiple network zones (production/development)
+- [ ] IPv6 support
+- [ ] Advanced firewall rules and network policies
 - [ ] Multi-node deployment
 - [ ] Application scaling
 - [ ] Backup and restore
 - [ ] Custom application builder
 - [ ] Marketplace integration
 - [ ] Team collaboration features
+- [ ] Load balancing with health checks
 
 ### Phase 4 - AI Integration 🔮
 - [ ] AI-powered application recommendations
@@ -285,6 +327,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Proxmox VE** - The incredible virtualization platform
 - **FastAPI** - Modern, fast web framework for APIs
 - **Docker** - Containerization platform
+- **Lucide Icons** - Beautiful, consistent icon library
+- **Caddy** - Modern reverse proxy with automatic HTTPS
+- **dnsmasq** - Lightweight DHCP and DNS server
 - **Community** - All the amazing contributors and users
 
 ---

@@ -205,9 +205,11 @@ class ProxmoxService:
                 net_config = await self.network_manager.get_container_network_config(hostname)
                 logger.info(f"Using managed network config: {net_config}")
             else:
-                # Fallback to prox-net with DHCP if NetworkManager not available
-                net_config = "name=eth0,bridge=prox-net,ip=dhcp,firewall=1"
-                logger.warning("NetworkManager not available, using fallback network config")
+                # Fallback to default bridge (vmbr0) with DHCP when NetworkManager not available
+                # This happens in development environments (macOS, Windows) or if network init failed
+                net_config = "name=eth0,bridge=vmbr0,ip=dhcp,firewall=1"
+                logger.warning(f"NetworkManager not available - using default bridge (vmbr0) with DHCP")
+                logger.info(f"Container will use default Proxmox networking instead of isolated network")
             
             # Merge with default configuration
             lxc_config = {

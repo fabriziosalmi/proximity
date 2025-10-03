@@ -305,7 +305,7 @@ function createAppCard(app, isDeployed = false) {
                         </a>` : `<span class="connection-value" style="opacity: 0.5;">IP not available</span>`}
                     </div>
                     <div class="connection-item">
-                        <span class="connection-label">�️</span>
+                        <i data-lucide="server" class="connection-icon"></i>
                         <span class="connection-value">${app.node}</span>
                     </div>
                     <div class="connection-item">

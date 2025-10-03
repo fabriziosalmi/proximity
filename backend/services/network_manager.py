@@ -15,6 +15,7 @@ This service provides a fully isolated, managed network environment with:
 
 import asyncio
 import logging
+import platform
 import re
 import shutil
 from pathlib import Path
@@ -57,11 +58,21 @@ class NetworkManager:
         Initialize the complete network infrastructure.
         
         This is the main entry point that orchestrates all network setup.
+        Only runs on Linux hosts (Proxmox). Gracefully skips on development
+        environments (macOS, Windows).
         
         Returns:
             bool: True if initialization successful, False otherwise
         """
         logger.info("🌐 Initializing Proximity Network Infrastructure...")
+        
+        # Check if running on Linux (required for network bridge configuration)
+        if platform.system() != "Linux":
+            logger.warning(f"⚠️  Network infrastructure setup skipped: Not running on Linux (detected: {platform.system()})")
+            logger.warning("⚠️  This is expected for development environments (macOS, Windows)")
+            logger.warning("⚠️  Network isolation features will only work when deployed on Proxmox host")
+            logger.info("ℹ️  Containers will use default Proxmox networking (vmbr0) instead of isolated network")
+            return False  # Not an error, just not applicable
         
         try:
             # Step 1: Configure host bridge and NAT
