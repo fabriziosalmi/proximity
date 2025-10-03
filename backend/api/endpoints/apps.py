@@ -1,12 +1,17 @@
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Query
 from typing import List, Optional
+from sqlalchemy.orm import Session
+from datetime import datetime
 import logging
 
 from models.schemas import (
     App, AppCreate, AppUpdate, AppAction, AppList, 
-    CatalogResponse, DeploymentStatus, APIResponse, ErrorResponse
+    CatalogResponse, DeploymentStatus, APIResponse, ErrorResponse, SafeCommand
 )
+from models.database import AuditLog, get_db
 from services.app_service import AppService, AppServiceError, get_app_service
+from services.command_service import SafeCommandService, SafeCommandError, get_command_service
+from api.middleware.auth import get_current_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -255,51 +260,147 @@ async def get_app_stats(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/{app_id}/exec")
-async def execute_command_in_app(
+@router.get("/{app_id}/command/{command_name}")
+async def execute_safe_command(
     app_id: str,
-    command_data: dict,
-    service: AppService = Depends(get_app_service)
+    command_name: SafeCommand,
+    tail: Optional[int] = Query(100, ge=1, le=1000, description="Number of log lines for 'logs' command"),
+    service_name: Optional[str] = Query(None, description="Service name for 'logs' command"),
+    app_service: AppService = Depends(get_app_service),
+    command_service: SafeCommandService = Depends(get_command_service),
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
 ):
-    """Execute a command inside the application container"""
+    """
+    Execute a predefined safe command inside the application container.
+    
+    This endpoint replaces the dangerous /exec endpoint with secure,
+    auditable command execution. Only predefined, read-only commands
+    are allowed.
+    
+    Available commands:
+    - logs: Get Docker Compose logs (supports 'tail' and 'service_name' params)
+    - status: Get Docker Compose container status
+    - disk: Get disk usage information
+    - processes: Get list of running processes
+    - memory: Get memory usage information
+    - network: Get network interface information
+    - images: Get list of Docker images
+    - volumes: Get list of Docker volumes
+    - config: Get Docker Compose configuration
+    - system: Get system information
+    """
     try:
-        app = await service.get_app(app_id)
-        command = command_data.get("command", "").strip()
+        # Get app info
+        app = await app_service.get_app(app_id)
         
-        if not command:
-            raise HTTPException(status_code=400, detail="Command is required")
+        # Map command enum to service method
+        command_map = {
+            SafeCommand.LOGS: lambda: command_service.get_docker_logs(
+                app.node, app.lxc_id, tail=tail, service=service_name
+            ),
+            SafeCommand.STATUS: lambda: command_service.get_container_status(
+                app.node, app.lxc_id
+            ),
+            SafeCommand.DISK: lambda: command_service.get_disk_usage(
+                app.node, app.lxc_id
+            ),
+            SafeCommand.PROCESSES: lambda: command_service.get_running_processes(
+                app.node, app.lxc_id
+            ),
+            SafeCommand.MEMORY: lambda: command_service.get_memory_usage(
+                app.node, app.lxc_id
+            ),
+            SafeCommand.NETWORK: lambda: command_service.get_network_info(
+                app.node, app.lxc_id
+            ),
+            SafeCommand.IMAGES: lambda: command_service.get_docker_images(
+                app.node, app.lxc_id
+            ),
+            SafeCommand.VOLUMES: lambda: command_service.get_docker_volumes(
+                app.node, app.lxc_id
+            ),
+            SafeCommand.CONFIG: lambda: command_service.get_compose_config(
+                app.node, app.lxc_id
+            ),
+            SafeCommand.SYSTEM: lambda: command_service.get_system_info(
+                app.node, app.lxc_id
+            )
+        }
         
-        # Security: Command validation (HARDENED)
-        dangerous_patterns = [';', '&&', '||', '|', '>', '>>', '<', '`', '$(', 'rm ', 'wget', 'curl', 'nc ', 'bash', 'sh ', '/bin/']
-        if any(pattern in command for pattern in dangerous_patterns):
+        # Execute the safe command
+        command_func = command_map.get(command_name)
+        if not command_func:
             raise HTTPException(
-                status_code=400,
-                detail=f"Command contains dangerous pattern. Use predefined safe actions instead."
+                status_code=400, 
+                detail=f"Unknown command: {command_name}"
             )
         
-        from services.proxmox_service import proxmox_service
+        output = await command_func()
         
-        # Execute command in container
-        result = await proxmox_service.execute_in_container(
-            app.node,
-            app.lxc_id,
-            command
-        )
+        # Audit log the command execution
+        try:
+            audit_entry = AuditLog(
+                user_id=current_user.get("id"),
+                username=current_user.get("username", "unknown"),
+                action="execute_safe_command",
+                resource_type="app",
+                resource_id=app_id,
+                details={
+                    "command": command_name.value,
+                    "app_name": app.name,
+                    "lxc_id": app.lxc_id,
+                    "node": app.node,
+                    "parameters": {
+                        "tail": tail if command_name == SafeCommand.LOGS else None,
+                        "service": service_name if command_name == SafeCommand.LOGS else None
+                    }
+                },
+                ip_address=None  # Could be extracted from request if needed
+            )
+            db.add(audit_entry)
+            db.commit()
+            logger.info(
+                f"User '{current_user.get('username')}' executed command '{command_name.value}' "
+                f"on app '{app_id}' (LXC {app.lxc_id})"
+            )
+        except Exception as audit_error:
+            logger.error(f"Failed to create audit log entry: {audit_error}")
+            # Don't fail the request if audit logging fails
         
         return {
             "success": True,
-            "output": result,
-            "command": command
+            "command": command_name.value,
+            "app_id": app_id,
+            "app_name": app.name,
+            "output": output,
+            "timestamp": datetime.utcnow().isoformat()
         }
         
     except AppServiceError as e:
         raise HTTPException(status_code=404, detail=str(e))
+    except SafeCommandError as e:
+        raise HTTPException(status_code=500, detail=str(e))
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to execute command in app {app_id}: {e}")
-        return {
-            "success": False,
-            "error": str(e),
-            "command": command_data.get("command", "")
-        }
+        logger.error(f"Failed to execute command '{command_name}' on app {app_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Command execution failed: {str(e)}")
+
+
+@router.get("/{app_id}/commands")
+async def list_available_commands(
+    app_id: str,
+    command_service: SafeCommandService = Depends(get_command_service),
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    List all available safe commands that can be executed on this app.
+    
+    Returns a dictionary mapping command names to their descriptions.
+    """
+    return {
+        "app_id": app_id,
+        "available_commands": command_service.get_available_commands(),
+        "note": "These commands are safe, read-only operations that do not modify the container."
+    }

@@ -43,9 +43,16 @@ class Settings(BaseSettings):
     
     # Logging
     LOG_LEVEL: str = "INFO"
-    
+
+    # Authentication Settings (Phase 1)
+    JWT_SECRET_KEY: str
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+
+    # Database Settings (Phase 1)
+    DATABASE_URL: str = "sqlite:///./proximity.db"
+
     model_config = SettingsConfigDict(
-        env_file=".env", 
+        env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=True
     )

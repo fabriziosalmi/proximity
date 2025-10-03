@@ -17,7 +17,7 @@ passlib[bcrypt]==1.7.4
 email-validator==2.1.0
 
 # Database (Phase 1)
-sqlalchemy==2.0.23
+sqlalchemy>=2.0.35  # Python 3.13 compatible
 alembic==1.12.1
 
 # Encryption (Phase 2)

@@ -7,7 +7,7 @@ Uses Fernet (symmetric encryption) from cryptography library.
 
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 import base64
 import os
 import logging
@@ -50,7 +50,7 @@ class EncryptionService:
         jwt_secret = os.getenv("JWT_SECRET_KEY", "INSECURE_DEFAULT")
         salt = b"proximity_encryption_salt_v1"  # Fixed salt for consistency
 
-        kdf = PBKDF2(
+        kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
             length=32,
             salt=salt,

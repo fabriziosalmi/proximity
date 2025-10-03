@@ -103,9 +103,16 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         logger.info("=" * 60)
         
         from services.app_service import get_app_service
-        app_service = get_app_service()
-        catalog = await app_service.get_catalog()
-        logger.info(f"✓ Loaded catalog with {catalog.total} applications")
+        from models.database import get_db
+        
+        # Get a database session for startup initialization
+        db = next(get_db())
+        try:
+            app_service = get_app_service(db)
+            catalog = await app_service.get_catalog()
+            logger.info(f"✓ Loaded catalog with {catalog.total} applications")
+        finally:
+            db.close()
         
         # Step 4: Initialize Reverse Proxy Manager (integrated with Network Appliance)
         logger.info("=" * 60)
@@ -120,8 +127,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                     appliance_vmid=orchestrator.appliance_info.vmid
                 )
                 
-                # Inject proxy_manager into app_service
-                app_service.set_proxy_manager(proxy_manager)
+                # Store in app state (app_service instances will get their own db sessions via dependency injection)
+                app.state.proxy_manager = proxy_manager
                 
                 # Store in app state
                 app.state.proxy_manager = proxy_manager

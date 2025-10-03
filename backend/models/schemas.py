@@ -22,6 +22,20 @@ class LXCStatus(str, Enum):
     STOPPING = "stopping"
 
 
+class SafeCommand(str, Enum):
+    """Safe command enumeration for secure container command execution"""
+    LOGS = "logs"
+    STATUS = "status"
+    DISK = "disk"
+    PROCESSES = "processes"
+    MEMORY = "memory"
+    NETWORK = "network"
+    IMAGES = "images"
+    VOLUMES = "volumes"
+    CONFIG = "config"
+    SYSTEM = "system"
+
+
 class NodeInfo(BaseModel):
     """Proxmox node information"""
     node: str
