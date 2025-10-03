@@ -12,6 +12,28 @@ function initLucideIcons() {
     }
 }
 
+// Sidebar collapse functionality
+function initSidebarToggle() {
+    const sidebar = document.querySelector('.sidebar');
+    const toggleButton = document.getElementById('sidebarToggle');
+    
+    if (toggleButton && sidebar) {
+        // Load saved state
+        const savedState = localStorage.getItem('sidebarCollapsed');
+        if (savedState === 'true') {
+            sidebar.classList.add('collapsed');
+        }
+        
+        toggleButton.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            // Save state
+            localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+            // Reinitialize icons after toggle animation
+            setTimeout(() => initLucideIcons(), 300);
+        });
+    }
+}
+
 // Proximity UI - State-of-the-Art Application Management Interface
 const API_BASE = 'http://localhost:8765/api/v1';
 
@@ -28,6 +50,7 @@ const state = {
 
 // Initialize Application
 async function init() {
+    initSidebarToggle();
     console.log('🚀 Initializing Proximity UI...');
     
     showLoading('Connecting to Proximity API...');
@@ -1394,6 +1417,8 @@ function filterApps(filter) {
         `;
     } else {
         grid.innerHTML = filtered.map(app => createAppCard(app, true)).join('');
+        // Reinitialize Lucide icons after updating the DOM
+        initLucideIcons();
     }
 }
 
