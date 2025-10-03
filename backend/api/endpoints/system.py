@@ -361,3 +361,64 @@ async def get_network_status():
     except Exception as e:
         logger.error(f"Failed to get network status: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/infrastructure/status")
+async def get_infrastructure_status():
+    """
+    Get comprehensive status of the Proximity Network Appliance infrastructure.
+    
+    Returns detailed information about:
+    - Network Appliance (prox-appliance) status and resources
+    - proximity-lan bridge configuration
+    - Network addressing and DHCP configuration
+    - All running services (DHCP, DNS, NAT, Reverse Proxy)
+    - Connected applications with IP addresses
+    - Network statistics and health metrics
+    
+    This endpoint provides all information needed for the Infrastructure page.
+    """
+    try:
+        # Try to get orchestrator from app state
+        from main import app
+        orchestrator = getattr(app.state, 'orchestrator', None)
+        
+        if not orchestrator:
+            # Fallback: create new orchestrator instance
+            from services.network_appliance_orchestrator import NetworkApplianceOrchestrator
+            from services.proxmox_service import proxmox_service
+            
+            orchestrator = NetworkApplianceOrchestrator(proxmox_service)
+            
+            # Check if appliance exists
+            appliance_info = await orchestrator._find_existing_appliance()
+            if appliance_info:
+                orchestrator.appliance_info = appliance_info
+        
+        # Get comprehensive infrastructure status
+        infrastructure = await orchestrator.get_infrastructure_status()
+        
+        # Determine overall health
+        is_healthy = False
+        if infrastructure.get('appliance'):
+            appliance_running = infrastructure['appliance'].get('status') == 'running'
+            services_ok = all(
+                service.get('healthy', False) 
+                for service in infrastructure.get('services', {}).values()
+            )
+            is_healthy = appliance_running and services_ok
+        
+        health_status = "healthy" if is_healthy else "degraded" if infrastructure.get('appliance') else "not_initialized"
+        
+        return APIResponse(
+            message=f"Infrastructure status: {health_status}",
+            data={
+                **infrastructure,
+                'health_status': health_status,
+                'timestamp': None  # Could add timestamp if needed
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to get infrastructure status: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

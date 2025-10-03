@@ -224,6 +224,15 @@ class ReverseProxyManager:
             logger.error(f"Failed to delete vhost for {app_name}: {e}")
             return False
     
+    async def get_vhost_count(self) -> int:
+        """
+        Get the number of configured virtual hosts.
+        
+        Returns:
+            int: Number of vhosts
+        """
+        return len(self.vhosts)
+    
     async def list_vhosts(self) -> List[VirtualHost]:
         """
         Get list of all configured virtual hosts.
