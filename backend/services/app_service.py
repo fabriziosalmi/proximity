@@ -26,14 +26,15 @@ class AppServiceError(Exception):
 class AppService:
     """Business logic layer for application management"""
     
-    def __init__(self, proxmox_service: ProxmoxService):
+    def __init__(self, proxmox_service: ProxmoxService, proxy_manager=None):
         self.proxmox_service = proxmox_service
+        self._proxy_manager = proxy_manager  # ReverseProxyManager for network appliance Caddy
         # In production, this would be a proper database
         self._apps_db: Dict[str, App] = {}
         self._deployment_status: Dict[str, DeploymentStatus] = {}
         self._catalog_cache: Optional[CatalogResponse] = None
         self._apps_file = Path(__file__).parent.parent / "data" / "apps.json"
-        self._caddy_service = None  # Lazy-loaded Caddy service
+        self._caddy_service = None  # Legacy Caddy service (deprecated)
         self._catalog_loaded = False  # Track if catalog has been loaded
         self._apps_loaded = False  # Track if apps have been loaded
         
@@ -42,6 +43,24 @@ class AppService:
         
         # Note: Catalog and apps are now loaded lazily on first access
         # to avoid event loop issues during dependency injection
+    
+    @property
+    def proxy_manager(self):
+        """Lazy-load proxy_manager from FastAPI app state if not set"""
+        if self._proxy_manager is None:
+            try:
+                # Try to get from FastAPI app state
+                from fastapi import Request
+                from starlette.concurrency import run_in_threadpool
+                # This will be None if not in request context
+                # In that case, it will be set later
+            except:
+                pass
+        return self._proxy_manager
+    
+    def set_proxy_manager(self, proxy_manager):
+        """Set the proxy manager (called from main.py after initialization)"""
+        self._proxy_manager = proxy_manager
 
     async def _load_apps(self) -> None:
         """Load deployed apps from disk"""
@@ -545,59 +564,50 @@ class AppService:
             
             await self._setup_docker_compose(target_node, vmid, catalog_item, app_data)
             
-            # Step 6: Register with Caddy reverse proxy (if available)
+            # Step 6: Configure reverse proxy via Network Appliance
             deployment_status.progress = 80
             deployment_status.current_step = "Configuring reverse proxy"
-            
-            # Lazy-load Caddy service
-            if self._caddy_service is None:
-                from services.caddy_service import get_caddy_service
-                self._caddy_service = get_caddy_service(self.proxmox_service)
             
             # Get container IP address
             await asyncio.sleep(3)  # Wait for network to be ready
             
-            try:
-                container_ip = await self.proxmox_service.get_lxc_ip(target_node, vmid)
-                primary_port = catalog_item.ports[0] if catalog_item.ports else 80
-                
-                # Only register if Caddy is already deployed
-                if self._caddy_service.is_deployed:
-                    # Use path-based routing with URL path prefix
-                    path_prefix = f"/{app_data.hostname}"
-                    await self._caddy_service.add_application(
-                        app_id=app_id,
-                        path_prefix=path_prefix,
+            container_ip = await self.proxmox_service.get_lxc_ip(target_node, vmid)
+            primary_port = catalog_item.ports[0] if catalog_item.ports else 80
+            
+            # Configure reverse proxy in network appliance (if available)
+            if self.proxy_manager and container_ip:
+                try:
+                    # Create virtual host for this app
+                    vhost_created = await self.proxy_manager.create_vhost(
+                        app_name=app_data.hostname,
                         backend_ip=container_ip,
                         backend_port=primary_port
                     )
-                    await self._log_deployment(app_id, "info", f"Registered with reverse proxy: {path_prefix}")
                     
-                    # Get Caddy container IP for access URL
-                    caddy_ip = await self._caddy_service.get_caddy_ip()
-                    proxy_port = 8080  # Caddy proxy port
-                    
-                    if caddy_ip:
-                        # Access via Caddy reverse proxy (local network accessible)
-                        access_url = f"http://{caddy_ip}:{proxy_port}{path_prefix}"
-                        await self._log_deployment(app_id, "info", f"Application accessible at: {access_url}")
+                    if vhost_created:
+                        # Access via hostname through network appliance
+                        # Apps are accessible via: http://<appliance-wan-ip>/<app-hostname>
+                        # Or via hostname: http://<app-hostname>.prox.local (with proper DNS)
+                        appliance_hostname = f"{app_data.hostname}.prox.local"
+                        access_url = f"http://{appliance_hostname}"
+                        await self._log_deployment(app_id, "info", f"✓ Reverse proxy configured: {appliance_hostname} → {container_ip}:{primary_port}")
+                        await self._log_deployment(app_id, "info", f"✓ Access via: {access_url}")
                     else:
-                        # Fallback if Caddy IP not available
+                        # Fallback to direct access
                         access_url = f"http://{container_ip}:{primary_port}" if container_ip else None
-                        await self._log_deployment(app_id, "warning", "Could not get Caddy IP, using direct access")
-                else:
-                    # Caddy not deployed yet, use direct access
-                    await self._log_deployment(app_id, "warning", "Reverse proxy not available - using direct access")
-                    # Only create URL if we have a valid IP
+                        await self._log_deployment(app_id, "warning", "Reverse proxy configuration failed - using direct access")
+                        
+                except Exception as proxy_error:
+                    logger.warning(f"Failed to configure reverse proxy: {proxy_error}")
                     access_url = f"http://{container_ip}:{primary_port}" if container_ip else None
-                    
-            except Exception as proxy_error:
-                logger.warning(f"Failed to register with proxy: {proxy_error}")
-                # Fall back to direct access
-                container_ip = await self.proxmox_service.get_lxc_ip(target_node, vmid)
-                primary_port = catalog_item.ports[0] if catalog_item.ports else 80
-                # Only create URL if we have a valid IP
+                    await self._log_deployment(app_id, "warning", f"Reverse proxy error: {proxy_error} - using direct access")
+            else:
+                # No proxy manager available - use direct access
                 access_url = f"http://{container_ip}:{primary_port}" if container_ip else None
+                if not self.proxy_manager:
+                    await self._log_deployment(app_id, "info", "Reverse proxy not available - using direct access")
+                elif not container_ip:
+                    await self._log_deployment(app_id, "warning", "Could not determine container IP")
             
             app = App(
                 id=app_id,

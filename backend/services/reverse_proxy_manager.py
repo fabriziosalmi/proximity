@@ -68,14 +68,16 @@ class ReverseProxyManager:
     CADDY_SITES_DIR = "/etc/caddy/sites-enabled"
     CADDY_CONFIG = "/etc/caddy/Caddyfile"
     
-    def __init__(self, appliance_vmid: int):
+    def __init__(self, appliance_vmid: int, proxmox_service=None):
         """
         Initialize the reverse proxy manager.
         
         Args:
             appliance_vmid: VMID of the network appliance LXC
+            proxmox_service: ProxmoxService instance for SSH execution (optional, will import if needed)
         """
         self.appliance_vmid = appliance_vmid
+        self.proxmox_service = proxmox_service
         self.vhosts: Dict[str, VirtualHost] = {}
         
     async def create_vhost(self, app_name: str, backend_ip: str, backend_port: int = 80) -> bool:
@@ -413,19 +415,20 @@ class ReverseProxyManager:
             Dict with 'exitcode' and 'output'
         """
         try:
-            full_cmd = f"pct exec {self.appliance_vmid} -- sh -c '{command}'"
+            # Use ProxmoxService SSH execution if available
+            if self.proxmox_service is None:
+                # Lazy import to avoid circular dependency
+                from services.proxmox_service import proxmox_service
+                self.proxmox_service = proxmox_service
             
-            proc = await asyncio.create_subprocess_shell(
-                full_cmd,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
-            )
-            stdout, stderr = await proc.communicate()
+            # Execute via SSH on Proxmox host
+            full_cmd = f"pct exec {self.appliance_vmid} -- sh -c '{command}'"
+            result = await self.proxmox_service.execute_command_via_ssh(full_cmd)
             
             return {
-                'exitcode': proc.returncode,
-                'output': stdout.decode() if stdout else '',
-                'error': stderr.decode() if stderr else ''
+                'exitcode': 0 if result.get('success') else 1,
+                'output': result.get('output', ''),
+                'error': result.get('error', '')
             }
             
         except Exception as e:

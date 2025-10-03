@@ -110,6 +110,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                     appliance_vmid=orchestrator.appliance_info.vmid
                 )
                 
+                # Inject proxy_manager into app_service
+                app_service.set_proxy_manager(proxy_manager)
+                
                 # Store in app state
                 app.state.proxy_manager = proxy_manager
                 
