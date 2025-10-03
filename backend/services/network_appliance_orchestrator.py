@@ -331,9 +331,8 @@ iface {self.BRIDGE_NAME} inet manual
             # Create LXC via Proxmox API
             logger.info(f"Creating LXC on node {node} with VMID {self.APPLIANCE_VMID}...")
             
-            # Note: This uses the proxmox service's internal methods
-            # You'll need to expose this method or use direct API calls
-            result = await self.proxmox.create_lxc(node, config)
+            # Create the appliance LXC - note: vmid is separate parameter
+            result = await self.proxmox.create_lxc(node, self.APPLIANCE_VMID, config)
             
             if not result:
                 logger.error("Failed to create appliance LXC")
@@ -1111,25 +1110,30 @@ iface {self.BRIDGE_NAME} inet manual
             if not node:
                 return None
             
-            # Check if VMID exists
-            check_cmd = f"pct status {self.APPLIANCE_VMID}"
-            result = await self._exec_on_host(check_cmd)
+            # Use Proxmox API to check if container exists
+            try:
+                container_info = await self.proxmox.get_lxc_info(node, self.APPLIANCE_VMID)
+                if container_info:
+                    # LXC exists, get its details
+                    wan_ip = await self._get_lxc_wan_ip(node, self.APPLIANCE_VMID)
+                    
+                    logger.info(f"Found existing appliance VMID {self.APPLIANCE_VMID} with WAN IP: {wan_ip}")
+                    
+                    return ApplianceInfo(
+                        vmid=self.APPLIANCE_VMID,
+                        hostname=self.APPLIANCE_HOSTNAME,
+                        wan_interface='eth0',
+                        wan_ip=wan_ip,
+                        lan_interface='eth1',
+                        lan_ip=self.LAN_GATEWAY,
+                        status='running',
+                        services={}
+                    )
+            except:
+                # Container doesn't exist or API call failed
+                pass
             
-            if result and result.get('exitcode') == 0:
-                # LXC exists, get its details
-                wan_ip = await self._get_lxc_wan_ip(node, self.APPLIANCE_VMID)
-                
-                return ApplianceInfo(
-                    vmid=self.APPLIANCE_VMID,
-                    hostname=self.APPLIANCE_HOSTNAME,
-                    wan_interface='eth0',
-                    wan_ip=wan_ip,
-                    lan_interface='eth1',
-                    lan_ip=self.LAN_GATEWAY,
-                    status='running',
-                    services={}
-                )
-            
+            logger.info(f"No existing appliance found at VMID {self.APPLIANCE_VMID}, will create new one")
             return None
             
         except Exception as e:
