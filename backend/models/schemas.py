@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, validator, EmailStr
 from typing import List, Optional, Dict, Any, Union
 from enum import Enum
 from datetime import datetime
@@ -181,3 +181,65 @@ class ErrorResponse(BaseModel):
     success: bool = False
     error: str
     details: Optional[Dict[str, Any]] = None
+
+
+# Authentication Schemas
+
+class UserCreate(BaseModel):
+    """User creation/registration request"""
+    username: str = Field(..., min_length=3, max_length=50)
+    email: EmailStr
+    password: str = Field(..., min_length=8)
+    role: str = Field(default="user")
+
+    @validator('username')
+    def validate_username(cls, v):
+        if not v.replace('-', '').replace('_', '').isalnum():
+            raise ValueError('Username must contain only alphanumeric characters, hyphens, and underscores')
+        return v.lower()
+
+    @validator('role')
+    def validate_role(cls, v):
+        if v not in ['user', 'admin']:
+            raise ValueError('Role must be either "user" or "admin"')
+        return v
+
+
+class UserLogin(BaseModel):
+    """User login request"""
+    username: str
+    password: str
+
+
+class UserResponse(BaseModel):
+    """User response model (excludes password)"""
+    id: int
+    username: str
+    email: EmailStr
+    role: str
+    is_active: bool
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class Token(BaseModel):
+    """JWT token response"""
+    access_token: str
+    token_type: str = "bearer"
+    expires_in: int = 3600
+    user: Optional[UserResponse] = None
+
+
+class TokenData(BaseModel):
+    """Token payload data"""
+    username: str
+    role: str
+    user_id: int
+
+
+class PasswordChange(BaseModel):
+    """Password change request"""
+    old_password: str
+    new_password: str = Field(..., min_length=8)

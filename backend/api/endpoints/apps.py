@@ -269,10 +269,13 @@ async def execute_command_in_app(
         if not command:
             raise HTTPException(status_code=400, detail="Command is required")
         
-        # Security: Basic command validation
-        dangerous_patterns = [';', '&&', '||', '|', '>', '>>', '<', '`', '$(',  'rm -rf /']
-        if any(pattern in command for pattern in dangerous_patterns if pattern in ['rm -rf /']):
-            raise HTTPException(status_code=400, detail="Dangerous command detected")
+        # Security: Command validation (HARDENED)
+        dangerous_patterns = [';', '&&', '||', '|', '>', '>>', '<', '`', '$(', 'rm ', 'wget', 'curl', 'nc ', 'bash', 'sh ', '/bin/']
+        if any(pattern in command for pattern in dangerous_patterns):
+            raise HTTPException(
+                status_code=400,
+                detail=f"Command contains dangerous pattern. Use predefined safe actions instead."
+            )
         
         from services.proxmox_service import proxmox_service
         

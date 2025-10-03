@@ -12,7 +12,8 @@ from fastapi.staticfiles import StaticFiles
 import uvicorn
 
 from core.config import settings
-from api.endpoints import apps, system
+from api.endpoints import apps, system, auth
+from api.middleware.auth import get_current_user
 from services.proxmox_service import ProxmoxError
 from services.app_service import AppServiceError
 
@@ -35,6 +36,15 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     
     # Startup tasks
     try:
+        # Step 0: Initialize Database
+        logger.info("=" * 60)
+        logger.info("STEP 0: Initializing Database")
+        logger.info("=" * 60)
+
+        from models.database import init_db
+        init_db()
+        logger.info("✓ Database initialized successfully")
+
         # Step 1: Initialize Proxmox Connection
         logger.info("=" * 60)
         logger.info("STEP 1: Connecting to Proxmox")
@@ -220,16 +230,28 @@ def create_app() -> FastAPI:
         return response
     
     # Include routers
+    # Auth router (UNPROTECTED - allows login/register)
     app.include_router(
-        apps.router, 
-        prefix=f"/api/{settings.API_VERSION}/apps", 
-        tags=["Applications"]
+        auth.router,
+        prefix=f"/api/{settings.API_VERSION}/auth",
+        tags=["Authentication"]
     )
-    
+
+    # Apps router (PROTECTED - requires authentication)
+    from fastapi import Depends
     app.include_router(
-        system.router, 
-        prefix=f"/api/{settings.API_VERSION}/system", 
-        tags=["System"]
+        apps.router,
+        prefix=f"/api/{settings.API_VERSION}/apps",
+        tags=["Applications"],
+        dependencies=[Depends(get_current_user)]  # ← PROTECTED
+    )
+
+    # System router (PROTECTED - requires authentication)
+    app.include_router(
+        system.router,
+        prefix=f"/api/{settings.API_VERSION}/system",
+        tags=["System"],
+        dependencies=[Depends(get_current_user)]  # ← PROTECTED
     )
     
     # Serve static files (UI)
