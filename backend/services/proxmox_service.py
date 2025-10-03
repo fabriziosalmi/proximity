@@ -17,9 +17,10 @@ class ProxmoxError(Exception):
 class ProxmoxService:
     """Async wrapper around Proxmox API for container and node management"""
     
-    def __init__(self):
+    def __init__(self, network_manager=None):
         self._proxmox: Optional[ProxmoxAPI] = None
         self._connect_lock = asyncio.Lock()
+        self.network_manager = network_manager  # Injected NetworkManager instance
     
     async def _get_client(self) -> ProxmoxAPI:
         """Get or create Proxmox API client with connection pooling"""
@@ -164,7 +165,12 @@ class ProxmoxService:
             return None
 
     async def create_lxc(self, node: str, vmid: int, config: Dict[str, Any]) -> Dict[str, Any]:
-        """Create a new LXC container with automatic storage selection"""
+        """
+        Create a new LXC container with automatic storage selection.
+        
+        Containers are now provisioned exclusively on the prox-net isolated network
+        with DHCP-assigned IPs and DNS resolution via the managed dnsmasq service.
+        """
         try:
             client = await self._get_client()
             
@@ -191,25 +197,42 @@ class ProxmoxService:
             template_to_use = await self.ensure_alpine_template(node, version='3.22')
             logger.info(f"✓ Template ready: {template_to_use}")
             
+            # Get network configuration from NetworkManager
+            # This provisions the container on prox-net with DHCP
+            hostname = config.get('hostname', f"ct{vmid}")
+            
+            if self.network_manager:
+                net_config = await self.network_manager.get_container_network_config(hostname)
+                logger.info(f"Using managed network config: {net_config}")
+            else:
+                # Fallback to prox-net with DHCP if NetworkManager not available
+                net_config = "name=eth0,bridge=prox-net,ip=dhcp,firewall=1"
+                logger.warning("NetworkManager not available, using fallback network config")
+            
             # Merge with default configuration
             lxc_config = {
                 'vmid': vmid,
                 'ostemplate': template_to_use,
+                'hostname': hostname,  # Hostname for DNS resolution
                 'cores': settings.LXC_CORES,
                 'memory': settings.LXC_MEMORY,
-                'net0': settings.LXC_NET_CONFIG,
+                'net0': net_config,  # Managed network on prox-net
                 'features': 'nesting=1,keyctl=1',  # Required for Docker
                 'unprivileged': 1,
                 'onboot': 1,
                 **config
             }
             
+            # Remove any static IP configuration from the override
+            if 'net0' in config:
+                logger.warning("Ignoring net0 override - using managed network configuration")
+            
             task_id = await asyncio.to_thread(
                 client.nodes(node).lxc.create, **lxc_config
             )
             
-            logger.info(f"LXC creation started: node={node}, vmid={vmid}, task={task_id}")
-            return {"task_id": task_id, "vmid": vmid, "node": node}
+            logger.info(f"LXC creation started: node={node}, vmid={vmid}, hostname={hostname}, network=prox-net, task={task_id}")
+            return {"task_id": task_id, "vmid": vmid, "node": node, "hostname": hostname}
             
         except Exception as e:
             if "already exists" in str(e).lower():

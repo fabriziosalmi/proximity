@@ -321,3 +321,43 @@ async def get_template_cache_status(
     except Exception as e:
         logger.error(f"Failed to get template cache status: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/network/status")
+async def get_network_status():
+    """
+    Get status of the Proximity managed network infrastructure.
+    
+    Returns information about:
+    - prox-net bridge status
+    - NAT configuration
+    - DHCP/DNS service status
+    - Network configuration details
+    """
+    try:
+        from services.network_manager import NetworkManager
+        
+        network_manager = NetworkManager()
+        network_info = await network_manager.get_network_info()
+        
+        # Determine overall health status
+        is_healthy = (
+            network_info.get("bridge_up", False) and
+            network_info.get("nat_configured", False) and
+            network_info.get("dhcp_service_running", False)
+        )
+        
+        status_msg = "Network infrastructure operational" if is_healthy else "Network infrastructure issues detected"
+        
+        return APIResponse(
+            message=status_msg,
+            data={
+                **network_info,
+                "health_status": "healthy" if is_healthy else "degraded",
+                "info": "All application containers are provisioned on the isolated prox-net network"
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"Failed to get network status: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

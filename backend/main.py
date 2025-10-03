@@ -35,21 +35,55 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     
     # Startup tasks
     try:
-        # Test Proxmox connection
+        # Step 1: Initialize Network Infrastructure
+        logger.info("=" * 60)
+        logger.info("STEP 1: Initializing Network Infrastructure")
+        logger.info("=" * 60)
+        
+        from services.network_manager import NetworkManager
+        
+        network_manager = NetworkManager()
+        network_init_success = await network_manager.initialize()
+        
+        if not network_init_success:
+            logger.error("❌ Network infrastructure initialization failed!")
+            logger.error("Application containers will not be able to function properly.")
+            logger.error("Please check logs and resolve network configuration issues.")
+            # We continue but warn - operator may need to fix manually
+        else:
+            logger.info("✅ Network infrastructure ready")
+        
+        # Step 2: Test Proxmox connection and inject NetworkManager
+        logger.info("=" * 60)
+        logger.info("STEP 2: Connecting to Proxmox")
+        logger.info("=" * 60)
+        
         from services.proxmox_service import proxmox_service
+        
+        # Inject NetworkManager into ProxmoxService
+        proxmox_service.network_manager = network_manager
+        
         is_connected = await proxmox_service.test_connection()
         if is_connected:
             logger.info("✓ Proxmox connection successful")
         else:
             logger.warning("⚠ Proxmox connection failed - some features may not work")
         
-        # Initialize app service (loads catalog)
+        # Step 3: Initialize app service (loads catalog)
+        logger.info("=" * 60)
+        logger.info("STEP 3: Loading Application Catalog")
+        logger.info("=" * 60)
+        
         from services.app_service import get_app_service
         app_service = get_app_service()
         catalog = await app_service.get_catalog()
         logger.info(f"✓ Loaded catalog with {catalog.total} applications")
         
-        # Deploy Caddy proxy in background (non-blocking)
+        # Step 4: Deploy Caddy proxy in background (non-blocking)
+        logger.info("=" * 60)
+        logger.info("STEP 4: Deploying Caddy Reverse Proxy")
+        logger.info("=" * 60)
+        
         try:
             from services.caddy_service import get_caddy_service
             import asyncio
