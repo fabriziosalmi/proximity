@@ -129,15 +129,25 @@ class NetworkApplianceOrchestrator:
         logger.info("🚀 Initializing Proximity Network Appliance...")
         
         try:
-            # Step 1: Ensure host bridge exists
-            logger.info("Step 1/4: Provisioning host bridge...")
-            if not await self.setup_host_bridge():
-                logger.error("Failed to setup host bridge")
+            # Get target node from Proxmox cluster
+            nodes = await self.proxmox.get_nodes()
+            if not nodes:
+                logger.error("No Proxmox nodes available")
+                return False
+            
+            # Use first online node for appliance deployment
+            target_node = nodes[0].node
+            logger.info(f"Selected node '{target_node}' for network appliance deployment")
+            
+            # Step 1: Ensure host bridge exists on target node
+            logger.info(f"Step 1/4: Provisioning host bridge on {target_node}...")
+            if not await self.ensure_bridge_on_node(target_node):
+                logger.error(f"Failed to setup host bridge on {target_node}")
                 return False
             
             # Step 2: Provision appliance LXC
             logger.info("Step 2/4: Provisioning appliance LXC...")
-            appliance = await self.provision_appliance_lxc()
+            appliance = await self.provision_appliance_lxc(target_node)
             if not appliance:
                 logger.error("Failed to provision appliance LXC")
                 return False
@@ -283,7 +293,7 @@ iface {self.BRIDGE_NAME} inet manual
             logger.warning(f"Could not persist bridge config: {e}")
             return False
     
-    async def provision_appliance_lxc(self) -> Optional[ApplianceInfo]:
+    async def provision_appliance_lxc(self, node: str) -> Optional[ApplianceInfo]:
         """
         Provision the Network Appliance LXC container.
         
@@ -291,6 +301,9 @@ iface {self.BRIDGE_NAME} inet manual
         - Privileged mode (for iptables, service management)
         - eth0 on vmbr0 (WAN/management) with DHCP
         - eth1 on proximity-lan (LAN) with static 10.20.0.1/24
+        
+        Args:
+            node: Target Proxmox node to create appliance on
         
         Returns:
             ApplianceInfo: Information about the provisioned appliance, or None if failed
@@ -302,13 +315,7 @@ iface {self.BRIDGE_NAME} inet manual
                 logger.info(f"✓ Found existing appliance: VMID {existing.vmid}")
                 return existing
             
-            logger.info(f"Creating new appliance LXC: {self.APPLIANCE_HOSTNAME}")
-            
-            # Get node name
-            node = await self._get_default_node()
-            if not node:
-                logger.error("Could not determine Proxmox node")
-                return None
+            logger.info(f"Creating new appliance LXC on node {node}: {self.APPLIANCE_HOSTNAME}")
             
             # LXC configuration
             config = {
