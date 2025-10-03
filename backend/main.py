@@ -11,15 +11,15 @@ from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 import uvicorn
 
-from core.config import settings
-from api.endpoints import apps, system, auth
+from core.config import settings as config_settings
+from api.endpoints import apps, system, auth, settings
 from api.middleware.auth import get_current_user
 from services.proxmox_service import ProxmoxError
 from services.app_service import AppServiceError
 
 # Configure logging
 logging.basicConfig(
-    level=getattr(logging, settings.LOG_LEVEL.upper()),
+    level=getattr(logging, config_settings.LOG_LEVEL.upper()),
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
         logging.StreamHandler(sys.stdout)
@@ -142,7 +142,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         logger.error(f"Failed to initialize services: {e}")
         # Don't fail startup, but log the error
     
-    logger.info(f"🚀 Proximity API started on {settings.API_HOST}:{settings.API_PORT}")
+    logger.info(f"🚀 Proximity API started on {config_settings.API_HOST}:{config_settings.API_PORT}")
     
     yield
     
@@ -154,13 +154,13 @@ def create_app() -> FastAPI:
     """Create and configure FastAPI application"""
     
     app = FastAPI(
-        title=settings.APP_NAME,
+        title=config_settings.APP_NAME,
         description="Self-hosted application delivery platform for Proxmox VE",
-        version=settings.APP_VERSION,
-        debug=settings.DEBUG,
+        version=config_settings.APP_VERSION,
+        debug=config_settings.DEBUG,
         lifespan=lifespan,
-        docs_url="/docs" if settings.DEBUG else None,
-        redoc_url="/redoc" if settings.DEBUG else None,
+        docs_url="/docs" if config_settings.DEBUG else None,
+        redoc_url="/redoc" if config_settings.DEBUG else None,
         redirect_slashes=False,  # Disable automatic trailing slash redirects
     )
     
@@ -174,10 +174,10 @@ def create_app() -> FastAPI:
     )
     
     # Trusted host middleware (security)
-    if not settings.DEBUG:
+    if not config_settings.DEBUG:
         app.add_middleware(
             TrustedHostMiddleware,
-            allowed_hosts=[settings.PROXMOX_HOST, "localhost", "127.0.0.1"]
+            allowed_hosts=[config_settings.PROXMOX_HOST, "localhost", "127.0.0.1"]
         )
     
     # Exception handlers
@@ -233,7 +233,7 @@ def create_app() -> FastAPI:
     # Auth router (UNPROTECTED - allows login/register)
     app.include_router(
         auth.router,
-        prefix=f"/api/{settings.API_VERSION}/auth",
+        prefix=f"/api/{config_settings.API_VERSION}/auth",
         tags=["Authentication"]
     )
 
@@ -241,7 +241,7 @@ def create_app() -> FastAPI:
     from fastapi import Depends
     app.include_router(
         apps.router,
-        prefix=f"/api/{settings.API_VERSION}/apps",
+        prefix=f"/api/{config_settings.API_VERSION}/apps",
         tags=["Applications"],
         dependencies=[Depends(get_current_user)]  # ← PROTECTED
     )
@@ -249,11 +249,19 @@ def create_app() -> FastAPI:
     # System router (PROTECTED - requires authentication)
     app.include_router(
         system.router,
-        prefix=f"/api/{settings.API_VERSION}/system",
+        prefix=f"/api/{config_settings.API_VERSION}/system",
         tags=["System"],
         dependencies=[Depends(get_current_user)]  # ← PROTECTED
     )
-    
+
+    # Settings router (PROTECTED - admin only for most endpoints)
+    app.include_router(
+        settings.router,
+        prefix=f"/api/{config_settings.API_VERSION}/settings",
+        tags=["Settings"],
+        dependencies=[Depends(get_current_user)]  # ← PROTECTED
+    )
+
     # Serve static files (UI)
     static_dir = Path(__file__).parent
     
@@ -276,18 +284,18 @@ def create_app() -> FastAPI:
     async def api_root():
         """API root endpoint with basic information"""
         return {
-            "project": settings.APP_NAME,
-            "version": settings.APP_VERSION,
+            "project": config_settings.APP_NAME,
+            "version": config_settings.APP_VERSION,
             "status": "running",
-            "docs_url": f"/docs" if settings.DEBUG else "Disabled in production",
-            "api_version": settings.API_VERSION
+            "docs_url": f"/docs" if config_settings.DEBUG else "Disabled in production",
+            "api_version": config_settings.API_VERSION
         }
     
     # Health check endpoint
     @app.get("/health")
     async def health_check():
         """Simple health check"""
-        return {"status": "healthy", "version": settings.APP_VERSION}
+        return {"status": "healthy", "version": config_settings.APP_VERSION}
     
     return app
 
@@ -299,9 +307,9 @@ app = create_app()
 if __name__ == "__main__":
     uvicorn.run(
         "main:app",
-        host=settings.API_HOST,
-        port=settings.API_PORT,
-        reload=settings.DEBUG,
-        log_level=settings.LOG_LEVEL.lower(),
+        host=config_settings.API_HOST,
+        port=config_settings.API_PORT,
+        reload=config_settings.DEBUG,
+        log_level=config_settings.LOG_LEVEL.lower(),
         access_log=True
     )

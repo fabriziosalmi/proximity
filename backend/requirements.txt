@@ -19,3 +19,6 @@ email-validator==2.1.0
 # Database (Phase 1)
 sqlalchemy==2.0.23
 alembic==1.12.1
+
+# Encryption (Phase 2)
+cryptography==41.0.7

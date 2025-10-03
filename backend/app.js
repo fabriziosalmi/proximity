@@ -613,53 +613,277 @@ function renderMonitoringView() {
     view.innerHTML = content;
 }
 
-function renderSettingsView() {
+async function renderSettingsView() {
     const view = document.getElementById('settingsView');
-    
+
+    // Load settings data
+    showLoading('Loading settings...');
+    let proxmoxSettings = { host: '', user: '', password: '', port: 8006, verify_ssl: false };
+    let networkSettings = { lan_subnet: '10.20.0.0/24', lan_gateway: '10.20.0.1', dhcp_start: '10.20.0.100', dhcp_end: '10.20.0.250', dns_domain: 'prox.local' };
+    let resourceSettings = { lxc_memory: 2048, lxc_cores: 2, lxc_disk: 8, lxc_storage: 'local-lvm' };
+
+    try {
+        const token = localStorage.getItem('auth_token');
+        if (token) {
+            // Load Proxmox settings
+            const proxmoxRes = await fetch(`${API_BASE}/settings/proxmox`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (proxmoxRes.ok) proxmoxSettings = await proxmoxRes.json();
+
+            // Load Network settings
+            const networkRes = await fetch(`${API_BASE}/settings/network`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (networkRes.ok) networkSettings = await networkRes.json();
+
+            // Load Resource settings
+            const resourceRes = await fetch(`${API_BASE}/settings/resources`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (resourceRes.ok) resourceSettings = await resourceRes.json();
+        }
+    } catch (error) {
+        console.error('Error loading settings:', error);
+    }
+    hideLoading();
+
     const content = `
         <div class="page-header">
             <div class="page-title-row">
                 <div>
                     <h1 class="page-title">Settings</h1>
-                    <p class="page-subtitle">Configure Proximity platform</p>
+                    <p class="page-subtitle">Configure Proximity platform settings</p>
                 </div>
             </div>
         </div>
-        
-        <div class="app-card">
-            <h3 class="app-name" style="margin-bottom: 1rem;">System Information</h3>
-            <div class="app-meta">
-                <div class="app-meta-item">
-                    <span>📌</span>
-                    <span>Version: ${state.systemInfo?.version || 'N/A'}</span>
-                </div>
-                <div class="app-meta-item">
-                    <span>🔗</span>
-                    <span>API: ${API_BASE}</span>
-                </div>
-            </div>
-            <div class="app-meta" style="margin-top: 1rem;">
-                <div class="app-meta-item">
-                    <span>🖥️</span>
-                    <span>Nodes: ${state.nodes.length}</span>
-                </div>
-                <div class="app-meta-item">
-                    <span>📦</span>
-                    <span>Apps: ${state.deployedApps.length}</span>
-                </div>
-            </div>
+
+        <div class="settings-tabs">
+            <button class="settings-tab active" data-tab="proxmox">
+                <i data-lucide="server"></i>
+                <span>Proxmox</span>
+            </button>
+            <button class="settings-tab" data-tab="network">
+                <i data-lucide="network"></i>
+                <span>Network</span>
+            </button>
+            <button class="settings-tab" data-tab="resources">
+                <i data-lucide="cpu"></i>
+                <span>Resources</span>
+            </button>
+            <button class="settings-tab" data-tab="system">
+                <i data-lucide="settings"></i>
+                <span>System</span>
+            </button>
         </div>
-        
-        <div class="alert info" style="margin-top: 2rem;">
-            <span class="alert-icon">🚧</span>
-            <div class="alert-content">
-                <div class="alert-title">Settings Panel</div>
-                <div class="alert-message">Advanced configuration options coming soon. Configure default resources, network settings, backup schedules, and more.</div>
+
+        <div class="settings-content">
+            <!-- Proxmox Settings -->
+            <div class="settings-panel active" id="proxmox-panel">
+                <div class="app-card">
+                    <h3 class="app-name" style="margin-bottom: 1.5rem;">Proxmox Connection</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Configure connection to your Proxmox VE server</p>
+
+                    <form id="proxmoxForm" class="settings-form">
+                        <div class="form-group">
+                            <label class="form-label">Host</label>
+                            <input type="text" class="form-input" name="host" value="${proxmoxSettings.host || ''}" placeholder="192.168.1.100" required>
+                            <small class="form-help">IP address or hostname of your Proxmox server</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Port</label>
+                            <input type="number" class="form-input" name="port" value="${proxmoxSettings.port || 8006}" required>
+                            <small class="form-help">Proxmox web interface port (default: 8006)</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Username</label>
+                            <input type="text" class="form-input" name="user" value="${proxmoxSettings.user || ''}" placeholder="root@pam" required>
+                            <small class="form-help">Proxmox username (e.g., root@pam)</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Password</label>
+                            <input type="password" class="form-input" name="password" value="${proxmoxSettings.password || ''}" placeholder="${proxmoxSettings.password === '******' ? 'Leave unchanged' : 'Enter password'}">
+                            <small class="form-help">Password is encrypted before storage. Leave blank to keep current password.</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-checkbox">
+                                <input type="checkbox" name="verify_ssl" ${proxmoxSettings.verify_ssl ? 'checked' : ''}>
+                                <span>Verify SSL Certificate</span>
+                            </label>
+                            <small class="form-help">Disable for self-signed certificates</small>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary" onclick="testProxmoxConnection()">
+                                <i data-lucide="check-circle"></i>
+                                <span>Test Connection</span>
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i data-lucide="save"></i>
+                                <span>Save Settings</span>
+                            </button>
+                        </div>
+
+                        <div id="proxmoxStatus" style="margin-top: 1rem;"></div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Network Settings -->
+            <div class="settings-panel" id="network-panel">
+                <div class="app-card">
+                    <h3 class="app-name" style="margin-bottom: 1.5rem;">Network Configuration</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Configure network settings for deployed applications</p>
+
+                    <form id="networkForm" class="settings-form">
+                        <div class="form-group">
+                            <label class="form-label">LAN Subnet</label>
+                            <input type="text" class="form-input" name="lan_subnet" value="${networkSettings.lan_subnet || '10.20.0.0/24'}" required>
+                            <small class="form-help">Private network subnet in CIDR notation</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Gateway IP</label>
+                            <input type="text" class="form-input" name="lan_gateway" value="${networkSettings.lan_gateway || '10.20.0.1'}" required>
+                            <small class="form-help">Network gateway IP address</small>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">DHCP Start</label>
+                                <input type="text" class="form-input" name="dhcp_start" value="${networkSettings.dhcp_start || '10.20.0.100'}" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">DHCP End</label>
+                                <input type="text" class="form-input" name="dhcp_end" value="${networkSettings.dhcp_end || '10.20.0.250'}" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">DNS Domain</label>
+                            <input type="text" class="form-input" name="dns_domain" value="${networkSettings.dns_domain || 'prox.local'}" required>
+                            <small class="form-help">Local DNS domain suffix (e.g., prox.local)</small>
+                        </div>
+
+                        <div class="alert warning" style="margin-bottom: 1.5rem;">
+                            <span class="alert-icon">⚠️</span>
+                            <div class="alert-content">
+                                <div class="alert-message">Network changes only apply to newly deployed apps. Existing apps retain their current configuration.</div>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">
+                                <i data-lucide="save"></i>
+                                <span>Save Settings</span>
+                            </button>
+                        </div>
+
+                        <div id="networkStatus" style="margin-top: 1rem;"></div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Resource Settings -->
+            <div class="settings-panel" id="resources-panel">
+                <div class="app-card">
+                    <h3 class="app-name" style="margin-bottom: 1.5rem;">Default Resources</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Set default resource allocations for new LXC containers</p>
+
+                    <form id="resourcesForm" class="settings-form">
+                        <div class="form-group">
+                            <label class="form-label">Memory (MB)</label>
+                            <input type="number" class="form-input" name="lxc_memory" value="${resourceSettings.lxc_memory || 2048}" min="512" step="512" required>
+                            <small class="form-help">Default RAM allocation in megabytes</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">CPU Cores</label>
+                            <input type="number" class="form-input" name="lxc_cores" value="${resourceSettings.lxc_cores || 2}" min="1" max="32" required>
+                            <small class="form-help">Number of CPU cores to allocate</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Disk Size (GB)</label>
+                            <input type="number" class="form-input" name="lxc_disk" value="${resourceSettings.lxc_disk || 8}" min="4" step="1" required>
+                            <small class="form-help">Root disk size in gigabytes</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Storage Pool</label>
+                            <input type="text" class="form-input" name="lxc_storage" value="${resourceSettings.lxc_storage || 'local-lvm'}" required>
+                            <small class="form-help">Proxmox storage pool for container disks</small>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">
+                                <i data-lucide="save"></i>
+                                <span>Save Settings</span>
+                            </button>
+                        </div>
+
+                        <div id="resourcesStatus" style="margin-top: 1rem;"></div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- System Settings -->
+            <div class="settings-panel" id="system-panel">
+                <div class="app-card">
+                    <h3 class="app-name" style="margin-bottom: 1.5rem;">System Information</h3>
+                    <div class="app-meta">
+                        <div class="app-meta-item">
+                            <span>📌</span>
+                            <span>Version: ${state.systemInfo?.version || 'N/A'}</span>
+                        </div>
+                        <div class="app-meta-item">
+                            <span>🔗</span>
+                            <span>API: ${API_BASE}</span>
+                        </div>
+                    </div>
+                    <div class="app-meta" style="margin-top: 1rem;">
+                        <div class="app-meta-item">
+                            <span>🖥️</span>
+                            <span>Nodes: ${state.nodes.length}</span>
+                        </div>
+                        <div class="app-meta-item">
+                            <span>📦</span>
+                            <span>Apps: ${state.deployedApps.length}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="app-card" style="margin-top: 1.5rem;">
+                    <h3 class="app-name" style="margin-bottom: 1.5rem;">Security</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Manage authentication and access control</p>
+
+                    <div class="alert info">
+                        <span class="alert-icon">🔐</span>
+                        <div class="alert-content">
+                            <div class="alert-title">Authentication Enabled</div>
+                            <div class="alert-message">All API endpoints are protected with JWT authentication. Sensitive data is encrypted at rest.</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     `;
-    
+
     view.innerHTML = content;
+
+    // Initialize icons after rendering
+    initLucideIcons();
+
+    // Setup tab switching
+    setupSettingsTabs();
+
+    // Setup form handlers
+    setupSettingsForms();
 }
 
 // Modal Functions
@@ -1695,6 +1919,357 @@ function closeModal() {
     document.getElementById('deployModal').classList.remove('show');
 }
 
+// Settings Page Helpers
+function setupSettingsTabs() {
+    const tabs = document.querySelectorAll('.settings-tab');
+    const panels = document.querySelectorAll('.settings-panel');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            // Remove active class from all tabs and panels
+            tabs.forEach(t => t.classList.remove('active'));
+            panels.forEach(p => p.classList.remove('active'));
+
+            // Add active class to clicked tab
+            tab.classList.add('active');
+
+            // Show corresponding panel
+            const panelId = `${tab.dataset.tab}-panel`;
+            const panel = document.getElementById(panelId);
+            if (panel) {
+                panel.classList.add('active');
+            }
+
+            // Reinitialize icons
+            initLucideIcons();
+        });
+    });
+}
+
+function setupSettingsForms() {
+    // Proxmox form
+    const proxmoxForm = document.getElementById('proxmoxForm');
+    if (proxmoxForm) {
+        proxmoxForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await saveProxmoxSettings(new FormData(proxmoxForm));
+        });
+    }
+
+    // Network form
+    const networkForm = document.getElementById('networkForm');
+    if (networkForm) {
+        networkForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await saveNetworkSettings(new FormData(networkForm));
+        });
+    }
+
+    // Resources form
+    const resourcesForm = document.getElementById('resourcesForm');
+    if (resourcesForm) {
+        resourcesForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await saveResourceSettings(new FormData(resourcesForm));
+        });
+    }
+}
+
+async function saveProxmoxSettings(formData) {
+    const statusDiv = document.getElementById('proxmoxStatus');
+    const token = localStorage.getItem('auth_token');
+
+    if (!token) {
+        statusDiv.innerHTML = `
+            <div class="alert error">
+                <span class="alert-icon">❌</span>
+                <div class="alert-content">
+                    <div class="alert-message">Not authenticated. Please log in.</div>
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    const data = {
+        host: formData.get('host'),
+        port: parseInt(formData.get('port')),
+        user: formData.get('user'),
+        password: formData.get('password') || '******',
+        verify_ssl: formData.get('verify_ssl') === 'on'
+    };
+
+    try {
+        showLoading('Saving Proxmox settings...');
+
+        const response = await fetch(`${API_BASE}/settings/proxmox`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        hideLoading();
+
+        if (response.ok) {
+            statusDiv.innerHTML = `
+                <div class="alert success">
+                    <span class="alert-icon">✅</span>
+                    <div class="alert-content">
+                        <div class="alert-title">Settings Saved</div>
+                        <div class="alert-message">${result.message || 'Proxmox settings updated successfully'}</div>
+                        ${result.warning ? `<div class="alert-message" style="margin-top: 0.5rem;"><strong>⚠️ ${result.warning}</strong></div>` : ''}
+                    </div>
+                </div>
+            `;
+            showNotification('Proxmox settings saved successfully', 'success');
+        } else {
+            statusDiv.innerHTML = `
+                <div class="alert error">
+                    <span class="alert-icon">❌</span>
+                    <div class="alert-content">
+                        <div class="alert-title">Error</div>
+                        <div class="alert-message">${result.error || 'Failed to save settings'}</div>
+                    </div>
+                </div>
+            `;
+            showNotification('Failed to save Proxmox settings', 'error');
+        }
+    } catch (error) {
+        hideLoading();
+        console.error('Error saving Proxmox settings:', error);
+        statusDiv.innerHTML = `
+            <div class="alert error">
+                <span class="alert-icon">❌</span>
+                <div class="alert-content">
+                    <div class="alert-message">Network error: ${error.message}</div>
+                </div>
+            </div>
+        `;
+        showNotification('Failed to save Proxmox settings', 'error');
+    }
+}
+
+async function testProxmoxConnection() {
+    const statusDiv = document.getElementById('proxmoxStatus');
+    const token = localStorage.getItem('auth_token');
+
+    if (!token) {
+        statusDiv.innerHTML = `
+            <div class="alert error">
+                <span class="alert-icon">❌</span>
+                <div class="alert-content">
+                    <div class="alert-message">Not authenticated. Please log in.</div>
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    try {
+        showLoading('Testing Proxmox connection...');
+
+        const response = await fetch(`${API_BASE}/system/info`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        hideLoading();
+
+        if (response.ok) {
+            const data = await response.json();
+            statusDiv.innerHTML = `
+                <div class="alert success">
+                    <span class="alert-icon">✅</span>
+                    <div class="alert-content">
+                        <div class="alert-title">Connection Successful</div>
+                        <div class="alert-message">Connected to Proxmox cluster: ${data.cluster_name || 'Default'}</div>
+                    </div>
+                </div>
+            `;
+            showNotification('Proxmox connection test successful', 'success');
+        } else {
+            statusDiv.innerHTML = `
+                <div class="alert error">
+                    <span class="alert-icon">❌</span>
+                    <div class="alert-content">
+                        <div class="alert-title">Connection Failed</div>
+                        <div class="alert-message">Unable to connect to Proxmox server. Check your credentials and network.</div>
+                    </div>
+                </div>
+            `;
+            showNotification('Proxmox connection test failed', 'error');
+        }
+    } catch (error) {
+        hideLoading();
+        console.error('Error testing Proxmox connection:', error);
+        statusDiv.innerHTML = `
+            <div class="alert error">
+                <span class="alert-icon">❌</span>
+                <div class="alert-content">
+                    <div class="alert-message">Network error: ${error.message}</div>
+                </div>
+            </div>
+        `;
+        showNotification('Proxmox connection test failed', 'error');
+    }
+}
+
+async function saveNetworkSettings(formData) {
+    const statusDiv = document.getElementById('networkStatus');
+    const token = localStorage.getItem('auth_token');
+
+    if (!token) {
+        statusDiv.innerHTML = `
+            <div class="alert error">
+                <span class="alert-icon">❌</span>
+                <div class="alert-content">
+                    <div class="alert-message">Not authenticated. Please log in.</div>
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    const data = {
+        lan_subnet: formData.get('lan_subnet'),
+        lan_gateway: formData.get('lan_gateway'),
+        dhcp_start: formData.get('dhcp_start'),
+        dhcp_end: formData.get('dhcp_end'),
+        dns_domain: formData.get('dns_domain')
+    };
+
+    try {
+        showLoading('Saving network settings...');
+
+        const response = await fetch(`${API_BASE}/settings/network`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        hideLoading();
+
+        if (response.ok) {
+            statusDiv.innerHTML = `
+                <div class="alert success">
+                    <span class="alert-icon">✅</span>
+                    <div class="alert-content">
+                        <div class="alert-title">Settings Saved</div>
+                        <div class="alert-message">${result.message || 'Network settings updated successfully'}</div>
+                    </div>
+                </div>
+            `;
+            showNotification('Network settings saved successfully', 'success');
+        } else {
+            statusDiv.innerHTML = `
+                <div class="alert error">
+                    <span class="alert-icon">❌</span>
+                    <div class="alert-content">
+                        <div class="alert-title">Error</div>
+                        <div class="alert-message">${result.error || 'Failed to save settings'}</div>
+                    </div>
+                </div>
+            `;
+            showNotification('Failed to save network settings', 'error');
+        }
+    } catch (error) {
+        hideLoading();
+        console.error('Error saving network settings:', error);
+        statusDiv.innerHTML = `
+            <div class="alert error">
+                <span class="alert-icon">❌</span>
+                <div class="alert-content">
+                    <div class="alert-message">Network error: ${error.message}</div>
+                </div>
+            </div>
+        `;
+        showNotification('Failed to save network settings', 'error');
+    }
+}
+
+async function saveResourceSettings(formData) {
+    const statusDiv = document.getElementById('resourcesStatus');
+    const token = localStorage.getItem('auth_token');
+
+    if (!token) {
+        statusDiv.innerHTML = `
+            <div class="alert error">
+                <span class="alert-icon">❌</span>
+                <div class="alert-content">
+                    <div class="alert-message">Not authenticated. Please log in.</div>
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    const data = {
+        lxc_memory: parseInt(formData.get('lxc_memory')),
+        lxc_cores: parseInt(formData.get('lxc_cores')),
+        lxc_disk: parseInt(formData.get('lxc_disk')),
+        lxc_storage: formData.get('lxc_storage')
+    };
+
+    try {
+        showLoading('Saving resource settings...');
+
+        const response = await fetch(`${API_BASE}/settings/resources`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        hideLoading();
+
+        if (response.ok) {
+            statusDiv.innerHTML = `
+                <div class="alert success">
+                    <span class="alert-icon">✅</span>
+                    <div class="alert-content">
+                        <div class="alert-title">Settings Saved</div>
+                        <div class="alert-message">${result.message || 'Resource settings updated successfully'}</div>
+                    </div>
+                </div>
+            `;
+            showNotification('Resource settings saved successfully', 'success');
+        } else {
+            statusDiv.innerHTML = `
+                <div class="alert error">
+                    <span class="alert-icon">❌</span>
+                    <div class="alert-content">
+                        <div class="alert-title">Error</div>
+                        <div class="alert-message">${result.error || 'Failed to save settings'}</div>
+                    </div>
+                </div>
+            `;
+            showNotification('Failed to save resource settings', 'error');
+        }
+    } catch (error) {
+        hideLoading();
+        console.error('Error saving resource settings:', error);
+        statusDiv.innerHTML = `
+            <div class="alert error">
+                <span class="alert-icon">❌</span>
+                <div class="alert-content">
+                    <div class="alert-message">Network error: ${error.message}</div>
+                </div>
+            </div>
+        `;
+        showNotification('Failed to save resource settings', 'error');
+    }
+}
+
 // Event Listeners
 function setupEventListeners() {
     // Navigation
@@ -1705,7 +2280,7 @@ function setupEventListeners() {
             if (view) showView(view);
         });
     });
-    
+
     // Close modal on outside click
     document.getElementById('deployModal').addEventListener('click', (e) => {
         if (e.target.id === 'deployModal') {
