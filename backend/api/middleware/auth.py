@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from models.database import get_db, User
 from models.schemas import TokenData
 from services.auth_service import AuthService
+from core.config import settings
 from typing import Optional
 import logging
 

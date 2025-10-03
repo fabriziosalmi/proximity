@@ -17,12 +17,21 @@ from models.schemas import (
 )
 from services.proxmox_service import ProxmoxService, ProxmoxError
 from core.config import settings
+from core.exceptions import (
+    AppNotFoundError,
+    AppAlreadyExistsError,
+    AppDeploymentError,
+    AppOperationError,
+    CatalogError,
+    DatabaseError,
+    ValidationError
+)
 
 logger = logging.getLogger(__name__)
 
 
 class AppServiceError(Exception):
-    """Custom exception for App Service errors"""
+    """Custom exception for App Service errors - deprecated, use core.exceptions instead"""
     pass
 
 
@@ -114,8 +123,10 @@ class AppService:
                                 app_data = json.load(f)
                                 items.append(AppCatalogItem(**app_data))
                                 logger.debug(f"Loaded app: {app_data.get('name')}")
-                        except Exception as e:
+                        except (json.JSONDecodeError, KeyError, ValueError) as e:
                             logger.error(f"Failed to load app from {app_file}: {e}")
+                        except Exception as e:
+                            logger.error(f"Unexpected error loading {app_file}: {e}", exc_info=True)
                 
                 categories = list(set(item.category for item in items))
                 
@@ -149,10 +160,14 @@ class AppService:
             
             self._catalog_loaded = True  # Mark as loaded
                 
-        except Exception as e:
-            logger.error(f"Failed to load catalog: {e}", exc_info=True)
+        except (FileNotFoundError, json.JSONDecodeError) as e:
+            logger.error(f"Catalog file error: {e}")
             await self._create_default_catalog()
-            self._catalog_loaded = True  # Mark as attempted
+            self._catalog_loaded = True
+        except Exception as e:
+            logger.error(f"Unexpected error loading catalog: {e}", exc_info=True)
+            await self._create_default_catalog()
+            self._catalog_loaded = True
 
     async def _create_default_catalog(self) -> None:
         """Create a default catalog with common applications"""
@@ -355,8 +370,10 @@ class AppService:
                             else:
                                 logger.warning(f"Could not get IP for {app.id} (LXC {app.lxc_id})")
                                 
+                        except ProxmoxError as url_error:
+                            logger.warning(f"Proxmox error updating URL for {app.id}: {url_error}")
                         except Exception as url_error:
-                            logger.warning(f"Failed to update URL for {app.id}: {url_error}")
+                            logger.warning(f"Unexpected error updating URL for {app.id}: {url_error}", exc_info=True)
                     
                     elif container.status.value == "stopped":
                         app.status = AppStatus.STOPPED
@@ -379,8 +396,14 @@ class AppService:
             if status_changed:
                 self.db.commit()
                     
+        except ProxmoxError as e:
+            logger.error(f"Proxmox error during app sync: {e}")
+            self.db.rollback()
+        except DatabaseError as e:
+            logger.error(f"Database error during app sync: {e}")
+            self.db.rollback()
         except Exception as e:
-            logger.error(f"Failed to sync apps with containers: {e}")
+            logger.error(f"Unexpected error syncing apps with containers: {e}", exc_info=True)
             self.db.rollback()
 
     async def start_app(self, app_id: str) -> App:
@@ -408,17 +431,39 @@ class AppService:
                 self.db.commit()
             
             app.status = AppStatus.RUNNING
-            logger.info(f"Started app {app_id}")
+            logger.info(f"Started app {app_id}", extra={"app_id": app_id, "vmid": app.lxc_id, "node": app.node})
             return app
             
-        except Exception as e:
+        except ProxmoxError as e:
+            logger.error(f"Proxmox error starting app {app_id}: {e}", extra={"app_id": app_id})
             # Update error status
             db_app = self.db.query(DBApp).filter(DBApp.id == app_id).first()
             if db_app:
                 db_app.status = AppStatus.ERROR.value
                 db_app.updated_at = datetime.utcnow()
                 self.db.commit()
-            raise AppServiceError(f"Failed to start app: {e}")
+            raise AppOperationError(
+                f"Failed to start application: {str(e)}",
+                details={"app_id": app_id, "operation": "start", "error_type": "proxmox"}
+            ) from e
+        except DatabaseError as e:
+            logger.error(f"Database error starting app {app_id}: {e}", extra={"app_id": app_id})
+            raise AppOperationError(
+                f"Failed to update app status: {str(e)}",
+                details={"app_id": app_id, "operation": "start", "error_type": "database"}
+            ) from e
+        except Exception as e:
+            logger.error(f"Unexpected error starting app {app_id}: {e}", extra={"app_id": app_id}, exc_info=True)
+            # Update error status
+            db_app = self.db.query(DBApp).filter(DBApp.id == app_id).first()
+            if db_app:
+                db_app.status = AppStatus.ERROR.value
+                db_app.updated_at = datetime.utcnow()
+                self.db.commit()
+            raise AppOperationError(
+                f"Failed to start application: {str(e)}",
+                details={"app_id": app_id, "operation": "start"}
+            ) from e
     
     async def stop_app(self, app_id: str) -> App:
         """Stop an application"""
@@ -442,17 +487,39 @@ class AppService:
                 self.db.commit()
             
             app.status = AppStatus.STOPPED
-            logger.info(f"Stopped app {app_id}")
+            logger.info(f"Stopped app {app_id}", extra={"app_id": app_id, "vmid": app.lxc_id, "node": app.node})
             return app
             
-        except Exception as e:
+        except ProxmoxError as e:
+            logger.error(f"Proxmox error stopping app {app_id}: {e}", extra={"app_id": app_id})
             # Update error status
             db_app = self.db.query(DBApp).filter(DBApp.id == app_id).first()
             if db_app:
                 db_app.status = AppStatus.ERROR.value
                 db_app.updated_at = datetime.utcnow()
                 self.db.commit()
-            raise AppServiceError(f"Failed to stop app: {e}")
+            raise AppOperationError(
+                f"Failed to stop application: {str(e)}",
+                details={"app_id": app_id, "operation": "stop", "error_type": "proxmox"}
+            ) from e
+        except DatabaseError as e:
+            logger.error(f"Database error stopping app {app_id}: {e}", extra={"app_id": app_id})
+            raise AppOperationError(
+                f"Failed to update app status: {str(e)}",
+                details={"app_id": app_id, "operation": "stop", "error_type": "database"}
+            ) from e
+        except Exception as e:
+            logger.error(f"Unexpected error stopping app {app_id}: {e}", extra={"app_id": app_id}, exc_info=True)
+            # Update error status
+            db_app = self.db.query(DBApp).filter(DBApp.id == app_id).first()
+            if db_app:
+                db_app.status = AppStatus.ERROR.value
+                db_app.updated_at = datetime.utcnow()
+                self.db.commit()
+            raise AppOperationError(
+                f"Failed to stop application: {str(e)}",
+                details={"app_id": app_id, "operation": "stop"}
+            ) from e
     
     async def restart_app(self, app_id: str) -> App:
         """Restart an application"""
@@ -474,8 +541,10 @@ class AppService:
                 try:
                     await self._caddy_service.remove_application(app_id)
                     logger.info(f"Removed {app_id} from reverse proxy")
+                except (ConnectionError, TimeoutError) as caddy_error:
+                    logger.warning(f"Network error removing app from Caddy: {caddy_error}", extra={"app_id": app_id})
                 except Exception as caddy_error:
-                    logger.warning(f"Failed to remove app from Caddy: {caddy_error}")
+                    logger.warning(f"Unexpected error removing app from Caddy: {caddy_error}", extra={"app_id": app_id})
             
             # Delete LXC container
             await self.proxmox_service.delete_lxc(app.node, app.lxc_id)
@@ -486,11 +555,29 @@ class AppService:
                 self.db.delete(db_app)
                 self.db.commit()
             
-            logger.info(f"Deleted app {app_id}")
+            logger.info(f"Deleted app {app_id}", extra={"app_id": app_id, "vmid": app.lxc_id, "node": app.node})
             
-        except Exception as e:
+        except ProxmoxError as e:
+            logger.error(f"Proxmox error deleting app {app_id}: {e}", extra={"app_id": app_id})
             self.db.rollback()
-            raise AppServiceError(f"Failed to delete app: {e}")
+            raise AppOperationError(
+                f"Failed to delete application infrastructure: {str(e)}",
+                details={"app_id": app_id, "operation": "delete", "error_type": "proxmox"}
+            ) from e
+        except DatabaseError as e:
+            logger.error(f"Database error deleting app {app_id}: {e}", extra={"app_id": app_id})
+            self.db.rollback()
+            raise AppOperationError(
+                f"Failed to remove app from database: {str(e)}",
+                details={"app_id": app_id, "operation": "delete", "error_type": "database"}
+            ) from e
+        except Exception as e:
+            logger.error(f"Unexpected error deleting app {app_id}: {e}", extra={"app_id": app_id}, exc_info=True)
+            self.db.rollback()
+            raise AppOperationError(
+                f"Failed to delete application: {str(e)}",
+                details={"app_id": app_id, "operation": "delete"}
+            ) from e
     
     async def deploy_app(self, app_data: AppCreate) -> App:
         """Deploy a new application"""
@@ -499,7 +586,10 @@ class AppService:
         # Check if app already exists in database
         existing_app = self.db.query(DBApp).filter(DBApp.id == app_id).first()
         if existing_app:
-            raise AppServiceError(f"App with ID '{app_id}' already exists")
+            raise AppAlreadyExistsError(
+                f"Application '{app_id}' already exists",
+                details={"app_id": app_id, "existing_status": existing_app.status}
+            )
         
         # Get catalog item
         catalog_item = await self.get_catalog_item(app_data.catalog_id)
@@ -617,10 +707,14 @@ class AppService:
                         access_url = f"http://{container_ip}:{primary_port}" if container_ip else None
                         await self._log_deployment(app_id, "warning", "Reverse proxy configuration failed - using direct access")
                         
-                except Exception as proxy_error:
-                    logger.warning(f"Failed to configure reverse proxy: {proxy_error}")
+                except (ConnectionError, TimeoutError) as proxy_error:
+                    logger.warning(f"Network error configuring reverse proxy: {proxy_error}")
                     access_url = f"http://{container_ip}:{primary_port}" if container_ip else None
-                    await self._log_deployment(app_id, "warning", f"Reverse proxy error: {proxy_error} - using direct access")
+                    await self._log_deployment(app_id, "warning", f"Reverse proxy network error - using direct access")
+                except Exception as proxy_error:
+                    logger.warning(f"Unexpected error configuring reverse proxy: {proxy_error}", exc_info=True)
+                    access_url = f"http://{container_ip}:{primary_port}" if container_ip else None
+                    await self._log_deployment(app_id, "warning", f"Reverse proxy error - using direct access")
             else:
                 # No proxy manager available - use direct access
                 access_url = f"http://{container_ip}:{primary_port}" if container_ip else None
@@ -673,23 +767,61 @@ class AppService:
             
             return app
             
+        except ProxmoxError as e:
+            # Handle Proxmox-specific errors
+            deployment_status.status = AppStatus.ERROR
+            deployment_status.error = f"Proxmox error: {str(e)}"
+            await self._log_deployment(app_id, "error", f"Proxmox error during deployment: {e}")
+            logger.error(f"Proxmox error deploying {app_id}: {e}", extra={"app_id": app_id, "vmid": locals().get('vmid'), "node": locals().get('target_node')})
+            
+            await self._cleanup_failed_deployment(app_id, locals().get('vmid'), locals().get('target_node'))
+            raise AppDeploymentError(
+                f"Deployment failed due to Proxmox error: {str(e)}",
+                details={"app_id": app_id, "error_type": "proxmox", "vmid": locals().get('vmid')}
+            ) from e
+            
+        except DatabaseError as e:
+            # Handle database errors
+            deployment_status.status = AppStatus.ERROR
+            deployment_status.error = f"Database error: {str(e)}"
+            await self._log_deployment(app_id, "error", f"Database error during deployment: {e}")
+            logger.error(f"Database error deploying {app_id}: {e}", extra={"app_id": app_id})
+            
+            await self._cleanup_failed_deployment(app_id, locals().get('vmid'), locals().get('target_node'))
+            raise AppDeploymentError(
+                f"Deployment failed due to database error: {str(e)}",
+                details={"app_id": app_id, "error_type": "database"}
+            ) from e
+            
         except Exception as e:
-            # Handle deployment failure
+            # Handle unexpected errors
             deployment_status.status = AppStatus.ERROR
             deployment_status.error = str(e)
-            await self._log_deployment(app_id, "error", f"Deployment failed: {e}")
+            await self._log_deployment(app_id, "error", f"Unexpected deployment error: {e}")
+            logger.error(
+                f"Unexpected error deploying {app_id}: {e}",
+                extra={"app_id": app_id, "vmid": locals().get('vmid'), "node": locals().get('target_node')},
+                exc_info=True
+            )
             
-            # Cleanup on failure
-            try:
-                if 'vmid' in locals() and 'target_node' in locals():
-                    logger.info(f"Cleaning up failed deployment: destroying LXC {vmid}")
-                    task_id = await self.proxmox_service.destroy_lxc(target_node, vmid, force=True)
-                    await self.proxmox_service.wait_for_task(target_node, task_id, timeout=60)
-                    logger.info(f"✓ Cleanup successful: LXC {vmid} destroyed")
-            except Exception as cleanup_error:
-                logger.error(f"Failed to cleanup after deployment failure: {cleanup_error}")
-            
-            raise AppServiceError(f"Deployment failed: {e}")
+            await self._cleanup_failed_deployment(app_id, locals().get('vmid'), locals().get('target_node'))
+            raise AppDeploymentError(
+                f"Deployment failed: {str(e)}",
+                details={"app_id": app_id, "error_type": "unexpected"}
+            ) from e
+    
+    async def _cleanup_failed_deployment(self, app_id: str, vmid: Optional[int], target_node: Optional[str]) -> None:
+        """Cleanup resources after a failed deployment"""
+        try:
+            if vmid and target_node:
+                logger.info(f"Cleaning up failed deployment: destroying LXC {vmid}", extra={"app_id": app_id, "vmid": vmid, "node": target_node})
+                task_id = await self.proxmox_service.destroy_lxc(target_node, vmid, force=True)
+                await self.proxmox_service.wait_for_task(target_node, task_id, timeout=60)
+                logger.info(f"✓ Cleanup successful: LXC {vmid} destroyed", extra={"app_id": app_id, "vmid": vmid})
+        except ProxmoxError as cleanup_error:
+            logger.error(f"Proxmox error during cleanup of {vmid}: {cleanup_error}", extra={"app_id": app_id, "vmid": vmid})
+        except Exception as cleanup_error:
+            logger.error(f"Unexpected error during cleanup of {vmid}: {cleanup_error}", extra={"app_id": app_id, "vmid": vmid}, exc_info=True)
 
     async def _setup_docker_compose(self, node: str, vmid: int, catalog_item: AppCatalogItem, app_data: AppCreate) -> None:
         """Setup Docker Compose configuration in the container"""
@@ -750,8 +882,24 @@ COMPOSE_EOF
             )
             logger.info(f"Docker Compose status:\\n{status}")
                 
+        except ProxmoxError as e:
+            logger.error(f"Proxmox error setting up Docker Compose in LXC {vmid}: {e}")
+            raise AppDeploymentError(
+                f"Failed to setup Docker Compose: {str(e)}",
+                details={"vmid": vmid, "node": node, "error_type": "proxmox"}
+            ) from e
+        except (yaml.YAMLError, ValueError) as e:
+            logger.error(f"Invalid Docker Compose configuration: {e}")
+            raise ValidationError(
+                f"Invalid Docker Compose configuration: {str(e)}",
+                details={"vmid": vmid, "catalog_id": catalog_item.id}
+            ) from e
         except Exception as e:
-            raise AppServiceError(f"Failed to setup Docker Compose: {e}")
+            logger.error(f"Unexpected error setting up Docker Compose in LXC {vmid}: {e}", exc_info=True)
+            raise AppDeploymentError(
+                f"Failed to setup Docker Compose: {str(e)}",
+                details={"vmid": vmid, "node": node}
+            ) from e
 
     async def _log_deployment(self, app_id: str, level: str, message: str, step: Optional[str] = None) -> None:
         """Add log entry to deployment status and database"""
@@ -778,21 +926,30 @@ COMPOSE_EOF
                 self.db.add(db_log)
                 try:
                     self.db.commit()
+                except DatabaseError as e:
+                    logger.error(f"Database error saving deployment log for {app_id}: {e}", extra={"app_id": app_id})
+                    self.db.rollback()
                 except Exception as e:
-                    logger.error(f"Failed to save deployment log: {e}")
+                    logger.error(f"Unexpected error saving deployment log for {app_id}: {e}", extra={"app_id": app_id}, exc_info=True)
                     self.db.rollback()
 
     async def get_deployment_status(self, app_id: str) -> DeploymentStatus:
         """Get deployment status for an app"""
         if app_id not in self._deployment_status:
-            raise AppServiceError(f"No deployment status found for app '{app_id}'")
+            raise AppNotFoundError(
+                f"No deployment status found for application '{app_id}'",
+                details={"app_id": app_id, "available_deployments": list(self._deployment_status.keys())}
+            )
         return self._deployment_status[app_id]
 
     async def update_app(self, app_id: str, app_update: AppUpdate) -> App:
         """Update an existing application"""
         db_app = self.db.query(DBApp).filter(DBApp.id == app_id).first()
         if not db_app:
-            raise AppServiceError(f"App '{app_id}' not found")
+            raise AppNotFoundError(
+                f"Application '{app_id}' not found",
+                details={"app_id": app_id}
+            )
         
         if app_update.config is not None:
             db_app.config = {**db_app.config, **app_update.config}

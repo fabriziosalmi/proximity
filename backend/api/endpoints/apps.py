@@ -12,6 +12,15 @@ from models.database import AuditLog, get_db
 from services.app_service import AppService, AppServiceError, get_app_service
 from services.command_service import SafeCommandService, SafeCommandError, get_command_service
 from api.middleware.auth import get_current_user
+from core.exceptions import (
+    ProximityError,
+    AppError,
+    AppNotFoundError,
+    AppAlreadyExistsError,
+    AppDeploymentError,
+    AppOperationError,
+    CatalogError
+)
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -32,8 +41,11 @@ async def get_catalog(
             catalog.total = len(filtered_items)
         
         return catalog
+    except CatalogError as e:
+        logger.error(f"Catalog error: {e}", extra={"category": category})
+        raise HTTPException(status_code=500, detail=e.message)
     except Exception as e:
-        logger.error(f"Failed to get catalog: {e}")
+        logger.error(f"Unexpected error getting catalog: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -45,10 +57,11 @@ async def get_catalog_item(
     """Get specific catalog item"""
     try:
         return await service.get_catalog_item(catalog_id)
-    except AppServiceError as e:
+    except (AppServiceError, CatalogError, AppNotFoundError) as e:
+        logger.warning(f"Catalog item not found: {catalog_id}")
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        logger.error(f"Failed to get catalog item {catalog_id}: {e}")
+        logger.error(f"Unexpected error getting catalog item {catalog_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -84,10 +97,11 @@ async def get_app(
     """Get specific application"""
     try:
         return await service.get_app(app_id)
-    except AppServiceError as e:
+    except (AppServiceError, AppNotFoundError) as e:
+        logger.warning(f"App not found: {app_id}")
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        logger.error(f"Failed to get app {app_id}: {e}")
+        logger.error(f"Unexpected error getting app {app_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -100,10 +114,14 @@ async def deploy_app(
     """Deploy a new application"""
     try:
         return await service.deploy_app(app_data)
-    except AppServiceError as e:
+    except AppAlreadyExistsError as e:
+        logger.warning(f"App already exists: {app_data.catalog_id}-{app_data.hostname}")
+        raise HTTPException(status_code=409, detail=str(e))
+    except (AppDeploymentError, AppServiceError) as e:
+        logger.error(f"Deployment failed: {e}", extra={"catalog_id": app_data.catalog_id, "hostname": app_data.hostname})
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        logger.error(f"Failed to deploy app: {e}")
+        logger.error(f"Unexpected error deploying app: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -116,10 +134,11 @@ async def get_deployment_status(
     try:
         status = await service.get_deployment_status(app_id)
         return status
-    except AppServiceError as e:
+    except (AppServiceError, AppNotFoundError) as e:
+        logger.warning(f"Deployment status not found: {app_id}")
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        logger.error(f"Failed to get deployment status for {app_id}: {e}")
+        logger.error(f"Unexpected error getting deployment status for {app_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -131,10 +150,11 @@ async def get_deployment_status(
     """Get deployment status for an app"""
     try:
         return await service.get_deployment_status(app_id)
-    except AppServiceError as e:
+    except (AppServiceError, AppNotFoundError) as e:
+        logger.warning(f"Deployment status not found: {app_id}")
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        logger.error(f"Failed to get deployment status for {app_id}: {e}")
+        logger.error(f"Unexpected error getting deployment status for {app_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -147,10 +167,11 @@ async def update_app(
     """Update an existing application"""
     try:
         return await service.update_app(app_id, app_update)
-    except AppServiceError as e:
+    except (AppServiceError, AppNotFoundError) as e:
+        logger.warning(f"App not found for update: {app_id}")
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        logger.error(f"Failed to update app {app_id}: {e}")
+        logger.error(f"Unexpected error updating app {app_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -177,10 +198,14 @@ async def perform_app_action(
         else:
             raise HTTPException(status_code=400, detail=f"Unknown action: {action.action}")
             
-    except AppServiceError as e:
+    except (AppServiceError, AppNotFoundError) as e:
+        logger.warning(f"App not found for action: {app_id}")
         raise HTTPException(status_code=404, detail=str(e))
+    except AppOperationError as e:
+        logger.error(f"Operation failed: {action.action} on {app_id}", extra={"app_id": app_id, "action": action.action})
+        raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
-        logger.error(f"Failed to perform action {action.action} on app {app_id}: {e}")
+        logger.error(f"Unexpected error performing action {action.action} on {app_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -193,10 +218,14 @@ async def delete_app(
     try:
         await service.delete_app(app_id)
         return APIResponse(message=f"App {app_id} deleted successfully")
-    except AppServiceError as e:
+    except (AppServiceError, AppNotFoundError) as e:
+        logger.warning(f"App not found for deletion: {app_id}")
         raise HTTPException(status_code=404, detail=str(e))
+    except AppOperationError as e:
+        logger.error(f"Failed to delete app {app_id}: {e}", extra={"app_id": app_id})
+        raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
-        logger.error(f"Failed to delete app {app_id}: {e}")
+        logger.error(f"Unexpected error deleting app {app_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -221,10 +250,11 @@ async def get_app_logs(
         
         return {"logs": result}
         
-    except AppServiceError as e:
+    except (AppServiceError, AppNotFoundError) as e:
+        logger.warning(f"App not found for logs: {app_id}")
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        logger.error(f"Failed to get logs for app {app_id}: {e}")
+        logger.error(f"Unexpected error getting logs for {app_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -253,10 +283,11 @@ async def get_app_stats(
             "uptime": lxc_status.uptime
         }
         
-    except AppServiceError as e:
+    except (AppServiceError, AppNotFoundError) as e:
+        logger.warning(f"App not found for stats: {app_id}")
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        logger.error(f"Failed to get stats for app {app_id}: {e}")
+        logger.error(f"Unexpected error getting stats for {app_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -377,14 +408,16 @@ async def execute_safe_command(
             "timestamp": datetime.utcnow().isoformat()
         }
         
-    except AppServiceError as e:
+    except (AppServiceError, AppNotFoundError) as e:
+        logger.warning(f"App not found for command execution: {app_id}")
         raise HTTPException(status_code=404, detail=str(e))
     except SafeCommandError as e:
+        logger.error(f"Safe command error: {e}", extra={"app_id": app_id, "command": command_name})
         raise HTTPException(status_code=500, detail=str(e))
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to execute command '{command_name}' on app {app_id}: {e}")
+        logger.error(f"Unexpected error executing command '{command_name}' on {app_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Command execution failed: {str(e)}")
 
 

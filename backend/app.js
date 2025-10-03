@@ -37,6 +37,94 @@ function initSidebarToggle() {
 // Proximity UI - State-of-the-Art Application Management Interface
 const API_BASE = 'http://localhost:8765/api/v1';
 
+// Authentication Management
+const Auth = {
+    TOKEN_KEY: 'proximity_token',
+    USER_KEY: 'proximity_user',
+    
+    // Get stored token
+    getToken() {
+        return localStorage.getItem(this.TOKEN_KEY);
+    },
+    
+    // Store token and user info
+    setToken(token, user) {
+        localStorage.setItem(this.TOKEN_KEY, token);
+        if (user) {
+            localStorage.setItem(this.USER_KEY, JSON.stringify(user));
+        }
+    },
+    
+    // Get stored user info
+    getUser() {
+        const userJson = localStorage.getItem(this.USER_KEY);
+        return userJson ? JSON.parse(userJson) : null;
+    },
+    
+    // Check if user is authenticated
+    isAuthenticated() {
+        return !!this.getToken();
+    },
+    
+    // Clear authentication
+    logout() {
+        localStorage.removeItem(this.TOKEN_KEY);
+        localStorage.removeItem(this.USER_KEY);
+        window.location.reload();
+    },
+    
+    // Get authorization headers
+    getHeaders() {
+        const headers = {
+            'Content-Type': 'application/json'
+        };
+        
+        const token = this.getToken();
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+        
+        return headers;
+    }
+};
+
+// Enhanced fetch with authentication
+async function authFetch(url, options = {}) {
+    const defaultOptions = {
+        headers: Auth.getHeaders(),
+        ...options
+    };
+    
+    // Merge headers properly
+    if (options.headers) {
+        defaultOptions.headers = {
+            ...defaultOptions.headers,
+            ...options.headers
+        };
+    }
+    
+    try {
+        const response = await fetch(url, defaultOptions);
+        
+        // Handle 401 Unauthorized
+        if (response.status === 401) {
+            console.warn('Authentication required - redirecting to login');
+            Auth.logout();
+            showLoginModal();
+            throw new Error('Authentication required');
+        }
+        
+        return response;
+    } catch (error) {
+        // Network errors
+        if (error.message === 'Authentication required') {
+            throw error;
+        }
+        console.error('Network error:', error);
+        throw error;
+    }
+}
+
 // Application State
 const state = {
     systemInfo: null,
@@ -52,6 +140,16 @@ const state = {
 async function init() {
     initSidebarToggle();
     console.log('🚀 Initializing Proximity UI...');
+    
+    // Check authentication first
+    if (!Auth.isAuthenticated()) {
+        console.log('⚠️  No authentication token found - showing login');
+        showLoginModal();
+        return;
+    }
+    
+    // Update user info in sidebar
+    updateUserInfo();
     
     showLoading('Connecting to Proximity API...');
     
@@ -93,7 +191,7 @@ async function init() {
 // API Calls
 async function loadSystemInfo() {
     try {
-        const response = await fetch(`${API_BASE}/system/info`);
+        const response = await authFetch(`${API_BASE}/system/info`);
         if (!response.ok) throw new Error('Failed to load system info');
         state.systemInfo = await response.json();
     } catch (error) {

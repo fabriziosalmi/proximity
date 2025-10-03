@@ -1,6 +1,10 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
 import os
+from pathlib import Path
+
+# Get the backend directory path
+BACKEND_DIR = Path(__file__).parent.parent
 
 
 class Settings(BaseSettings):
@@ -52,7 +56,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "sqlite:///./proximity.db"
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=str(BACKEND_DIR / ".env"),
         env_file_encoding="utf-8",
         case_sensitive=True
     )
