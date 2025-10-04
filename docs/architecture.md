@@ -26,8 +26,9 @@ Proximity is a self-hosted application delivery platform built on Proxmox VE tha
 **Key Services:**
 - `ProxmoxService`: Manages LXC container lifecycle, networking, and Proxmox API interactions
 - `AppService`: Handles application catalog, deployment, and state management
+- `PortManagerService`: Manages sequential port allocation for public and internal proxy access
 - `NetworkApplianceOrchestrator`: Manages network appliance and bridge provisioning
-- `ReverseProxyManager`: Configures Caddy reverse proxy for deployed applications
+- `ReverseProxyManager`: Configures Caddy reverse proxy with port-based architecture
 - `SafeCommandService`: Executes pre-configured safe commands in containers
 
 #### 2. Frontend UI
@@ -193,34 +194,130 @@ The `NetworkApplianceOrchestrator` handles:
 
 ### Reverse Proxy Integration
 
-The `ReverseProxyManager` provides:
+**Port-Based Architecture (Platinum Edition v2.0)**
 
-- **Automatic Vhost Creation**: When deploying web apps, Caddy vhosts are auto-configured
-- **Domain Naming**: Apps are accessible at `{hostname}.prox.local`
-- **Health Checks**: Monitors backend container availability
-- **Dynamic Reconfiguration**: Updates proxy config on app deployment/removal
+Proximity uses a modern **port-based reverse proxy architecture** that assigns each application two dedicated ports:
 
-**Example Caddyfile:**
+- **Public Port (30000-30999)**: Standard external access with full security headers
+- **Internal Port (40000-40999)**: iframe-embeddable access with stripped frame-busting headers for In-App Canvas
+
+#### Port Allocation
+
+The `PortManagerService` manages sequential port allocation:
+
+- **Sequential Assignment**: Ports assigned sequentially starting from range minimum
+- **Database-Backed**: Port assignments stored in database with unique constraints
+- **Automatic Recycling**: Released ports become available for reuse
+- **Conflict Prevention**: Unique constraints prevent port collisions
+
+**Port Ranges (Configurable):**
+```python
+PUBLIC_PORT_RANGE: 30000-30999 (1000 ports)
+INTERNAL_PORT_RANGE: 40000-40999 (1000 ports)
 ```
-nginx-01.prox.local {
-    reverse_proxy 10.20.0.100:80
+
+#### Access Methods
+
+Applications are accessible via:
+
+1. **Port-Based Public Access**: `http://<appliance-ip>:<public_port>`
+   - Full security headers preserved
+   - Standard HTTP/HTTPS access
+   - Example: `http://10.20.0.10:30001`
+
+2. **Port-Based Canvas Access**: `http://<appliance-ip>:<internal_port>`
+   - X-Frame-Options header stripped (allows iframe embedding)
+   - Content-Security-Policy header stripped
+   - Used by In-App Canvas feature
+   - Example: `http://10.20.0.10:40001`
+
+3. **DNS Access** (Optional): `http://{hostname}.prox.local`
+   - Requires DNS/hosts file configuration
+   - Maps hostname to container IP
+
+4. **Direct Access**: `http://<container-ip>:<container-port>`
+   - Bypass reverse proxy entirely
+   - Useful for debugging
+
+#### Caddy Configuration
+
+The `ReverseProxyManager` generates port-based Caddy configurations:
+
+**Example Generated Configuration:**
+```
+# Port-based virtual host for myapp
+# Platinum Edition v2.0 - Port-Based Architecture
+
+# Public Access (Port 30001)
+:30001 {
+    reverse_proxy http://10.20.0.100:80 {
+        header_up Host {upstream_hostport}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+    }
 }
 
-wordpress-prod.prox.local {
-    reverse_proxy 10.20.0.101:80
+# Internal Canvas Access (Port 40001)
+:40001 {
+    reverse_proxy http://10.20.0.100:80 {
+        header_up Host {upstream_hostport}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+        
+        # Strip frame-busting headers for iframe embedding
+        header_down -X-Frame-Options
+        header_down -Content-Security-Policy
+    }
 }
 ```
+
+**Key Features:**
+- ✅ No path-based routing (`handle_path` removed)
+- ✅ No prefix stripping complexities
+- ✅ Each app gets dedicated ports
+- ✅ Simplified proxy configuration
+- ✅ Better iframe security control
+- ✅ Scalable up to 1000 concurrent apps per port range
+
+#### In-App Canvas Integration
+
+The **In-App Canvas** feature uses the internal port for secure iframe embedding:
+
+```javascript
+// Frontend canvas rendering
+const canvasUrl = app.iframe_url; // http://10.20.0.10:40001
+const iframe = document.createElement('iframe');
+iframe.src = canvasUrl;
+iframe.sandbox = 'allow-same-origin allow-scripts allow-forms';
+```
+
+#### Migration from Path-Based Architecture
+
+**Legacy (Pre-v2.0):**
+- Path-based routing: `http://appliance/app-name`
+- Path-based canvas: `http://appliance/proxy/internal/app-name`
+- Complex prefix stripping with `handle_path`
+
+**Current (v2.0+):**
+- Port-based routing: `http://appliance:30001`
+- Port-based canvas: `http://appliance:40001`
+- Clean, dedicated port blocks
+- No path manipulation required
 
 ### Container Deployment Flow
 
 When deploying an application:
 
-1. **Template Download**: Alpine template cached on Proxmox node
-2. **Container Creation**: LXC created with single NIC on `proximity-lan`
-3. **Network Bootstrap**: Container receives IP via DHCP from appliance
-4. **DNS Registration**: dnsmasq assigns `{hostname}.prox.local` DNS entry
-5. **Proxy Configuration**: If web app, Caddy vhost created
-6. **Health Check**: System verifies container and services are running
+1. **Port Assignment**: PortManagerService assigns unique public and internal ports (e.g., 30001, 40001)
+2. **Template Download**: Alpine template cached on Proxmox node
+3. **Container Creation**: LXC created with single NIC on `proximity-lan`
+4. **Network Bootstrap**: Container receives IP via DHCP from appliance
+5. **DNS Registration**: dnsmasq assigns `{hostname}.prox.local` DNS entry
+6. **Proxy Configuration**: Caddy vhost created with dedicated ports for public and canvas access
+7. **Health Check**: System verifies container and services are running
+8. **Database Update**: App record updated with assigned ports and access URLs
 
 ### Management & Monitoring
 

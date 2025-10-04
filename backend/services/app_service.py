@@ -81,6 +81,12 @@ class AppService:
 
     def _db_app_to_schema(self, db_app: DBApp) -> App:
         """Convert database App model to Pydantic schema"""
+        # Convert volumes from dict format to string format if needed
+        volumes = db_app.volumes or []
+        if volumes and isinstance(volumes[0], dict):
+            # Convert dict format to string format: "host:container"
+            volumes = [f"{v.get('host_path', '')}:{v.get('container_path', '')}" for v in volumes]
+        
         return App(
             id=db_app.id,
             catalog_id=db_app.catalog_id,
@@ -95,7 +101,7 @@ class AppService:
             updated_at=db_app.updated_at,
             config=db_app.config or {},
             ports=db_app.ports or {},
-            volumes=db_app.volumes or [],
+            volumes=volumes,
             environment=db_app.environment or {},
             public_port=db_app.public_port,
             internal_port=db_app.internal_port
