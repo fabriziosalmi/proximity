@@ -91,6 +91,7 @@ Proximity uses a **fully isolated network architecture** powered by a dedicated 
 - **[Deployment Guide](docs/deployment.md)** - Installation, configuration, operations, and troubleshooting
 - **[Development Guide](docs/development.md)** - Contributing, code structure, and adding features
 - **[Troubleshooting](docs/troubleshooting.md)** - Common issues, fixes, and debugging techniques
+- **[Changelog](docs/CHANGELOG.md)** - Version history and release notes
 - **[Security Refactoring](docs/SECURITY_REFACTORING_SAFE_COMMANDS.md)** - Safe command system documentation
 - **[Safe Commands Reference](docs/SAFE_COMMANDS_REFERENCE.md)** - Quick reference for secure container commands
 
