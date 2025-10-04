@@ -202,7 +202,7 @@ class ErrorResponse(BaseModel):
 class UserCreate(BaseModel):
     """User creation/registration request"""
     username: str = Field(..., min_length=3, max_length=50)
-    email: EmailStr
+    email: EmailStr | None = None
     password: str = Field(..., min_length=8)
     role: str = Field(default="user")
 

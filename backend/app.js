@@ -2886,101 +2886,109 @@ function switchAuthTab(tab) {
 }
 
 function renderRegisterForm() {
-        const content = document.getElementById('authTabContent');
-        content.innerHTML = `
-            <form id="registerForm" class="auth-form">
-                <div class="form-group">
-                    <label>Username</label>
-                    <input type="text" id="registerUsername" required autocomplete="username">
-                </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" id="registerPassword" required autocomplete="new-password">
-                </div>
-                <div class="form-group">
-                    <label>Email (optional)</label>
-                    <input type="email" id="registerEmail" autocomplete="email">
-                </div>
-                <button type="submit" class="btn btn-primary" style="width:100%;margin-top:1rem;">Register</button>
-                <div id="registerError" class="form-error"></div>
-            </form>
-        `;
-        document.getElementById('registerForm').onsubmit = handleRegisterSubmit;
-}
-
-function renderLoginForm(prefill = {}) {
-        const content = document.getElementById('authTabContent');
-        content.innerHTML = `
-            <form id="loginForm" class="auth-form">
-                <div class="form-group">
-                    <label>Username</label>
-                    <input type="text" id="loginUsername" required autocomplete="username" value="${prefill.username || ''}">
-                </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" id="loginPassword" required autocomplete="current-password" value="${prefill.password || ''}">
-                </div>
-                <button type="submit" class="btn btn-primary" style="width:100%;margin-top:1rem;">Login</button>
-                <div id="loginError" class="form-error"></div>
-            </form>
-        `;
-        document.getElementById('loginForm').onsubmit = handleLoginSubmit;
-}
-
-async function handleRegisterSubmit(e) {
-        e.preventDefault();
-        const username = document.getElementById('registerUsername').value.trim();
-        const password = document.getElementById('registerPassword').value;
-        const email = document.getElementById('registerEmail').value.trim();
-        const errorDiv = document.getElementById('registerError');
-        errorDiv.textContent = '';
-        try {
-                const res = await fetch(`${API_BASE}/auth/register`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ username, password, email })
-                });
-                if (!res.ok) {
-                        const err = await res.json();
-                        errorDiv.textContent = err.detail || 'Registration failed.';
-                        return;
-                }
-                // Registration successful, auto-fill login form
-                renderAuthTabs('login');
-                renderLoginForm({ username, password });
-                showNotification('Registration successful! Please log in.', 'success');
-        } catch (err) {
-                errorDiv.textContent = 'Network error.';
+    const content = document.getElementById('authTabContent');
+    content.innerHTML = `
+      <form id="registerForm" class="auth-form">
+        <div class="form-group">
+          <label class="form-label">Username</label>
+          <input type="text" class="form-input" id="registerUsername" required autocomplete="username" placeholder="Enter username">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-input" id="registerPassword" required autocomplete="new-password" placeholder="Min. 8 characters">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email (optional)</label>
+          <input type="email" class="form-input" id="registerEmail" autocomplete="email" placeholder="your@email.com">
+        </div>
+        <div id="registerError" class="form-error" style="margin-bottom: 1rem;"></div>
+        <button type="submit" class="btn btn-primary" style="width:100%;">Register</button>
+      </form>
+    `;
+    document.getElementById('registerForm').onsubmit = handleRegisterSubmit;
+}function renderLoginForm(prefill = {}) {
+    const content = document.getElementById('authTabContent');
+    content.innerHTML = `
+      <form id="loginForm" class="auth-form">
+        <div class="form-group">
+          <label class="form-label">Username</label>
+          <input type="text" class="form-input" id="loginUsername" required autocomplete="username" value="${prefill.username || ''}" placeholder="Enter username">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-input" id="loginPassword" required autocomplete="current-password" value="${prefill.password || ''}" placeholder="Enter password">
+        </div>
+        <div id="loginError" class="form-error" style="margin-bottom: 1rem;"></div>
+        <button type="submit" class="btn btn-primary" style="width:100%;">Login</button>
+      </form>
+    `;
+    document.getElementById('loginForm').onsubmit = handleLoginSubmit;
+}async function handleRegisterSubmit(e) {
+    e.preventDefault();
+    const username = document.getElementById('registerUsername').value.trim();
+    const password = document.getElementById('registerPassword').value;
+    const email = document.getElementById('registerEmail').value.trim();
+    const errorDiv = document.getElementById('registerError');
+    errorDiv.textContent = '';
+    
+    // Build payload (only include email if provided)
+    const payload = { username, password };
+    if (email) {
+        payload.email = email;
+    }
+    
+    try {
+        const res = await fetch(`${API_BASE}/auth/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if (!res.ok) {
+            const err = await res.json();
+            // Handle validation errors properly
+            if (err.detail && Array.isArray(err.detail)) {
+                errorDiv.textContent = err.detail.map(e => e.msg).join(', ');
+            } else if (typeof err.detail === 'string') {
+                errorDiv.textContent = err.detail;
+            } else {
+                errorDiv.textContent = 'Registration failed.';
+            }
+            return;
         }
-}
-
-async function handleLoginSubmit(e) {
-        e.preventDefault();
-        const username = document.getElementById('loginUsername').value.trim();
-        const password = document.getElementById('loginPassword').value;
-        const errorDiv = document.getElementById('loginError');
-        errorDiv.textContent = '';
-        try {
-                const res = await fetch(`${API_BASE}/auth/login`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ username, password })
-                });
-                if (!res.ok) {
-                        const err = await res.json();
-                        errorDiv.textContent = err.detail || 'Login failed.';
-                        return;
-                }
-                const data = await res.json();
-                Auth.setToken(data.access_token, data.user);
-                closeAuthModal();
-                showNotification('Login successful!', 'success');
-                // Re-init app
-                setTimeout(() => window.location.reload(), 500);
-        } catch (err) {
-                errorDiv.textContent = 'Network error.';
+        // Registration successful, auto-fill login form
+        renderAuthTabs('login');
+        renderLoginForm({ username, password });
+        showNotification('Registration successful! Please log in.', 'success');
+    } catch (err) {
+        console.error('Registration error:', err);
+        errorDiv.textContent = 'Network error. Please try again.';
+    }
+}async function handleLoginSubmit(e) {
+    e.preventDefault();
+    const username = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const errorDiv = document.getElementById('loginError');
+    errorDiv.textContent = '';
+    try {
+        const res = await fetch(`${API_BASE}/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+        if (!res.ok) {
+            const err = await res.json();
+            errorDiv.textContent = err.detail || 'Login failed.';
+            return;
         }
-}
-
-// Patch: override showLoginModal to showAuthModal for legacy calls
+        const data = await res.json();
+        Auth.setToken(data.access_token, data.user);
+        closeAuthModal();
+        showNotification('Login successful!', 'success');
+        // Re-init app
+        setTimeout(() => window.location.reload(), 500);
+    } catch (err) {
+        console.error('Login error:', err);
+        errorDiv.textContent = 'Network error. Please try again.';
+    }
+}// Patch: override showLoginModal to showAuthModal for legacy calls
 window.showLoginModal = showAuthModal;
