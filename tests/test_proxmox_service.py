@@ -65,8 +65,8 @@ class TestProxmoxService:
     async def test_get_lxc_status(self, mock_proxmox_service):
         """Test getting LXC container status."""
         status = await mock_proxmox_service.get_lxc_status("testnode", 100)
-        assert status["vmid"] == 100
-        assert status["status"] == "running"
+        assert status.vmid == 100
+        assert status.status == "running" or status.status.value == "running"
 
     @pytest.mark.asyncio
     async def test_connection_failure(self):
