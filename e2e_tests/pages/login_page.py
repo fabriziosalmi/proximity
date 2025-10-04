@@ -230,39 +230,41 @@ class LoginPage(BasePage):
         self.click_register_button()
         
         # Wait for modal to close (indicates success)
-        # NOTE: If modal doesn't close automatically (frontend bug), force close it
+        # NOTE: With the frontend fix, modal should close automatically after registration
         if wait_for_success:
             try:
-                self.wait_for_modal_close(timeout=3000)  # Shorter timeout
-                logger.info("Registration successful - modal closed")
-            except Exception as e:
-                logger.warning(f"Modal didn't close automatically, forcing close: {e}")
+                # First, wait a bit for the registration request to complete
+                self.page.wait_for_timeout(1000)
                 
-                # First, wait for the auth token to be saved (critical!)
+                # Then wait for modal to close (should happen automatically now)
+                self.wait_for_modal_close(timeout=5000)
+                logger.info("Registration successful - modal closed automatically")
+            except Exception as e:
+                logger.warning(f"Modal didn't close automatically, checking auth state: {e}")
+                
+                # Check if we're authenticated (token was saved)
                 token_saved = self.page.evaluate("""
                     () => {
-                        // Check if token was saved
                         return localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
                     }
                 """)
                 
-                if not token_saved:
-                    logger.warning("Token not found, waiting for auth response...")
-                    # Give more time for the login request to complete
-                    self.page.wait_for_timeout(2000)
-                
-                # Force close the modal (workaround for frontend bug)
-                self.page.evaluate("""
-                    const modal = document.getElementById('authModal');
-                    if (modal && modal.classList.contains('show')) {
-                        modal.classList.remove('show');
-                        modal.style.display = 'none';
-                        document.body.classList.remove('modal-open');
-                        const backdrop = document.querySelector('.modal-backdrop');
-                        if (backdrop) backdrop.remove();
-                    }
-                """)
-                logger.info("Registration successful - modal force closed")
+                if token_saved:
+                    logger.info("Registration successful - token found, forcing modal close")
+                    # Force close the modal (workaround for slow modal animation)
+                    self.page.evaluate("""
+                        const modal = document.getElementById('authModal');
+                        if (modal && modal.classList.contains('show')) {
+                            modal.classList.remove('show');
+                            modal.style.display = 'none';
+                            document.body.classList.remove('modal-open');
+                            const backdrop = document.querySelector('.modal-backdrop');
+                            if (backdrop) backdrop.remove();
+                        }
+                    """)
+                else:
+                    logger.warning("Token not found after registration, may have failed")
+                    raise Exception("Registration may have failed - no token found")
     
     def login_with_error_check(self, username: str, password: str) -> str:
         """
