@@ -798,6 +798,136 @@ def test_your_feature(authenticated_page):
 6. **Clean Up**: Use fixtures with yield for automatic cleanup
 7. **Set Timeouts**: Be explicit about wait times
 8. **Handle Failures**: Try/except for cleanup in fixtures
+9. **Ensure Isolation**: Clear session storage when testing authentication
+
+### Test Isolation Strategy 🔒
+
+**CRITICAL for reliable tests**: Proper test isolation prevents JWT token leakage and state contamination between tests.
+
+#### Why Test Isolation Matters
+
+Without isolation, tests can fail unpredictably because:
+- JWT tokens from previous tests persist in localStorage
+- `test_invalid_login` passes because user is already authenticated
+- `test_logout` fails because session wasn't cleared from previous test
+- Tests pass when run individually but fail in the suite
+
+#### Our Multi-Layer Isolation Approach
+
+##### 1. Browser Context Isolation (Global)
+
+```python
+# In conftest.py
+@pytest.fixture(scope="session")
+def browser_context_args(browser_context_args) -> dict:
+    """
+    CRITICAL: Sets storage_state to None to ensure localStorage/sessionStorage
+    are cleared between tests, preventing JWT token leakage.
+    """
+    return {
+        **browser_context_args,
+        "storage_state": None,  # Ensures no saved state is used
+    }
+```
+
+This ensures **every test starts with a clean browser context**.
+
+##### 2. Explicit Session Clearing (Test Level)
+
+```python
+# In BasePage class
+def clear_session(self) -> None:
+    """Clear localStorage and sessionStorage to reset authentication state."""
+    self.page.evaluate("window.localStorage.clear(); window.sessionStorage.clear();")
+```
+
+**Usage in tests**:
+```python
+def test_invalid_login(page: Page):
+    """Must clear session to ensure no lingering JWT tokens."""
+    # CRITICAL: Clear any existing session first
+    page.evaluate("window.localStorage.clear(); window.sessionStorage.clear();")
+    page.reload()
+    
+    # Now test invalid login
+    login_page = LoginPage(page)
+    # ... rest of test
+```
+
+##### 3. Fixture-Level Cleanup (Authenticated Tests)
+
+```python
+# In conftest.py
+@pytest.fixture(scope="function")
+def authenticated_page(page: Page, base_url: str) -> Page:
+    """Provides authenticated session with cleanup."""
+    # Clear session before setup
+    page.evaluate("window.localStorage.clear(); window.sessionStorage.clear();")
+    
+    # ... register and login ...
+    
+    yield page
+    
+    # Cleanup: Clear session on teardown
+    try:
+        page.evaluate("window.localStorage.clear(); window.sessionStorage.clear();")
+    except:
+        pass  # Page might be closed already
+```
+
+#### When to Clear Session
+
+| Test Type | Clear Before | Clear After | Example |
+|-----------|--------------|-------------|---------|
+| **Unauthenticated** (login, register) | ✅ Yes | ❌ No | `test_invalid_login` |
+| **Authenticated** (logout, dashboard) | ✅ Yes (fixture) | ✅ Yes (fixture) | `test_logout` |
+| **Session persistence** | ❌ No | ❌ No | `test_session_persistence` |
+
+#### Quick Reference
+
+```python
+# ✅ GOOD: Clear session for unauthenticated tests
+def test_invalid_login(page: Page):
+    page.evaluate("window.localStorage.clear(); window.sessionStorage.clear();")
+    page.reload()
+    # ... test code
+
+# ✅ GOOD: Use authenticated_page fixture (handles cleanup)
+def test_logout(authenticated_page: Page):
+    # No manual clearing needed - fixture handles it
+    # ... test code
+
+# ❌ BAD: No session clearing in unauthenticated test
+def test_invalid_login(page: Page):
+    # Missing cleanup - might use token from previous test!
+    login_page = LoginPage(page)
+    # ... test code
+```
+
+#### Debugging Isolation Issues
+
+If a test passes individually but fails in the suite:
+
+1. **Check for lingering tokens**:
+   ```python
+   token = page.evaluate("localStorage.getItem('proximity_token')")
+   print(f"Token exists: {token is not None}")
+   ```
+
+2. **Add explicit clearing**:
+   ```python
+   page.evaluate("window.localStorage.clear(); window.sessionStorage.clear();")
+   page.reload()
+   page.wait_for_timeout(1000)  # Give time for app to reinitialize
+   ```
+
+3. **Verify browser context**:
+   ```bash
+   # Run with explicit cleanup
+   pytest test_auth_flow.py -v --headed
+   ```
+
+---
 
 ### Test Markers
 

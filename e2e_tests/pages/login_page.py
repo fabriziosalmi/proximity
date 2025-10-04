@@ -303,3 +303,38 @@ class LoginPage(BasePage):
         register_tab = self.page.locator(self.REGISTER_TAB)
         tab_class = register_tab.get_attribute("class") or ""
         assert "active" in tab_class, f"Register tab should be active, got class: {tab_class}"
+    
+    def get_prefilled_username(self) -> str:
+        """
+        Get the current value of the username field in login mode.
+        
+        Returns:
+            Username value from the login username input field
+        """
+        logger.info("Getting pre-filled username from login form")
+        return self.get_value(self.LOGIN_USERNAME_INPUT)
+    
+    def assert_username_prefilled(self, expected_username: str) -> None:
+        """
+        Assert that the login username field is pre-filled with expected value.
+        
+        Args:
+            expected_username: Expected username value
+        """
+        logger.info(f"Asserting username is pre-filled with: {expected_username}")
+        actual_username = self.get_prefilled_username()
+        assert actual_username == expected_username, \
+            f"Expected username '{expected_username}' to be pre-filled, got: '{actual_username}'"
+    
+    def wait_for_success_notification(self, timeout: int = 10000) -> str:
+        """
+        Wait for a success notification to appear (e.g., after registration).
+        
+        Args:
+            timeout: Maximum time to wait (milliseconds)
+        
+        Returns:
+            The notification text
+        """
+        logger.info("Waiting for success notification")
+        return self.wait_for_notification(timeout=timeout)

@@ -53,6 +53,17 @@ class BasePage:
         logger.info("Going back")
         self.page.go_back()
     
+    def clear_session(self) -> None:
+        """
+        Clear localStorage and sessionStorage to reset authentication state.
+        
+        CRITICAL for test isolation - prevents JWT token leakage between tests.
+        Use this at the beginning of tests that require a clean, unauthenticated state.
+        """
+        logger.info("Clearing session storage (localStorage + sessionStorage)")
+        self.page.evaluate("window.localStorage.clear(); window.sessionStorage.clear();")
+        logger.info("Session storage cleared successfully")
+    
     # ========================================================================
     # Element Interaction Methods
     # ========================================================================

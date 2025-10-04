@@ -74,15 +74,20 @@ def browser_type_launch_args(slow_mo: int, headless: bool) -> dict:
 
 
 @pytest.fixture(scope="session")
-def browser_context_args() -> dict:
+def browser_context_args(browser_context_args) -> dict:
     """
     Context arguments for browser isolation.
     This is used by pytest-playwright's context fixture.
+    
+    CRITICAL: Sets storage_state to None to ensure localStorage/sessionStorage
+    are cleared between tests, preventing JWT token leakage.
     """
     return {
+        **browser_context_args,
         "viewport": {"width": 1920, "height": 1080},
         "ignore_https_errors": True,
         "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+        "storage_state": None,  # Ensures no saved state is used - critical for test isolation
     }
 
 
@@ -113,16 +118,24 @@ def authenticated_page(page: Page, base_url: str) -> Page:
     Provides a page with an authenticated user session.
     
     This fixture:
-    1. Registers a new test user (if not exists)
-    2. Logs in
-    3. Waits for dashboard to load
-    4. Returns authenticated page
+    1. Clears any existing session (localStorage/sessionStorage)
+    2. Registers a new test user
+    3. Switches to login tab (app behavior after registration)
+    4. Clicks login button
+    5. Waits for dashboard to load with explicit selector
+    6. Returns authenticated page
     
     Use this when tests require a logged-in user.
+    
+    IMPORTANT: This fixture ensures complete test isolation by clearing
+    session storage before authentication.
     """
     from pages.login_page import LoginPage
     from pages.dashboard_page import DashboardPage
     from utils.test_data import generate_test_user
+    
+    # Clear any existing session first (test isolation)
+    page.evaluate("window.localStorage.clear(); window.sessionStorage.clear();")
     
     # Generate unique test user
     test_user = generate_test_user()
@@ -132,14 +145,38 @@ def authenticated_page(page: Page, base_url: str) -> Page:
     
     # Navigate to app
     page.goto(base_url)
+    login_page.wait_for_auth_modal()
     
-    # Register and login
-    login_page.register(test_user["username"], test_user["password"])
+    # Register user (this will switch to login tab with pre-filled credentials)
+    login_page.switch_to_register_mode()
+    login_page.fill_username(test_user["username"], mode="register")
+    login_page.fill_password(test_user["password"], mode="register")
+    if login_page.is_visible(login_page.REGISTER_EMAIL_INPUT):
+        login_page.fill_email(test_user.get("email", f"{test_user['username']}@test.com"))
     
-    # Verify we're on the dashboard
+    login_page.click_register_button()
+    
+    # Wait for registration to complete and switch to login tab
+    page.wait_for_timeout(2000)  # Give time for registration to process
+    
+    # Switch to login tab and submit (credentials should be pre-filled)
+    login_page.switch_to_login_mode()
+    login_page.click_login_button()
+    
+    # CRITICAL: Wait for dashboard to load with explicit selector
+    page.wait_for_selector("#dashboardView, #dashboard-view, [data-view='dashboard']", 
+                          timeout=10000, state="visible")
+    
+    # Additional verification
     dashboard_page.wait_for_dashboard_load()
     
-    return page
+    yield page
+    
+    # Cleanup: Clear session on teardown to prevent leakage to next test
+    try:
+        page.evaluate("window.localStorage.clear(); window.sessionStorage.clear();")
+    except:
+        pass  # Page might be closed already
 
 
 @pytest.fixture(scope="function")
