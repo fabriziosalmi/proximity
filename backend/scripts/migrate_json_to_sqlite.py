@@ -26,7 +26,7 @@ from datetime import datetime
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from sqlalchemy.orm import Session
-from models.database import SessionLocal, App as DBApp
+from models.database import SessionLocal, App as DBApp, User
 from models.schemas import AppStatus
 import logging
 
@@ -102,6 +102,17 @@ def migrate_apps(db: Session, json_file_path: Path) -> dict:
         logger.error(f"Failed to read JSON file: {e}")
         return stats
 
+    # Find first admin user to assign ownership
+    admin_user = db.query(User).filter(User.role == 'admin').order_by(User.id).first()
+    default_owner_id = admin_user.id if admin_user else None
+
+    if admin_user:
+        logger.info(f"Found admin user: {admin_user.username} (ID: {admin_user.id})")
+        logger.info(f"All migrated apps will be assigned to this user")
+    else:
+        logger.warning("No admin user found - apps will be created without owner")
+        logger.warning("Consider creating an admin user and assigning ownership manually")
+
     # Migrate each app
     for app_data in apps_data:
         try:
@@ -160,11 +171,12 @@ def migrate_apps(db: Session, json_file_path: Path) -> dict:
                     ports=app_data.get('ports', {}),
                     volumes=app_data.get('volumes', []),
                     environment=app_data.get('environment', {}),
-                    owner_id=None  # Will be set by user when they claim the app
+                    owner_id=default_owner_id  # Assign to first admin user
                 )
                 db.add(new_app)
 
-                logger.info(f"  ✓ Created: {new_app.name} (ID: {app_id})")
+                owner_info = f"(Owner: {admin_user.username})" if admin_user else "(No owner)"
+                logger.info(f"  ✓ Created: {new_app.name} (ID: {app_id}) {owner_info}")
                 stats['created'] += 1
 
         except Exception as e:
