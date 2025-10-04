@@ -296,6 +296,22 @@ class BackupCreate(BaseModel):
     storage: Optional[str] = Field(None, description="Storage name (defaults to local)")
     compress: Optional[str] = Field("zstd", description="Compression type: zstd, gzip, or none")
     mode: Optional[str] = Field("snapshot", description="Backup mode: snapshot or stop")
+    
+    @field_validator('compress')
+    @classmethod
+    def validate_compress(cls, v):
+        """Validate compression type"""
+        if v is not None and v not in ['zstd', 'gzip', 'none']:
+            raise ValueError(f"compress must be one of: zstd, gzip, none (got: {v})")
+        return v
+    
+    @field_validator('mode')
+    @classmethod
+    def validate_mode(cls, v):
+        """Validate backup mode"""
+        if v is not None and v not in ['snapshot', 'stop']:
+            raise ValueError(f"mode must be one of: snapshot, stop (got: {v})")
+        return v
 
 
 class BackupList(BaseModel):

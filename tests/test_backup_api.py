@@ -21,8 +21,7 @@ sys.path.insert(0, str(backend_path))
 class TestBackupAPICreate:
     """Test backup creation API."""
 
-    @patch('services.backup_service.BackupService')
-    def test_create_backup_success(self, mock_backup_service_class, client, auth_headers, db_session, test_user):
+    def test_create_backup_success(self, client_with_mock_proxmox, auth_headers, db_session, test_user):
         """Test successful backup creation via API."""
         # Create app
         app = App(
@@ -38,22 +37,8 @@ class TestBackupAPICreate:
         db_session.add(app)
         db_session.commit()
 
-        # Mock backup service
-        mock_backup = Backup(
-            id=1,
-            app_id="api-test-app",
-            filename="vzdump-lxc-100-2025_10_04-12_00_00.tar.zst",
-            storage_name="local",
-            backup_type="vzdump",
-            status="creating",
-            created_at=datetime.utcnow()
-        )
-        mock_service = AsyncMock()
-        mock_service.create_backup.return_value = mock_backup
-        mock_backup_service_class.return_value = mock_service
-
         # Create backup
-        response = client.post(
+        response = client_with_mock_proxmox.post(
             "/api/v1/apps/api-test-app/backups",
             headers=auth_headers,
             json={
@@ -101,7 +86,7 @@ class TestBackupAPICreate:
 
         assert response.status_code == 404
 
-    def test_create_backup_invalid_compression(self, client, auth_headers, db_session, test_user):
+    def test_create_backup_invalid_compression(self, client_with_mock_proxmox, auth_headers, db_session, test_user):
         """Test backup creation with invalid compression type."""
         app = App(
             id="compress-app",
@@ -116,13 +101,14 @@ class TestBackupAPICreate:
         db_session.add(app)
         db_session.commit()
 
-        response = client.post(
+        response = client_with_mock_proxmox.post(
             "/api/v1/apps/compress-app/backups",
             headers=auth_headers,
             json={"compress": "invalid"}
         )
 
         assert response.status_code == 422  # Validation error
+
 
 
 class TestBackupAPIList:
@@ -267,8 +253,7 @@ class TestBackupAPIGet:
 class TestBackupAPIRestore:
     """Test backup restoration API."""
 
-    @patch('services.backup_service.BackupService')
-    def test_restore_backup_success(self, mock_backup_service_class, client, auth_headers, db_session, test_user):
+    def test_restore_backup_success(self, client_with_mock_proxmox, auth_headers, db_session, test_user):
         """Test successful backup restoration."""
         app = App(
             id="restore-api-app",
@@ -292,17 +277,7 @@ class TestBackupAPIRestore:
         db_session.add(backup)
         db_session.commit()
 
-        # Mock backup service
-        mock_service = AsyncMock()
-        mock_service.restore_from_backup.return_value = {
-            "success": True,
-            "message": "Restore completed",
-            "backup_id": backup.id,
-            "app_id": "restore-api-app"
-        }
-        mock_backup_service_class.return_value = mock_service
-
-        response = client.post(
+        response = client_with_mock_proxmox.post(
             f"/api/v1/apps/restore-api-app/backups/{backup.id}/restore",
             headers=auth_headers
         )
@@ -347,8 +322,7 @@ class TestBackupAPIRestore:
 class TestBackupAPIDelete:
     """Test backup deletion API."""
 
-    @patch('services.backup_service.BackupService')
-    def test_delete_backup_success(self, mock_backup_service_class, client, auth_headers, db_session, test_user):
+    def test_delete_backup_success(self, client_with_mock_proxmox, auth_headers, db_session, test_user):
         """Test successful backup deletion."""
         app = App(
             id="delete-api-app",
@@ -373,15 +347,7 @@ class TestBackupAPIDelete:
         db_session.commit()
         backup_id = backup.id
 
-        # Mock backup service
-        mock_service = AsyncMock()
-        mock_service.delete_backup.return_value = {
-            "success": True,
-            "message": "Backup deleted"
-        }
-        mock_backup_service_class.return_value = mock_service
-
-        response = client.delete(
+        response = client_with_mock_proxmox.delete(
             f"/api/v1/apps/delete-api-app/backups/{backup_id}",
             headers=auth_headers
         )
