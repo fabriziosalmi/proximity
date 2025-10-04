@@ -280,9 +280,10 @@ class LoginPage(BasePage):
                 logger.warning(f"Modal didn't close automatically, checking auth state: {e}")
                 
                 # Check if we're authenticated (token was saved)
+                # Note: Frontend uses 'proximity_token' as the key
                 token_saved = self.page.evaluate("""
                     () => {
-                        return localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+                        return localStorage.getItem('proximity_token') || sessionStorage.getItem('proximity_token') || localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
                     }
                 """)
                 

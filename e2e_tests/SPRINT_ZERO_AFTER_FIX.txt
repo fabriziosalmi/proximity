@@ -1,0 +1,704 @@
+[1m============================= test session starts ==============================[0m
+platform darwin -- Python 3.13.7, pytest-8.4.2, pluggy-1.6.0 -- /Users/fab/GitHub/proximity/e2e_tests/.venv/bin/python3.13
+cachedir: .pytest_cache
+rootdir: /Users/fab/GitHub/proximity/e2e_tests
+configfile: pytest.ini
+testpaths: .
+plugins: asyncio-1.2.0, anyio-4.11.0, xdist-3.8.0, timeout-2.4.0, Faker-37.8.0, rerunfailures-16.0.1, base-url-2.1.0, playwright-0.7.1
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+timeout: 300.0s
+timeout method: signal
+timeout func_only: False
+[1mcollecting ... [0mcollected 68 items
+
+test_app_canvas.py::test_open_and_close_canvas_with_button[chromium] 
+================================================================================
+Starting test: test_open_and_close_canvas_with_button[chromium]
+================================================================================
+
+[1m-------------------------------- live log setup --------------------------------[0m
+2025-10-04 22:41:16 [[32m    INFO[0m] Waiting for auth modal to appear
+2025-10-04 22:41:16 [[32m    INFO[0m] Waiting for #authModal to be visible
+2025-10-04 22:41:16 [[32m    INFO[0m] Waiting for #registerTab to be visible
+2025-10-04 22:41:16 [[32m    INFO[0m] Switching to register mode
+2025-10-04 22:41:16 [[32m    INFO[0m] Already in register mode
+2025-10-04 22:41:16 [[32m    INFO[0m] Filling username: testuser_20251004_224116_nsyx
+2025-10-04 22:41:16 [[32m    INFO[0m] Filling #registerUsername with: testuser_20251004_22...
+2025-10-04 22:41:16 [[32m    INFO[0m] Filling password
+2025-10-04 22:41:16 [[32m    INFO[0m] Filling #registerPassword with: Testplykb996zvd9!...
+2025-10-04 22:41:16 [[32m    INFO[0m] Filling email: test_20251004_224116_nsyx@example.com
+2025-10-04 22:41:16 [[32m    INFO[0m] Filling #registerEmail with: test_20251004_224116...
+2025-10-04 22:41:16 [[32m    INFO[0m] Clicking Register button
+2025-10-04 22:41:16 [[32m    INFO[0m] Clicking: #registerForm button[type='submit']
+2025-10-04 22:41:18 [[32m    INFO[0m] Switching to login mode
+2025-10-04 22:41:18 [[32m    INFO[0m] Already in login mode
+2025-10-04 22:41:18 [[32m    INFO[0m] Clicking Login submit button
+2025-10-04 22:41:18 [[32m    INFO[0m] Clicking: #loginForm button[type='submit']
+2025-10-04 22:41:19 [[32m    INFO[0m] Waiting for dashboard to load
+2025-10-04 22:41:19 [[32m    INFO[0m] Waiting for #dashboardView to be visible
+2025-10-04 22:41:19 [[32m    INFO[0m] Waiting for load state: networkidle
+2025-10-04 22:41:20 [[32m    INFO[0m] Navigating to App Store
+2025-10-04 22:41:20 [[32m    INFO[0m] Clicking: [data-view='catalog']
+[31mERROR[0m
+================================================================================
+Finished test: test_open_and_close_canvas_with_button[chromium]
+================================================================================
+
+
+test_app_canvas.py::test_close_canvas_with_escape_key[chromium] 
+================================================================================
+Starting test: test_close_canvas_with_escape_key[chromium]
+================================================================================
+
+[1m-------------------------------- live log setup --------------------------------[0m
+2025-10-04 22:41:36 [[32m    INFO[0m] Waiting for auth modal to appear
+2025-10-04 22:41:36 [[32m    INFO[0m] Waiting for #authModal to be visible
+2025-10-04 22:41:36 [[32m    INFO[0m] Waiting for #registerTab to be visible
+2025-10-04 22:41:36 [[32m    INFO[0m] Switching to register mode
+2025-10-04 22:41:36 [[32m    INFO[0m] Already in register mode
+2025-10-04 22:41:36 [[32m    INFO[0m] Filling username: testuser_20251004_224136_ivzr
+2025-10-04 22:41:36 [[32m    INFO[0m] Filling #registerUsername with: testuser_20251004_22...
+2025-10-04 22:41:36 [[32m    INFO[0m] Filling password
+2025-10-04 22:41:36 [[32m    INFO[0m] Filling #registerPassword with: Testlxf87bqpswfu!...
+2025-10-04 22:41:36 [[32m    INFO[0m] Filling email: test_20251004_224136_ivzr@example.com
+2025-10-04 22:41:36 [[32m    INFO[0m] Filling #registerEmail with: test_20251004_224136...
+2025-10-04 22:41:36 [[32m    INFO[0m] Clicking Register button
+2025-10-04 22:41:36 [[32m    INFO[0m] Clicking: #registerForm button[type='submit']
+2025-10-04 22:41:38 [[32m    INFO[0m] Switching to login mode
+2025-10-04 22:41:38 [[32m    INFO[0m] Already in login mode
+2025-10-04 22:41:38 [[32m    INFO[0m] Clicking Login submit button
+2025-10-04 22:41:38 [[32m    INFO[0m] Clicking: #loginForm button[type='submit']
+2025-10-04 22:41:39 [[32m    INFO[0m] Waiting for dashboard to load
+2025-10-04 22:41:39 [[32m    INFO[0m] Waiting for #dashboardView to be visible
+2025-10-04 22:41:39 [[32m    INFO[0m] Waiting for load state: networkidle
+2025-10-04 22:41:39 [[32m    INFO[0m] Navigating to App Store
+2025-10-04 22:41:39 [[32m    INFO[0m] Clicking: [data-view='catalog']
+[31mERROR[0m
+================================================================================
+Finished test: test_close_canvas_with_escape_key[chromium]
+================================================================================
+
+
+test_app_canvas.py::test_close_canvas_by_clicking_outside[chromium] 
+================================================================================
+Starting test: test_close_canvas_by_clicking_outside[chromium]
+================================================================================
+
+[1m-------------------------------- live log setup --------------------------------[0m
+2025-10-04 22:41:55 [[32m    INFO[0m] Waiting for auth modal to appear
+2025-10-04 22:41:55 [[32m    INFO[0m] Waiting for #authModal to be visible
+2025-10-04 22:41:55 [[32m    INFO[0m] Waiting for #registerTab to be visible
+2025-10-04 22:41:55 [[32m    INFO[0m] Switching to register mode
+2025-10-04 22:41:55 [[32m    INFO[0m] Already in register mode
+2025-10-04 22:41:55 [[32m    INFO[0m] Filling username: testuser_20251004_224155_sdgu
+2025-10-04 22:41:55 [[32m    INFO[0m] Filling #registerUsername with: testuser_20251004_22...
+2025-10-04 22:41:55 [[32m    INFO[0m] Filling password
+2025-10-04 22:41:55 [[32m    INFO[0m] Filling #registerPassword with: Testg1nwy2st4y1c!...
+2025-10-04 22:41:55 [[32m    INFO[0m] Filling email: test_20251004_224155_sdgu@example.com
+2025-10-04 22:41:55 [[32m    INFO[0m] Filling #registerEmail with: test_20251004_224155...
+2025-10-04 22:41:55 [[32m    INFO[0m] Clicking Register button
+2025-10-04 22:41:55 [[32m    INFO[0m] Clicking: #registerForm button[type='submit']
+2025-10-04 22:41:58 [[32m    INFO[0m] Switching to login mode
+2025-10-04 22:41:58 [[32m    INFO[0m] Already in login mode
+2025-10-04 22:41:58 [[32m    INFO[0m] Clicking Login submit button
+2025-10-04 22:41:58 [[32m    INFO[0m] Clicking: #loginForm button[type='submit']
+2025-10-04 22:41:59 [[32m    INFO[0m] Waiting for dashboard to load
+2025-10-04 22:41:59 [[32m    INFO[0m] Waiting for #dashboardView to be visible
+2025-10-04 22:41:59 [[32m    INFO[0m] Waiting for load state: networkidle
+2025-10-04 22:41:59 [[32m    INFO[0m] Navigating to App Store
+2025-10-04 22:41:59 [[32m    INFO[0m] Clicking: [data-view='catalog']
+[31mERROR[0m
+================================================================================
+Finished test: test_close_canvas_by_clicking_outside[chromium]
+================================================================================
+
+
+test_app_canvas.py::test_refresh_canvas[chromium] 
+================================================================================
+Starting test: test_refresh_canvas[chromium]
+================================================================================
+
+[1m-------------------------------- live log setup --------------------------------[0m
+2025-10-04 22:42:15 [[32m    INFO[0m] Waiting for auth modal to appear
+2025-10-04 22:42:15 [[32m    INFO[0m] Waiting for #authModal to be visible
+2025-10-04 22:42:15 [[32m    INFO[0m] Waiting for #registerTab to be visible
+2025-10-04 22:42:15 [[32m    INFO[0m] Switching to register mode
+2025-10-04 22:42:15 [[32m    INFO[0m] Already in register mode
+2025-10-04 22:42:15 [[32m    INFO[0m] Filling username: testuser_20251004_224215_tx74
+2025-10-04 22:42:15 [[32m    INFO[0m] Filling #registerUsername with: testuser_20251004_22...
+2025-10-04 22:42:15 [[32m    INFO[0m] Filling password
+2025-10-04 22:42:15 [[32m    INFO[0m] Filling #registerPassword with: Testk591o5a1zufp!...
+2025-10-04 22:42:15 [[32m    INFO[0m] Filling email: test_20251004_224215_tx74@example.com
+2025-10-04 22:42:15 [[32m    INFO[0m] Filling #registerEmail with: test_20251004_224215...
+2025-10-04 22:42:15 [[32m    INFO[0m] Clicking Register button
+2025-10-04 22:42:15 [[32m    INFO[0m] Clicking: #registerForm button[type='submit']
+2025-10-04 22:42:17 [[32m    INFO[0m] Switching to login mode
+2025-10-04 22:42:17 [[32m    INFO[0m] Already in login mode
+2025-10-04 22:42:17 [[32m    INFO[0m] Clicking Login submit button
+2025-10-04 22:42:17 [[32m    INFO[0m] Clicking: #loginForm button[type='submit']
+2025-10-04 22:42:18 [[32m    INFO[0m] Waiting for dashboard to load
+2025-10-04 22:42:18 [[32m    INFO[0m] Waiting for #dashboardView to be visible
+2025-10-04 22:42:18 [[32m    INFO[0m] Waiting for load state: networkidle
+2025-10-04 22:42:18 [[32m    INFO[0m] Navigating to App Store
+2025-10-04 22:42:18 [[32m    INFO[0m] Clicking: [data-view='catalog']
+[31mERROR[0m
+================================================================================
+Finished test: test_refresh_canvas[chromium]
+================================================================================
+
+
+test_app_canvas.py::test_canvas_displays_correct_app_name[chromium] 
+================================================================================
+Starting test: test_canvas_displays_correct_app_name[chromium]
+================================================================================
+
+[1m-------------------------------- live log setup --------------------------------[0m
+2025-10-04 22:42:34 [[32m    INFO[0m] Waiting for auth modal to appear
+2025-10-04 22:42:34 [[32m    INFO[0m] Waiting for #authModal to be visible
+2025-10-04 22:42:34 [[32m    INFO[0m] Waiting for #registerTab to be visible
+2025-10-04 22:42:34 [[32m    INFO[0m] Switching to register mode
+2025-10-04 22:42:34 [[32m    INFO[0m] Already in register mode
+2025-10-04 22:42:34 [[32m    INFO[0m] Filling username: testuser_20251004_224234_egr9
+2025-10-04 22:42:34 [[32m    INFO[0m] Filling #registerUsername with: testuser_20251004_22...
+2025-10-04 22:42:34 [[32m    INFO[0m] Filling password
+2025-10-04 22:42:34 [[32m    INFO[0m] Filling #registerPassword with: Testu4me9o1c147f!...
+2025-10-04 22:42:34 [[32m    INFO[0m] Filling email: test_20251004_224234_egr9@example.com
+2025-10-04 22:42:34 [[32m    INFO[0m] Filling #registerEmail with: test_20251004_224234...
+2025-10-04 22:42:34 [[32m    INFO[0m] Clicking Register button
+2025-10-04 22:42:34 [[32m    INFO[0m] Clicking: #registerForm button[type='submit']
+2025-10-04 22:42:37 [[32m    INFO[0m] Switching to login mode
+2025-10-04 22:42:37 [[32m    INFO[0m] Already in login mode
+2025-10-04 22:42:37 [[32m    INFO[0m] Clicking Login submit button
+2025-10-04 22:42:37 [[32m    INFO[0m] Clicking: #loginForm button[type='submit']
+2025-10-04 22:42:38 [[32m    INFO[0m] Waiting for dashboard to load
+2025-10-04 22:42:38 [[32m    INFO[0m] Waiting for #dashboardView to be visible
+2025-10-04 22:42:38 [[32m    INFO[0m] Waiting for load state: networkidle
+2025-10-04 22:42:38 [[32m    INFO[0m] Navigating to App Store
+2025-10-04 22:42:38 [[32m    INFO[0m] Clicking: [data-view='catalog']
+[31mERROR[0m
+================================================================================
+Finished test: test_canvas_displays_correct_app_name[chromium]
+================================================================================
+
+
+test_app_canvas.py::test_canvas_iframe_loads_content[chromium] 
+================================================================================
+Starting test: test_canvas_iframe_loads_content[chromium]
+================================================================================
+
+[1m-------------------------------- live log setup --------------------------------[0m
+2025-10-04 22:42:54 [[32m    INFO[0m] Waiting for auth modal to appear
+2025-10-04 22:42:54 [[32m    INFO[0m] Waiting for #authModal to be visible
+2025-10-04 22:42:54 [[32m    INFO[0m] Waiting for #registerTab to be visible
+2025-10-04 22:42:54 [[32m    INFO[0m] Switching to register mode
+2025-10-04 22:42:54 [[32m    INFO[0m] Already in register mode
+2025-10-04 22:42:54 [[32m    INFO[0m] Filling username: testuser_20251004_224254_wom7
+2025-10-04 22:42:54 [[32m    INFO[0m] Filling #registerUsername with: testuser_20251004_22...
+2025-10-04 22:42:54 [[32m    INFO[0m] Filling password
+2025-10-04 22:42:54 [[32m    INFO[0m] Filling #registerPassword with: Testc07oldqtuz2k!...
+2025-10-04 22:42:54 [[32m    INFO[0m] Filling email: test_20251004_224254_wom7@example.com
+2025-10-04 22:42:54 [[32m    INFO[0m] Filling #registerEmail with: test_20251004_224254...
+2025-10-04 22:42:54 [[32m    INFO[0m] Clicking Register button
+2025-10-04 22:42:54 [[32m    INFO[0m] Clicking: #registerForm button[type='submit']
+2025-10-04 22:42:56 [[32m    INFO[0m] Switching to login mode
+2025-10-04 22:42:56 [[32m    INFO[0m] Already in login mode
+2025-10-04 22:42:56 [[32m    INFO[0m] Clicking Login submit button
+2025-10-04 22:42:56 [[32m    INFO[0m] Clicking: #loginForm button[type='submit']
+2025-10-04 22:42:57 [[32m    INFO[0m] Waiting for dashboard to load
+2025-10-04 22:42:57 [[32m    INFO[0m] Waiting for #dashboardView to be visible
+2025-10-04 22:42:57 [[32m    INFO[0m] Waiting for load state: networkidle
+2025-10-04 22:42:58 [[32m    INFO[0m] Navigating to App Store
+2025-10-04 22:42:58 [[32m    INFO[0m] Clicking: [data-view='catalog']
+[31mERROR[0m
+================================================================================
+Finished test: test_canvas_iframe_loads_content[chromium]
+================================================================================
+
+
+test_app_canvas.py::test_canvas_button_only_visible_for_running_apps[chromium] 
+================================================================================
+Starting test: test_canvas_button_only_visible_for_running_apps[chromium]
+================================================================================
+
+[1m-------------------------------- live log setup --------------------------------[0m
+2025-10-04 22:43:13 [[32m    INFO[0m] Waiting for auth modal to appear
+2025-10-04 22:43:13 [[32m    INFO[0m] Waiting for #authModal to be visible
+2025-10-04 22:43:13 [[32m    INFO[0m] Waiting for #registerTab to be visible
+2025-10-04 22:43:13 [[32m    INFO[0m] Switching to register mode
+2025-10-04 22:43:13 [[32m    INFO[0m] Already in register mode
+2025-10-04 22:43:13 [[32m    INFO[0m] Filling username: testuser_20251004_224313_sbih
+2025-10-04 22:43:13 [[32m    INFO[0m] Filling #registerUsername with: testuser_20251004_22...
+2025-10-04 22:43:13 [[32m    INFO[0m] Filling password
+2025-10-04 22:43:13 [[32m    INFO[0m] Filling #registerPassword with: Testlyot4pbnk0ot!...
+2025-10-04 22:43:13 [[32m    INFO[0m] Filling email: test_20251004_224313_sbih@example.com
+2025-10-04 22:43:13 [[32m    INFO[0m] Filling #registerEmail with: test_20251004_224313...
+2025-10-04 22:43:13 [[32m    INFO[0m] Clicking Register button
+2025-10-04 22:43:13 [[32m    INFO[0m] Clicking: #registerForm button[type='submit']
+2025-10-04 22:43:16 [[32m    INFO[0m] Switching to login mode
+2025-10-04 22:43:16 [[32m    INFO[0m] Already in login mode
+2025-10-04 22:43:16 [[32m    INFO[0m] Clicking Login submit button
+2025-10-04 22:43:16 [[32m    INFO[0m] Clicking: #loginForm button[type='submit']
+2025-10-04 22:43:17 [[32m    INFO[0m] Waiting for dashboard to load
+2025-10-04 22:43:17 [[32m    INFO[0m] Waiting for #dashboardView to be visible
+2025-10-04 22:43:17 [[32m    INFO[0m] Waiting for load state: networkidle
+2025-10-04 22:43:17 [[32m    INFO[0m] Navigating to App Store
+2025-10-04 22:43:17 [[32m    INFO[0m] Clicking: [data-view='catalog']
+[31mERROR[0m
+================================================================================
+Finished test: test_canvas_button_only_visible_for_running_apps[chromium]
+================================================================================
+
+
+test_app_canvas.py::test_canvas_error_handling[chromium] [33mSKIPPED[0m (Error
+handling depends on app configuration)
+test_app_lifecycle.py::test_full_app_deploy_manage_delete_workflow[chromium] 
+================================================================================
+Starting test: test_full_app_deploy_manage_delete_workflow[chromium]
+================================================================================
+
+[1m-------------------------------- live log setup --------------------------------[0m
+2025-10-04 22:43:33 [[32m    INFO[0m] Waiting for auth modal to appear
+2025-10-04 22:43:33 [[32m    INFO[0m] Waiting for #authModal to be visible
+2025-10-04 22:43:33 [[32m    INFO[0m] Waiting for #registerTab to be visible
+2025-10-04 22:43:33 [[32m    INFO[0m] Switching to register mode
+2025-10-04 22:43:33 [[32m    INFO[0m] Already in register mode
+2025-10-04 22:43:33 [[32m    INFO[0m] Filling username: testuser_20251004_224333_1rk6
+2025-10-04 22:43:33 [[32m    INFO[0m] Filling #registerUsername with: testuser_20251004_22...
+2025-10-04 22:43:33 [[32m    INFO[0m] Filling password
+2025-10-04 22:43:33 [[32m    INFO[0m] Filling #registerPassword with: Testw0gr61qi7x92!...
+2025-10-04 22:43:33 [[32m    INFO[0m] Filling email: test_20251004_224333_1rk6@example.com
+2025-10-04 22:43:33 [[32m    INFO[0m] Filling #registerEmail with: test_20251004_224333...
+2025-10-04 22:43:33 [[32m    INFO[0m] Clicking Register button
+2025-10-04 22:43:33 [[32m    INFO[0m] Clicking: #registerForm button[type='submit']
+2025-10-04 22:43:35 [[32m    INFO[0m] Switching to login mode
+2025-10-04 22:43:35 [[32m    INFO[0m] Already in login mode
+2025-10-04 22:43:35 [[32m    INFO[0m] Clicking Login submit button
+2025-10-04 22:43:35 [[32m    INFO[0m] Clicking: #loginForm button[type='submit']
+2025-10-04 22:43:36 [[32m    INFO[0m] Waiting for dashboard to load
+2025-10-04 22:43:36 [[32m    INFO[0m] Waiting for #dashboardView to be visible
+2025-10-04 22:43:36 [[32m    INFO[0m] Waiting for load state: networkidle
+
+================================================================================
+🚀 CRITICAL E2E TEST: Full Application Lifecycle Workflow
+================================================================================
+
+📋 Phase 0: Setup
+   ✓ Generated unique hostname: nginx-e2e-202510042243-1mjku8
+   ✓ Page objects initialized
+   ✓ Base URL: http://127.0.0.1:8765
+
+--------------------------------------------------------------------------------
+� Phase 1: Deploy Application
+--------------------------------------------------------------------------------
+
+   Step 1.1: Navigate to App Store
+[1m-------------------------------- live log call ---------------------------------[0m
+2025-10-04 22:43:37 [[32m    INFO[0m] Navigating to App Store
+2025-10-04 22:43:37 [[32m    INFO[0m] Clicking: [data-view='catalog']
+[31mFAILED[0m
+================================================================================
+Finished test: test_full_app_deploy_manage_delete_workflow[chromium]
+================================================================================
+
+
+test_app_lifecycle.py::test_app_update_workflow_with_pre_update_backup[chromium] 
+================================================================================
+Starting test: test_app_update_workflow_with_pre_update_backup[chromium]
+================================================================================
+
+[1m-------------------------------- live log setup --------------------------------[0m
+2025-10-04 22:43:53 [[32m    INFO[0m] Waiting for auth modal to appear
+2025-10-04 22:43:53 [[32m    INFO[0m] Waiting for #authModal to be visible
+2025-10-04 22:43:53 [[32m    INFO[0m] Waiting for #registerTab to be visible
+2025-10-04 22:43:53 [[32m    INFO[0m] Switching to register mode
+2025-10-04 22:43:53 [[32m    INFO[0m] Already in register mode
+2025-10-04 22:43:53 [[32m    INFO[0m] Filling username: testuser_20251004_224352_l6h4
+2025-10-04 22:43:53 [[32m    INFO[0m] Filling #registerUsername with: testuser_20251004_22...
+2025-10-04 22:43:53 [[32m    INFO[0m] Filling password
+2025-10-04 22:43:53 [[32m    INFO[0m] Filling #registerPassword with: Testohigijr2mcok!...
+2025-10-04 22:43:53 [[32m    INFO[0m] Filling email: test_20251004_224352_l6h4@example.com
+2025-10-04 22:43:53 [[32m    INFO[0m] Filling #registerEmail with: test_20251004_224352...
+2025-10-04 22:43:53 [[32m    INFO[0m] Clicking Register button
+2025-10-04 22:43:53 [[32m    INFO[0m] Clicking: #registerForm button[type='submit']
+2025-10-04 22:43:55 [[32m    INFO[0m] Switching to login mode
+2025-10-04 22:43:55 [[32m    INFO[0m] Already in login mode
+2025-10-04 22:43:55 [[32m    INFO[0m] Clicking Login submit button
+2025-10-04 22:43:55 [[32m    INFO[0m] Clicking: #loginForm button[type='submit']
+2025-10-04 22:43:56 [[32m    INFO[0m] Waiting for dashboard to load
+2025-10-04 22:43:56 [[32m    INFO[0m] Waiting for #dashboardView to be visible
+2025-10-04 22:43:56 [[32m    INFO[0m] Waiting for load state: networkidle
+
+================================================================================
+🔄 E2E TEST: Fearless Update Workflow
+================================================================================
+
+📦 Phase 1: Deploy Application for Update Test
+   Generated hostname: nginx-e2e-202510042243-so5em1
+[1m-------------------------------- live log call ---------------------------------[0m
+2025-10-04 22:43:56 [[32m    INFO[0m] Navigating to App Store
+2025-10-04 22:43:56 [[32m    INFO[0m] Clicking: [data-view='catalog']
+[31mFAILED[0m
+================================================================================
+Finished test: test_app_update_workflow_with_pre_update_backup[chromium]
+================================================================================
+
+
+test_app_lifecycle.py::test_app_volumes_display[chromium] 
+================================================================================
+Starting test: test_app_volumes_display[chromium]
+================================================================================
+
+[1m-------------------------------- live log setup --------------------------------[0m
+2025-10-04 22:44:12 [[32m    INFO[0m] Waiting for auth modal to appear
+2025-10-04 22:44:12 [[32m    INFO[0m] Waiting for #authModal to be visible
+2025-10-04 22:44:12 [[32m    INFO[0m] Waiting for #registerTab to be visible
+2025-10-04 22:44:12 [[32m    INFO[0m] Switching to register mode
+2025-10-04 22:44:12 [[32m    INFO[0m] Already in register mode
+2025-10-04 22:44:12 [[32m    INFO[0m] Filling username: testuser_20251004_224412_r77z
+2025-10-04 22:44:12 [[32m    INFO[0m] Filling #registerUsername with: testuser_20251004_22...
+2025-10-04 22:44:12 [[32m    INFO[0m] Filling password
+2025-10-04 22:44:12 [[32m    INFO[0m] Filling #registerPassword with: Testbqhfos6c09qa!...
+2025-10-04 22:44:12 [[32m    INFO[0m] Filling email: test_20251004_224412_r77z@example.com
+2025-10-04 22:44:12 [[32m    INFO[0m] Filling #registerEmail with: test_20251004_224412...
+2025-10-04 22:44:12 [[32m    INFO[0m] Clicking Register button
+2025-10-04 22:44:12 [[32m    INFO[0m] Clicking: #registerForm button[type='submit']
+2025-10-04 22:44:14 [[32m    INFO[0m] Switching to login mode
+2025-10-04 22:44:14 [[32m    INFO[0m] Already in login mode
+2025-10-04 22:44:14 [[32m    INFO[0m] Clicking Login submit button
+2025-10-04 22:44:14 [[32m    INFO[0m] Clicking: #loginForm button[type='submit']
+2025-10-04 22:44:15 [[32m    INFO[0m] Waiting for dashboard to load
+2025-10-04 22:44:15 [[32m    INFO[0m] Waiting for #dashboardView to be visible
+2025-10-04 22:44:15 [[32m    INFO[0m] Waiting for load state: networkidle
+
+================================================================================
+💾 E2E TEST: Transparent Volumes Display
+================================================================================
+
+📦 Phase 1: Deploy Application with Volumes
+   Generated hostname: nginx-e2e-202510042244-ahkm4k
+[1m-------------------------------- live log call ---------------------------------[0m
+2025-10-04 22:44:16 [[32m    INFO[0m] Navigating to App Store
+2025-10-04 22:44:16 [[32m    INFO[0m] Clicking: [data-view='catalog']
+[31mFAILED[0m
+================================================================================
+Finished test: test_app_volumes_display[chromium]
+================================================================================
+
+
+test_app_lifecycle.py::test_monitoring_tab_displays_data[chromium] 
+================================================================================
+Starting test: test_monitoring_tab_displays_data[chromium]
+================================================================================
+
+[1m-------------------------------- live log setup --------------------------------[0m
+2025-10-04 22:44:32 [[32m    INFO[0m] Waiting for auth modal to appear
+2025-10-04 22:44:32 [[32m    INFO[0m] Waiting for #authModal to be visible
+2025-10-04 22:44:32 [[32m    INFO[0m] Waiting for #registerTab to be visible
+2025-10-04 22:44:32 [[32m    INFO[0m] Switching to register mode
+2025-10-04 22:44:32 [[32m    INFO[0m] Already in register mode
+2025-10-04 22:44:32 [[32m    INFO[0m] Filling username: testuser_20251004_224432_n0um
+2025-10-04 22:44:32 [[32m    INFO[0m] Filling #registerUsername with: testuser_20251004_22...
+2025-10-04 22:44:32 [[32m    INFO[0m] Filling password
+2025-10-04 22:44:32 [[32m    INFO[0m] Filling #registerPassword with: Testgl7ek3n7x6dy!...
+2025-10-04 22:44:32 [[32m    INFO[0m] Filling email: test_20251004_224432_n0um@example.com
+2025-10-04 22:44:32 [[32m    INFO[0m] Filling #registerEmail with: test_20251004_224432...
+2025-10-04 22:44:32 [[32m    INFO[0m] Clicking Register button
+2025-10-04 22:44:32 [[32m    INFO[0m] Clicking: #registerForm button[type='submit']
+2025-10-04 22:44:34 [[32m    INFO[0m] Switching to login mode
+2025-10-04 22:44:34 [[32m    INFO[0m] Already in login mode
+2025-10-04 22:44:34 [[32m    INFO[0m] Clicking Login submit button
+2025-10-04 22:44:34 [[32m    INFO[0m] Clicking: #loginForm button[type='submit']
+2025-10-04 22:44:35 [[32m    INFO[0m] Waiting for dashboard to load
+2025-10-04 22:44:35 [[32m    INFO[0m] Waiting for #dashboardView to be visible
+2025-10-04 22:44:35 [[32m    INFO[0m] Waiting for load state: networkidle
+
+================================================================================
+📊 E2E TEST: Monitoring Tab Data Display
+================================================================================
+
+📦 Phase 1: Deploy Application for Monitoring Test
+   Generated hostname: nginx-e2e-202510042244-jsmoos
+[1m-------------------------------- live log call ---------------------------------[0m
+2025-10-04 22:44:35 [[32m    INFO[0m] Navigating to App Store
+2025-10-04 22:44:35 [[32m    INFO[0m] Clicking: [data-view='catalog']
+[31mFAILED[0m
+================================================================================
+Finished test: test_monitoring_tab_displays_data[chromium]
+================================================================================
+
+
+test_app_management.py::test_view_app_logs_all[chromium] 
+[1m-------------------------------- live log setup --------------------------------[0m
+2025-10-04 22:44:51 [[32m    INFO[0m] Waiting for auth modal to appear
+2025-10-04 22:44:51 [[32m    INFO[0m] Waiting for #authModal to be visible
+[31mERROR[0m
+test_app_management.py::test_view_app_logs_docker[chromium] [31mERROR[0m
+test_app_management.py::test_view_app_logs_system[chromium] [31mERROR[0m
+test_app_management.py::test_logs_auto_refresh[chromium] [31mERROR[0m
+test_app_management.py::test_download_logs[chromium] [31mERROR[0m
+test_app_management.py::test_open_app_console[chromium] [31mERROR[0m
+test_app_management.py::test_console_quick_commands[chromium] [31mERROR[0m
+test_app_management.py::test_app_external_link[chromium] [31mERROR[0m
+test_app_management.py::test_app_stop_start_cycle[chromium] [31mERROR[0m
+
+==================================== ERRORS ====================================
+[31m[1m______ ERROR at setup of test_open_and_close_canvas_with_button[chromium] ______[0m
+[1m[31mE   playwright._impl._errors.TimeoutError: Page.wait_for_function: Timeout 15000ms exceeded.[0m
+------------------------------ Captured log setup ------------------------------
+[32mINFO    [0m pages.login_page:login_page.py:102 Waiting for auth modal to appear
+[32mINFO    [0m pages.base_page:base_page.py:155 Waiting for #authModal to be visible
+[32mINFO    [0m pages.base_page:base_page.py:155 Waiting for #registerTab to be visible
+[32mINFO    [0m pages.login_page:login_page.py:123 Switching to register mode
+[32mINFO    [0m pages.login_page:login_page.py:128 Already in register mode
+[32mINFO    [0m pages.login_page:login_page.py:157 Filling username: testuser_20251004_224116_nsyx
+[32mINFO    [0m pages.base_page:base_page.py:91 Filling #registerUsername with: testuser_20251004_22...
+[32mINFO    [0m pages.login_page:login_page.py:179 Filling password
+[32mINFO    [0m pages.base_page:base_page.py:91 Filling #registerPassword with: Testplykb996zvd9!...
+[32mINFO    [0m pages.login_page:login_page.py:200 Filling email: test_20251004_224116_nsyx@example.com
+[32mINFO    [0m pages.base_page:base_page.py:91 Filling #registerEmail with: test_20251004_224116...
+[32mINFO    [0m pages.login_page:login_page.py:210 Clicking Register button
+[32mINFO    [0m pages.base_page:base_page.py:79 Clicking: #registerForm button[type='submit']
+[32mINFO    [0m pages.login_page:login_page.py:137 Switching to login mode
+[32mINFO    [0m pages.login_page:login_page.py:142 Already in login mode
+[32mINFO    [0m pages.login_page:login_page.py:205 Clicking Login submit button
+[32mINFO    [0m pages.base_page:base_page.py:79 Clicking: #loginForm button[type='submit']
+[32mINFO    [0m pages.dashboard_page:dashboard_page.py:76 Waiting for dashboard to load
+[32mINFO    [0m pages.base_page:base_page.py:155 Waiting for #dashboardView to be visible
+[32mINFO    [0m pages.base_page:base_page.py:188 Waiting for load state: networkidle
+[32mINFO    [0m pages.dashboard_page:dashboard_page.py:92 Navigating to App Store
+[32mINFO    [0m pages.base_page:base_page.py:79 Clicking: [data-view='catalog']
+[31m[1m________ ERROR at setup of test_close_canvas_with_escape_key[chromium] _________[0m
+[1m[31mE   playwright._impl._errors.TimeoutError: Page.wait_for_function: Timeout 15000ms exceeded.[0m
+------------------------------ Captured log setup ------------------------------
+[32mINFO    [0m pages.login_page:login_page.py:102 Waiting for auth modal to appear
+[32mINFO    [0m pages.base_page:base_page.py:155 Waiting for #authModal to be visible
+[32mINFO    [0m pages.base_page:base_page.py:155 Waiting for #registerTab to be visible
+[32mINFO    [0m pages.login_page:login_page.py:123 Switching to register mode
+[32mINFO    [0m pages.login_page:login_page.py:128 Already in register mode
+[32mINFO    [0m pages.login_page:login_page.py:157 Filling username: testuser_20251004_224136_ivzr
+[32mINFO    [0m pages.base_page:base_page.py:91 Filling #registerUsername with: testuser_20251004_22...
+[32mINFO    [0m pages.login_page:login_page.py:179 Filling password
+[32mINFO    [0m pages.base_page:base_page.py:91 Filling #registerPassword with: Testlxf87bqpswfu!...
+[32mINFO    [0m pages.login_page:login_page.py:200 Filling email: test_20251004_224136_ivzr@example.com
+[32mINFO    [0m pages.base_page:base_page.py:91 Filling #registerEmail with: test_20251004_224136...
+[32mINFO    [0m pages.login_page:login_page.py:210 Clicking Register button
+[32mINFO    [0m pages.base_page:base_page.py:79 Clicking: #registerForm button[type='submit']
+[32mINFO    [0m pages.login_page:login_page.py:137 Switching to login mode
+[32mINFO    [0m pages.login_page:login_page.py:142 Already in login mode
+[32mINFO    [0m pages.login_page:login_page.py:205 Clicking Login submit button
+[32mINFO    [0m pages.base_page:base_page.py:79 Clicking: #loginForm button[type='submit']
+[32mINFO    [0m pages.dashboard_page:dashboard_page.py:76 Waiting for dashboard to load
+[32mINFO    [0m pages.base_page:base_page.py:155 Waiting for #dashboardView to be visible
+[32mINFO    [0m pages.base_page:base_page.py:188 Waiting for load state: networkidle
+[32mINFO    [0m pages.dashboard_page:dashboard_page.py:92 Navigating to App Store
+[32mINFO    [0m pages.base_page:base_page.py:79 Clicking: [data-view='catalog']
+[31m[1m______ ERROR at setup of test_close_canvas_by_clicking_outside[chromium] _______[0m
+[1m[31mE   playwright._impl._errors.TimeoutError: Page.wait_for_function: Timeout 15000ms exceeded.[0m
+------------------------------ Captured log setup ------------------------------
+[32mINFO    [0m pages.login_page:login_page.py:102 Waiting for auth modal to appear
+[32mINFO    [0m pages.base_page:base_page.py:155 Waiting for #authModal to be visible
+[32mINFO    [0m pages.base_page:base_page.py:155 Waiting for #registerTab to be visible
+[32mINFO    [0m pages.login_page:login_page.py:123 Switching to register mode
+[32mINFO    [0m pages.login_page:login_page.py:128 Already in register mode
+[32mINFO    [0m pages.login_page:login_page.py:157 Filling username: testuser_20251004_224155_sdgu
+[32mINFO    [0m pages.base_page:base_page.py:91 Filling #registerUsername with: testuser_20251004_22...
+[32mINFO    [0m pages.login_page:login_page.py:179 Filling password
+[32mINFO    [0m pages.base_page:base_page.py:91 Filling #registerPassword with: Testg1nwy2st4y1c!...
+[32mINFO    [0m pages.login_page:login_page.py:200 Filling email: test_20251004_224155_sdgu@example.com
+[32mINFO    [0m pages.base_page:base_page.py:91 Filling #registerEmail with: test_20251004_224155...
+[32mINFO    [0m pages.login_page:login_page.py:210 Clicking Register button
+[32mINFO    [0m pages.base_page:base_page.py:79 Clicking: #registerForm button[type='submit']
+[32mINFO    [0m pages.login_page:login_page.py:137 Switching to login mode
+[32mINFO    [0m pages.login_page:login_page.py:142 Already in login mode
+[32mINFO    [0m pages.login_page:login_page.py:205 Clicking Login submit button
+[32mINFO    [0m pages.base_page:base_page.py:79 Clicking: #loginForm button[type='submit']
+[32mINFO    [0m pages.dashboard_page:dashboard_page.py:76 Waiting for dashboard to load
+[32mINFO    [0m pages.base_page:base_page.py:155 Waiting for #dashboardView to be visible
+[32mINFO    [0m pages.base_page:base_page.py:188 Waiting for load state: networkidle
+[32mINFO    [0m pages.dashboard_page:dashboard_page.py:92 Navigating to App Store
+[32mINFO    [0m pages.base_page:base_page.py:79 Clicking: [data-view='catalog']
+[31m[1m_______________ ERROR at setup of test_refresh_canvas[chromium] ________________[0m
+[1m[31mE   playwright._impl._errors.TimeoutError: Page.wait_for_function: Timeout 15000ms exceeded.[0m
+------------------------------ Captured log setup ------------------------------
+[32mINFO    [0m pages.login_page:login_page.py:102 Waiting for auth modal to appear
+[32mINFO    [0m pages.base_page:base_page.py:155 Waiting for #authModal to be visible
+[32mINFO    [0m pages.base_page:base_page.py:155 Waiting for #registerTab to be visible
+[32mINFO    [0m pages.login_page:login_page.py:123 Switching to register mode
+[32mINFO    [0m pages.login_page:login_page.py:128 Already in register mode
+[32mINFO    [0m pages.login_page:login_page.py:157 Filling username: testuser_20251004_224215_tx74
+[32mINFO    [0m pages.base_page:base_page.py:91 Filling #registerUsername with: testuser_20251004_22...
+[32mINFO    [0m pages.login_page:login_page.py:179 Filling password
+[32mINFO    [0m pages.base_page:base_page.py:91 Filling #registerPassword with: Testk591o5a1zufp!...
+[32mINFO    [0m pages.login_page:login_page.py:200 Filling email: test_20251004_224215_tx74@example.com
+[32mINFO    [0m pages.base_page:base_page.py:91 Filling #registerEmail with: test_20251004_224215...
+[32mINFO    [0m pages.login_page:login_page.py:210 Clicking Register button
+[32mINFO    [0m pages.base_page:base_page.py:79 Clicking: #registerForm button[type='submit']
+[32mINFO    [0m pages.login_page:login_page.py:137 Switching to login mode
+[32mINFO    [0m pages.login_page:login_page.py:142 Already in login mode
+[32mINFO    [0m pages.login_page:login_page.py:205 Clicking Login submit button
+[32mINFO    [0m pages.base_page:base_page.py:79 Clicking: #loginForm button[type='submit']
+[32mINFO    [0m pages.dashboard_page:dashboard_page.py:76 Waiting for dashboard to load
+[32mINFO    [0m pages.base_page:base_page.py:155 Waiting for #dashboardView to be visible
+[32mINFO    [0m pages.base_page:base_page.py:188 Waiting for load state: networkidle
+[32mINFO    [0m pages.dashboard_page:dashboard_page.py:92 Navigating to App Store
+[32mINFO    [0m pages.base_page:base_page.py:79 Clicking: [data-view='catalog']
+[31m[1m______ ERROR at setup of test_canvas_displays_correct_app_name[chromium] _______[0m
+[1m[31mE   playwright._impl._errors.TimeoutError: Page.wait_for_function: Timeout 15000ms exceeded.[0m
+------------------------------ Captured log setup ------------------------------
+[32mINFO    [0m pages.login_page:login_page.py:102 Waiting for auth modal to appear
+[32mINFO    [0m pages.base_page:base_page.py:155 Waiting for #authModal to be visible
+[32mINFO    [0m pages.base_page:base_page.py:155 Waiting for #registerTab to be visible
+[32mINFO    [0m pages.login_page:login_page.py:123 Switching to register mode
+[32mINFO    [0m pages.login_page:login_page.py:128 Already in register mode
+[32mINFO    [0m pages.login_page:login_page.py:157 Filling username: testuser_20251004_224234_egr9
+[32mINFO    [0m pages.base_page:base_page.py:91 Filling #registerUsername with: testuser_20251004_22...
+[32mINFO    [0m pages.login_page:login_page.py:179 Filling password
+[32mINFO    [0m pages.base_page:base_page.py:91 Filling #registerPassword with: Testu4me9o1c147f!...
+[32mINFO    [0m pages.login_page:login_page.py:200 Filling email: test_20251004_224234_egr9@example.com
+[32mINFO    [0m pages.base_page:base_page.py:91 Filling #registerEmail with: test_20251004_224234...
+[32mINFO    [0m pages.login_page:login_page.py:210 Clicking Register button
+[32mINFO    [0m pages.base_page:base_page.py:79 Clicking: #registerForm button[type='submit']
+[32mINFO    [0m pages.login_page:login_page.py:137 Switching to login mode
+[32mINFO    [0m pages.login_page:login_page.py:142 Already in login mode
+[32mINFO    [0m pages.login_page:login_page.py:205 Clicking Login submit button
+[32mINFO    [0m pages.base_page:base_page.py:79 Clicking: #loginForm button[type='submit']
+[32mINFO    [0m pages.dashboard_page:dashboard_page.py:76 Waiting for dashboard to load
+[32mINFO    [0m pages.base_page:base_page.py:155 Waiting for #dashboardView to be visible
+[32mINFO    [0m pages.base_page:base_page.py:188 Waiting for load state: networkidle
+[32mINFO    [0m pages.dashboard_page:dashboard_page.py:92 Navigating to App Store
+[32mINFO    [0m pages.base_page:base_page.py:79 Clicking: [data-view='catalog']
+[31m[1m_________ ERROR at setup of test_canvas_iframe_loads_content[chromium] _________[0m
+[1m[31mE   playwright._impl._errors.TimeoutError: Page.wait_for_function: Timeout 15000ms exceeded.[0m
+------------------------------ Captured log setup ------------------------------
+[32mINFO    [0m pages.login_page:login_page.py:102 Waiting for auth modal to appear
+[32mINFO    [0m pages.base_page:base_page.py:155 Waiting for #authModal to be visible
+[32mINFO    [0m pages.base_page:base_page.py:155 Waiting for #registerTab to be visible
+[32mINFO    [0m pages.login_page:login_page.py:123 Switching to register mode
+[32mINFO    [0m pages.login_page:login_page.py:128 Already in register mode
+[32mINFO    [0m pages.login_page:login_page.py:157 Filling username: testuser_20251004_224254_wom7
+[32mINFO    [0m pages.base_page:base_page.py:91 Filling #registerUsername with: testuser_20251004_22...
+[32mINFO    [0m pages.login_page:login_page.py:179 Filling password
+[32mINFO    [0m pages.base_page:base_page.py:91 Filling #registerPassword with: Testc07oldqtuz2k!...
+[32mINFO    [0m pages.login_page:login_page.py:200 Filling email: test_20251004_224254_wom7@example.com
+[32mINFO    [0m pages.base_page:base_page.py:91 Filling #registerEmail with: test_20251004_224254...
+[32mINFO    [0m pages.login_page:login_page.py:210 Clicking Register button
+[32mINFO    [0m pages.base_page:base_page.py:79 Clicking: #registerForm button[type='submit']
+[32mINFO    [0m pages.login_page:login_page.py:137 Switching to login mode
+[32mINFO    [0m pages.login_page:login_page.py:142 Already in login mode
+[32mINFO    [0m pages.login_page:login_page.py:205 Clicking Login submit button
+[32mINFO    [0m pages.base_page:base_page.py:79 Clicking: #loginForm button[type='submit']
+[32mINFO    [0m pages.dashboard_page:dashboard_page.py:76 Waiting for dashboard to load
+[32mINFO    [0m pages.base_page:base_page.py:155 Waiting for #dashboardView to be visible
+[32mINFO    [0m pages.base_page:base_page.py:188 Waiting for load state: networkidle
+[32mINFO    [0m pages.dashboard_page:dashboard_page.py:92 Navigating to App Store
+[32mINFO    [0m pages.base_page:base_page.py:79 Clicking: [data-view='catalog']
+[31m[1m_ ERROR at setup of test_canvas_button_only_visible_for_running_apps[chromium] _[0m
+[1m[31mE   playwright._impl._errors.TimeoutError: Page.wait_for_function: Timeout 15000ms exceeded.[0m
+------------------------------ Captured log setup ------------------------------
+[32mINFO    [0m pages.login_page:login_page.py:102 Waiting for auth modal to appear
+[32mINFO    [0m pages.base_page:base_page.py:155 Waiting for #authModal to be visible
+[32mINFO    [0m pages.base_page:base_page.py:155 Waiting for #registerTab to be visible
+[32mINFO    [0m pages.login_page:login_page.py:123 Switching to register mode
+[32mINFO    [0m pages.login_page:login_page.py:128 Already in register mode
+[32mINFO    [0m pages.login_page:login_page.py:157 Filling username: testuser_20251004_224313_sbih
+[32mINFO    [0m pages.base_page:base_page.py:91 Filling #registerUsername with: testuser_20251004_22...
+[32mINFO    [0m pages.login_page:login_page.py:179 Filling password
+[32mINFO    [0m pages.base_page:base_page.py:91 Filling #registerPassword with: Testlyot4pbnk0ot!...
+[32mINFO    [0m pages.login_page:login_page.py:200 Filling email: test_20251004_224313_sbih@example.com
+[32mINFO    [0m pages.base_page:base_page.py:91 Filling #registerEmail with: test_20251004_224313...
+[32mINFO    [0m pages.login_page:login_page.py:210 Clicking Register button
+[32mINFO    [0m pages.base_page:base_page.py:79 Clicking: #registerForm button[type='submit']
+[32mINFO    [0m pages.login_page:login_page.py:137 Switching to login mode
+[32mINFO    [0m pages.login_page:login_page.py:142 Already in login mode
+[32mINFO    [0m pages.login_page:login_page.py:205 Clicking Login submit button
+[32mINFO    [0m pages.base_page:base_page.py:79 Clicking: #loginForm button[type='submit']
+[32mINFO    [0m pages.dashboard_page:dashboard_page.py:76 Waiting for dashboard to load
+[32mINFO    [0m pages.base_page:base_page.py:155 Waiting for #dashboardView to be visible
+[32mINFO    [0m pages.base_page:base_page.py:188 Waiting for load state: networkidle
+[32mINFO    [0m pages.dashboard_page:dashboard_page.py:92 Navigating to App Store
+[32mINFO    [0m pages.base_page:base_page.py:79 Clicking: [data-view='catalog']
+[31m[1m______________ ERROR at setup of test_view_app_logs_all[chromium] ______________[0m
+[1m[31mE   playwright._impl._errors.TimeoutError: Page.wait_for_selector: Timeout 10000ms exceeded.[0m
+[1m[31m    Call log:[0m
+[1m[31m      - waiting for locator("#authModal") to be visible[0m
+------------------------------ Captured log setup ------------------------------
+[32mINFO    [0m pages.login_page:login_page.py:102 Waiting for auth modal to appear
+[32mINFO    [0m pages.base_page:base_page.py:155 Waiting for #authModal to be visible
+[31m[1m____________ ERROR at setup of test_view_app_logs_docker[chromium] _____________[0m
+[1m[31mE   playwright._impl._errors.TimeoutError: Page.wait_for_selector: Timeout 10000ms exceeded.[0m
+[1m[31m    Call log:[0m
+[1m[31m      - waiting for locator("#authModal") to be visible[0m
+[31m[1m____________ ERROR at setup of test_view_app_logs_system[chromium] _____________[0m
+[1m[31mE   playwright._impl._errors.TimeoutError: Page.wait_for_selector: Timeout 10000ms exceeded.[0m
+[1m[31m    Call log:[0m
+[1m[31m      - waiting for locator("#authModal") to be visible[0m
+[31m[1m______________ ERROR at setup of test_logs_auto_refresh[chromium] ______________[0m
+[1m[31mE   playwright._impl._errors.TimeoutError: Page.wait_for_selector: Timeout 10000ms exceeded.[0m
+[1m[31m    Call log:[0m
+[1m[31m      - waiting for locator("#authModal") to be visible[0m
+[31m[1m________________ ERROR at setup of test_download_logs[chromium] ________________[0m
+[1m[31mE   playwright._impl._errors.TimeoutError: Page.wait_for_selector: Timeout 10000ms exceeded.[0m
+[1m[31m    Call log:[0m
+[1m[31m      - waiting for locator("#authModal") to be visible[0m
+[31m[1m______________ ERROR at setup of test_open_app_console[chromium] _______________[0m
+[1m[31mE   playwright._impl._errors.TimeoutError: Page.wait_for_selector: Timeout 10000ms exceeded.[0m
+[1m[31m    Call log:[0m
+[1m[31m      - waiting for locator("#authModal") to be visible[0m
+[31m[1m___________ ERROR at setup of test_console_quick_commands[chromium] ____________[0m
+[1m[31mE   playwright._impl._errors.TimeoutError: Page.wait_for_selector: Timeout 10000ms exceeded.[0m
+[1m[31m    Call log:[0m
+[1m[31m      - waiting for locator("#authModal") to be visible[0m
+[31m[1m______________ ERROR at setup of test_app_external_link[chromium] ______________[0m
+[1m[31mE   playwright._impl._errors.TimeoutError: Page.wait_for_selector: Timeout 10000ms exceeded.[0m
+[1m[31m    Call log:[0m
+[1m[31m      - waiting for locator("#authModal") to be visible[0m
+[31m[1m____________ ERROR at setup of test_app_stop_start_cycle[chromium] _____________[0m
+[1m[31mE   playwright._impl._errors.TimeoutError: Page.wait_for_selector: Timeout 10000ms exceeded.[0m
+[1m[31m    Call log:[0m
+[1m[31m      - waiting for locator("#authModal") to be visible[0m
+=================================== FAILURES ===================================
+/Users/fab/GitHub/proximity/e2e_tests/.venv/lib/python3.13/site-packages/playwright/_impl/_connection.py:558: playwright._impl._errors.TimeoutError: Page.wait_for_function: Timeout 15000ms exceeded.
+/Users/fab/GitHub/proximity/e2e_tests/.venv/lib/python3.13/site-packages/playwright/_impl/_connection.py:558: playwright._impl._errors.TimeoutError: Page.wait_for_function: Timeout 15000ms exceeded.
+/Users/fab/GitHub/proximity/e2e_tests/.venv/lib/python3.13/site-packages/playwright/_impl/_connection.py:558: playwright._impl._errors.TimeoutError: Page.wait_for_function: Timeout 15000ms exceeded.
+/Users/fab/GitHub/proximity/e2e_tests/.venv/lib/python3.13/site-packages/playwright/_impl/_connection.py:558: playwright._impl._errors.TimeoutError: Page.wait_for_function: Timeout 15000ms exceeded.
+[36m[1m=========================== short test summary info ============================[0m
+[31mFAILED[0m test_app_lifecycle.py::[1mtest_full_app_deploy_manage_delete_workflow[chromium][0m - playwright._impl._errors.TimeoutError: Page.wait_for_function: Timeout 15000ms exceeded.
+[31mFAILED[0m test_app_lifecycle.py::[1mtest_app_update_workflow_with_pre_update_backup[chromium][0m - playwright._impl._errors.TimeoutError: Page.wait_for_function: Timeout 15000ms exceeded.
+[31mFAILED[0m test_app_lifecycle.py::[1mtest_app_volumes_display[chromium][0m - playwright._impl._errors.TimeoutError: Page.wait_for_function: Timeout 15000ms exceeded.
+[31mFAILED[0m test_app_lifecycle.py::[1mtest_monitoring_tab_displays_data[chromium][0m - playwright._impl._errors.TimeoutError: Page.wait_for_function: Timeout 15000ms exceeded.
+[31mERROR[0m test_app_canvas.py::[1mtest_open_and_close_canvas_with_button[chromium][0m - playwright._impl._errors.TimeoutError: Page.wait_for_function: Timeout 15000ms exceeded.
+[31mERROR[0m test_app_canvas.py::[1mtest_close_canvas_with_escape_key[chromium][0m - playwright._impl._errors.TimeoutError: Page.wait_for_function: Timeout 15000ms exceeded.
+[31mERROR[0m test_app_canvas.py::[1mtest_close_canvas_by_clicking_outside[chromium][0m - playwright._impl._errors.TimeoutError: Page.wait_for_function: Timeout 15000ms exceeded.
+[31mERROR[0m test_app_canvas.py::[1mtest_refresh_canvas[chromium][0m - playwright._impl._errors.TimeoutError: Page.wait_for_function: Timeout 15000ms exceeded.
+[31mERROR[0m test_app_canvas.py::[1mtest_canvas_displays_correct_app_name[chromium][0m - playwright._impl._errors.TimeoutError: Page.wait_for_function: Timeout 15000ms exceeded.
+[31mERROR[0m test_app_canvas.py::[1mtest_canvas_iframe_loads_content[chromium][0m - playwright._impl._errors.TimeoutError: Page.wait_for_function: Timeout 15000ms exceeded.
+[31mERROR[0m test_app_canvas.py::[1mtest_canvas_button_only_visible_for_running_apps[chromium][0m - playwright._impl._errors.TimeoutError: Page.wait_for_function: Timeout 15000ms exceeded.
+[31mERROR[0m test_app_management.py::[1mtest_view_app_logs_all[chromium][0m - playwright._impl._errors.TimeoutError: Page.wait_for_selector: Timeout 10000ms exceeded.
+Call log:
+  - waiting for locator("#authModal") to be visible
+[31mERROR[0m test_app_management.py::[1mtest_view_app_logs_docker[chromium][0m - playwright._impl._errors.TimeoutError: Page.wait_for_selector: Timeout 10000ms exceeded.
+Call log:
+  - waiting for locator("#authModal") to be visible
+[31mERROR[0m test_app_management.py::[1mtest_view_app_logs_system[chromium][0m - playwright._impl._errors.TimeoutError: Page.wait_for_selector: Timeout 10000ms exceeded.
+Call log:
+  - waiting for locator("#authModal") to be visible
+[31mERROR[0m test_app_management.py::[1mtest_logs_auto_refresh[chromium][0m - playwright._impl._errors.TimeoutError: Page.wait_for_selector: Timeout 10000ms exceeded.
+Call log:
+  - waiting for locator("#authModal") to be visible
+[31mERROR[0m test_app_management.py::[1mtest_download_logs[chromium][0m - playwright._impl._errors.TimeoutError: Page.wait_for_selector: Timeout 10000ms exceeded.
+Call log:
+  - waiting for locator("#authModal") to be visible
+[31mERROR[0m test_app_management.py::[1mtest_open_app_console[chromium][0m - playwright._impl._errors.TimeoutError: Page.wait_for_selector: Timeout 10000ms exceeded.
+Call log:
+  - waiting for locator("#authModal") to be visible
+[31mERROR[0m test_app_management.py::[1mtest_console_quick_commands[chromium][0m - playwright._impl._errors.TimeoutError: Page.wait_for_selector: Timeout 10000ms exceeded.
+Call log:
+  - waiting for locator("#authModal") to be visible
+[31mERROR[0m test_app_management.py::[1mtest_app_external_link[chromium][0m - playwright._impl._errors.TimeoutError: Page.wait_for_selector: Timeout 10000ms exceeded.
+Call log:
+  - waiting for locator("#authModal") to be visible
+[31mERROR[0m test_app_management.py::[1mtest_app_stop_start_cycle[chromium][0m - playwright._impl._errors.TimeoutError: Page.wait_for_selector: Timeout 10000ms exceeded.
+Call log:
+  - waiting for locator("#authModal") to be visible
+[31m!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 20 failures !!!!!!!!!!!!!!!!!!!!!!!!!![0m
+[31m======= [31m[1m4 failed[0m, [33m1 skipped[0m, [33m3 warnings[0m, [31m[1m16 errors[0m[31m in 226.10s (0:03:46)[0m[31m ========[0m

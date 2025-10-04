@@ -1443,6 +1443,8 @@ a.connection-value:hover::after {
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0;
+    transition: opacity 0.3s ease, display 0.3s ease allow-discrete;
 }
 
 @keyframes fadeIn {
@@ -1467,6 +1469,7 @@ a.connection-value:hover::after {
 
 .modal.show {
     display: flex;
+    opacity: 1;
 }
 
 /* Prevent body scrolling when modal is open */
