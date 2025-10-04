@@ -299,10 +299,37 @@ def test_session_persistence(page: Page, base_url: str):
     expect(dashboard_page.dashboard_container).to_be_visible(timeout=15000)  # 15 seconds for network + UI update
     print("✓ Dashboard is now visible - login completed successfully")
     
+    # Give a moment for the token to be saved to localStorage after UI updates
+    page.wait_for_timeout(500)
+    
     # Verify token stored in localStorage
     print("📋 Step 4: Verifying JWT token is stored")
-    token = page.evaluate("localStorage.getItem('proximity_token') || localStorage.getItem('token') || localStorage.getItem('authToken')")
-    assert token is not None, "JWT token should be stored in localStorage"
+    # Check all possible token keys
+    token_check = page.evaluate("""
+        () => {
+            const keys = ['proximity_token', 'token', 'authToken'];
+            for (const key of keys) {
+                const val = localStorage.getItem(key);
+                if (val) return { key, value: val };
+            }
+            // Also dump all localStorage for debugging
+            const all = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                all[k] = localStorage.getItem(k);
+            }
+            return { found: false, allKeys: Object.keys(all) };
+        }
+    """)
+    print(f"📝 Token check result: {token_check}")
+    
+    # Extract token
+    if isinstance(token_check, dict) and 'value' in token_check:
+        token = token_check['value']
+    else:
+        token = page.evaluate("localStorage.getItem('proximity_token')")
+    
+    assert token is not None, f"JWT token should be stored in localStorage. Found keys: {token_check}"
     assert len(token) > 20, f"JWT token should be a valid length, got: {len(token)} chars"
     print(f"✓ JWT token stored (length: {len(token)} chars)")
     
