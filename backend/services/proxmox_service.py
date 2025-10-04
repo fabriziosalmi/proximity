@@ -988,6 +988,179 @@ class ProxmoxService:
                 raise
             raise ProxmoxError(f"Failed to select best storage: {e}")
 
+    async def create_vzdump(
+        self,
+        node: str,
+        vmid: int,
+        storage: str = "local",
+        compress: str = "zstd",
+        mode: str = "snapshot"
+    ) -> str:
+        """
+        Create a vzdump backup of an LXC container.
+
+        Args:
+            node: Proxmox node name
+            vmid: Container ID
+            storage: Storage name for backup (default: local)
+            compress: Compression type (zstd, gzip, none)
+            mode: Backup mode (snapshot, stop, suspend)
+
+        Returns:
+            Task ID (UPID)
+
+        Raises:
+            ProxmoxError: If backup creation fails
+        """
+        try:
+            client = await self._get_client()
+
+            # Build backup parameters
+            params = {
+                'vmid': vmid,
+                'storage': storage,
+                'mode': mode,
+                'compress': compress if compress != 'none' else '0'
+            }
+
+            logger.info(f"Creating vzdump backup for LXC {vmid} on node {node} with params: {params}")
+
+            # Start backup task
+            result = client.nodes(node).vzdump.post(**params)
+            task_id = result
+
+            logger.info(f"Vzdump backup started for LXC {vmid}: {task_id}")
+            return task_id
+
+        except Exception as e:
+            raise ProxmoxError(f"Failed to create vzdump backup for LXC {vmid}: {e}")
+
+    async def get_backup_list(self, node: str, vmid: int) -> List[Dict[str, Any]]:
+        """
+        Get list of backups for a specific LXC container.
+
+        Args:
+            node: Proxmox node name
+            vmid: Container ID
+
+        Returns:
+            List of backup information dictionaries
+
+        Raises:
+            ProxmoxError: If fetching backup list fails
+        """
+        try:
+            client = await self._get_client()
+
+            # Get backups from all storages
+            backups = []
+
+            # Get storage list
+            storage_list = await self.get_node_storage(node)
+
+            for storage in storage_list:
+                storage_name = storage.get('storage')
+                if not storage.get('active'):
+                    continue
+
+                try:
+                    # Get backup content from this storage
+                    content = client.nodes(node).storage(storage_name).content.get(content='backup')
+
+                    # Filter backups for this vmid
+                    for item in content:
+                        volid = item.get('volid', '')
+                        if f"-{vmid}-" in volid or f"/{vmid}/" in volid:
+                            backups.append(item)
+
+                except Exception as e:
+                    # Storage might not support backups, skip
+                    logger.debug(f"Could not get backups from storage {storage_name}: {e}")
+                    continue
+
+            logger.info(f"Found {len(backups)} backups for LXC {vmid} on node {node}")
+            return backups
+
+        except Exception as e:
+            raise ProxmoxError(f"Failed to get backup list for LXC {vmid}: {e}")
+
+    async def restore_backup(
+        self,
+        node: str,
+        vmid: int,
+        backup_file: str,
+        storage: str
+    ) -> str:
+        """
+        Restore an LXC container from a backup.
+
+        Args:
+            node: Proxmox node name
+            vmid: Container ID
+            backup_file: Backup filename
+            storage: Storage name where backup is located
+
+        Returns:
+            Task ID (UPID)
+
+        Raises:
+            ProxmoxError: If restore fails
+        """
+        try:
+            client = await self._get_client()
+
+            # Build volume ID
+            volid = f"{storage}:backup/{backup_file}"
+
+            logger.info(f"Restoring LXC {vmid} from backup {volid} on node {node}")
+
+            # Start restore task
+            result = client.nodes(node).lxc.post(
+                vmid=vmid,
+                ostemplate=volid,
+                restore=1,
+                force=1  # Overwrite existing container
+            )
+
+            task_id = result
+            logger.info(f"Restore started for LXC {vmid}: {task_id}")
+            return task_id
+
+        except Exception as e:
+            raise ProxmoxError(f"Failed to restore LXC {vmid} from backup: {e}")
+
+    async def delete_backup(self, node: str, storage: str, backup_file: str) -> bool:
+        """
+        Delete a backup file from storage.
+
+        Args:
+            node: Proxmox node name
+            storage: Storage name
+            backup_file: Backup filename
+
+        Returns:
+            True if deletion successful
+
+        Raises:
+            ProxmoxError: If deletion fails
+        """
+        try:
+            client = await self._get_client()
+
+            # Build volume ID
+            volid = f"{storage}:backup/{backup_file}"
+
+            logger.info(f"Deleting backup {volid} from node {node}")
+
+            # Delete backup
+            client.nodes(node).storage(storage).content(volid).delete()
+
+            logger.info(f"Backup {backup_file} deleted successfully")
+            return True
+
+        except Exception as e:
+            raise ProxmoxError(f"Failed to delete backup {backup_file}: {e}")
+
 
 # Singleton instance
 proxmox_service = ProxmoxService()

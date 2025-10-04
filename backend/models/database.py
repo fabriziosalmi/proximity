@@ -187,24 +187,3 @@ class Setting(Base):
 
     def __repr__(self):
         return f"<Setting(key='{self.key}', category='{self.category}', encrypted={self.is_encrypted})>"
-
-
-class Backup(Base):
-    """App backup metadata"""
-    __tablename__ = "backups"
-
-    id = Column(Integer, primary_key=True, index=True)
-    app_id = Column(String(255), ForeignKey("apps.id"), nullable=False, index=True)
-    filename = Column(String(500), nullable=False)  # vzdump filename
-    storage = Column(String(100))  # Proxmox storage name
-    size_bytes = Column(Integer)
-    backup_type = Column(String(20), default="snapshot")  # snapshot, suspend, stop
-    status = Column(String(20), default="completed")  # completed, failed, in_progress
-    created_at = Column(DateTime, default=datetime.utcnow, index=True)
-    created_by = Column(Integer, ForeignKey("users.id"))
-
-    # Relationship
-    app = relationship("App")
-
-    def __repr__(self):
-        return f"<Backup(app_id='{self.app_id}', filename='{self.filename}', created_at='{self.created_at}')>"

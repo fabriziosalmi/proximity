@@ -12,7 +12,7 @@ from fastapi.staticfiles import StaticFiles
 import uvicorn
 
 from core.config import settings as config_settings
-from api.endpoints import apps, system, auth, settings
+from api.endpoints import apps, system, auth, settings, backups
 from api.middleware.auth import get_current_user
 from services.proxmox_service import ProxmoxError
 from services.app_service import AppServiceError
@@ -280,6 +280,15 @@ def create_app() -> FastAPI:
         settings.router,
         prefix=f"/api/{config_settings.API_VERSION}/settings",
         tags=["Settings"],
+        dependencies=[Depends(get_current_user)]  # ← PROTECTED
+    )
+
+    # Backups router (PROTECTED - requires authentication)
+    # Note: Backup routes are nested under apps (e.g., /api/v1/apps/{app_id}/backups)
+    app.include_router(
+        backups.router,
+        prefix=f"/api/{config_settings.API_VERSION}",
+        tags=["Backups"],
         dependencies=[Depends(get_current_user)]  # ← PROTECTED
     )
 
