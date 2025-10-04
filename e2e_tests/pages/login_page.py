@@ -52,43 +52,41 @@ class LoginPage(BasePage):
         super().__init__(page)
     
     # ========================================================================
-    # Locator Properties (for use with expect() assertions)
+    # Properties - Locators for use in expect() assertions
     # ========================================================================
     
     @property
     def modal(self):
         """
-        Return a Locator for the authentication modal.
+        Return the auth modal locator for use in expect() assertions.
         
-        This property is designed for use with Playwright's expect() assertions,
-        which provide automatic retrying and are the recommended way to wait for
-        async UI updates.
-        
-        Example:
-            expect(login_page.modal).to_be_hidden(timeout=15000)
-            expect(login_page.modal).to_be_visible(timeout=10000)
+        This property allows tests to use Playwright's auto-retrying assertions
+        like: expect(login_page.modal).to_be_visible()
         
         Returns:
-            Playwright Locator for the auth modal element
+            Locator for the authentication modal element
         """
         return self.page.locator(self.AUTH_MODAL)
     
     @property
-    def login_error_element(self):
+    def login_error(self):
         """
-        Return a Locator for the login error message element.
-        
-        This property is designed for use with Playwright's expect() assertions
-        to wait for error messages to appear after failed login attempts.
-        
-        Example:
-            expect(login_page.login_error_element).to_be_visible()
-            expect(login_page.login_error_element).to_contain_text("Invalid")
+        Return the login error locator for use in expect() assertions.
         
         Returns:
-            Playwright Locator for the login error element
+            Locator for the login error message element
         """
         return self.page.locator(self.LOGIN_ERROR)
+    
+    @property
+    def register_error(self):
+        """
+        Return the register error locator for use in expect() assertions.
+        
+        Returns:
+            Locator for the register error message element
+        """
+        return self.page.locator(self.REGISTER_ERROR)
     
     # ========================================================================
     # Wait Methods

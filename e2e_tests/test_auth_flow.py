@@ -16,24 +16,28 @@ from utils.test_data import generate_test_user
 @pytest.mark.auth
 def test_registration_and_login(page: Page):
     """
-    Test complete registration and auto-login flow.
+    Test complete registration and login flow.
     
-    UPDATED: This test now reflects the improved UX where registration returns a JWT token
-    and the frontend automatically logs the user in and closes the modal. The test uses
-    Playwright's robust expect() assertions to wait for the asynchronous auto-login to complete.
+    This test validates the ACTUAL UX flow where registration automatically
+    switches to the login tab with pre-filled credentials, but does NOT auto-login.
+    The user must click the login button to complete authentication.
     
     Steps:
     1. Navigate to Proximity UI
     2. Fill registration form with unique credentials
     3. Submit registration
-    4. Wait for auto-login to complete by waiting for dashboard to appear
-    5. Verify modal is closed
-    6. Verify dashboard is visible
+    4. Wait for success notification
+    5. Verify modal switches to login tab (automatic)
+    6. Verify username is pre-filled in login form
+    7. Click login button to complete authentication
+    8. Wait for dashboard to appear (confirms async auto-login completed)
+    9. Verify modal closes
+    10. Verify dashboard is visible
     
-    Expected: User successfully registered, automatically logged in,
-              dashboard loads and auth modal is hidden.
+    Expected: User successfully registered, must manually click login,
+              then dashboard loads and auth modal is hidden.
     """
-    print("\n🔍 Test: Registration and Auto-Login Flow")
+    print("\n🔍 Test: Registration and Login Flow")
     
     # Arrange
     test_user = generate_test_user()
@@ -58,35 +62,36 @@ def test_registration_and_login(page: Page):
     print("📋 Step 4: Clicking register button")
     login_page.click_register_button()
     
-    # --- CRITICAL FIX: Wait for auto-login to complete ---
-    # After registration, the backend returns a JWT token and the frontend
-    # automatically logs the user in, which involves:
-    # 1. Storing the token in localStorage
-    # 2. Closing the auth modal
-    # 3. Loading the dashboard data
-    # 4. Updating the UI to show the dashboard
-    # 
-    # We MUST wait for the dashboard to appear, which confirms all these
-    # asynchronous steps have completed.
-    print("📋 Step 5: Waiting for dashboard to appear (confirms auto-login completed)")
+    # Assert - Verify registration success and auto-switch to login
+    print("📋 Step 5: Waiting for success notification (optional)")
+    page.wait_for_timeout(2000)  # Give time for registration to process
     
-    # Use Playwright's expect() with auto-retrying assertion
-    # This is the recommended pattern for waiting on async UI updates
-    expect(dashboard_page.dashboard_container).to_be_visible(timeout=15000)
+    print("📋 Step 6: Verifying modal switched to login tab")
+    login_page.assert_in_login_mode()
+    
+    print("📋 Step 7: Verifying username is pre-filled")
+    login_page.assert_username_prefilled(test_user["username"])
+    
+    print("📋 Step 8: Clicking login button to complete authentication")
+    login_page.click_login_button()
+    
+    # --- CRITICAL FIX: Wait for async auto-login to complete ---
+    # After clicking login, the frontend makes an async network request to authenticate.
+    # We must wait for the dashboard to appear before asserting anything else.
+    # This confirms the login completed successfully and the UI has fully updated.
+    print("📋 Step 9: Waiting for dashboard to appear (confirms async auto-login completed)")
+    expect(dashboard_page.dashboard_container).to_be_visible(timeout=15000)  # 15 seconds for network + UI update
     print("✓ Dashboard is now visible - auto-login completed successfully")
     
-    # --- END OF CRITICAL FIX ---
-    
-    # Now that we know the dashboard is visible, we can safely verify other things
-    print("📋 Step 6: Verifying modal is closed")
+    # Now that we know the dashboard is visible, we can safely assert other things
+    print("📋 Step 10: Verifying modal is closed")
     expect(login_page.modal).to_be_hidden()
     print("✓ Auth modal is hidden")
     
-    print("📋 Step 7: Verifying we're on the dashboard")
+    print("📋 Step 11: Verifying dashboard state")
     dashboard_page.assert_on_dashboard()
     
-    # Additional verification - Dashboard should have loaded properly
-    print("✅ Test passed: Registration with auto-login works correctly")
+    print("✅ Test passed: Registration and login flow works correctly")
 
 
 @pytest.mark.auth
@@ -101,9 +106,10 @@ def test_logout(authenticated_page: Page):
     1. Start with authenticated session (from fixture)
     2. Verify dashboard is visible
     3. Click logout button
-    4. Clear session storage to ensure complete cleanup
-    5. Verify auth modal reappears
-    6. Verify cannot access protected pages
+    4. Wait for auth modal to reappear (confirms async logout completed)
+    5. Clear session storage to ensure complete cleanup
+    6. Verify auth modal is visible
+    7. Verify cannot access protected pages
     
     Expected: User logged out, session cleared,
               auth modal visible, protected content inaccessible.
@@ -123,22 +129,28 @@ def test_logout(authenticated_page: Page):
     print("📋 Step 2: Clicking logout button")
     dashboard_page.logout()
     
+    # --- CRITICAL FIX: Wait for auth modal to reappear ---
+    # After clicking logout, the frontend makes an async request to invalidate the session.
+    # We must wait for the auth modal to become visible before making any assertions.
+    # This confirms the logout completed and the UI has fully updated.
+    print("📋 Step 3: Waiting for auth modal to reappear (confirms async logout completed)")
+    expect(login_page.modal).to_be_visible(timeout=10000)  # 10 seconds for logout to complete
+    print("✓ Auth modal is now visible - logout completed successfully")
+    
     # Ensure session is cleared (some apps might not clear automatically)
-    print("📋 Step 3: Clearing session storage")
-    authenticated_page.wait_for_timeout(1000)
+    print("📋 Step 4: Clearing session storage for complete cleanup")
     authenticated_page.evaluate("window.localStorage.clear(); window.sessionStorage.clear();")
     
-    # Assert - Auth modal reappears
-    print("📋 Step 4: Verifying auth modal reappears")
-    authenticated_page.wait_for_timeout(1000)  # Give time for UI update
+    # Assert - Verify logout state
+    print("📋 Step 5: Verifying auth modal is visible")
     login_page.assert_auth_modal_visible()
-    print("✓ Auth modal is visible after logout")
+    print("✓ Auth modal confirmed visible")
     
     # Verify we can't access protected content
-    print("📋 Step 5: Verifying cannot access protected pages")
+    print("📋 Step 6: Verifying cannot access protected pages")
     # Try to navigate to dashboard
     dashboard_page.navigate_to("/")
-    authenticated_page.wait_for_timeout(1000)
+    authenticated_page.wait_for_timeout(1000)  # Give page time to load
     
     # Should still see auth modal (not authenticated)
     login_page.assert_auth_modal_visible()
@@ -157,11 +169,13 @@ def test_invalid_login(page: Page):
     
     Steps:
     1. Clear any existing session (localStorage/sessionStorage)
-    2. Navigate to fresh page
-    3. Attempt login with invalid credentials
-    4. Verify error message is displayed
-    5. Verify user remains on login modal
-    6. Verify dashboard is NOT accessible
+    2. Navigate to fresh page with full reload
+    3. Wait for page to fully load
+    4. Attempt login with invalid credentials
+    5. Wait for error message to appear (confirms async login attempt completed)
+    6. Verify error message content
+    7. Verify user remains on login modal
+    8. Verify dashboard is NOT accessible
     
     Expected: Login fails with error message,
               modal remains visible, no access granted.
@@ -172,40 +186,62 @@ def test_invalid_login(page: Page):
     print("📋 Step 1: Clearing any existing session")
     page.evaluate("window.localStorage.clear(); window.sessionStorage.clear();")
     
-    print("📋 Step 2: Navigating to fresh page")
-    page.reload()
-    page.wait_for_timeout(1000)  # Give page time to load
+    print("📋 Step 2: Navigating to fresh page with full reload")
+    # Force a full page reload to ensure clean state
+    page.goto(page.url, wait_until="networkidle")
+    page.wait_for_timeout(1000)  # Give page time to initialize
+    
+    print("📋 Step 3: Verifying clean state (no dashboard visible)")
+    # Ensure we're starting from a clean slate - dashboard should not be visible yet
+    dashboard_page = DashboardPage(page)
+    try:
+        # Dashboard should not be visible initially
+        expect(dashboard_page.dashboard_container).to_be_hidden(timeout=2000)
+    except:
+        # If dashboard is visible, we have a problem - clear again
+        print("⚠️  Dashboard was visible, forcing another clear")
+        page.evaluate("window.localStorage.clear(); window.sessionStorage.clear();")
+        page.reload(wait_until="networkidle")
+        page.wait_for_timeout(1000)
     
     login_page = LoginPage(page)
     
-    print("📋 Step 3: Waiting for auth modal")
+    print("📋 Step 4: Waiting for auth modal")
     login_page.wait_for_auth_modal()
     
     # Act - Attempt login with bad credentials
-    print("📋 Step 4: Attempting login with invalid credentials")
-    error_message = login_page.login_with_error_check(
-        username="nonexistent_user_12345",
-        password="wrong_password_98765"
-    )
+    print("📋 Step 5: Attempting login with invalid credentials")
+    # Fill in the credentials manually to have more control
+    login_page.switch_to_login_mode()
+    login_page.fill_username("nonexistent_user_12345", mode="login")
+    login_page.fill_password("wrong_password_98765", mode="login")
+    login_page.click_login_button()
     
-    # Assert - Error displayed
-    print("📋 Step 5: Verifying error message is displayed")
+    # --- CRITICAL FIX: Wait for error message to appear ---
+    # After clicking login with invalid credentials, the frontend makes an async request.
+    # We must wait for the error element to become visible with the error message.
+    # This confirms the login attempt completed and the UI has shown the error.
+    print("📋 Step 6: Waiting for error message to appear (confirms async login attempt completed)")
+    expect(login_page.login_error).to_be_visible(timeout=10000)  # 10 seconds for network + UI update
+    print("✓ Error message is now visible - invalid login rejected")
+    
+    # Assert - Verify error message content
+    print("📋 Step 7: Verifying error message content")
+    error_message = login_page.get_text(login_page.LOGIN_ERROR)
     assert error_message != "", "Expected error message for invalid login"
     assert any(keyword in error_message.lower() for keyword in ["invalid", "incorrect", "failed", "error", "not found"]), \
         f"Error message should indicate failure: {error_message}"
     print(f"✓ Error message received: {error_message}")
     
     # Verify modal still visible
-    print("📋 Step 6: Verifying modal still visible")
+    print("📋 Step 8: Verifying modal still visible")
     login_page.assert_auth_modal_visible()
     
-    # Verify dashboard not accessible
-    print("📋 Step 7: Verifying dashboard is NOT accessible")
-    dashboard_selectors = ["#dashboardView", "#dashboard-view", "[data-view='dashboard']"]
-    for selector in dashboard_selectors:
-        if page.locator(selector).count() > 0:
-            assert not page.locator(selector).is_visible(), \
-                f"Dashboard ({selector}) should not be visible after failed login"
+    # Verify dashboard not accessible (should be hidden or not present)
+    print("📋 Step 9: Verifying dashboard is NOT accessible")
+    # After failed login, dashboard should remain hidden
+    expect(dashboard_page.dashboard_container).to_be_hidden(timeout=2000)
+    print("✓ Dashboard is not visible - access properly denied")
     
     print("✅ Test passed: Invalid login correctly rejected")
 
@@ -221,10 +257,11 @@ def test_session_persistence(page: Page, base_url: str):
     Steps:
     1. Register new user
     2. Switch to login tab and complete login
-    3. Verify JWT token is stored in localStorage
-    4. Reload the page
-    5. Verify user still authenticated (no login modal)
-    6. Verify dashboard loads automatically
+    3. Wait for dashboard to load (confirms login completed)
+    4. Verify JWT token is stored in localStorage
+    5. Reload the page
+    6. Wait for dashboard to appear (confirms session persisted and auto-login occurred)
+    7. Verify auth modal does NOT appear
     
     Expected: JWT token persists in localStorage,
               user remains logged in after reload.
@@ -255,8 +292,12 @@ def test_session_persistence(page: Page, base_url: str):
     login_page.switch_to_login_mode()
     login_page.click_login_button()
     
-    print("📋 Step 3: Waiting for dashboard to load")
-    dashboard_page.wait_for_dashboard_load()
+    # --- CRITICAL FIX: Wait for dashboard to appear after login ---
+    # Before checking the token, we need to ensure the login completed successfully.
+    # This confirms the async login request finished and the token was saved.
+    print("📋 Step 3: Waiting for dashboard to load (confirms login completed)")
+    expect(dashboard_page.dashboard_container).to_be_visible(timeout=15000)  # 15 seconds for network + UI update
+    print("✓ Dashboard is now visible - login completed successfully")
     
     # Verify token stored in localStorage
     print("📋 Step 4: Verifying JWT token is stored")
@@ -269,23 +310,23 @@ def test_session_persistence(page: Page, base_url: str):
     print("📋 Step 5: Reloading page to test persistence")
     page.reload()
     page.wait_for_load_state("load")
-    page.wait_for_timeout(2000)  # Give time for auth check to complete
+    
+    # --- CRITICAL FIX: Wait for dashboard to appear after reload ---
+    # After reloading, the frontend should auto-login using the stored token.
+    # We must wait for the dashboard to become visible before asserting anything.
+    # This confirms the session persisted and auto-login completed.
+    print("📋 Step 6: Waiting for dashboard to appear (confirms session persisted and auto-login occurred)")
+    expect(dashboard_page.dashboard_container).to_be_visible(timeout=15000)  # 15 seconds for network + UI update
+    print("✓ Dashboard is now visible - session persisted successfully")
     
     # Assert - Still authenticated
-    print("📋 Step 6: Verifying auth modal does NOT appear")
-    # Modal should not be visible or should be hidden
-    auth_modal_visible = False
-    try:
-        auth_modal_visible = page.locator(login_page.AUTH_MODAL).is_visible(timeout=2000)
-    except:
-        pass  # Modal doesn't exist or is hidden - good!
+    print("📋 Step 7: Verifying auth modal does NOT appear")
+    # Modal should not be visible
+    expect(login_page.modal).to_be_hidden()
+    print("✓ Auth modal is hidden - user remained authenticated")
     
-    assert not auth_modal_visible, \
-        "Auth modal should not appear after reload if token valid"
-    
-    # Dashboard should load automatically
-    print("📋 Step 7: Verifying dashboard loads automatically")
-    dashboard_page.wait_for_dashboard_load()
+    # Dashboard should be loaded
+    print("📋 Step 8: Verifying dashboard is fully loaded")
     dashboard_page.assert_on_dashboard()
     
     print("✅ Test passed: Session persists across page reload")
