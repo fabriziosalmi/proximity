@@ -53,6 +53,20 @@ class BackupService:
         if not app:
             raise ValueError(f"App {app_id} not found")
 
+        # Auto-detect storage from container config if not specified or set to 'auto'
+        if storage == "local" or storage == "auto":
+            try:
+                lxc_config = await self.proxmox.get_lxc_config(app.node, app.lxc_id)
+                rootfs = lxc_config.get('rootfs', '')
+                # Parse storage from rootfs (format: "storage:size")
+                if ':' in rootfs:
+                    detected_storage = rootfs.split(':')[0]
+                    storage = detected_storage
+                    print(f"Auto-detected storage from container: {storage}")
+            except Exception as e:
+                print(f"Failed to auto-detect storage, using 'local': {e}")
+                storage = "local"
+
         # Generate filename
         timestamp = datetime.utcnow().strftime("%Y_%m_%d-%H_%M_%S")
         extension = ".tar.zst" if compress == "zstd" else ".tar.gz" if compress == "gzip" else ".tar"
@@ -156,9 +170,15 @@ class BackupService:
         backup.status = "restoring"
         self.db.commit()
 
+        # Track if container was running before restore
+        container_was_running = app.status == "running"
+        container_stopped = False
+
         try:
-            # Stop container
-            await self.proxmox.stop_lxc(app.node, app.lxc_id)
+            # Stop container if running
+            if container_was_running:
+                await self.proxmox.stop_lxc(app.node, app.lxc_id)
+                container_stopped = True
 
             # Restore from backup
             restore_task = await self.proxmox.restore_backup(
@@ -187,6 +207,18 @@ class BackupService:
             backup.status = "available"
             backup.error_message = f"Restore failed: {str(e)}"
             self.db.commit()
+
+            # CRITICAL: Attempt to restart container if it was stopped during restore
+            # This prevents leaving the container in a stopped state after a failed restore
+            if container_stopped:
+                try:
+                    print(f"⚠️  Restore failed, attempting to restart container {app.lxc_id}")
+                    await self.proxmox.start_lxc(app.node, app.lxc_id)
+                    print(f"✓ Container {app.lxc_id} restarted after failed restore")
+                except Exception as restart_error:
+                    print(f"❌ Failed to restart container after failed restore: {restart_error}")
+                    # Don't raise here - we want the original restore error to propagate
+
             raise
 
     async def delete_backup(self, backup_id: int) -> dict:

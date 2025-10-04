@@ -401,6 +401,61 @@ class TestBackupServiceRestore:
         with pytest.raises(ValueError, match="Backup is not available"):
             await backup_service.restore_from_backup(backup.id)
 
+    @pytest.mark.asyncio
+    @patch('services.backup_service.ProxmoxService')
+    async def test_restore_failure_restarts_container(self, mock_proxmox_class, db_session, test_user):
+        """Test that container is restarted when restore fails."""
+        from services.backup_service import BackupService
+
+        app = App(
+            id="restore-fail-app",
+            catalog_id="nginx",
+            name="Restore Fail App",
+            hostname="restore-fail-app",
+            status="running",
+            lxc_id=101,
+            node="testnode",
+            owner_id=test_user.id
+        )
+        db_session.add(app)
+        db_session.commit()
+
+        backup = Backup(
+            app_id="restore-fail-app",
+            filename="backup.tar.zst",
+            storage_name="local",
+            status="available"
+        )
+        db_session.add(backup)
+        db_session.commit()
+
+        # Mock Proxmox - restore will fail
+        mock_proxmox = AsyncMock()
+        mock_proxmox.stop_lxc.return_value = "UPID:stop"
+        mock_proxmox.restore_backup.side_effect = Exception("Restore failed")
+        mock_proxmox.start_lxc.return_value = "UPID:start"
+        mock_proxmox_class.return_value = mock_proxmox
+
+        backup_service = BackupService(db_session, mock_proxmox)
+
+        # Restore should fail but attempt container restart
+        with pytest.raises(Exception, match="Restore failed"):
+            await backup_service.restore_from_backup(backup.id)
+
+        # Verify stop was called
+        mock_proxmox.stop_lxc.assert_called_once_with("testnode", 101)
+
+        # Verify restore was attempted
+        mock_proxmox.restore_backup.assert_called_once()
+
+        # CRITICAL: Verify container restart was attempted after failure
+        mock_proxmox.start_lxc.assert_called_once_with("testnode", 101)
+
+        # Verify backup status returned to available
+        db_session.refresh(backup)
+        assert backup.status == "available"
+        assert "Restore failed" in backup.error_message
+
 
 class TestBackupServiceDelete:
     """Test backup deletion functionality."""
