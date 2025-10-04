@@ -91,6 +91,28 @@ Proximity uses a **fully isolated network architecture** powered by a dedicated 
 - **[Deployment Guide](docs/deployment.md)** - Installation, configuration, operations, and troubleshooting
 - **[Development Guide](docs/development.md)** - Contributing, code structure, and adding features
 - **[Troubleshooting](docs/troubleshooting.md)** - Common issues, fixes, and debugging techniques
+- **[Security Refactoring](docs/SECURITY_REFACTORING_SAFE_COMMANDS.md)** - Safe command system documentation
+- **[Safe Commands Reference](docs/SAFE_COMMANDS_REFERENCE.md)** - Quick reference for secure container commands
+
+## 🔒 Security
+
+Proximity is built with security as a top priority:
+
+- ✅ **JWT Authentication**: Secure token-based authentication with role-based access control
+- ✅ **Safe Command System**: Predefined, read-only commands prevent arbitrary code execution
+- ✅ **Audit Logging**: All command executions and critical actions are logged
+- ✅ **Network Isolation**: Dedicated `proximity-lan` network separates containers
+- ✅ **Unprivileged Containers**: All LXC containers run unprivileged by default
+- ✅ **Input Validation**: Comprehensive parameter validation using Pydantic
+- ✅ **No Command Injection**: All commands are hardcoded; user input never interpolated into shell commands
+
+**October 2025 Security Update:**  
+We've completely eliminated the dangerous arbitrary command execution endpoint (`/exec`) and replaced it with a secure, predefined command system. See [Security Refactoring Documentation](docs/SECURITY_REFACTORING_SAFE_COMMANDS.md) for details.
+
+**Available Safe Commands:**
+- 📋 logs, ✅ status, 💾 disk, ⚙️ processes, 🧠 memory, 🌐 network, 🐳 images, 📦 volumes, ⚙️ config, 💻 system
+
+All commands are read-only, audited, and fully documented in the [Safe Commands Reference](docs/SAFE_COMMANDS_REFERENCE.md).
 
 ## 🔧 Configuration
 
@@ -249,6 +271,9 @@ proximity/
 - [x] JWT authentication with RBAC
 - [x] Application catalog system
 - [x] Template caching for fast deployments
+- [x] **Safe Command System** - Secure, predefined command execution (Oct 2025)
+- [x] **Audit Logging** - Complete command execution tracking (Oct 2025)
+- [x] **Command Injection Prevention** - Eliminated arbitrary command execution (Oct 2025)
 
 ### 🚧 In Progress
 - [ ] Advanced dashboard with real-time metrics

@@ -851,6 +851,26 @@ h3 { font-size: 1.5rem; font-weight: 600; }
     position: relative;
 }
 
+/* Add padding for cards in settings and infrastructure that don't have explicit child containers */
+.settings-panel .app-card,
+.infrastructure-section .app-card {
+    padding: 1.5rem;
+}
+
+/* Remove extra padding from forms since the card already has padding */
+.settings-panel .app-card .settings-form,
+.infrastructure-section .app-card .settings-form {
+    padding: 0;
+    margin: 0;
+}
+
+/* Adjust header padding when inside a padded card */
+.settings-panel .app-card .app-card-header,
+.infrastructure-section .app-card .app-card-header {
+    margin: -1.5rem -1.5rem 1.5rem -1.5rem;
+    padding: 1.5rem;
+}
+
 /* Deployed card compact style */
 .app-card.deployed {
     border-radius: var(--radius-lg);
@@ -874,6 +894,13 @@ h3 { font-size: 1.5rem; font-weight: 600; }
 .app-card:hover {
     border-color: var(--accent);
     box-shadow: var(--shadow-lg);
+}
+
+/* Enhanced hover for clickable catalog cards */
+.catalog-grid .app-card:hover {
+    border-color: var(--primary);
+    box-shadow: 0 8px 30px rgba(59, 130, 246, 0.4), 0 0 0 1px var(--primary);
+    transform: translateY(-6px);
 }
 
 .app-card:hover::after {

@@ -38,10 +38,33 @@ class ProxmoxService:
                             port=settings.PROXMOX_PORT
                         )
                         logger.info(f"Connected to Proxmox at {settings.PROXMOX_HOST}")
+                    except SystemExit as e:
+                        # Handle the proxmoxer HTTPS backend import issue
+                        error_msg = (
+                            "Proxmoxer HTTPS backend failed to import. "
+                            "Please ensure 'openssh-wrapper' is installed: "
+                            "pip install openssh-wrapper"
+                        )
+                        logger.error(error_msg)
+                        raise ProxmoxError(error_msg) from e
                     except Exception as e:
-                        if "authentication" in str(e).lower() or "auth" in str(e).lower():
+                        error_type = type(e).__name__
+                        error_str = str(e).lower()
+                        
+                        if "authentication" in error_str or "auth" in error_str:
                             raise ProxmoxError(f"Authentication failed: {e}")
-                        raise ProxmoxError(f"Failed to connect to Proxmox: {e}")
+                        elif "connection" in error_str or "refused" in error_str:
+                            raise ProxmoxError(
+                                f"Cannot connect to Proxmox at {settings.PROXMOX_HOST}:{settings.PROXMOX_PORT}. "
+                                f"Please check that Proxmox is running and accessible: {e}"
+                            )
+                        elif "ssl" in error_str or "certificate" in error_str:
+                            raise ProxmoxError(
+                                f"SSL certificate error. Set PROXMOX_VERIFY_SSL=false in .env "
+                                f"if using self-signed certificates: {e}"
+                            )
+                        else:
+                            raise ProxmoxError(f"Failed to connect to Proxmox ({error_type}): {e}")
         return self._proxmox
 
     async def test_connection(self) -> bool:

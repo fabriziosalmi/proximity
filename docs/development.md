@@ -453,7 +453,99 @@ async function deployApp(catalogId) {
 
 ## Testing
 
-### Unit Tests
+Proximity has a comprehensive test suite with **250+ tests** covering all critical functionality.
+
+### Test Suite Overview
+
+| Test File | Tests | Focus Area |
+|-----------|-------|------------|
+| `test_database_models.py` | 60+ | Database models, constraints, relationships |
+| `test_database_transactions.py` | 25+ | ACID properties, transaction safety, rollback |
+| `test_auth_service.py` | 15+ | Authentication, JWT, password management |
+| `test_app_service.py` | 20+ | App deployment, lifecycle, catalog |
+| `test_proxmox_service.py` | 15+ | Proxmox integration, LXC operations |
+| `test_api_endpoints.py` | 25+ | API endpoints, CORS, authentication |
+| `test_integration.py` | 30+ | End-to-end workflows, data consistency |
+| `test_error_handling.py` | 40+ | Error scenarios, edge cases, boundaries |
+| `test_catalog_service.py` | 20+ | Catalog loading, filtering, validation |
+
+### Running Tests
+
+```bash
+# All tests
+pytest
+
+# With coverage report
+pytest --cov=services --cov=models --cov=api --cov-report=html
+
+# Specific test file
+pytest tests/test_app_service.py -v
+
+# Specific test function
+pytest tests/test_app_service.py::test_deploy_app -v
+
+# Integration tests only
+pytest -m integration
+
+# Skip integration tests (faster)
+pytest -m "not integration"
+
+# Failed tests only (after a run)
+pytest --lf
+
+# Show print statements
+pytest -s
+
+# Parallel execution (faster)
+pytest -n auto
+```
+
+### Test Categories
+
+#### Unit Tests - Database Models
+Tests for `User`, `App`, and `AuditLog` models:
+- ✅ Field validation and constraints
+- ✅ Unique constraints (username, email, hostname, lxc_id)
+- ✅ Foreign key relationships
+- ✅ Password hashing and verification
+- ✅ Default values and nullable fields
+- ✅ Cascade delete behavior
+
+#### Unit Tests - Database Transactions
+Tests for transaction safety and ACID properties:
+- ✅ Transaction rollback on errors
+- ✅ Commit verification
+- ✅ Concurrent access patterns
+- ✅ Deadlock prevention
+- ✅ Session isolation
+
+#### Unit Tests - Services
+Tests for business logic in services:
+- ✅ App deployment workflows
+- ✅ Authentication and JWT handling
+- ✅ Proxmox API interactions
+- ✅ Network appliance orchestration
+- ✅ Reverse proxy configuration
+
+#### Integration Tests
+End-to-end tests requiring database and (optionally) Proxmox:
+- ✅ Complete deployment workflows
+- ✅ User registration and app ownership
+- ✅ Multi-container scenarios
+- ✅ Network appliance integration
+- ✅ Audit log generation
+
+#### Error Handling Tests
+Tests for edge cases and error conditions:
+- ✅ Invalid input validation
+- ✅ Database constraint violations
+- ✅ Proxmox connection failures
+- ✅ Resource exhaustion scenarios
+- ✅ Concurrent operation conflicts
+
+### Writing Tests
+
+#### Unit Test Example
 
 ```python
 # tests/test_app_service.py
@@ -478,42 +570,103 @@ async def test_deploy_app(mock_proxmox, mock_db):
     assert result.status == "running"
 ```
 
-### Integration Tests
+#### Database Model Test Example
 
 ```python
-# tests/integration/test_deployment.py
+# tests/test_database_models.py
+
+def test_user_creation(db_session):
+    """Test creating a user with all fields"""
+    user = User(
+        username="testuser",
+        email="test@example.com",
+        hashed_password="$2b$12$...",
+        role="user",
+        is_active=True
+    )
+    db_session.add(user)
+    db_session.commit()
+    
+    assert user.id is not None
+    assert user.username == "testuser"
+    assert user.created_at is not None
+```
+
+#### Integration Test Example
+
+```python
+# tests/test_integration.py
 
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_full_deployment():
-    """Test complete deployment workflow"""
-    # Requires actual Proxmox connection
-    service = AppService(get_db(), proxmox_service)
-
-    app = await service.deploy_app(...)
-    assert app.vmid is not None
-
+async def test_full_deployment_workflow(app_service, admin_user):
+    """Test complete deployment workflow from catalog to running app"""
+    # Deploy app
+    app = await app_service.deploy_app(
+        catalog_id="nginx",
+        hostname="integration-test-nginx",
+        user_id=admin_user.id
+    )
+    
+    assert app.lxc_id is not None
+    assert app.status == "running"
+    
+    # Verify app is accessible
+    apps = await app_service.get_all_apps()
+    assert any(a.hostname == "integration-test-nginx" for a in apps)
+    
     # Cleanup
-    await service.delete_app(app.id)
+    await app_service.delete_app(app.id)
 ```
 
-### Running Tests
+### Test Fixtures
 
-```bash
-# All tests
-pytest
+Common fixtures are defined in `tests/conftest.py`:
 
-# With coverage
-pytest --cov=services --cov-report=html
+```python
+@pytest.fixture
+def db_session():
+    """Provide a clean database session for each test"""
+    # Creates temporary database
+    yield session
+    # Cleanup after test
 
-# Specific test file
-pytest tests/test_app_service.py -v
+@pytest.fixture
+def admin_user(db_session):
+    """Provide an admin user for tests"""
+    user = User(username="admin", role="admin")
+    db_session.add(user)
+    db_session.commit()
+    return user
 
-# Integration tests only
-pytest -m integration
+@pytest.fixture
+async def app_service(db_session, mock_proxmox):
+    """Provide configured AppService"""
+    return AppService(db_session, mock_proxmox)
+```
 
-# Skip integration tests
-pytest -m "not integration"
+### Coverage Goals
+
+- **Target:** 80%+ overall coverage
+- **Critical paths:** 95%+ coverage (auth, deployment, data access)
+- **Current status:** Check with `pytest --cov --cov-report=term-missing`
+
+### CI/CD Integration
+
+Tests run automatically on:
+- Every push to `main` branch
+- Every pull request
+- Before deployments
+
+**GitHub Actions workflow:**
+```yaml
+- name: Run tests
+  run: |
+    cd backend
+    pytest --cov --cov-report=xml
+    
+- name: Upload coverage
+  uses: codecov/codecov-action@v3
 ```
 
 ---

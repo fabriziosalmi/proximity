@@ -531,10 +531,18 @@ class AppService:
         """Delete an application and its LXC container"""
         app = await self.get_app(app_id)
         
+        errors = []
+        
         try:
             # Stop if running
             if app.status == AppStatus.RUNNING:
-                await self.stop_app(app_id)
+                logger.info(f"Stopping app {app_id} before deletion")
+                try:
+                    await self.stop_app(app_id)
+                except Exception as stop_error:
+                    error_msg = f"Failed to stop container: {str(stop_error)}"
+                    logger.warning(error_msg, extra={"app_id": app_id})
+                    errors.append(error_msg)
             
             # Remove from Caddy reverse proxy if available
             if self._caddy_service is not None:
@@ -542,21 +550,58 @@ class AppService:
                     await self._caddy_service.remove_application(app_id)
                     logger.info(f"Removed {app_id} from reverse proxy")
                 except (ConnectionError, TimeoutError) as caddy_error:
-                    logger.warning(f"Network error removing app from Caddy: {caddy_error}", extra={"app_id": app_id})
+                    error_msg = f"Network error removing from Caddy: {str(caddy_error)}"
+                    logger.warning(error_msg, extra={"app_id": app_id})
+                    errors.append(error_msg)
                 except Exception as caddy_error:
-                    logger.warning(f"Unexpected error removing app from Caddy: {caddy_error}", extra={"app_id": app_id})
+                    error_msg = f"Failed to remove from reverse proxy: {str(caddy_error)}"
+                    logger.warning(error_msg, extra={"app_id": app_id})
+                    errors.append(error_msg)
             
             # Delete LXC container
-            await self.proxmox_service.destroy_lxc(app.node, app.lxc_id)
+            try:
+                await self.proxmox_service.destroy_lxc(app.node, app.lxc_id)
+                logger.info(f"Destroyed LXC container {app.lxc_id} on node {app.node}")
+            except ProxmoxError as pve_error:
+                error_msg = f"Failed to destroy container: {str(pve_error)}"
+                logger.error(error_msg, extra={"app_id": app_id, "vmid": app.lxc_id})
+                errors.append(error_msg)
+                # Don't raise here, try to clean up database anyway
             
             # Remove from database
-            db_app = self.db.query(DBApp).filter(DBApp.id == app_id).first()
-            if db_app:
-                self.db.delete(db_app)
-                self.db.commit()
+            try:
+                db_app = self.db.query(DBApp).filter(DBApp.id == app_id).first()
+                if db_app:
+                    self.db.delete(db_app)
+                    self.db.commit()
+                    logger.info(f"Removed app {app_id} from database")
+                else:
+                    logger.warning(f"App {app_id} not found in database")
+            except Exception as db_error:
+                error_msg = f"Database error: {str(db_error)}"
+                logger.error(error_msg, extra={"app_id": app_id})
+                self.db.rollback()
+                errors.append(error_msg)
+                raise AppOperationError(
+                    f"Failed to remove app from database: {str(db_error)}",
+                    details={"app_id": app_id, "operation": "delete", "error_type": "database"}
+                ) from db_error
             
-            logger.info(f"Deleted app {app_id}", extra={"app_id": app_id, "vmid": app.lxc_id, "node": app.node})
+            # If there were any errors but we succeeded in removing from DB, log them
+            if errors:
+                logger.warning(
+                    f"App {app_id} deleted with {len(errors)} warnings",
+                    extra={"app_id": app_id, "warnings": errors}
+                )
+            else:
+                logger.info(
+                    f"Successfully deleted app {app_id}",
+                    extra={"app_id": app_id, "vmid": app.lxc_id, "node": app.node}
+                )
             
+        except AppOperationError:
+            # Re-raise our own exceptions
+            raise
         except ProxmoxError as e:
             logger.error(f"Proxmox error deleting app {app_id}: {e}", extra={"app_id": app_id})
             self.db.rollback()

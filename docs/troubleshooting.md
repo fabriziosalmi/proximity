@@ -9,7 +9,93 @@ This guide covers common issues, debugging techniques, and solutions for problem
 - [Network Issues](#network-issues)
 - [Container Problems](#container-problems)
 - [Performance Issues](#performance-issues)
+- [Safe Command Console](#safe-command-console)
 - [Bug Fixes & Patches](#bug-fixes--patches)
+
+---
+
+## Safe Command Console
+
+### Overview
+
+As of October 2025, Proximity uses a **secure, predefined command system** for container management. The old free-form command execution has been replaced with SafeCommandService for security.
+
+**Available Commands:**
+- `logs` - Docker Compose logs (with tail and service parameters)
+- `status` - Container status (docker compose ps)
+- `disk` - Disk usage (df -h)
+- `processes` - Running processes (ps aux)
+- `memory` - Memory usage (free -h)
+- `network` - Network interfaces (ip addr)
+- `images` - Docker images
+- `volumes` - Docker volumes
+- `config` - Docker Compose configuration
+- `system` - System information
+
+### Command Execution Issues
+
+**Problem**: Safe command returns "Command execution failed"
+
+**Solutions:**
+
+1. **Verify Container is Running:**
+   ```bash
+   pct status <vmid>
+   ```
+
+2. **Check Docker Service:**
+   ```bash
+   pct exec <vmid> -- rc-status | grep docker
+   ```
+
+3. **Test Command Manually:**
+   ```bash
+   # For "logs" command issues
+   pct exec <vmid> -- sh -c "cd /root && docker compose logs --tail=10"
+   
+   # For "status" command issues
+   pct exec <vmid> -- sh -c "cd /root && docker compose ps"
+   ```
+
+4. **Check Permissions:**
+   ```bash
+   pct exec <vmid> -- ls -la /root/docker-compose.yml
+   ```
+
+### Audit Log Issues
+
+**Problem**: Want to verify command execution history
+
+**Solution:**
+```sql
+-- View recent command executions
+SELECT 
+    username,
+    action,
+    details->>'command' as command,
+    details->>'app_name' as app,
+    created_at
+FROM audit_logs 
+WHERE action = 'execute_safe_command'
+ORDER BY created_at DESC 
+LIMIT 20;
+```
+
+**Problem**: Audit logs not being created
+
+**Causes:**
+1. Database connection issue
+2. User authentication problem
+3. Transaction not committed
+
+**Solution:**
+```bash
+# Check database
+sqlite3 /path/to/proximity.db "SELECT COUNT(*) FROM audit_logs;"
+
+# Check recent errors in logs
+tail -50 /path/to/proximity/backend/logs/app.log | grep -i audit
+```
 
 ---
 

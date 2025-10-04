@@ -611,6 +611,89 @@ sqlite3 proximity.db "VACUUM;"
 sqlite3 proximity.db "PRAGMA integrity_check;"
 ```
 
+### Upgrading from JSON-based Versions
+
+If you're upgrading from an older Proximity version that used `data/apps.json`, follow these steps:
+
+#### 1. Backup Everything
+```bash
+cd backend
+
+# Backup current database (if exists)
+cp proximity.db proximity_backup_$(date +%Y%m%d_%H%M%S).db
+
+# Backup JSON file
+cp data/apps.json data/apps.json.backup
+```
+
+#### 2. Verify Admin User Exists
+```bash
+# Check for admin user
+sqlite3 proximity.db "SELECT username, role FROM users WHERE role='admin';"
+
+# If no admin exists, register one through the UI:
+# http://localhost:8765 → Register → Create admin account
+```
+
+#### 3. Run Migration Script
+```bash
+python scripts/migrate_json_to_sqlite.py
+```
+
+**Expected Output:**
+```
+============================================================
+PROXIMITY: JSON to SQLite Migration
+============================================================
+Found 5 apps in JSON file
+Found admin user: admin (ID: 1)
+All migrated apps will be assigned to this user
+
+  ✓ Created: WordPress (ID: wordpress-prod) (Owner: admin)
+  ✓ Created: Nextcloud (ID: nextcloud-storage) (Owner: admin)
+  ...
+------------------------------------------------------------
+✅ Migration completed successfully!
+📦 JSON file backed up to: data/apps.json.backup
+```
+
+#### 4. Verify Migration
+```bash
+# Check migrated apps
+sqlite3 proximity.db "SELECT catalog_id, hostname, status, owner_id FROM apps;"
+
+# Verify app count matches
+wc -l data/apps.json.backup
+sqlite3 proximity.db "SELECT COUNT(*) FROM apps;"
+```
+
+#### 5. Test Application Access
+- Navigate to the Dashboard
+- Verify all apps show correct status
+- Test starting/stopping containers
+- Check reverse proxy access
+
+#### Migration Notes
+
+**What Gets Migrated:**
+- ✅ All app configurations (catalog_id, hostname, resources)
+- ✅ Container metadata (lxc_id, ip_address, node)
+- ✅ Status information (running, stopped, etc.)
+- ✅ Network configuration (vlan_id, ports)
+
+**What Changes:**
+- 📝 All apps assigned to first admin user
+- 📝 Audit timestamps set to migration time
+- 📝 Original JSON backed up automatically
+
+**Rollback (if needed):**
+```bash
+# Stop the server
+# Restore backup database
+cp proximity_backup_YYYYMMDD_HHMMSS.db proximity.db
+# Restart server
+```
+
 ---
 
 ## Best Practices
