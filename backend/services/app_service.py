@@ -547,7 +547,7 @@ class AppService:
                     logger.warning(f"Unexpected error removing app from Caddy: {caddy_error}", extra={"app_id": app_id})
             
             # Delete LXC container
-            await self.proxmox_service.delete_lxc(app.node, app.lxc_id)
+            await self.proxmox_service.destroy_lxc(app.node, app.lxc_id)
             
             # Remove from database
             db_app = self.db.query(DBApp).filter(DBApp.id == app_id).first()
