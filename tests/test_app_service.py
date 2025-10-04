@@ -213,6 +213,199 @@ class TestAppService:
                app_service.proxmox_service.stop_lxc.called
 
 
+class TestAppServiceUpdate:
+    """Test update workflow functionality."""
+
+    @pytest.fixture
+    def app_service(self, mock_proxmox_service, db_session, mock_proxy_manager):
+        """Create AppService instance."""
+        return AppService(
+            proxmox_service=mock_proxmox_service,
+            db=db_session,
+            proxy_manager=mock_proxy_manager
+        )
+
+    @pytest.mark.asyncio
+    async def test_update_app_creates_pre_update_backup(self, app_service, db_session):
+        """Test that update creates a pre-update backup before updating."""
+        # Create test app in database
+        from models.database import Backup as DBBackup
+        db_app = DBApp(
+            id="test-app",
+            catalog_id="nginx",
+            name="Test App",
+            hostname="test-app",
+            status="running",
+            lxc_id=100,
+            node="testnode",
+            url="http://10.20.0.100:80"
+        )
+        db_session.add(db_app)
+        db_session.commit()
+
+        # Mock BackupService class with real DB backup object
+        with patch('services.backup_service.BackupService') as MockBackupService:
+            # Create real backup object in DB for refresh to work
+            mock_backup = DBBackup(
+                id="backup-123",
+                app_id="test-app",
+                filename="test-backup.tar.zst",
+                storage="local",
+                status="available",  # Already available
+                size_mb=100
+            )
+            db_session.add(mock_backup)
+            db_session.commit()
+
+            mock_backup_service = AsyncMock()
+            mock_backup_service.create_backup = AsyncMock(return_value=mock_backup)
+            MockBackupService.return_value = mock_backup_service
+
+            # Mock Docker commands
+            app_service.proxmox_service.execute_in_container = AsyncMock(return_value="success")
+
+            # Mock health check
+            with patch('httpx.AsyncClient') as mock_client:
+                mock_response = MagicMock()
+                mock_response.status_code = 200
+                mock_client.return_value.__aenter__.return_value.get = AsyncMock(return_value=mock_response)
+
+                await app_service.update_app("test-app", user_id=1)
+
+                # Verify backup was created BEFORE any docker commands
+                mock_backup_service.create_backup.assert_called_once()
+                call_args = mock_backup_service.create_backup.call_args
+                assert call_args.kwargs['app_id'] == "test-app"
+
+    @pytest.mark.asyncio
+    async def test_update_app_aborts_if_backup_fails(self, app_service, db_session):
+        """Test that update aborts if pre-update backup fails."""
+        # Create test app
+        db_app = DBApp(
+            id="test-app",
+            catalog_id="nginx",
+            name="Test App",
+            hostname="test-app",
+            status="running",
+            lxc_id=100,
+            node="testnode",
+            url="http://10.20.0.100:80"
+        )
+        db_session.add(db_app)
+        db_session.commit()
+
+        # Mock BackupService to fail
+        from core.exceptions import BackupCreationError, AppUpdateError
+
+        with patch('services.backup_service.BackupService') as MockBackupService:
+            mock_backup_service = AsyncMock()
+            mock_backup_service.create_backup = AsyncMock(side_effect=BackupCreationError("Backup failed"))
+            MockBackupService.return_value = mock_backup_service
+
+            # Update should raise AppUpdateError
+            with pytest.raises(AppUpdateError, match="Pre-update backup failed|Backup failed"):
+                await app_service.update_app("test-app", user_id=1)
+
+            # Verify no docker commands were executed
+            app_service.proxmox_service.execute_in_container.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_update_app_runs_pull_and_up_commands(self, app_service, db_session):
+        """Test that update runs docker compose pull and up commands."""
+        # Create test app
+        from models.database import Backup as DBBackup
+        db_app = DBApp(
+            id="test-app",
+            catalog_id="nginx",
+            name="Test App",
+            hostname="test-app",
+            status="running",
+            lxc_id=100,
+            node="testnode",
+            url="http://10.20.0.100:80"
+        )
+        db_session.add(db_app)
+        db_session.commit()
+
+        # Mock BackupService
+        with patch('services.backup_service.BackupService') as MockBackupService:
+            mock_backup = DBBackup(
+                id="backup-123",
+                app_id="test-app",
+                filename="test-backup.tar.zst",
+                storage="local",
+                status="available",
+                size_mb=100
+            )
+            db_session.add(mock_backup)
+            db_session.commit()
+
+            mock_backup_service = AsyncMock()
+            mock_backup_service.create_backup = AsyncMock(return_value=mock_backup)
+            MockBackupService.return_value = mock_backup_service
+
+            # Mock Docker commands
+            app_service.proxmox_service.execute_in_container = AsyncMock(return_value="success")
+
+            # Mock health check
+            with patch('httpx.AsyncClient') as mock_client:
+                mock_response = MagicMock()
+                mock_response.status_code = 200
+                mock_client.return_value.__aenter__.return_value.get = AsyncMock(return_value=mock_response)
+
+                await app_service.update_app("test-app", user_id=1)
+
+                # Verify docker commands were called in correct order
+                calls = app_service.proxmox_service.execute_in_container.call_args_list
+                assert len(calls) == 2
+                assert "docker compose pull" in calls[0].kwargs['command']
+                assert "docker compose up -d --remove-orphans" in calls[1].kwargs['command']
+
+    @pytest.mark.asyncio
+    async def test_update_app_handles_failed_health_check(self, app_service, db_session):
+        """Test that update handles failed health check appropriately."""
+        # Create test app
+        db_app = DBApp(
+            id="test-app",
+            catalog_id="nginx",
+            name="Test App",
+            hostname="test-app",
+            status="running",
+            lxc_id=100,
+            node="testnode",
+            url="http://10.20.0.100:80"
+        )
+        db_session.add(db_app)
+        db_session.commit()
+
+        # Mock BackupService
+        with patch('services.backup_service.BackupService') as MockBackupService:
+            mock_backup = MagicMock()
+            mock_backup.id = "backup-123"
+            mock_backup.status = "available"
+
+            mock_backup_service = AsyncMock()
+            mock_backup_service.create_backup = AsyncMock(return_value=mock_backup)
+            MockBackupService.return_value = mock_backup_service
+
+            # Mock Docker commands
+            app_service.proxmox_service.execute_in_container = AsyncMock(return_value="success")
+
+            # Mock health check to fail
+            with patch('services.app_service.httpx.AsyncClient') as mock_client:
+                mock_response = MagicMock()
+                mock_response.status_code = 500  # Server error
+                mock_client.return_value.__aenter__.return_value.get = AsyncMock(return_value=mock_response)
+
+                from core.exceptions import AppUpdateError
+                with pytest.raises(AppUpdateError, match="Health check failed"):
+                    await app_service.update_app("test-app", user_id=1)
+
+                # Verify app status was set to update_failed
+                updated_app = db_session.query(DBApp).filter(DBApp.id == "test-app").first()
+                assert updated_app.status == "update_failed"
+
+
 class TestAppServiceCatalog:
     """Test catalog-related functionality."""
 

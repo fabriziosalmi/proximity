@@ -434,6 +434,12 @@ function createAppCard(app, isDeployed = false) {
                         <button class="action-icon" title="Backups" onclick="showBackupModal('${app.id}')">
                             <i data-lucide="database"></i>
                         </button>
+                        <button class="action-icon" title="Update Application" onclick="showUpdateModal('${app.id}')">
+                            <i data-lucide="arrow-up-circle"></i>
+                        </button>
+                        <button class="action-icon" title="View Volumes" onclick="showAppVolumes('${app.id}')">
+                            <i data-lucide="hard-drive"></i>
+                        </button>
                         <button class="action-icon" title="${isRunning ? 'Restart' : 'Start'}" onclick="controlApp('${app.id}', '${isRunning ? 'restart' : 'start'}')">
                             <i data-lucide="refresh-cw"></i>
                         </button>
@@ -3302,4 +3308,266 @@ function getStatusIcon(status) {
         'restoring': '<i data-lucide="rotate-cw" class="spin"></i>'
     };
     return icons[status] || '';
+}
+
+// ============================================================================
+// FEARLESS UPDATE WORKFLOW
+// ============================================================================
+
+let updateStatusInterval = null;
+
+/**
+ * Show update confirmation modal
+ */
+async function showUpdateModal(appId) {
+    try {
+        // Get app details
+        const app = await authFetch(`${API_BASE}/apps/${appId}`);
+
+        const confirmed = confirm(
+            `Update ${app.name}?\n\n` +
+            `✅ A safety backup will be automatically created before starting\n` +
+            `⏸️  The application will be briefly unavailable during the process\n` +
+            `🔄 Latest images will be pulled and containers recreated\n` +
+            `🏥 Health check will verify the update\n\n` +
+            `Continue with update?`
+        );
+
+        if (confirmed) {
+            await performUpdate(appId, app.name);
+        }
+    } catch (error) {
+        showNotification('Failed to load app details', 'error');
+        console.error('Error showing update modal:', error);
+    }
+}
+
+/**
+ * Perform the update with status feedback
+ */
+async function performUpdate(appId, appName) {
+    // Create progress notification
+    const progressSteps = [
+        { icon: 'database', text: 'Creating safety backup...', status: 'in-progress' },
+        { icon: 'download', text: 'Pulling new images...', status: 'pending' },
+        { icon: 'refresh-cw', text: 'Restarting application...', status: 'pending' },
+        { icon: 'activity', text: 'Verifying health...', status: 'pending' }
+    ];
+
+    let currentStep = 0;
+
+    // Show initial notification
+    showUpdateProgress(progressSteps, currentStep);
+
+    try {
+        // Start the update
+        const response = await authFetch(`${API_BASE}/apps/${appId}/update`, {
+            method: 'POST'
+        });
+
+        // Simulate progress updates (in reality, we'd poll app status)
+        const progressInterval = setInterval(() => {
+            currentStep++;
+            if (currentStep < progressSteps.length) {
+                progressSteps[currentStep - 1].status = 'completed';
+                progressSteps[currentStep].status = 'in-progress';
+                showUpdateProgress(progressSteps, currentStep);
+            }
+        }, 5000); // Update every 5 seconds
+
+        // Wait for update to complete (poll app status)
+        await pollAppStatus(appId, 'running', 120000); // 2 minute timeout
+
+        clearInterval(progressInterval);
+
+        // Mark all as completed
+        progressSteps.forEach(step => step.status = 'completed');
+        showUpdateProgress(progressSteps, progressSteps.length);
+
+        setTimeout(() => {
+            showNotification(`✅ ${appName} updated successfully!`, 'success');
+            loadApps(); // Refresh app list
+        }, 1000);
+
+    } catch (error) {
+        showNotification(`❌ Update failed: ${error.message || error}`, 'error');
+        console.error('Update error:', error);
+
+        // Reload apps to show current state
+        loadApps();
+    }
+}
+
+/**
+ * Show update progress notification
+ */
+function showUpdateProgress(steps, currentStep) {
+    const stepsHtml = steps.map((step, index) => {
+        let statusIcon = '';
+        let statusClass = '';
+
+        if (step.status === 'completed') {
+            statusIcon = '<i data-lucide="check-circle" class="text-success"></i>';
+            statusClass = 'completed';
+        } else if (step.status === 'in-progress') {
+            statusIcon = '<i data-lucide="loader" class="spin"></i>';
+            statusClass = 'in-progress';
+        } else {
+            statusIcon = '<i data-lucide="circle" class="text-muted"></i>';
+            statusClass = 'pending';
+        }
+
+        return `
+            <div class="update-step ${statusClass}">
+                ${statusIcon}
+                <span>${step.text}</span>
+            </div>
+        `;
+    }).join('');
+
+    const container = document.getElementById('notification-container') || createNotificationContainer();
+
+    const existingUpdate = document.querySelector('.update-progress-notification');
+    if (existingUpdate) {
+        existingUpdate.innerHTML = `
+            <div class="notification-header">
+                <i data-lucide="refresh-cw"></i>
+                <span>Updating Application</span>
+            </div>
+            <div class="update-steps">
+                ${stepsHtml}
+            </div>
+        `;
+        lucide.createIcons();
+    } else {
+        const notification = document.createElement('div');
+        notification.className = 'notification info update-progress-notification';
+        notification.innerHTML = `
+            <div class="notification-header">
+                <i data-lucide="refresh-cw"></i>
+                <span>Updating Application</span>
+            </div>
+            <div class="update-steps">
+                ${stepsHtml}
+            </div>
+        `;
+        container.appendChild(notification);
+        lucide.createIcons();
+    }
+}
+
+/**
+ * Create notification container if it doesn't exist
+ */
+function createNotificationContainer() {
+    let container = document.getElementById('notification-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'notification-container';
+        container.className = 'notification-container';
+        document.body.appendChild(container);
+    }
+    return container;
+}
+
+/**
+ * Poll app status until it reaches expected status
+ */
+async function pollAppStatus(appId, expectedStatus, timeout = 60000) {
+    const startTime = Date.now();
+    const pollInterval = 2000; // 2 seconds
+
+    while (Date.now() - startTime < timeout) {
+        try {
+            const app = await authFetch(`${API_BASE}/apps/${appId}`);
+
+            if (app.status === expectedStatus) {
+                return app;
+            }
+
+            if (app.status === 'update_failed') {
+                throw new Error('Update failed - check logs for details');
+            }
+
+            await new Promise(resolve => setTimeout(resolve, pollInterval));
+        } catch (error) {
+            if (Date.now() - startTime >= timeout) {
+                throw new Error('Update timeout - please check app status manually');
+            }
+            // Continue polling on errors
+            await new Promise(resolve => setTimeout(resolve, pollInterval));
+        }
+    }
+
+    throw new Error('Update timeout');
+}
+
+// ============================================================================
+// VOLUME MANAGEMENT
+// ============================================================================
+
+/**
+ * Show volumes for an app
+ */
+async function showAppVolumes(appId) {
+    try {
+        const app = await authFetch(`${API_BASE}/apps/${appId}`);
+
+        if (!app.volumes || app.volumes.length === 0) {
+            showNotification('This app has no persistent volumes', 'info');
+            return;
+        }
+
+        const volumesHtml = app.volumes.map(vol => `
+            <tr>
+                <td>${vol.container_path}</td>
+                <td class="volume-host-path">
+                    <code>${vol.host_path}</code>
+                    <button class="btn btn-sm btn-ghost" onclick="copyToClipboard('${vol.host_path}')" title="Copy to clipboard">
+                        <i data-lucide="copy"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+
+        const modalBody = `
+            <div class="volumes-info">
+                <p class="help-text">
+                    <i data-lucide="info"></i>
+                    These are the locations on your Proxmox server where persistent data is stored.
+                    <strong>Do not modify these files directly unless you know what you are doing.</strong>
+                </p>
+                <table class="volumes-table">
+                    <thead>
+                        <tr>
+                            <th>Container Path</th>
+                            <th>Host Path (Proxmox)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${volumesHtml}
+                    </tbody>
+                </table>
+            </div>
+        `;
+
+        showModal('Persistent Volumes', modalBody);
+        lucide.createIcons();
+
+    } catch (error) {
+        showNotification('Failed to load volumes', 'error');
+        console.error('Error loading volumes:', error);
+    }
+}
+
+/**
+ * Copy text to clipboard
+ */
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        showNotification('Copied to clipboard!', 'success');
+    }).catch(err => {
+        showNotification('Failed to copy', 'error');
+        console.error('Clipboard error:', err);
+    });
 }

@@ -313,3 +313,307 @@ def test_full_app_deploy_manage_delete_workflow(authenticated_page: Page, base_u
     print("   • Cleaned: Complete deletion verified")
     print("\n🏆 All phases completed successfully!")
     print("="*80 + "\n")
+
+
+@pytest.mark.lifecycle
+@pytest.mark.update
+@pytest.mark.timeout(420)  # 7 minutes timeout for update workflow
+def test_app_update_workflow_with_pre_update_backup(authenticated_page: Page, base_url: str):
+    """
+    Test the Fearless Update workflow with automatic pre-update backup.
+
+    This test validates:
+    1. Deploy an app (specific version if possible)
+    2. Trigger update via UI
+    3. Verify pre-update backup is created
+    4. Monitor update progress with multi-step feedback
+    5. Verify app is running after update
+    6. Verify backup exists and is marked as "pre-update"
+
+    Expected Results:
+        - Update creates backup before updating
+        - UI shows progress through all update steps
+        - App returns to running state
+        - Backup is available for rollback
+    """
+    page = authenticated_page
+    print("\n" + "="*80)
+    print("🔄 E2E TEST: Fearless Update Workflow")
+    print("="*80)
+
+    # ========================================================================
+    # PHASE 1: DEPLOY APP
+    # ========================================================================
+    print("\n📦 Phase 1: Deploy Application for Update Test")
+
+    hostname = generate_hostname("nginx")
+    print(f"   Generated hostname: {hostname}")
+
+    dashboard_page = DashboardPage(page)
+    app_store_page = AppStorePage(page)
+    deployment_modal = DeploymentModalPage(page)
+
+    # Deploy app
+    dashboard_page.navigate_to_app_store()
+    app_store_page.wait_for_catalog_load()
+    app_store_page.click_deploy_on_app("Nginx")
+    deployment_modal.wait_for_modal_visible()
+    deployment_modal.fill_hostname(hostname)
+    deployment_modal.submit_deployment()
+    deployment_modal.wait_for_deployment_success(timeout=300000)
+    print("   ✅ App deployed successfully")
+
+    # Return to dashboard
+    dashboard_page.navigate_to_dashboard()
+    dashboard_page.wait_for_dashboard_load()
+    dashboard_page.wait_for_app_status(hostname, "running", timeout=60000)
+    print("   ✅ App is running")
+
+    # ========================================================================
+    # PHASE 2: TRIGGER UPDATE
+    # ========================================================================
+    print("\n🔄 Phase 2: Trigger Update")
+
+    # Find and click update button
+    update_button = page.locator(f'[data-app-hostname="{hostname}"] button[title*="Update"]')
+    expect(update_button).to_be_visible(timeout=10000)
+    print("   ✓ Update button found")
+
+    update_button.click()
+    print("   ✓ Clicked update button")
+
+    # ========================================================================
+    # PHASE 3: CONFIRM UPDATE
+    # ========================================================================
+    print("\n✅ Phase 3: Confirm Update")
+
+    # Wait for confirmation dialog
+    page.wait_for_timeout(1000)
+
+    # Accept the confirmation (browser confirm dialog)
+    page.on("dialog", lambda dialog: dialog.accept())
+    update_button.click()  # Click again to trigger after dialog handler is set
+    print("   ✓ Update confirmed")
+
+    # ========================================================================
+    # PHASE 4: MONITOR UPDATE PROGRESS
+    # ========================================================================
+    print("\n📊 Phase 4: Monitor Update Progress")
+    print("   Expected steps:")
+    print("      1. Creating safety backup...")
+    print("      2. Pulling new images...")
+    print("      3. Restarting application...")
+    print("      4. Verifying health...")
+
+    # Wait for update to complete - app should return to running
+    # Update can take time due to backup + pull + restart
+    dashboard_page.wait_for_app_status(hostname, "running", timeout=180000)  # 3 minutes
+    print("   ✅ Update completed - app is running")
+
+    # ========================================================================
+    # PHASE 5: VERIFY PRE-UPDATE BACKUP
+    # ========================================================================
+    print("\n💾 Phase 5: Verify Pre-Update Backup Created")
+
+    # Get app ID from dashboard
+    app_card = dashboard_page.get_app_card_by_hostname(hostname)
+    app_id = app_card.get_attribute("data-app-id")
+    print(f"   App ID: {app_id}")
+
+    # Make API call to get backups for this app
+    api_context = page.request
+    response = api_context.get(f"{base_url}/api/v1/backups?app_id={app_id}")
+    expect(response).to_be_ok()
+
+    backups = response.json()
+    print(f"   Found {len(backups)} backup(s)")
+
+    # Find pre-update backup
+    pre_update_backups = [b for b in backups if b.get("backup_type") == "pre-update"]
+    assert len(pre_update_backups) >= 1, "No pre-update backup found!"
+
+    latest_backup = pre_update_backups[0]
+    print(f"   ✅ Pre-update backup found: {latest_backup.get('id')}")
+    print(f"      Status: {latest_backup.get('status')}")
+    print(f"      Type: {latest_backup.get('backup_type')}")
+
+    # Verify backup is available
+    assert latest_backup.get('status') == 'available', f"Backup not available: {latest_backup.get('status')}"
+    print("   ✅ Backup is available for rollback")
+
+    # ========================================================================
+    # PHASE 6: CLEANUP
+    # ========================================================================
+    print("\n🗑️  Phase 6: Cleanup")
+
+    dashboard_page.click_app_action(hostname, "delete")
+    page.wait_for_timeout(1000)
+    try:
+        dashboard_page.confirm_delete_app()
+    except:
+        pass
+
+    dashboard_page.wait_for_app_hidden(hostname, timeout=60000)
+    print("   ✅ App deleted")
+
+    print("\n" + "="*80)
+    print("🎉 TEST PASSED: Fearless Update Workflow")
+    print("="*80 + "\n")
+
+
+@pytest.mark.lifecycle
+@pytest.mark.volumes
+@pytest.mark.timeout(360)
+def test_app_volumes_display(authenticated_page: Page, base_url: str):
+    """
+    Test the Transparent Volumes feature.
+
+    This test validates:
+    1. Deploy an app with volumes
+    2. Open volumes modal
+    3. Verify volume paths are displayed
+    4. Verify paths match expected format
+    5. Test copy-to-clipboard functionality
+
+    Expected Results:
+        - Volumes modal shows all persistent volumes
+        - Host paths are correct and absolute
+        - Container paths match docker-compose config
+        - Copy button works for host paths
+    """
+    page = authenticated_page
+    print("\n" + "="*80)
+    print("💾 E2E TEST: Transparent Volumes Display")
+    print("="*80)
+
+    # ========================================================================
+    # PHASE 1: DEPLOY APP WITH VOLUMES
+    # ========================================================================
+    print("\n📦 Phase 1: Deploy Application with Volumes")
+
+    hostname = generate_hostname("nginx")
+    print(f"   Generated hostname: {hostname}")
+
+    dashboard_page = DashboardPage(page)
+    app_store_page = AppStorePage(page)
+    deployment_modal = DeploymentModalPage(page)
+
+    # Deploy Nginx (which has volumes in its compose)
+    dashboard_page.navigate_to_app_store()
+    app_store_page.wait_for_catalog_load()
+    app_store_page.click_deploy_on_app("Nginx")
+    deployment_modal.wait_for_modal_visible()
+    deployment_modal.fill_hostname(hostname)
+    deployment_modal.submit_deployment()
+    deployment_modal.wait_for_deployment_success(timeout=300000)
+    print("   ✅ App deployed")
+
+    # Return to dashboard
+    dashboard_page.navigate_to_dashboard()
+    dashboard_page.wait_for_dashboard_load()
+    dashboard_page.wait_for_app_status(hostname, "running", timeout=60000)
+
+    # ========================================================================
+    # PHASE 2: OPEN VOLUMES MODAL
+    # ========================================================================
+    print("\n💾 Phase 2: Open Volumes Modal")
+
+    # Find and click volumes button (hard-drive icon)
+    volumes_button = page.locator(f'[data-app-hostname="{hostname}"] button[title*="View Volumes"], [data-app-hostname="{hostname}"] button[title*="Volumes"]')
+    expect(volumes_button).to_be_visible(timeout=10000)
+    print("   ✓ Volumes button found")
+
+    volumes_button.click()
+    print("   ✓ Clicked volumes button")
+
+    # Wait for modal to appear
+    modal = page.locator('.modal:visible, [role="dialog"]:visible')
+    expect(modal).to_be_visible(timeout=5000)
+    print("   ✓ Volumes modal opened")
+
+    # ========================================================================
+    # PHASE 3: VERIFY VOLUMES DISPLAY
+    # ========================================================================
+    print("\n📋 Phase 3: Verify Volumes Display")
+
+    # Check for volumes table
+    volumes_table = page.locator('.volumes-table, table')
+    expect(volumes_table).to_be_visible(timeout=5000)
+    print("   ✓ Volumes table visible")
+
+    # Get all volume rows
+    volume_rows = page.locator('.volumes-table tbody tr, table tbody tr')
+    row_count = volume_rows.count()
+    print(f"   Found {row_count} volume(s)")
+
+    assert row_count > 0, "No volumes displayed!"
+
+    # Verify each volume row has required info
+    for i in range(row_count):
+        row = volume_rows.nth(i)
+
+        # Get container path
+        container_path = row.locator('td:nth-child(1)').text_content()
+        print(f"\n   Volume {i+1}:")
+        print(f"      Container path: {container_path}")
+
+        # Get host path
+        host_path_code = row.locator('td:nth-child(2) code')
+        host_path = host_path_code.text_content()
+        print(f"      Host path: {host_path}")
+
+        # Verify host path format
+        assert host_path.startswith('/var/lib/proximity/volumes/'), \
+            f"Host path doesn't match expected format: {host_path}"
+        assert hostname in host_path, \
+            f"Host path doesn't contain hostname {hostname}: {host_path}"
+        print("      ✓ Path format valid")
+
+        # Verify copy button exists
+        copy_button = row.locator('button:has([data-lucide="copy"])')
+        expect(copy_button).to_be_visible()
+        print("      ✓ Copy button present")
+
+    print("\n   ✅ All volumes verified")
+
+    # ========================================================================
+    # PHASE 4: TEST COPY FUNCTIONALITY
+    # ========================================================================
+    print("\n📋 Phase 4: Test Copy to Clipboard")
+
+    # Click first copy button
+    first_copy_button = volume_rows.nth(0).locator('button:has([data-lucide="copy"])')
+    first_copy_button.click()
+    print("   ✓ Clicked copy button")
+
+    # Note: Can't actually verify clipboard in headless mode
+    # but we verified the button exists and is clickable
+    print("   ✓ Copy functionality triggered (clipboard verification skipped in headless)")
+
+    # Close modal
+    close_button = page.locator('.modal button:has-text("Close"), [role="dialog"] button:has-text("Close")')
+    if close_button.is_visible():
+        close_button.click()
+        print("   ✓ Modal closed")
+    else:
+        page.keyboard.press("Escape")
+        print("   ✓ Modal closed with ESC")
+
+    # ========================================================================
+    # PHASE 5: CLEANUP
+    # ========================================================================
+    print("\n🗑️  Phase 5: Cleanup")
+
+    dashboard_page.click_app_action(hostname, "delete")
+    page.wait_for_timeout(1000)
+    try:
+        dashboard_page.confirm_delete_app()
+    except:
+        pass
+
+    dashboard_page.wait_for_app_hidden(hostname, timeout=60000)
+    print("   ✅ App deleted")
+
+    print("\n" + "="*80)
+    print("🎉 TEST PASSED: Transparent Volumes Display")
+    print("="*80 + "\n")

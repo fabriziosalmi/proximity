@@ -57,6 +57,11 @@ class AppStateError(AppError):
     pass
 
 
+class AppUpdateError(AppError):
+    """Raised when application update fails"""
+    pass
+
+
 # Infrastructure Exceptions
 
 class InfrastructureError(ProximityError):

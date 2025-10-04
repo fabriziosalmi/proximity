@@ -19,6 +19,7 @@ from core.exceptions import (
     AppAlreadyExistsError,
     AppDeploymentError,
     AppOperationError,
+    AppUpdateError,
     CatalogError
 )
 
@@ -437,3 +438,45 @@ async def list_available_commands(
         "available_commands": command_service.get_available_commands(),
         "note": "These commands are safe, read-only operations that do not modify the container."
     }
+
+
+@router.post("/{app_id}/update", status_code=202)
+async def update_app(
+    app_id: str,
+    service: AppService = Depends(get_app_service),
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Update an application with fearless workflow:
+    1. Create pre-update backup (safety net)
+    2. Pull latest images
+    3. Recreate containers
+    4. Health check
+    5. Auto-rollback on failure (future)
+
+    Returns 202 Accepted as update is asynchronous.
+    """
+    try:
+        logger.info(f"User {current_user.get('username')} initiated update for app {app_id}")
+
+        # Call the update_app method (which is async and comprehensive)
+        updated_app = await service.update_app(app_id, current_user.get("id"))
+
+        return {
+            "message": "Update completed successfully",
+            "app_id": app_id,
+            "status": updated_app.status,
+            "updated_at": updated_app.updated_at
+        }
+
+    except AppNotFoundError as e:
+        logger.error(f"App not found: {e}")
+        raise HTTPException(status_code=404, detail=str(e))
+
+    except AppUpdateError as e:
+        logger.error(f"Update failed for app {app_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+    except Exception as e:
+        logger.error(f"Unexpected error updating app {app_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Update failed: {str(e)}")

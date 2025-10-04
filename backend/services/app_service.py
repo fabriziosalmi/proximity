@@ -703,8 +703,8 @@ class AppService:
             await self._log_deployment(app_id, "info", "Setting up application")
             deployment_status.progress = 70
             deployment_status.current_step = "Pulling Docker images (this may take a few minutes)"
-            
-            await self._setup_docker_compose(target_node, vmid, catalog_item, app_data)
+
+            volumes_info = await self._setup_docker_compose(target_node, vmid, catalog_item, app_data)
             
             # Step 6: Configure reverse proxy via Network Appliance
             deployment_status.progress = 80
@@ -794,7 +794,7 @@ class AppService:
                 node=app.node,
                 config=app.config,
                 ports=app.ports,
-                volumes=[],
+                volumes=volumes_info,
                 environment=app.environment,
                 created_at=datetime.utcnow(),
                 updated_at=datetime.utcnow()
@@ -868,14 +868,49 @@ class AppService:
         except Exception as cleanup_error:
             logger.error(f"Unexpected error during cleanup of {vmid}: {cleanup_error}", extra={"app_id": app_id, "vmid": vmid}, exc_info=True)
 
-    async def _setup_docker_compose(self, node: str, vmid: int, catalog_item: AppCatalogItem, app_data: AppCreate) -> None:
-        """Setup Docker Compose configuration in the container"""
+    async def _setup_docker_compose(self, node: str, vmid: int, catalog_item: AppCatalogItem, app_data: AppCreate) -> list:
+        """
+        Setup Docker Compose configuration in the container.
+
+        Returns:
+            list: Volume mappings [{"host_path": "...", "container_path": "..."}]
+        """
         try:
             # Merge environment variables
             env_vars = {**catalog_item.environment, **app_data.environment}
-            
+
             # Update docker-compose with custom environment
             compose_config = catalog_item.docker_compose.copy()
+
+            # Extract and resolve volume paths
+            volumes_info = []
+            base_volumes_path = f"/var/lib/proximity/volumes/{app_data.hostname}"
+
+            for service_name, service_config in compose_config.get("services", {}).items():
+                if "volumes" in service_config:
+                    for i, volume in enumerate(service_config["volumes"]):
+                        if isinstance(volume, str) and ":" in volume:
+                            parts = volume.split(":")
+                            local_path = parts[0]
+                            container_path = parts[1]
+
+                            # Resolve host path
+                            if local_path.startswith("./") or local_path.startswith("."):
+                                # Relative path - resolve to absolute
+                                resolved_local = local_path.replace("./", "").replace(".", "")
+                                host_path = f"{base_volumes_path}/{resolved_local}" if resolved_local else base_volumes_path
+                            else:
+                                # Already absolute or named volume
+                                host_path = f"{base_volumes_path}/{local_path}"
+
+                            # Update compose config with resolved path
+                            service_config["volumes"][i] = f"{host_path}:{container_path}"
+
+                            # Track volume info
+                            volumes_info.append({
+                                "host_path": host_path,
+                                "container_path": container_path
+                            })
             
             # Apply environment variables to services
             for service_name, service_config in compose_config.get("services", {}).items():
@@ -926,7 +961,9 @@ COMPOSE_EOF
                 timeout=30
             )
             logger.info(f"Docker Compose status:\\n{status}")
-                
+
+            return volumes_info
+
         except ProxmoxError as e:
             logger.error(f"Proxmox error setting up Docker Compose in LXC {vmid}: {e}")
             raise AppDeploymentError(
@@ -1009,8 +1046,166 @@ COMPOSE_EOF
         db_app.updated_at = datetime.utcnow()
         self.db.commit()
         self.db.refresh(db_app)
-        
+
         return self._db_app_to_schema(db_app)
+
+    async def update_app(self, app_id: str, user_id: int) -> App:
+        """
+        Update an application with pre-update backup and health check.
+
+        This method implements the "Fearless Update" workflow:
+        1. Create pre-update backup (safety net)
+        2. Pull latest images
+        3. Recreate containers
+        4. Health check
+        5. Rollback on failure (future)
+
+        Args:
+            app_id: Application ID to update
+            user_id: User ID requesting the update
+
+        Returns:
+            Updated App object
+
+        Raises:
+            AppUpdateError: If update fails at any stage
+        """
+        from services.backup_service import BackupService
+        from core.exceptions import AppUpdateError
+        import httpx
+        import asyncio
+
+        # Get app
+        app = self.db.query(DBApp).filter(DBApp.id == app_id).first()
+        if not app:
+            raise AppNotFoundError(f"App {app_id} not found")
+
+        logger.info(f"🔄 Starting update for app '{app.hostname}' (ID: {app_id})")
+
+        # Update app status
+        app.status = "updating"
+        self.db.commit()
+
+        try:
+            # ============================================================
+            # PHASE 1: PRE-UPDATE SAFETY BACKUP (CRITICAL)
+            # ============================================================
+            logger.info(f"📦 Creating pre-update backup for '{app.hostname}'")
+
+            backup_service = BackupService(self.db, self.proxmox_service)
+
+            try:
+                backup = await backup_service.create_backup(
+                    app_id=app_id,
+                    storage="local",  # Will auto-detect from container
+                    compress="zstd",
+                    mode="snapshot"
+                )
+
+                # Wait for backup to complete (with timeout)
+                max_wait = 300  # 5 minutes
+                wait_interval = 5
+                elapsed = 0
+
+                while elapsed < max_wait:
+                    await asyncio.sleep(wait_interval)
+                    self.db.refresh(backup)
+
+                    if backup.status == "available":
+                        logger.info(f"✅ Pre-update backup completed: {backup.filename}")
+                        break
+                    elif backup.status == "failed":
+                        raise AppUpdateError(
+                            f"Failed to create pre-update backup: {backup.error_message}. Update aborted."
+                        )
+
+                    elapsed += wait_interval
+
+                if backup.status != "available":
+                    raise AppUpdateError(
+                        "Pre-update backup timeout. Update aborted for safety."
+                    )
+
+            except Exception as e:
+                logger.error(f"❌ Backup creation failed: {e}")
+                app.status = "running"  # Restore original status
+                self.db.commit()
+                raise AppUpdateError(f"Failed to create pre-update backup. Update aborted: {str(e)}")
+
+            # ============================================================
+            # PHASE 2: PERFORM UPDATE
+            # ============================================================
+            logger.info(f"🚀 Backup successful, proceeding with update for '{app.hostname}'")
+
+            # Pull latest images
+            logger.info(f"📥 Pulling latest images...")
+            pull_result = await self.proxmox_service.execute_in_container(
+                node=app.node,
+                vmid=app.lxc_id,
+                command="cd /root && docker compose pull"
+            )
+            logger.info(f"Pull result: {pull_result[:200]}..." if len(pull_result) > 200 else pull_result)
+
+            # Recreate containers with new images
+            logger.info(f"🔄 Recreating containers...")
+            up_result = await self.proxmox_service.execute_in_container(
+                node=app.node,
+                vmid=app.lxc_id,
+                command="cd /root && docker compose up -d --remove-orphans"
+            )
+            logger.info(f"Up result: {up_result[:200]}..." if len(up_result) > 200 else up_result)
+
+            # ============================================================
+            # PHASE 3: POST-UPDATE HEALTH CHECK
+            # ============================================================
+            logger.info(f"🏥 Waiting for services to initialize...")
+            await asyncio.sleep(20)  # Allow services to start
+
+            # Perform health check
+            if app.url and app.url != "None" and app.url != "null":
+                logger.info(f"🔍 Performing health check on {app.url}")
+
+                try:
+                    async with httpx.AsyncClient(timeout=30.0, verify=False) as client:
+                        response = await client.get(app.url)
+
+                        if 200 <= response.status_code < 400:
+                            logger.info(f"✅ Health check passed: {response.status_code}")
+
+                            # Update success
+                            app.status = "running"
+                            app.updated_at = datetime.utcnow()
+                            self.db.commit()
+
+                            logger.info(f"🎉 Update completed successfully for '{app.hostname}'")
+                            return app
+                        else:
+                            raise AppUpdateError(
+                                f"Health check failed with status {response.status_code}"
+                            )
+
+                except httpx.RequestError as e:
+                    logger.error(f"❌ Health check failed: {e}")
+                    raise AppUpdateError(f"Health check failed: {str(e)}")
+            else:
+                # No URL to check, assume success based on docker compose result
+                logger.warning(f"⚠️  No URL available for health check, assuming success")
+                app.status = "running"
+                app.updated_at = datetime.utcnow()
+                self.db.commit()
+                return app
+
+        except AppUpdateError:
+            # Already logged, just update status and re-raise
+            app.status = "update_failed"
+            self.db.commit()
+            raise
+
+        except Exception as e:
+            logger.error(f"💥 Unexpected error during update: {e}", exc_info=True)
+            app.status = "update_failed"
+            self.db.commit()
+            raise AppUpdateError(f"Update failed: {str(e)}")
 
 
 # Singleton instance - will be injected with proxmox_service
