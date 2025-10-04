@@ -23,9 +23,9 @@ class DashboardPage(BasePage):
     # Selectors
     DASHBOARD_VIEW = "#dashboardView"
     NAV_DASHBOARD = "[data-view='dashboard']"
-    NAV_APP_STORE = "[data-view='appStore']"
+    NAV_APP_STORE = "[data-view='catalog']"  # The catalog IS the app store
     NAV_SETTINGS = "[data-view='settings']"
-    NAV_INFRASTRUCTURE = "[data-view='infrastructure']"
+    NAV_INFRASTRUCTURE = "[data-view='nodes']"  # Infrastructure view
     USER_MENU = ".user-menu"
     LOGOUT_BUTTON = "text=Logout"
     
@@ -91,7 +91,17 @@ class DashboardPage(BasePage):
         """Navigate to the App Store page."""
         logger.info("Navigating to App Store")
         self.click(self.NAV_APP_STORE)
-        self.wait_for_selector("#appStoreView")
+        # Wait for view to be visible and CSS transition to complete
+        self.page.wait_for_function("""
+            () => {
+                const el = document.getElementById('catalogView');
+                if (!el) return false;
+                const style = window.getComputedStyle(el);
+                return !el.classList.contains('hidden') && 
+                       style.display !== 'none' &&
+                       parseFloat(style.opacity) > 0.5;
+            }
+        """, timeout=15000)
     
     def navigate_to_settings(self) -> None:
         """Navigate to the Settings page."""
@@ -103,7 +113,7 @@ class DashboardPage(BasePage):
         """Navigate to the Infrastructure page."""
         logger.info("Navigating to Infrastructure")
         self.click(self.NAV_INFRASTRUCTURE)
-        self.wait_for_selector("#infrastructureView")
+        self.wait_for_selector("#nodesView", timeout=10000)
     
     def logout(self) -> None:
         """Perform logout action."""

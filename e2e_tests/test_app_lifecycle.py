@@ -15,39 +15,12 @@ as it validates the core user journey.
 import pytest
 import logging
 from playwright.sync_api import Page, expect
-from pages.login_page import LoginPage
 from pages.dashboard_page import DashboardPage
 from pages.app_store_page import AppStorePage
 from pages.deployment_modal_page import DeploymentModalPage
-from utils.test_data import generate_test_user, generate_hostname
+from utils.test_data import generate_hostname
 
 logger = logging.getLogger(__name__)
-
-
-@pytest.fixture
-def authenticated_page(page: Page):
-    """
-    Fixture that provides an authenticated page with a logged-in user.
-    
-    Returns:
-        Page: Playwright page with authenticated session
-    """
-    # Register and login
-    test_user = generate_test_user()
-    login_page = LoginPage(page)
-    
-    login_page.wait_for_auth_modal()
-    login_page.register(
-        username=test_user["username"],
-        password=test_user["password"],
-        email=test_user["email"]
-    )
-    
-    # Wait for dashboard to load
-    dashboard = DashboardPage(page)
-    dashboard.wait_for_dashboard_load()
-    
-    return page
 
 
 @pytest.mark.lifecycle

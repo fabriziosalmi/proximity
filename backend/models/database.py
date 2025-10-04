@@ -108,6 +108,7 @@ class App(Base):
     # Relationships
     owner = relationship("User", back_populates="apps")
     deployment_logs = relationship("DeploymentLog", back_populates="app", cascade="all, delete-orphan")
+    backups = relationship("Backup", back_populates="app", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<App(id='{self.id}', name='{self.name}', status='{self.status}')>"
@@ -129,6 +130,28 @@ class DeploymentLog(Base):
 
     def __repr__(self):
         return f"<DeploymentLog(app_id='{self.app_id}', level='{self.level}', timestamp='{self.timestamp}')>"
+
+
+class Backup(Base):
+    """Backup model for application backups"""
+    __tablename__ = "backups"
+
+    id = Column(Integer, primary_key=True, index=True)
+    app_id = Column(String(255), ForeignKey("apps.id"), nullable=False, index=True)
+    filename = Column(String(500), nullable=False)
+    storage_name = Column(String(100), nullable=False, default="local")  # Proxmox storage name
+    size_bytes = Column(Integer, nullable=True)  # Size in bytes, nullable until backup completes
+    backup_type = Column(String(50), nullable=False, default="vzdump")  # 'vzdump', 'snapshot', etc.
+    status = Column(String(50), nullable=False, index=True)  # 'creating', 'available', 'failed', 'restoring'
+    error_message = Column(String(1000), nullable=True)  # Error details if failed
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    completed_at = Column(DateTime, nullable=True)  # When backup finished
+
+    # Relationships
+    app = relationship("App", back_populates="backups")
+
+    def __repr__(self):
+        return f"<Backup(id={self.id}, app_id='{self.app_id}', filename='{self.filename}', status='{self.status}')>"
 
 
 class AuditLog(Base):

@@ -260,3 +260,42 @@ class PasswordChange(BaseModel):
     """Password change request"""
     old_password: str
     new_password: str = Field(..., min_length=8)
+
+
+class BackupStatus(str, Enum):
+    """Backup status enumeration"""
+    CREATING = "creating"
+    AVAILABLE = "available"
+    FAILED = "failed"
+    RESTORING = "restoring"
+    DELETING = "deleting"
+
+
+class Backup(BaseModel):
+    """Backup instance"""
+    id: int = Field(..., description="Backup ID")
+    app_id: str = Field(..., description="Associated app ID")
+    filename: str = Field(..., description="Backup filename")
+    storage_name: str = Field(..., description="Proxmox storage name")
+    size_bytes: Optional[int] = Field(None, description="Backup size in bytes")
+    backup_type: str = Field(default="vzdump", description="Backup type")
+    status: BackupStatus = Field(..., description="Current backup status")
+    error_message: Optional[str] = Field(None, description="Error message if failed")
+    created_at: datetime = Field(..., description="Backup creation time")
+    completed_at: Optional[datetime] = Field(None, description="Backup completion time")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class BackupCreate(BaseModel):
+    """Backup creation request"""
+    backup_type: str = Field(default="vzdump", description="Type of backup to create")
+    storage: Optional[str] = Field(None, description="Storage name (defaults to local)")
+    compress: Optional[str] = Field("zstd", description="Compression type: zstd, gzip, or none")
+    mode: Optional[str] = Field("snapshot", description="Backup mode: snapshot or stop")
+
+
+class BackupList(BaseModel):
+    """List of backups"""
+    backups: List[Backup]
+    total: int
