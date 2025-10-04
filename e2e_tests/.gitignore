@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv
+
+# Pytest
+.pytest_cache/
+.cache/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+.hypothesis/
+
+# Playwright
+test-results/
+playwright/.cache/
+screenshots/
+videos/
+traces/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Test reports
+report.html
+assets/
+*.xml
+
+# Environment
+.env
+.env.local
+*.log
+
+# Temporary files
+*.tmp
+tmp/
+temp/
