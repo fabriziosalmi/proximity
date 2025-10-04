@@ -431,6 +431,9 @@ function createAppCard(app, isDeployed = false) {
                         <button class="action-icon" title="Console" onclick="showAppConsole('${app.id}', '${app.hostname}')">
                             <i data-lucide="terminal"></i>
                         </button>
+                        <button class="action-icon" title="Backups" onclick="showBackupModal('${app.id}')">
+                            <i data-lucide="database"></i>
+                        </button>
                         <button class="action-icon" title="${isRunning ? 'Restart' : 'Start'}" onclick="controlApp('${app.id}', '${isRunning ? 'restart' : 'start'}')">
                             <i data-lucide="refresh-cw"></i>
                         </button>
@@ -3062,5 +3065,241 @@ function renderRegisterForm() {
         console.error('Login error:', err);
         errorDiv.textContent = 'Network error. Please try again.';
     }
-}// Patch: override showLoginModal to showAuthModal for legacy calls
+}
+
+// Patch: override showLoginModal to showAuthModal for legacy calls
 window.showLoginModal = showAuthModal;
+
+// ============================================================================
+// BACKUP MANAGEMENT
+// ============================================================================
+
+let currentBackupAppId = null;
+let backupPollingInterval = null;
+
+/**
+ * Show backup management modal for an app
+ */
+async function showBackupModal(appId) {
+    currentBackupAppId = appId;
+
+    try {
+        // Get app details
+        const app = await authFetch(`${API_BASE}/apps/${appId}`);
+        document.getElementById('backup-app-name').textContent = app.name;
+
+        // Load backups
+        await loadBackups(appId);
+
+        // Show modal
+        document.getElementById('backupModal').style.display = 'flex';
+
+        // Refresh icons after modal content is added
+        setTimeout(() => lucide.createIcons(), 100);
+    } catch (error) {
+        showNotification('Failed to load backup modal', 'error');
+        console.error('Error showing backup modal:', error);
+    }
+}
+
+/**
+ * Hide backup management modal
+ */
+function hideBackupModal() {
+    document.getElementById('backupModal').style.display = 'none';
+    currentBackupAppId = null;
+
+    // Stop polling
+    if (backupPollingInterval) {
+        clearInterval(backupPollingInterval);
+        backupPollingInterval = null;
+    }
+}
+
+/**
+ * Load backups for current app
+ */
+async function loadBackups(appId) {
+    try {
+        const response = await authFetch(`${API_BASE}/apps/${appId}/backups`);
+        const backups = response.backups || [];
+
+        const listEl = document.getElementById('backup-list');
+
+        if (backups.length === 0) {
+            listEl.innerHTML = '<p class="empty-state">No backups yet. Create your first backup to protect your data.</p>';
+            return;
+        }
+
+        listEl.innerHTML = backups.map(backup => `
+            <div class="backup-item" data-backup-id="${backup.id}">
+                <div class="backup-info">
+                    <div class="backup-filename">${backup.filename}</div>
+                    <div class="backup-meta">
+                        <span class="backup-date">
+                            <i data-lucide="calendar"></i>
+                            ${formatDate(backup.created_at)}
+                        </span>
+                        <span class="backup-size">
+                            <i data-lucide="hard-drive"></i>
+                            ${formatSize(backup.size_bytes)}
+                        </span>
+                        <span class="backup-status status-${backup.status}">
+                            ${getStatusIcon(backup.status)}
+                            ${backup.status}
+                        </span>
+                    </div>
+                    ${backup.error_message ? `<div class="backup-error">${backup.error_message}</div>` : ''}
+                </div>
+                <div class="backup-actions">
+                    ${backup.status === 'available' ? `
+                        <button class="btn btn-sm btn-secondary" onclick="restoreBackup('${appId}', ${backup.id})" title="Restore from this backup">
+                            <i data-lucide="rotate-ccw"></i>
+                            Restore
+                        </button>
+                    ` : ''}
+                    <button class="btn btn-sm btn-danger" onclick="deleteBackup('${appId}', ${backup.id})" title="Delete this backup">
+                        <i data-lucide="trash-2"></i>
+                        Delete
+                    </button>
+                </div>
+            </div>
+        `).join('');
+
+        // Refresh icons
+        lucide.createIcons();
+
+        // Start polling if there are creating backups
+        const creatingBackups = backups.filter(b => b.status === 'creating');
+        if (creatingBackups.length > 0) {
+            startBackupPolling(appId);
+        }
+
+    } catch (error) {
+        showNotification('Failed to load backups', 'error');
+        console.error('Error loading backups:', error);
+    }
+}
+
+/**
+ * Create a new backup
+ */
+async function createBackup() {
+    if (!currentBackupAppId) return;
+
+    try {
+        showNotification('Creating backup...', 'info');
+
+        await authFetch(`${API_BASE}/apps/${currentBackupAppId}/backups`, {
+            method: 'POST',
+            body: JSON.stringify({
+                storage: 'local',
+                compress: 'zstd',
+                mode: 'snapshot'
+            })
+        });
+
+        showNotification('Backup creation started', 'success');
+
+        // Reload backups
+        await loadBackups(currentBackupAppId);
+
+    } catch (error) {
+        showNotification('Failed to create backup', 'error');
+        console.error('Error creating backup:', error);
+    }
+}
+
+/**
+ * Restore from backup
+ */
+async function restoreBackup(appId, backupId) {
+    if (!confirm('Are you sure you want to restore from this backup? This will replace the current application state.')) {
+        return;
+    }
+
+    try {
+        showNotification('Restoring from backup...', 'info');
+
+        await authFetch(`${API_BASE}/apps/${appId}/backups/${backupId}/restore`, {
+            method: 'POST'
+        });
+
+        showNotification('Restore completed successfully', 'success');
+        hideBackupModal();
+
+        // Refresh app list
+        await loadApps();
+
+    } catch (error) {
+        showNotification('Failed to restore backup', 'error');
+        console.error('Error restoring backup:', error);
+    }
+}
+
+/**
+ * Delete a backup
+ */
+async function deleteBackup(appId, backupId) {
+    if (!confirm('Are you sure you want to delete this backup? This action cannot be undone.')) {
+        return;
+    }
+
+    try {
+        await authFetch(`${API_BASE}/apps/${appId}/backups/${backupId}`, {
+            method: 'DELETE'
+        });
+
+        showNotification('Backup deleted successfully', 'success');
+
+        // Reload backups
+        await loadBackups(appId);
+
+    } catch (error) {
+        showNotification('Failed to delete backup', 'error');
+        console.error('Error deleting backup:', error);
+    }
+}
+
+/**
+ * Start polling for backup completion
+ */
+function startBackupPolling(appId) {
+    // Clear existing interval
+    if (backupPollingInterval) {
+        clearInterval(backupPollingInterval);
+    }
+
+    // Poll every 5 seconds
+    backupPollingInterval = setInterval(async () => {
+        if (currentBackupAppId === appId) {
+            await loadBackups(appId);
+        } else {
+            clearInterval(backupPollingInterval);
+            backupPollingInterval = null;
+        }
+    }, 5000);
+}
+
+/**
+ * Format backup size
+ */
+function formatSize(bytes) {
+    if (!bytes) return 'Unknown';
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    return (bytes / Math.pow(1024, i)).toFixed(2) + ' ' + sizes[i];
+}
+
+/**
+ * Get status icon
+ */
+function getStatusIcon(status) {
+    const icons = {
+        'creating': '<i data-lucide="loader" class="spin"></i>',
+        'available': '<i data-lucide="check-circle"></i>',
+        'failed': '<i data-lucide="x-circle"></i>',
+        'restoring': '<i data-lucide="rotate-cw" class="spin"></i>'
+    };
+    return icons[status] || '';
+}

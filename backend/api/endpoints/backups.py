@@ -9,16 +9,16 @@ from typing import List
 from models.database import get_db, User, App, Backup as BackupModel
 from models.schemas import (
     Backup, BackupCreate, BackupList, APIResponse, ErrorResponse,
-    BackupStatus
+    BackupStatus, TokenData
 )
 from services.backup_service import BackupService
-from services.auth_service import get_current_user, get_current_active_user
+from api.middleware.auth import get_current_user
 
 
 router = APIRouter()
 
 
-def get_app_and_check_ownership(app_id: str, db: Session, current_user: User) -> App:
+def get_app_and_check_ownership(app_id: str, db: Session, current_user: TokenData) -> App:
     """
     Helper function to get app and verify ownership.
 
@@ -41,7 +41,7 @@ def get_app_and_check_ownership(app_id: str, db: Session, current_user: User) ->
         )
 
     # Check ownership (admins can access all)
-    if current_user.role != "admin" and app.owner_id != current_user.id:
+    if current_user.role != "admin" and app.owner_id != current_user.user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You don't have permission to access this app"
@@ -55,7 +55,7 @@ async def create_backup(
     app_id: str,
     backup_request: BackupCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
+    current_user: TokenData = Depends(get_current_user)
 ):
     """
     Create a backup for an application.
@@ -114,7 +114,7 @@ async def create_backup(
 async def list_backups(
     app_id: str,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
+    current_user: TokenData = Depends(get_current_user)
 ):
     """
     List all backups for an application.
@@ -154,7 +154,7 @@ async def get_backup(
     app_id: str,
     backup_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
+    current_user: TokenData = Depends(get_current_user)
 ):
     """
     Get details of a specific backup.
@@ -204,7 +204,7 @@ async def restore_backup(
     app_id: str,
     backup_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
+    current_user: TokenData = Depends(get_current_user)
 ):
     """
     Restore an application from a backup.
@@ -276,7 +276,7 @@ async def delete_backup(
     app_id: str,
     backup_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
+    current_user: TokenData = Depends(get_current_user)
 ):
     """
     Delete a backup.

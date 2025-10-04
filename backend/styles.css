@@ -2591,3 +2591,142 @@ body.modal-open {
         transform: translateY(0);
     }
 }
+
+/* ============================================================================
+   BACKUP MANAGEMENT
+   ============================================================================ */
+
+.backup-actions {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.backup-list {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.backup-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: var(--card-bg);
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+    border: 1px solid var(--border);
+    transition: all 0.2s ease;
+}
+
+.backup-item:hover {
+    border-color: var(--primary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.backup-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.backup-filename {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    font-family: 'Monaco', 'Courier New', monospace;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.backup-meta {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    flex-wrap: wrap;
+}
+
+.backup-meta span {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.backup-meta i {
+    width: 14px;
+    height: 14px;
+}
+
+.backup-date {
+    color: var(--text-secondary);
+}
+
+.backup-size {
+    color: var(--text-secondary);
+}
+
+.backup-status {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.backup-status.status-available {
+    background: var(--success-bg);
+    color: var(--success);
+}
+
+.backup-status.status-creating {
+    background: var(--warning-bg);
+    color: var(--warning);
+}
+
+.backup-status.status-failed {
+    background: var(--error-bg);
+    color: var(--error);
+}
+
+.backup-status.status-restoring {
+    background: var(--info-bg);
+    color: var(--info);
+}
+
+.backup-error {
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background: var(--error-bg);
+    color: var(--error);
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+
+.backup-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+    margin-left: 1rem;
+}
+
+.backup-list .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+/* Spinning animation for loading states */
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.spin {
+    animation: spin 1s linear infinite;
+}

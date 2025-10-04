@@ -227,7 +227,32 @@
             </div>
         </div>
     </div>
-    
+
+    <!-- Backup Management Modal -->
+    <div id="backupModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <i data-lucide="database"></i>
+                    Backups for <span id="backup-app-name"></span>
+                </h2>
+                <button class="modal-close" onclick="hideBackupModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="backup-actions">
+                    <button class="btn btn-primary" onclick="createBackup()">
+                        <i data-lucide="plus"></i>
+                        Create New Backup
+                    </button>
+                </div>
+
+                <div id="backup-list" class="backup-list">
+                    <!-- Backups will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Loading Overlay -->
     <div id="loadingOverlay" class="loading-overlay">
         <div class="loading-spinner"></div>

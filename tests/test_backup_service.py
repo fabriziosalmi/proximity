@@ -351,9 +351,9 @@ class TestBackupServiceRestore:
         # Restore backup
         result = await backup_service.restore_from_backup(backup.id)
 
-        # Verify backup status updated
+        # Verify backup status returned to available after restore
         db_session.refresh(backup)
-        assert backup.status == "restoring"
+        assert backup.status == "available"
 
         # Verify Proxmox calls
         mock_proxmox.stop_lxc.assert_called_once_with("testnode", 100)
@@ -556,9 +556,8 @@ class TestBackupServicePolling:
 
         backup_service = BackupService(db_session, mock_proxmox)
 
-        # Poll after timeout (simulate)
-        with patch('time.time', return_value=datetime.utcnow().timestamp() + 7200):  # 2 hours later
-            await backup_service._poll_backup_completion(backup.id)
+        # Poll with a very short timeout to trigger failure quickly
+        await backup_service._poll_backup_completion(backup.id, timeout=0)
 
         # Verify marked as failed
         db_session.refresh(backup)

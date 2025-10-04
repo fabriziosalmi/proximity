@@ -178,3 +178,5 @@ venv/
 .env
 backend/__pycache__/
 backend/proximity.db
+backend/proximity_backup_20251004_180717.db
+backend/proximity.db
