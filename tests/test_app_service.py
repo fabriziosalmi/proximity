@@ -247,12 +247,11 @@ class TestAppServiceUpdate:
         with patch('services.backup_service.BackupService') as MockBackupService:
             # Create real backup object in DB for refresh to work
             mock_backup = DBBackup(
-                id="backup-123",
                 app_id="test-app",
                 filename="test-backup.tar.zst",
-                storage="local",
+                storage_name="local",
                 status="available",  # Already available
-                size_mb=100
+                size_bytes=100000000
             )
             db_session.add(mock_backup)
             db_session.commit()
@@ -330,12 +329,11 @@ class TestAppServiceUpdate:
         # Mock BackupService
         with patch('services.backup_service.BackupService') as MockBackupService:
             mock_backup = DBBackup(
-                id="backup-123",
                 app_id="test-app",
                 filename="test-backup.tar.zst",
-                storage="local",
+                storage_name="local",
                 status="available",
-                size_mb=100
+                size_bytes=100000000
             )
             db_session.add(mock_backup)
             db_session.commit()
@@ -379,10 +377,17 @@ class TestAppServiceUpdate:
         db_session.commit()
 
         # Mock BackupService
+        from models.database import Backup as DBBackup
         with patch('services.backup_service.BackupService') as MockBackupService:
-            mock_backup = MagicMock()
-            mock_backup.id = "backup-123"
-            mock_backup.status = "available"
+            mock_backup = DBBackup(
+                app_id="test-app",
+                filename="test-backup.tar.zst",
+                storage_name="local",
+                status="available",
+                size_bytes=100000000
+            )
+            db_session.add(mock_backup)
+            db_session.commit()
 
             mock_backup_service = AsyncMock()
             mock_backup_service.create_backup = AsyncMock(return_value=mock_backup)
@@ -392,7 +397,7 @@ class TestAppServiceUpdate:
             app_service.proxmox_service.execute_in_container = AsyncMock(return_value="success")
 
             # Mock health check to fail
-            with patch('services.app_service.httpx.AsyncClient') as mock_client:
+            with patch('httpx.AsyncClient') as mock_client:
                 mock_response = MagicMock()
                 mock_response.status_code = 500  # Server error
                 mock_client.return_value.__aenter__.return_value.get = AsyncMock(return_value=mock_response)
