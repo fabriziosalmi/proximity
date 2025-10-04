@@ -208,7 +208,8 @@ def create_app() -> FastAPI:
     async def http_exception_handler(request: Request, exc: HTTPException):
         return JSONResponse(
             status_code=exc.status_code,
-            content={"success": False, "error": exc.detail}
+            content={"detail": exc.detail},
+            headers=getattr(exc, "headers", None)
         )
     
     @app.exception_handler(Exception)
@@ -222,6 +223,18 @@ def create_app() -> FastAPI:
     # Middleware for request logging
     @app.middleware("http")
     async def log_requests(request: Request, call_next):
+        # Handle OPTIONS requests for CORS preflight
+        if request.method == "OPTIONS":
+            return JSONResponse(
+                status_code=200,
+                headers={
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "*",
+                    "Access-Control-Allow-Headers": "*",
+                    "Access-Control-Allow-Credentials": "true",
+                }
+            )
+        
         start_time = request.state.start_time = logger.time() if hasattr(logger, 'time') else 0
         
         # Log request

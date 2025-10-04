@@ -37,6 +37,11 @@ def db_session(test_db_engine):
 
     session.rollback()
     session.close()
+    
+    # Clean all tables after each test to ensure isolation
+    for table in reversed(Base.metadata.sorted_tables):
+        session.execute(table.delete())
+    session.commit()
 
 
 @pytest.fixture
@@ -82,10 +87,15 @@ def mock_proxmox_service():
         {"node": "testnode", "status": "online", "cpu": 0.1, "maxcpu": 8}
     ])
     mock.get_next_vmid = AsyncMock(return_value=100)
-    mock.create_lxc = AsyncMock(return_value={"task": "UPID:test"})
+    mock.get_best_node = AsyncMock(return_value="testnode")
+    mock.create_lxc = AsyncMock(return_value={"task_id": "UPID:test"})
     mock.start_lxc = AsyncMock(return_value="UPID:test")
     mock.stop_lxc = AsyncMock(return_value="UPID:test")
     mock.destroy_lxc = AsyncMock(return_value="UPID:test")
+    mock.wait_for_task = AsyncMock(return_value=True)
+    mock.setup_docker_in_alpine = AsyncMock(return_value=True)
+    mock.execute_in_container = AsyncMock(return_value="OK")
+    mock.get_lxc_ip = AsyncMock(return_value="10.0.0.100")
     mock.get_lxc_status = AsyncMock(return_value={
         "vmid": 100,
         "status": "running",
