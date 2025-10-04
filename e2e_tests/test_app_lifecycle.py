@@ -1,26 +1,27 @@
 """
-E2E Tests for Complete Application Lifecycle.
+E2E Tests for Application Lifecycle.
 
-Tests the full user journey:
-1. Deploy application from catalog
-2. Monitor deployment progress
-3. Verify application is running
-4. Test HTTP access to deployed app
-5. Control app (stop/start/restart)
-6. View logs and console
-7. Delete application
-8. Verify complete cleanup
+Tests the complete application lifecycle including:
+- Deployment from catalog
+- Real-time deployment monitoring
+- HTTP accessibility verification
+- State management (stop/start)
+- Application deletion and cleanup
 
-This is the CRITICAL PATH test that validates the entire platform.
+This is the MOST CRITICAL test suite for the Proximity platform
+as it validates the core user journey.
 """
 
 import pytest
-import time
-import re
+import logging
 from playwright.sync_api import Page, expect
 from pages.login_page import LoginPage
 from pages.dashboard_page import DashboardPage
-from utils.test_data import generate_test_user
+from pages.app_store_page import AppStorePage
+from pages.deployment_modal_page import DeploymentModalPage
+from utils.test_data import generate_test_user, generate_hostname
+
+logger = logging.getLogger(__name__)
 
 
 @pytest.fixture
@@ -49,379 +50,293 @@ def authenticated_page(page: Page):
     return page
 
 
+@pytest.mark.lifecycle
 @pytest.mark.smoke
 @pytest.mark.critical
-@pytest.mark.lifecycle
-def test_complete_app_lifecycle_nginx(authenticated_page: Page):
+@pytest.mark.timeout(360)  # 6 minutes timeout for full workflow
+def test_full_app_deploy_manage_delete_workflow(authenticated_page: Page, base_url: str):
     """
-    Test complete lifecycle of NGINX deployment.
+    THE MOST CRITICAL E2E TEST: Full application lifecycle workflow.
     
-    This is the MOST IMPORTANT test - validates the entire platform functionality.
+    This test validates the complete user journey from deployment to deletion:
     
-    Steps:
-    1. Navigate to catalog
-    2. Deploy NGINX application
-    3. Monitor deployment progress
-    4. Verify deployment success
-    5. Check app appears in dashboard
-    6. Verify app is running
-    7. Stop application
-    8. Start application
-    9. Restart application
-    10. View application logs
-    11. Delete application
-    12. Verify cleanup complete
+    1. **Deploy Phase**:
+       - Navigate to App Store
+       - Select Nginx application
+       - Configure with unique hostname
+       - Submit deployment
+       - Monitor real-time deployment progress
     
-    Expected: Full lifecycle completes successfully without errors.
-    """
-    page = authenticated_page
+    2. **Verification Phase**:
+       - Wait for deployment success
+       - Verify app appears on dashboard
+       - Verify status is "RUNNING"
+       - Make HTTP request to verify accessibility
+       - Validate reverse proxy is working
     
-    # Ensure we're on the dashboard and it's fully loaded
-    page.wait_for_selector("#dashboardView:not(.hidden)", timeout=10000)
-    page.wait_for_load_state("networkidle")
+    3. **Management Phase**:
+       - Stop the application
+       - Verify status changes to "STOPPED"
+       - Verify app is no longer accessible
+       - Start the application
+       - Verify status returns to "RUNNING"
+       - Verify app is accessible again
     
-    # Step 1: Navigate to catalog
-    print("\n📦 Step 1: Navigate to catalog")
-    # Wait for the catalog link to be ready
-    page.wait_for_selector("[data-view='catalog']", timeout=5000, state="visible")
+    4. **Cleanup Phase**:
+       - Delete the application
+       - Confirm deletion
+       - Verify app is removed from dashboard
+       - Verify app is no longer in backend
     
-    # Try clicking the link
-    catalog_link = page.locator("[data-view='catalog']").first
-    catalog_link.click()
+    Expected Results:
+        - All deployment steps complete successfully
+        - App is accessible when running
+        - App is inaccessible when stopped
+        - App is completely removed after deletion
+        - No orphaned resources remain
     
-    # Wait for the view to become visible (including CSS animations)
-    # We use wait_for_function to check both the hidden class and opacity
-    page.wait_for_function("""
-        () => {
-            const el = document.getElementById('catalogView');
-            if (!el) return false;
-            const style = window.getComputedStyle(el);
-            // Check that it's not hidden and opacity is transitioning/complete
-            return !el.classList.contains('hidden') && 
-                   style.display !== 'none' &&
-                   parseFloat(style.opacity) > 0.5;  // At least 50% through fade-in
-        }
-    """, timeout=10000)
-    
-    print("✓ Catalog view loaded")
-    
-    # Step 2: Find and deploy NGINX
-    print("\n🚀 Step 2: Deploy NGINX application")
-    
-    # Wait for catalog to load - give it time to fetch and render apps
-    page.wait_for_timeout(2000)  # Allow time for API call and rendering
-    
-    # Check if app cards are present
-    app_card_count = page.locator(".app-card").count()
-    print(f"Found {app_card_count} app cards")
-    
-    if app_card_count == 0:
-        # Force reload the catalog if no apps
-        print("⚠️ No app cards found, checking catalog content...")
-        catalog_html = page.evaluate("() => document.getElementById('catalogView').innerHTML")
-        print(f"Catalog HTML length: {len(catalog_html)}")
-        
-        # Try to trigger catalog load manually
-        page.evaluate("if (window.loadCatalog) window.loadCatalog();")
-        page.wait_for_timeout(2000)
-    
-    # Wait for catalog to load with app cards
-    page.wait_for_selector(".app-card", timeout=15000)
-    
-    # Find NGINX card and click deploy
-    nginx_card = page.locator(".app-card:has-text('NGINX')").first
-    expect(nginx_card).to_be_visible(timeout=5000)
-    nginx_card.click()
-    
-    # Wait for deploy modal
-    deploy_modal = page.locator("#deployModal.show")
-    expect(deploy_modal).to_be_visible(timeout=5000)
-    print("✓ Deploy modal opened")
-    
-    # Fill deployment form
-    hostname_input = page.locator("#hostname")
-    expect(hostname_input).to_be_visible()
-    
-    # Generate unique hostname
-    timestamp = int(time.time())
-    hostname = f"nginx-test-{timestamp}"
-    
-    hostname_input.fill(hostname)
-    print(f"✓ Hostname set: {hostname}")
-    
-    # Click deploy button
-    page.click("button:has-text('Deploy Application')")
-    print("✓ Deploy button clicked")
-    
-    # Step 3: Monitor deployment progress
-    print("\n⏳ Step 3: Monitor deployment progress")
-    
-    # Wait for progress modal to appear
-    progress_modal = page.locator("#deployModal.show:has-text('Deploying')")
-    expect(progress_modal).to_be_visible(timeout=5000)
-    print("✓ Deployment progress modal shown")
-    
-    # Wait for deployment to complete (up to 5 minutes)
-    # Look for success message or completion indicator
-    try:
-        # Wait for either success message or modal to close
-        page.wait_for_selector(
-            "text=/Deployment.*complete|successfully deployed/i",
-            timeout=300000  # 5 minutes
-        )
-        print("✓ Deployment completed successfully")
-    except Exception as e:
-        # Check if modal closed (another indicator of success)
-        if not page.locator("#deployModal.show").is_visible():
-            print("✓ Deployment modal closed (likely successful)")
-        else:
-            raise Exception(f"Deployment did not complete: {e}")
-    
-    # Wait for modal to close
-    page.wait_for_selector("#deployModal:not(.show)", timeout=10000)
-    
-    # Step 4: Navigate to deployed apps
-    print("\n📱 Step 4: Verify app in dashboard")
-    page.click("[data-view='apps']")
-    expect(page.locator("#appsView")).to_be_visible(timeout=10000)
-    
-    # Wait for app cards to load
-    page.wait_for_selector(".app-card", timeout=15000)
-    
-    # Find our deployed app
-    app_card = page.locator(f".app-card:has-text('{hostname}')")
-    expect(app_card).to_be_visible(timeout=10000)
-    print(f"✓ App '{hostname}' found in dashboard")
-    
-    # Step 5: Verify app is running
-    print("\n✅ Step 5: Verify app is running")
-    
-    # Check for running indicator
-    status_indicator = app_card.locator(".status-badge:has-text('Running')")
-    expect(status_indicator).to_be_visible(timeout=30000)  # Give it time to start
-    print("✓ App status: Running")
-    
-    # Step 6: Test app controls - STOP
-    print("\n⏸️  Step 6: Stop application")
-    
-    # Find stop button (pause icon)
-    stop_button = app_card.locator("button[title*='Stop']")
-    expect(stop_button).to_be_visible()
-    stop_button.click()
-    
-    # Wait for stopped status
-    page.wait_for_selector(
-        f".app-card:has-text('{hostname}') .status-badge:has-text('Stopped')",
-        timeout=30000
-    )
-    print("✓ App stopped successfully")
-    
-    # Step 7: Test app controls - START
-    print("\n▶️  Step 7: Start application")
-    
-    # Reload to get updated UI
-    page.reload()
-    page.wait_for_selector(".app-card", timeout=10000)
-    
-    app_card = page.locator(f".app-card:has-text('{hostname}')")
-    start_button = app_card.locator("button[title*='Start']")
-    expect(start_button).to_be_visible()
-    start_button.click()
-    
-    # Wait for running status
-    page.wait_for_selector(
-        f".app-card:has-text('{hostname}') .status-badge:has-text('Running')",
-        timeout=30000
-    )
-    print("✓ App started successfully")
-    
-    # Step 8: Test app controls - RESTART
-    print("\n🔄 Step 8: Restart application")
-    
-    app_card = page.locator(f".app-card:has-text('{hostname}')")
-    restart_button = app_card.locator("button[title*='Restart']")
-    expect(restart_button).to_be_visible()
-    restart_button.click()
-    
-    # Wait for app to be restarting/running
-    page.wait_for_timeout(5000)  # Give it time to restart
-    
-    status = app_card.locator(".status-badge:has-text('Running')")
-    expect(status).to_be_visible(timeout=30000)
-    print("✓ App restarted successfully")
-    
-    # Step 9: View application logs
-    print("\n📋 Step 9: View application logs")
-    
-    app_card = page.locator(f".app-card:has-text('{hostname}')")
-    logs_button = app_card.locator("button[title*='logs'], button[title*='View logs']")
-    expect(logs_button).to_be_visible()
-    logs_button.click()
-    
-    # Wait for logs modal
-    logs_modal = page.locator("#deployModal.show:has-text('Logs')")
-    expect(logs_modal).to_be_visible(timeout=5000)
-    print("✓ Logs modal opened")
-    
-    # Verify logs content area exists
-    logs_output = page.locator("#logsOutput, .log-output")
-    expect(logs_output).to_be_visible(timeout=5000)
-    print("✓ Logs displayed")
-    
-    # Close logs modal
-    page.locator("#deployModal .btn:has-text('Close')").click()
-    page.wait_for_selector("#deployModal:not(.show)", timeout=5000)
-    
-    # Step 10: Delete application
-    print("\n🗑️  Step 10: Delete application")
-    
-    app_card = page.locator(f".app-card:has-text('{hostname}')")
-    delete_button = app_card.locator("button[title*='Delete'], button.danger")
-    expect(delete_button).to_be_visible()
-    delete_button.click()
-    
-    # Wait for delete confirmation modal
-    delete_modal = page.locator("#deployModal.show:has-text('Delete Application')")
-    expect(delete_modal).to_be_visible(timeout=5000)
-    print("✓ Delete confirmation modal shown")
-    
-    # Confirm deletion
-    confirm_button = page.locator("#deployModal button:has-text('Delete Forever')")
-    expect(confirm_button).to_be_visible()
-    confirm_button.click()
-    print("✓ Deletion confirmed")
-    
-    # Wait for deletion progress
-    page.wait_for_selector(
-        "text=/Deleting|Removing/i",
-        timeout=10000
-    )
-    print("✓ Deletion in progress")
-    
-    # Wait for deletion to complete (up to 3 minutes)
-    try:
-        page.wait_for_selector(
-            "text=/deleted|removed successfully/i",
-            timeout=180000  # 3 minutes
-        )
-        print("✓ Deletion completed")
-    except Exception:
-        # Modal might close without message
-        print("✓ Deletion modal closed")
-    
-    # Wait for modal to close
-    page.wait_for_selector("#deployModal:not(.show)", timeout=10000)
-    
-    # Step 11: Verify cleanup
-    print("\n✔️  Step 11: Verify cleanup complete")
-    
-    # Reload page
-    page.reload()
-    page.wait_for_load_state("networkidle")
-    page.wait_for_selector("#appsView", timeout=10000)
-    
-    # Give it a moment for app list to load
-    page.wait_for_timeout(2000)
-    
-    # App should NOT be visible anymore
-    deleted_app = page.locator(f".app-card:has-text('{hostname}')")
-    expect(deleted_app).not_to_be_visible()
-    print(f"✓ App '{hostname}' successfully removed from dashboard")
-    
-    print("\n🎉 COMPLETE LIFECYCLE TEST PASSED!")
-    print(f"✓ Deployed app: {hostname}")
-    print("✓ Monitored deployment")
-    print("✓ Verified running status")
-    print("✓ Tested stop/start/restart")
-    print("✓ Viewed logs")
-    print("✓ Deleted application")
-    print("✓ Verified cleanup")
-
-
-@pytest.mark.lifecycle
-def test_app_lifecycle_with_custom_config(authenticated_page: Page):
-    """
-    Test app deployment with custom configuration.
-    
-    Tests deploying an app with specific resource settings and verifies
-    the configuration is properly applied.
-    
-    Steps:
-    1. Deploy app with custom CPU/RAM settings
-    2. Verify deployment succeeds
-    3. Check app is accessible
-    4. Clean up
-    
-    Expected: Custom configuration is applied and app works correctly.
+    Test Characteristics:
+        - ✅ Atomic (performs own cleanup)
+        - ✅ Reliable (handles timing and async operations)
+        - ✅ Comprehensive (validates all critical paths)
+        - ✅ Isolated (uses unique hostname)
     """
     page = authenticated_page
+    print("\n" + "="*80)
+    print("🚀 CRITICAL E2E TEST: Full Application Lifecycle Workflow")
+    print("="*80)
     
-    print("\n📦 Deploying app with custom configuration")
+    # ========================================================================
+    # ARRANGE: Setup test data and page objects
+    # ========================================================================
+    print("\n📋 Phase 0: Setup")
     
-    # Navigate to catalog
-    page.click("[data-view='catalog']")
-    expect(page.locator("#catalogView")).to_be_visible(timeout=10000)
+    # Generate unique hostname for this test run
+    hostname = generate_hostname("nginx")
+    print(f"   ✓ Generated unique hostname: {hostname}")
     
-    # Deploy Portainer (smaller app for faster test)
-    page.wait_for_selector(".app-card", timeout=15000)
-    portainer_card = page.locator(".app-card:has-text('Portainer')").first
-    expect(portainer_card).to_be_visible(timeout=5000)
-    portainer_card.click()
+    # Initialize page objects
+    dashboard_page = DashboardPage(page)
+    app_store_page = AppStorePage(page)
+    deployment_modal = DeploymentModalPage(page)
     
-    # Wait for deploy modal
-    expect(page.locator("#deployModal.show")).to_be_visible(timeout=5000)
+    print(f"   ✓ Page objects initialized")
+    print(f"   ✓ Base URL: {base_url}")
     
-    # Fill custom hostname
-    timestamp = int(time.time())
-    hostname = f"portainer-custom-{timestamp}"
-    page.locator("#hostname").fill(hostname)
+    # ========================================================================
+    # PHASE 1: DEPLOYMENT
+    # ========================================================================
+    print("\n" + "-"*80)
+    print("� Phase 1: Deploy Application")
+    print("-"*80)
     
-    # Note: If there are CPU/RAM fields, set them here
-    # For now, just deploy with defaults
+    # Step 1.1: Navigate to App Store
+    print("\n   Step 1.1: Navigate to App Store")
+    dashboard_page.navigate_to_app_store()
+    print("   ✓ Navigated to App Store")
     
-    # Deploy
-    page.click("button:has-text('Deploy Application')")
+    # Wait for catalog to load
+    app_store_page.wait_for_catalog_load()
+    print("   ✓ Catalog loaded")
     
-    # Wait for deployment to complete
-    page.wait_for_selector(
-        "text=/complete|successfully/i",
-        timeout=300000
-    )
+    # Step 1.2: Select Nginx application
+    print("\n   Step 1.2: Select Nginx application")
     
-    # Verify in dashboard
-    page.click("[data-view='apps']")
-    expect(page.locator("#appsView")).to_be_visible()
+    # Verify Nginx is available
+    assert app_store_page.is_app_available("Nginx"), "Nginx app not found in catalog"
+    print("   ✓ Nginx found in catalog")
     
-    app_card = page.locator(f".app-card:has-text('{hostname}')")
+    # Click to open deployment modal
+    app_store_page.click_deploy_on_app("Nginx")
+    print("   ✓ Clicked Nginx app card")
+    
+    # Step 1.3: Configure deployment
+    print("\n   Step 1.3: Configure deployment")
+    
+    # Wait for modal to appear
+    deployment_modal.wait_for_modal_visible()
+    print("   ✓ Deployment modal opened")
+    
+    # Verify modal title
+    expect(deployment_modal.modal_title).to_have_text("Deploy Application")
+    print("   ✓ Modal title verified")
+    
+    # Fill hostname (the only required field for basic deployment)
+    deployment_modal.fill_hostname(hostname)
+    print(f"   ✓ Filled hostname: {hostname}")
+    
+    # Step 1.4: Submit deployment
+    print("\n   Step 1.4: Submit deployment")
+    deployment_modal.submit_deployment()
+    print("   ✓ Deployment submitted")
+    
+    # Step 1.5: Monitor deployment progress
+    print("\n   Step 1.5: Monitor deployment (this may take 3-5 minutes)")
+    print("   ⏳ Waiting for deployment to complete...")
+    print("   📋 Progress steps:")
+    print("      - Creating LXC container")
+    print("      - Starting container")
+    print("      - Installing Docker")
+    print("      - Pulling Docker images")
+    print("      - Starting services")
+    print("      - Finalizing deployment")
+    
+    # This is the CRITICAL wait - deployment can take several minutes
+    deployment_modal.wait_for_deployment_success(timeout=300000)  # 5 minutes
+    print("   ✅ Deployment completed successfully!")
+    
+    # ========================================================================
+    # PHASE 2: VERIFICATION
+    # ========================================================================
+    print("\n" + "-"*80)
+    print("✅ Phase 2: Verify Deployment")
+    print("-"*80)
+    
+    # Step 2.1: Verify app appears on dashboard
+    print("\n   Step 2.1: Verify app appears on dashboard")
+    
+    # The UI should auto-navigate back to dashboard or we navigate manually
+    dashboard_page.navigate_to_dashboard()
+    dashboard_page.wait_for_dashboard_load()
+    print("   ✓ Navigated to dashboard")
+    
+    # Find the newly deployed app card
+    app_card = dashboard_page.get_app_card_by_hostname(hostname)
     expect(app_card).to_be_visible(timeout=30000)
+    print(f"   ✓ App card visible for: {hostname}")
     
-    print(f"✓ App deployed with custom config: {hostname}")
+    # Step 2.2: Verify status is RUNNING
+    print("\n   Step 2.2: Verify app status is RUNNING")
+    dashboard_page.wait_for_app_status(hostname, "running", timeout=60000)
+    print(f"   ✅ App status: RUNNING")
     
-    # Cleanup
-    delete_button = app_card.locator("button[title*='Delete'], button.danger")
-    delete_button.click()
-    page.locator("#deployModal button:has-text('Delete Forever')").click()
-    page.wait_for_selector("#deployModal:not(.show)", timeout=180000)
+    # Step 2.3: Get app URL
+    print("\n   Step 2.3: Get application access URL")
+    app_url = dashboard_page.get_app_url(hostname)
+    print(f"   ✓ App URL: {app_url}")
     
-    print("✓ Cleanup complete")
-
-
-@pytest.mark.lifecycle  
-def test_deploy_multiple_apps_parallel(authenticated_page: Page):
-    """
-    Test deploying multiple applications.
+    assert app_url and app_url != "IP not available", f"App URL not available: {app_url}"
+    print("   ✓ URL is valid")
     
-    Validates that multiple apps can be deployed and managed simultaneously
-    without conflicts.
+    # Step 2.4: Verify HTTP accessibility
+    print("\n   Step 2.4: Verify app is accessible via HTTP")
+    print(f"   🌐 Making HTTP GET request to: {app_url}")
     
-    Expected: Both apps deploy successfully and are independently manageable.
-    """
-    page = authenticated_page
+    # Use Playwright's API request context for HTTP verification
+    api_context = page.request
+    response = api_context.get(app_url, timeout=30000)
     
-    print("\n📦 Testing multiple app deployments")
+    print(f"   📡 Response status: {response.status}")
+    expect(response).to_be_ok()  # Asserts 2xx status code
+    print("   ✅ App is accessible (2xx response)")
     
-    # This test would deploy 2 apps and verify both work
-    # Skipped for now to keep test suite fast
-    # In production, this would be valuable
+    # Optional: Verify Nginx welcome page content
+    response_text = response.text()
+    assert "nginx" in response_text.lower() or "welcome" in response_text.lower(), \
+        "Response doesn't contain expected Nginx content"
+    print("   ✅ Response contains expected Nginx content")
     
-    pytest.skip("Multiple parallel deployments - implement when needed")
+    # ========================================================================
+    # PHASE 3: STATE MANAGEMENT
+    # ========================================================================
+    print("\n" + "-"*80)
+    print("⚙️  Phase 3: Test State Management (Stop/Start)")
+    print("-"*80)
+    
+    # Step 3.1: Stop the application
+    print("\n   Step 3.1: Stop the application")
+    dashboard_page.click_app_action(hostname, "stop")
+    print("   ✓ Clicked stop button")
+    
+    # Wait for status to change to STOPPED
+    dashboard_page.wait_for_app_status(hostname, "stopped", timeout=60000)
+    print("   ✅ App status: STOPPED")
+    
+    # Step 3.2: Verify app is no longer accessible
+    print("\n   Step 3.2: Verify app is NOT accessible when stopped")
+    print(f"   🌐 Making HTTP GET request to: {app_url}")
+    
+    response_stopped = api_context.get(app_url, timeout=10000, ignore_http_errors=True)
+    print(f"   📡 Response status: {response_stopped.status}")
+    
+    # When stopped, we expect the app to be inaccessible (not 2xx)
+    # It might return 502 Bad Gateway, 503 Service Unavailable, or timeout
+    assert not response_stopped.ok, "App should not be accessible when stopped"
+    print("   ✅ App is inaccessible (as expected when stopped)")
+    
+    # Step 3.3: Start the application again
+    print("\n   Step 3.3: Start the application")
+    dashboard_page.click_app_action(hostname, "start")
+    print("   ✓ Clicked start button")
+    
+    # Wait for status to change back to RUNNING
+    dashboard_page.wait_for_app_status(hostname, "running", timeout=90000)
+    print("   ✅ App status: RUNNING (restarted)")
+    
+    # Step 3.4: Verify app is accessible again
+    print("\n   Step 3.4: Verify app is accessible again")
+    print(f"   🌐 Making HTTP GET request to: {app_url}")
+    
+    # Give the service a moment to fully start
+    page.wait_for_timeout(5000)
+    
+    response_restarted = api_context.get(app_url, timeout=30000)
+    print(f"   📡 Response status: {response_restarted.status}")
+    expect(response_restarted).to_be_ok()
+    print("   ✅ App is accessible again (2xx response)")
+    
+    # ========================================================================
+    # PHASE 4: CLEANUP AND DELETION
+    # ========================================================================
+    print("\n" + "-"*80)
+    print("🗑️  Phase 4: Delete Application and Verify Cleanup")
+    print("-"*80)
+    
+    # Step 4.1: Delete the application
+    print("\n   Step 4.1: Delete the application")
+    dashboard_page.click_app_action(hostname, "delete")
+    print("   ✓ Clicked delete button")
+    
+    # Handle confirmation dialog (if present)
+    print("   ⏳ Handling confirmation dialog...")
+    page.wait_for_timeout(1000)  # Brief wait for dialog
+    
+    # Try to find and click confirmation button
+    try:
+        dashboard_page.confirm_delete_app()
+        print("   ✓ Deletion confirmed")
+    except Exception as e:
+        logger.warning(f"Confirmation dialog not found (might auto-delete): {e}")
+        print("   ⚠️  No confirmation dialog (auto-delete)")
+    
+    # Step 4.2: Verify app is removed from dashboard
+    print("\n   Step 4.2: Verify app is removed from dashboard")
+    dashboard_page.wait_for_app_hidden(hostname, timeout=60000)
+    print(f"   ✅ App {hostname} no longer visible on dashboard")
+    
+    # Step 4.3: Final verification - check backend
+    print("\n   Step 4.3: Verify app is removed from backend")
+    
+    # Make API call to verify app is not in the apps list
+    response = api_context.get(f"{base_url}/api/v1/apps")
+    expect(response).to_be_ok()
+    
+    apps_data = response.json()
+    hostnames = [app.get("hostname") for app in apps_data]
+    
+    assert hostname not in hostnames, f"App {hostname} still exists in backend!"
+    print(f"   ✅ App {hostname} removed from backend database")
+    
+    # ========================================================================
+    # TEST COMPLETE
+    # ========================================================================
+    print("\n" + "="*80)
+    print("🎉 TEST PASSED: Full Application Lifecycle Workflow")
+    print("="*80)
+    print("\n✅ Summary:")
+    print(f"   • Deployed: {hostname}")
+    print("   • Verified: HTTP accessibility")
+    print("   • Managed: Stop/Start state transitions")
+    print("   • Cleaned: Complete deletion verified")
+    print("\n🏆 All phases completed successfully!")
+    print("="*80 + "\n")

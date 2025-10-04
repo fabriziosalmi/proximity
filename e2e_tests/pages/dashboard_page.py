@@ -234,3 +234,227 @@ class DashboardPage(BasePage):
         """Assert that the empty state message is visible (no apps deployed)."""
         logger.info("Asserting empty state")
         self.assert_visible(self.EMPTY_STATE)
+    
+    # ========================================================================
+    # App Management Methods (for Lifecycle Testing)
+    # ========================================================================
+    
+    def get_app_card_by_hostname(self, hostname: str):
+        """
+        Find a specific deployed app card by its hostname.
+        
+        This is the primary method for locating app cards during lifecycle tests.
+        The hostname is unique and reliably identifies the app.
+        
+        Args:
+            hostname: Hostname of the deployed app (e.g., 'nginx-e2e-test-123')
+        
+        Returns:
+            Locator for the app card
+        
+        Example:
+            >>> app_card = dashboard_page.get_app_card_by_hostname("nginx-e2e-123")
+            >>> expect(app_card).to_be_visible()
+        """
+        logger.info(f"Finding app card by hostname: {hostname}")
+        # The hostname appears in the app card's connection info or app name
+        return self.page.locator(f"{self.APP_CARD}:has-text('{hostname}')")
+    
+    def get_app_status(self, hostname: str) -> str:
+        """
+        Get the current status of an app by hostname.
+        
+        Args:
+            hostname: Hostname of the app
+        
+        Returns:
+            Status text (e.g., 'running', 'stopped', 'starting')
+        """
+        logger.info(f"Getting status for app: {hostname}")
+        app_card = self.get_app_card_by_hostname(hostname)
+        status_badge = app_card.locator(".status-badge")
+        
+        if status_badge.count() > 0:
+            status_text = status_badge.text_content().strip().lower()
+            logger.info(f"App {hostname} status: {status_text}")
+            return status_text
+        
+        logger.warning(f"Status not found for app: {hostname}")
+        return "unknown"
+    
+    def get_app_url(self, hostname: str) -> str:
+        """
+        Get the access URL for a deployed app.
+        
+        Args:
+            hostname: Hostname of the app
+        
+        Returns:
+            Access URL string
+        """
+        logger.info(f"Getting URL for app: {hostname}")
+        app_card = self.get_app_card_by_hostname(hostname)
+        url_link = app_card.locator(".connection-link")
+        
+        if url_link.count() > 0:
+            url = url_link.get_attribute("href") or url_link.text_content()
+            logger.info(f"App {hostname} URL: {url}")
+            return url
+        
+        logger.warning(f"URL not found for app: {hostname}")
+        return ""
+    
+    def click_app_action(self, hostname: str, action: str) -> None:
+        """
+        Click an action button on an app card.
+        
+        This is the PRIMARY method for controlling apps in lifecycle tests.
+        
+        Args:
+            hostname: Hostname of the app
+            action: Action to perform ('start', 'stop', 'restart', 'delete', 'logs', 'console')
+        
+        Raises:
+            ValueError: If action is not recognized
+        
+        Example:
+            >>> dashboard_page.click_app_action("nginx-test", "stop")
+            >>> dashboard_page.wait_for_app_status("nginx-test", "stopped")
+        """
+        logger.info(f"Clicking '{action}' action for app: {hostname}")
+        
+        # Map actions to their icon names or titles
+        action_map = {
+            "start": "play",
+            "stop": "pause",
+            "restart": "refresh-cw",
+            "delete": "trash-2",
+            "logs": "file-text",
+            "console": "terminal",
+            "open": "external-link"
+        }
+        
+        if action.lower() not in action_map:
+            raise ValueError(f"Unknown action: {action}. Valid actions: {list(action_map.keys())}")
+        
+        icon_name = action_map[action.lower()]
+        
+        # Find the app card and then the action button within it
+        app_card = self.get_app_card_by_hostname(hostname)
+        
+        # For delete, it's specifically the trash icon button
+        if action.lower() == "delete":
+            delete_button = app_card.locator(f"button[title*='Delete'], button.danger:has([data-lucide='{icon_name}'])")
+            delete_button.click()
+            logger.info(f"Clicked delete button for app: {hostname}")
+        else:
+            # For other actions, find the button with the matching icon
+            action_button = app_card.locator(f"button:has([data-lucide='{icon_name}'])")
+            action_button.first.click()
+            logger.info(f"Clicked {action} button for app: {hostname}")
+    
+    def confirm_delete_app(self) -> None:
+        """
+        Confirm app deletion in the confirmation dialog.
+        
+        After clicking delete on an app card, a confirmation dialog appears.
+        This method clicks the confirm button to proceed with deletion.
+        
+        Example:
+            >>> dashboard_page.click_app_action("nginx-test", "delete")
+            >>> dashboard_page.confirm_delete_app()
+        """
+        logger.info("Confirming app deletion")
+        
+        # The confirmation might be in a modal or inline
+        # Look for common confirmation patterns
+        confirm_selectors = [
+            "button:has-text('Confirm')",
+            "button:has-text('Delete')",
+            "button:has-text('Yes')",
+            "button.btn-danger:has-text('Delete')",
+            ".modal button:has-text('Confirm')"
+        ]
+        
+        for selector in confirm_selectors:
+            confirm_button = self.page.locator(selector)
+            if confirm_button.count() > 0 and confirm_button.is_visible():
+                confirm_button.click()
+                logger.info("Delete confirmation clicked")
+                return
+        
+        logger.warning("Delete confirmation button not found")
+    
+    def wait_for_app_status(self, hostname: str, expected_status: str, timeout: int = 60000) -> None:
+        """
+        Wait for an app to reach a specific status.
+        
+        This is a CRITICAL method for lifecycle testing that waits for
+        state transitions (e.g., starting -> running, running -> stopped).
+        
+        Args:
+            hostname: Hostname of the app
+            expected_status: Expected status text (case-insensitive)
+            timeout: Maximum time to wait (milliseconds)
+        
+        Example:
+            >>> dashboard_page.click_app_action("nginx-test", "stop")
+            >>> dashboard_page.wait_for_app_status("nginx-test", "stopped", timeout=30000)
+        """
+        logger.info(f"Waiting for app {hostname} to reach status: {expected_status}")
+        
+        app_card = self.get_app_card_by_hostname(hostname)
+        status_badge = app_card.locator(".status-badge")
+        
+        # Use Playwright's auto-retrying expect with regex for case-insensitive match
+        from playwright.sync_api import expect
+        expect(status_badge).to_contain_text(expected_status, timeout=timeout, ignore_case=True)
+        
+        logger.info(f"✅ App {hostname} reached status: {expected_status}")
+    
+    def wait_for_app_visible(self, hostname: str, timeout: int = 30000) -> None:
+        """
+        Wait for an app card to become visible on the dashboard.
+        
+        Args:
+            hostname: Hostname of the app
+            timeout: Maximum time to wait (milliseconds)
+        """
+        logger.info(f"Waiting for app to be visible: {hostname}")
+        app_card = self.get_app_card_by_hostname(hostname)
+        
+        from playwright.sync_api import expect
+        expect(app_card).to_be_visible(timeout=timeout)
+        
+        logger.info(f"✅ App {hostname} is visible")
+    
+    def wait_for_app_hidden(self, hostname: str, timeout: int = 30000) -> None:
+        """
+        Wait for an app card to be removed from the dashboard.
+        
+        This is used after deletion to confirm cleanup.
+        
+        Args:
+            hostname: Hostname of the app
+            timeout: Maximum time to wait (milliseconds)
+        """
+        logger.info(f"Waiting for app to be hidden: {hostname}")
+        app_card = self.get_app_card_by_hostname(hostname)
+        
+        from playwright.sync_api import expect
+        expect(app_card).to_be_hidden(timeout=timeout)
+        
+        logger.info(f"✅ App {hostname} is no longer visible")
+    
+    def is_app_running(self, hostname: str) -> bool:
+        """
+        Check if an app is in running status.
+        
+        Args:
+            hostname: Hostname of the app
+        
+        Returns:
+            True if status is 'running', False otherwise
+        """
+        status = self.get_app_status(hostname)
+        return "running" in status.lower()
