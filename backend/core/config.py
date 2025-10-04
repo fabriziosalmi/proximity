@@ -54,6 +54,12 @@ class Settings(BaseSettings):
 
     # Database Settings (Phase 1)
     DATABASE_URL: str = "sqlite:///./proximity.db"
+    
+    # Port Management Settings (Platinum Edition - Port-Based Architecture)
+    PUBLIC_PORT_RANGE_START: int = 30000
+    PUBLIC_PORT_RANGE_END: int = 30999
+    INTERNAL_PORT_RANGE_START: int = 40000
+    INTERNAL_PORT_RANGE_END: int = 40999
 
     model_config = SettingsConfigDict(
         env_file=str(BACKEND_DIR / ".env"),

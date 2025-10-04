@@ -3040,3 +3040,166 @@ body.modal-open {
         opacity: 0.5;
     }
 }
+
+/* In-App Canvas Modal */
+.canvas-modal {
+    z-index: 2000;
+}
+
+.canvas-modal-content {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--border);
+    width: 95vw;
+    height: 95vh;
+    max-width: none;
+    max-height: none;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow-xl), 0 0 80px rgba(0, 0, 0, 0.6);
+    animation: slideUp 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.canvas-modal-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+}
+
+.canvas-modal-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.canvas-modal-title i {
+    width: 20px;
+    height: 20px;
+}
+
+.canvas-modal-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.canvas-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-md);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.canvas-btn:hover {
+    background: var(--bg-elevated);
+    border-color: var(--border-light);
+    color: var(--text-primary);
+    transform: translateY(-1px);
+}
+
+.canvas-btn.canvas-close:hover {
+    background: var(--danger);
+    border-color: var(--danger);
+    color: white;
+}
+
+.canvas-btn i {
+    width: 18px;
+    height: 18px;
+}
+
+.canvas-modal-body {
+    flex: 1;
+    position: relative;
+    background: var(--bg-primary);
+    overflow: hidden;
+    border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+}
+
+.canvas-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+}
+
+.canvas-iframe.hidden {
+    display: none;
+}
+
+.canvas-loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    background: var(--bg-primary);
+}
+
+.canvas-loading-text {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.canvas-error {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    background: var(--bg-primary);
+}
+
+.canvas-error.hidden {
+    display: none;
+}
+
+.canvas-error i {
+    width: 64px;
+    height: 64px;
+    color: var(--danger);
+}
+
+.canvas-error-text {
+    text-align: center;
+    max-width: 400px;
+}
+
+.canvas-error-text h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.canvas-error-text p {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+}
+

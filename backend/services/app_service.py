@@ -38,14 +38,20 @@ class AppServiceError(Exception):
 class AppService:
     """Business logic layer for application management"""
     
-    def __init__(self, proxmox_service: ProxmoxService, db: Session, proxy_manager=None):
+    def __init__(self, proxmox_service: ProxmoxService, db: Session, proxy_manager=None, port_manager=None):
         self.proxmox_service = proxmox_service
         self.db = db
         self._proxy_manager = proxy_manager  # ReverseProxyManager for network appliance Caddy
+        self._port_manager = port_manager  # PortManagerService for port allocation
         self._deployment_status: Dict[str, DeploymentStatus] = {}
         self._catalog_cache: Optional[CatalogResponse] = None
         self._caddy_service = None  # Legacy Caddy service (deprecated)
         self._catalog_loaded = False  # Track if catalog has been loaded
+        
+        # Initialize port manager if not provided
+        if self._port_manager is None:
+            from services.port_manager import PortManagerService
+            self._port_manager = PortManagerService(db)
         
         # Note: Catalog is loaded lazily on first access
         # to avoid event loop issues during dependency injection
@@ -67,6 +73,11 @@ class AppService:
     def set_proxy_manager(self, proxy_manager):
         """Set the proxy manager (called from main.py after initialization)"""
         self._proxy_manager = proxy_manager
+    
+    @property
+    def port_manager(self):
+        """Get port manager instance"""
+        return self._port_manager
 
     def _db_app_to_schema(self, db_app: DBApp) -> App:
         """Convert database App model to Pydantic schema"""
@@ -77,6 +88,7 @@ class AppService:
             hostname=db_app.hostname,
             status=AppStatus(db_app.status),
             url=db_app.url,
+            iframe_url=db_app.iframe_url,
             lxc_id=db_app.lxc_id,
             node=db_app.node,
             created_at=db_app.created_at,
@@ -84,7 +96,9 @@ class AppService:
             config=db_app.config or {},
             ports=db_app.ports or {},
             volumes=db_app.volumes or [],
-            environment=db_app.environment or {}
+            environment=db_app.environment or {},
+            public_port=db_app.public_port,
+            internal_port=db_app.internal_port
         )
 
     async def _load_catalog(self) -> None:
@@ -544,6 +558,15 @@ class AppService:
                     logger.warning(error_msg, extra={"app_id": app_id})
                     errors.append(error_msg)
             
+            # Release allocated ports
+            try:
+                await self.port_manager.release_ports_for_app(app_id)
+                logger.info(f"Released ports for app {app_id}")
+            except Exception as port_error:
+                error_msg = f"Failed to release ports: {str(port_error)}"
+                logger.warning(error_msg, extra={"app_id": app_id})
+                errors.append(error_msg)
+            
             # Remove from Caddy reverse proxy if available
             if self._caddy_service is not None:
                 try:
@@ -648,7 +671,19 @@ class AppService:
         )
         self._deployment_status[app_id] = deployment_status
         
+        # Assign ports early (before container creation) so we can clean them up if deployment fails
+        public_port = None
+        internal_port = None
+        
         try:
+            # Step 0: Assign ports for this app
+            await self._log_deployment(app_id, "info", "Assigning network ports")
+            deployment_status.progress = 5
+            deployment_status.current_step = "Assigning ports"
+            
+            public_port, internal_port = await self.port_manager.assign_next_available_ports(app_id)
+            await self._log_deployment(app_id, "info", f"Assigned ports: public={public_port}, internal={internal_port}")
+            
             # Step 1: Select target node
             await self._log_deployment(app_id, "info", "Selecting target node")
             deployment_status.progress = 10
@@ -719,50 +754,58 @@ class AppService:
             # Configure reverse proxy in network appliance (if available)
             if self.proxy_manager and container_ip:
                 try:
-                    # Create virtual host for this app
+                    # Create virtual host for this app with port-based configuration
                     vhost_created = await self.proxy_manager.create_vhost(
                         app_name=app_data.hostname,
                         backend_ip=container_ip,
-                        backend_port=primary_port
+                        backend_port=primary_port,
+                        public_port=public_port,
+                        internal_port=internal_port
                     )
                     
                     if vhost_created:
-                        # Get appliance WAN IP for path-based access
+                        # Get appliance WAN IP for port-based access
                         appliance_wan_ip = None
                         if hasattr(self.proxmox_service, 'network_manager') and self.proxmox_service.network_manager:
                             appliance_info = self.proxmox_service.network_manager.appliance_info
                             if appliance_info:
                                 appliance_wan_ip = appliance_info.wan_ip
                         
-                        # Primary access URL: path-based (works without DNS)
+                        # Generate both public and iframe URLs using port-based access
                         if appliance_wan_ip:
-                            access_url = f"http://{appliance_wan_ip}/{app_data.hostname}"
+                            access_url = f"http://{appliance_wan_ip}:{public_port}"
+                            iframe_url = f"http://{appliance_wan_ip}:{internal_port}"
                             await self._log_deployment(app_id, "info", f"✓ Reverse proxy configured")
                             await self._log_deployment(app_id, "info", f"  • LAN access: {access_url}")
-                            await self._log_deployment(app_id, "info", f"  • DNS access: http://{app_data.hostname}.prox.local (requires DNS/hosts)")
+                            await self._log_deployment(app_id, "info", f"  • Canvas access: {iframe_url}")
                             await self._log_deployment(app_id, "info", f"  • Direct access: http://{container_ip}:{primary_port}")
                         else:
-                            # Fallback if we can't get appliance IP
-                            access_url = f"http://{app_data.hostname}.prox.local"
+                            # Fallback if we can't get appliance IP - use localhost with ports
+                            access_url = f"http://localhost:{public_port}"
+                            iframe_url = f"http://localhost:{internal_port}"
                             await self._log_deployment(app_id, "warning", "Could not determine appliance WAN IP")
-                            await self._log_deployment(app_id, "info", f"  • DNS access: {access_url}")
+                            await self._log_deployment(app_id, "info", f"  • Local access: {access_url}")
                             await self._log_deployment(app_id, "info", f"  • Direct access: http://{container_ip}:{primary_port}")
                     else:
                         # Fallback to direct access
                         access_url = f"http://{container_ip}:{primary_port}" if container_ip else None
+                        iframe_url = None
                         await self._log_deployment(app_id, "warning", "Reverse proxy configuration failed - using direct access")
                         
                 except (ConnectionError, TimeoutError) as proxy_error:
                     logger.warning(f"Network error configuring reverse proxy: {proxy_error}")
                     access_url = f"http://{container_ip}:{primary_port}" if container_ip else None
+                    iframe_url = None
                     await self._log_deployment(app_id, "warning", f"Reverse proxy network error - using direct access")
                 except Exception as proxy_error:
                     logger.warning(f"Unexpected error configuring reverse proxy: {proxy_error}", exc_info=True)
                     access_url = f"http://{container_ip}:{primary_port}" if container_ip else None
+                    iframe_url = None
                     await self._log_deployment(app_id, "warning", f"Reverse proxy error - using direct access")
             else:
                 # No proxy manager available - use direct access
                 access_url = f"http://{container_ip}:{primary_port}" if container_ip else None
+                iframe_url = None
                 if not self.proxy_manager:
                     await self._log_deployment(app_id, "info", "Reverse proxy not available - using direct access")
                 elif not container_ip:
@@ -775,11 +818,14 @@ class AppService:
                 hostname=app_data.hostname,
                 status=AppStatus.RUNNING,
                 url=access_url,
+                iframe_url=iframe_url,
                 lxc_id=vmid,
                 node=target_node,
                 config=app_data.config,
                 environment=app_data.environment,
-                ports={port: port for port in catalog_item.ports}  # Simplified port mapping
+                ports={port: port for port in catalog_item.ports},  # Simplified port mapping
+                public_port=public_port,
+                internal_port=internal_port
             )
             
             # Save to database
@@ -790,12 +836,15 @@ class AppService:
                 hostname=app.hostname,
                 status=app.status.value,
                 url=app.url,
+                iframe_url=app.iframe_url,
                 lxc_id=app.lxc_id,
                 node=app.node,
                 config=app.config,
                 ports=app.ports,
                 volumes=volumes_info,
                 environment=app.environment,
+                public_port=public_port,
+                internal_port=internal_port,
                 created_at=datetime.utcnow(),
                 updated_at=datetime.utcnow()
             )
@@ -858,6 +907,14 @@ class AppService:
     async def _cleanup_failed_deployment(self, app_id: str, vmid: Optional[int], target_node: Optional[str]) -> None:
         """Cleanup resources after a failed deployment"""
         try:
+            # Release ports if they were assigned
+            try:
+                await self.port_manager.release_ports_for_app(app_id)
+                logger.info(f"Released ports for failed deployment", extra={"app_id": app_id})
+            except Exception as port_cleanup_error:
+                logger.warning(f"Error releasing ports during cleanup: {port_cleanup_error}", extra={"app_id": app_id})
+            
+            # Destroy LXC container if it was created
             if vmid and target_node:
                 logger.info(f"Cleaning up failed deployment: destroying LXC {vmid}", extra={"app_id": app_id, "vmid": vmid, "node": target_node})
                 task_id = await self.proxmox_service.destroy_lxc(target_node, vmid, force=True)

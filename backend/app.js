@@ -3860,3 +3860,167 @@ function formatUptime(seconds) {
         return `${minutes}m`;
     }
 }
+// ==================== In-App Canvas Modal ====================
+
+let currentCanvasApp = null;
+
+/**
+ * Open an application in the in-app canvas modal
+ * @param {Object} app - App object with iframe_url
+ */
+function openCanvas(app) {
+    if (!app.iframe_url) {
+        showNotification('Canvas URL not available for this app', 'error');
+        return;
+    }
+    
+    currentCanvasApp = app;
+    
+    const modal = document.getElementById('canvasModal');
+    const appName = document.getElementById('canvasAppName');
+    const iframe = document.getElementById('canvasIframe');
+    const loading = document.getElementById('canvasLoading');
+    const error = document.getElementById('canvasError');
+    
+    // Set app name
+    appName.textContent = app.name || app.hostname;
+    
+    // Reset state
+    iframe.classList.add('hidden');
+    error.classList.add('hidden');
+    loading.classList.remove('hidden');
+    
+    // Show modal
+    modal.classList.add('show');
+    document.body.classList.add('modal-open');
+    
+    // Load iframe
+    iframe.src = app.iframe_url;
+    
+    // Handle iframe load events
+    const onLoad = () => {
+        loading.classList.add('hidden');
+        iframe.classList.remove('hidden');
+        iframe.removeEventListener('load', onLoad);
+        iframe.removeEventListener('error', onError);
+    };
+    
+    const onError = () => {
+        loading.classList.add('hidden');
+        error.classList.remove('hidden');
+        document.getElementById('canvasErrorMessage').textContent = 
+            `Unable to load ${app.name}. The application may not support iframe embedding.`;
+        iframe.removeEventListener('load', onLoad);
+        iframe.removeEventListener('error', onError);
+    };
+    
+    // Set timeout for load detection
+    const timeout = setTimeout(() => {
+        if (!iframe.classList.contains('hidden')) return; // Already loaded
+        // Check if iframe is accessible
+        try {
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+            if (iframeDoc.readyState === 'complete') {
+                onLoad();
+            }
+        } catch (e) {
+            // Cross-origin frame - assume it loaded successfully if no error
+            onLoad();
+        }
+    }, 10000); // 10 second timeout
+    
+    iframe.addEventListener('load', () => {
+        clearTimeout(timeout);
+        onLoad();
+    });
+    
+    iframe.addEventListener('error', () => {
+        clearTimeout(timeout);
+        onError();
+    });
+    
+    // Reinitialize icons
+    initLucideIcons();
+}
+
+/**
+ * Close the canvas modal
+ */
+function closeCanvas() {
+    const modal = document.getElementById('canvasModal');
+    const iframe = document.getElementById('canvasIframe');
+    
+    // Hide modal
+    modal.classList.remove('show');
+    document.body.classList.remove('modal-open');
+    
+    // Clear iframe after animation
+    setTimeout(() => {
+        iframe.src = '';
+        currentCanvasApp = null;
+    }, 300);
+}
+
+/**
+ * Refresh the canvas iframe
+ */
+function refreshCanvas() {
+    if (!currentCanvasApp || !currentCanvasApp.iframe_url) return;
+    
+    const iframe = document.getElementById('canvasIframe');
+    const loading = document.getElementById('canvasLoading');
+    const error = document.getElementById('canvasError');
+    
+    // Show loading state
+    iframe.classList.add('hidden');
+    error.classList.add('hidden');
+    loading.classList.remove('hidden');
+    
+    // Reload iframe
+    iframe.src = currentCanvasApp.iframe_url;
+}
+
+/**
+ * Open current canvas app in new tab
+ */
+function openInNewTab() {
+    if (!currentCanvasApp) return;
+    
+    // Prefer public URL over iframe URL
+    const url = currentCanvasApp.url || currentCanvasApp.iframe_url;
+    if (url) {
+        window.open(url, '_blank');
+    }
+}
+
+/**
+ * Add canvas button to app cards
+ */
+function addCanvasButton(app, container) {
+    if (!app.iframe_url) return; // No canvas URL available
+    
+    const button = document.createElement('button');
+    button.className = 'btn btn-secondary';
+    button.innerHTML = '<i data-lucide="monitor"></i><span>Canvas</span>';
+    button.onclick = (e) => {
+        e.stopPropagation();
+        openCanvas(app);
+    };
+    
+    container.appendChild(button);
+    initLucideIcons();
+}
+
+// Close canvas modal when clicking outside
+document.getElementById('canvasModal')?.addEventListener('click', (e) => {
+    if (e.target.id === 'canvasModal') {
+        closeCanvas();
+    }
+});
+
+// Close canvas modal with Escape key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.getElementById('canvasModal')?.classList.contains('show')) {
+        closeCanvas();
+    }
+});

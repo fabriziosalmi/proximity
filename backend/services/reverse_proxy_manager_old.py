@@ -1,35 +1,32 @@
 """
-Proximity Reverse Proxy Manager - Platinum Edition Port-Based Architecture
+Proximity Reverse Proxy Manager
 
-This module manages dynamic Caddy port-based configurations in the 
+This module manages dynamic Caddy virtual host configurations in the 
 Network Appliance for automatic reverse proxying of application containers.
 
-Platinum Edition Architecture (v2.0):
-- Port-based access model (no path-based routing)
-- Each app gets two dedicated ports:
-  * Public port (30000-30999): Standard access with security headers
-  * Internal port (40000-40999): Iframe-embeddable with stripped headers
-- Isolated proximity_lan network (10.20.0.0/24)
-- Superior app compatibility
-- Ready for advanced SSL/VPN features
+Features:
+- Automatic vhost creation when apps are deployed
+- Dynamic Caddy configuration without downtime
+- Hostname-based routing (app-name.prox.local)
+- Health check endpoints
+- Automatic cleanup on app deletion
 
 Architecture:
 ┌─────────────────────────────────────────────────────────────┐
-│  Network Appliance (prox-appliance) - 10.20.0.1            │
+│  Network Appliance (prox-appliance)                         │
 │                                                              │
 │  ┌────────────────────────────────────────────────────────┐ │
-│  │ Caddy Reverse Proxy (Port-Based)                       │ │
+│  │ Caddy Reverse Proxy (Port 80/443)                      │ │
 │  │                                                          │ │
-│  │  :30001 → http://10.20.0.101:80  (nginx public)        │ │
-│  │  :40001 → http://10.20.0.101:80  (nginx iframe)        │ │
-│  │  :30002 → http://10.20.0.102:80  (wordpress public)    │ │
-│  │  :40002 → http://10.20.0.102:80  (wordpress iframe)    │ │
+│  │  nginx.prox.local        → http://10.20.0.101:80       │ │
+│  │  wordpress.prox.local    → http://10.20.0.102:80       │ │
+│  │  nextcloud.prox.local    → http://10.20.0.103:80       │ │
 │  └────────────────────────────────────────────────────────┘ │
 │                                                              │
 │  /etc/caddy/sites-enabled/                                  │
-│    ├── nginx-01.caddy (ports 30001, 40001)                 │
-│    ├── wordpress-01.caddy (ports 30002, 40002)             │
-│    └── nextcloud-01.caddy (ports 30003, 40003)             │
+│    ├── nginx.caddy                                          │
+│    ├── wordpress.caddy                                      │
+│    └── nextcloud.caddy                                      │
 └─────────────────────────────────────────────────────────────┘
 
 Author: Proximity Team  
@@ -38,7 +35,7 @@ Date: October 2025
 
 import asyncio
 import logging
-from typing import Optional, Dict, Any, List, Tuple
+from typing import Optional, Dict, Any, List
 from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
@@ -46,12 +43,11 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class VirtualHost:
-    """Virtual host configuration for port-based architecture"""
+    """Virtual host configuration"""
     app_name: str
+    hostname: str  # e.g., "nginx.prox.local"
     backend_ip: str  # e.g., "10.20.0.101"
     backend_port: int  # e.g., 80
-    public_port: int  # e.g., 30001
-    internal_port: int  # e.g., 40001
     protocol: str = "http"  # http or https
     enabled: bool = True
 
@@ -60,13 +56,15 @@ class ReverseProxyManager:
     """
     Manages Caddy reverse proxy configurations in the Network Appliance.
     
-    Platinum Edition - Port-Based Architecture:
-    - Each app gets dedicated public and internal ports
-    - No path-based routing (removed handle_path, strip_prefix)
-    - Simpler, more compatible configuration
-    - Better application support (no URL rewriting issues)
+    This service handles:
+    - Creating vhost configurations for new apps
+    - Updating existing vhost configurations
+    - Deleting vhost configurations
+    - Reloading Caddy without downtime
+    - Health checking proxy status
     """
     
+    DNS_DOMAIN = "prox.local"
     CADDY_SITES_DIR = "/etc/caddy/sites-enabled"
     CADDY_CONFIG = "/etc/caddy/Caddyfile"
     
@@ -82,54 +80,33 @@ class ReverseProxyManager:
         self.proxmox_service = proxmox_service
         self.vhosts: Dict[str, VirtualHost] = {}
         
-    async def create_vhost(
-        self, 
-        app_name: str, 
-        backend_ip: str, 
-        backend_port: int,
-        public_port: int,
-        internal_port: int
-    ) -> bool:
+    async def create_vhost(self, app_name: str, backend_ip: str, backend_port: int = 80) -> bool:
         """
-        Create a new virtual host configuration for an application using port-based routing.
+        Create a new virtual host configuration for an application.
         
-        This generates a Caddy configuration file with two port-based server blocks:
-        1. Public access port (with full security headers)
-        2. Internal iframe port (security headers stripped for embedding)
+        This generates a Caddy configuration file and reloads Caddy to apply it.
         
         Args:
             app_name: Name of the application (e.g., "nginx-01", "wordpress")
             backend_ip: IP address of the application container (e.g., "10.20.0.101")
             backend_port: Port the application listens on (default: 80)
-            public_port: Port for public access (e.g., 30001)
-            internal_port: Port for iframe access (e.g., 40001)
             
         Returns:
             bool: True if vhost created successfully
             
         Example:
-            await proxy_manager.create_vhost("nginx-01", "10.20.0.101", 80, 30001, 40001)
-            # Public access: http://<appliance-ip>:30001
-            # Iframe access: http://<appliance-ip>:40001
+            await proxy_manager.create_vhost("nginx-01", "10.20.0.101", 80)
+            # Creates: nginx-01.prox.local → http://10.20.0.101:80
         """
         try:
             # Sanitize app name (remove special chars, lowercase)
             sanitized_name = self._sanitize_app_name(app_name)
+            hostname = f"{sanitized_name}.{self.DNS_DOMAIN}"
             
-            logger.info(
-                f"Creating port-based vhost: {app_name} "
-                f"(public:{public_port}, internal:{internal_port}) "
-                f"→ {backend_ip}:{backend_port}"
-            )
+            logger.info(f"Creating vhost: {hostname} → {backend_ip}:{backend_port}")
             
             # Generate Caddy configuration
-            caddy_config = self._generate_caddy_config(
-                app_name=sanitized_name,
-                backend_ip=backend_ip,
-                backend_port=backend_port,
-                public_port=public_port,
-                internal_port=internal_port
-            )
+            caddy_config = self._generate_caddy_config(hostname, backend_ip, backend_port)
             
             # Write configuration file to appliance
             config_file = f"{self.CADDY_SITES_DIR}/{sanitized_name}.caddy"
@@ -145,33 +122,23 @@ class ReverseProxyManager:
             # Store vhost info
             vhost = VirtualHost(
                 app_name=app_name,
+                hostname=hostname,
                 backend_ip=backend_ip,
                 backend_port=backend_port,
-                public_port=public_port,
-                internal_port=internal_port,
                 protocol="http",
                 enabled=True
             )
             self.vhosts[app_name] = vhost
             
-            logger.info(
-                f"✓ Created vhost: {app_name} "
-                f"(public:{public_port}, internal:{internal_port})"
-            )
+            logger.info(f"✓ Created vhost: {hostname}")
             return True
             
         except Exception as e:
             logger.error(f"Failed to create vhost for {app_name}: {e}", exc_info=True)
             return False
     
-    async def update_vhost(
-        self, 
-        app_name: str, 
-        backend_ip: Optional[str] = None, 
-        backend_port: Optional[int] = None,
-        public_port: Optional[int] = None,
-        internal_port: Optional[int] = None
-    ) -> bool:
+    async def update_vhost(self, app_name: str, backend_ip: Optional[str] = None, 
+                          backend_port: Optional[int] = None) -> bool:
         """
         Update an existing virtual host configuration.
         
@@ -179,16 +146,14 @@ class ReverseProxyManager:
             app_name: Name of the application
             backend_ip: New backend IP (optional)
             backend_port: New backend port (optional)
-            public_port: New public port (optional)
-            internal_port: New internal port (optional)
             
         Returns:
             bool: True if vhost updated successfully
         """
         try:
             if app_name not in self.vhosts:
-                logger.warning(f"Vhost for {app_name} not found, cannot update")
-                return False
+                logger.warning(f"Vhost for {app_name} not found, creating new one")
+                return await self.create_vhost(app_name, backend_ip or "10.20.0.100", backend_port or 80)
             
             vhost = self.vhosts[app_name]
             
@@ -197,22 +162,12 @@ class ReverseProxyManager:
                 vhost.backend_ip = backend_ip
             if backend_port:
                 vhost.backend_port = backend_port
-            if public_port:
-                vhost.public_port = public_port
-            if internal_port:
-                vhost.internal_port = internal_port
             
-            logger.info(f"Updating vhost: {app_name}")
+            logger.info(f"Updating vhost: {vhost.hostname}")
             
             # Regenerate and write configuration
             sanitized_name = self._sanitize_app_name(app_name)
-            caddy_config = self._generate_caddy_config(
-                app_name=sanitized_name,
-                backend_ip=vhost.backend_ip,
-                backend_port=vhost.backend_port,
-                public_port=vhost.public_port,
-                internal_port=vhost.internal_port
-            )
+            caddy_config = self._generate_caddy_config(vhost.hostname, vhost.backend_ip, vhost.backend_port)
             config_file = f"{self.CADDY_SITES_DIR}/{sanitized_name}.caddy"
             
             if not await self._write_config_file(config_file, caddy_config):
@@ -221,7 +176,7 @@ class ReverseProxyManager:
             if not await self._reload_caddy():
                 return False
             
-            logger.info(f"✓ Updated vhost: {app_name}")
+            logger.info(f"✓ Updated vhost: {vhost.hostname}")
             return True
             
         except Exception as e:
@@ -246,10 +201,7 @@ class ReverseProxyManager:
             vhost = self.vhosts[app_name]
             sanitized_name = self._sanitize_app_name(app_name)
             
-            logger.info(
-                f"Deleting vhost: {app_name} "
-                f"(public:{vhost.public_port}, internal:{vhost.internal_port})"
-            )
+            logger.info(f"Deleting vhost: {vhost.hostname}")
             
             # Remove configuration file
             config_file = f"{self.CADDY_SITES_DIR}/{sanitized_name}.caddy"
@@ -267,7 +219,7 @@ class ReverseProxyManager:
             # Remove from tracking
             del self.vhosts[app_name]
             
-            logger.info(f"✓ Deleted vhost: {app_name}")
+            logger.info(f"✓ Deleted vhost: {vhost.hostname}")
             return True
             
         except Exception as e:
@@ -304,30 +256,29 @@ class ReverseProxyManager:
         """
         return self.vhosts.get(app_name)
     
-    def get_vhost_urls(self, app_name: str, appliance_ip: str, public_port: int, internal_port: int) -> Dict[str, str]:
+    def get_vhost_urls(self, app_name: str, appliance_ip: str) -> Dict[str, str]:
         """
-        Get both public and iframe URLs for an application (port-based).
+        Get both public and iframe URLs for an application.
         
         Args:
             app_name: Name of the application
-            appliance_ip: WAN/LAN IP of the network appliance
-            public_port: Public access port
-            internal_port: Internal iframe port
+            appliance_ip: WAN IP of the network appliance
             
         Returns:
             Dict with 'url' and 'iframe_url' keys
             
         Example:
-            urls = proxy_manager.get_vhost_urls("nginx-01", "192.168.1.100", 30001, 40001)
+            urls = proxy_manager.get_vhost_urls("nginx-01", "192.168.1.100")
             # Returns:
             # {
-            #     'url': 'http://192.168.1.100:30001',
-            #     'iframe_url': 'http://192.168.1.100:40001'
+            #     'url': 'http://192.168.1.100/nginx-01',
+            #     'iframe_url': 'http://192.168.1.100/proxy/internal/nginx-01'
             # }
         """
+        sanitized_name = self._sanitize_app_name(app_name)
         return {
-            'url': f"http://{appliance_ip}:{public_port}",
-            'iframe_url': f"http://{appliance_ip}:{internal_port}"
+            'url': f"http://{appliance_ip}/{sanitized_name}",
+            'iframe_url': f"http://{appliance_ip}/proxy/internal/{sanitized_name}"
         }
     
     async def verify_vhost_health(self, app_name: str) -> bool:
@@ -345,8 +296,8 @@ class ReverseProxyManager:
             if not vhost:
                 return False
             
-            # Try to curl the backend through the proxy (public port)
-            test_cmd = f"curl -s -o /dev/null -w '%{{http_code}}' http://localhost:{vhost.public_port} || echo '000'"
+            # Try to curl the backend through the proxy
+            test_cmd = f"curl -s -o /dev/null -w '%{{http_code}}' http://localhost/{app_name} || echo '000'"
             result = await self._exec_in_appliance(test_cmd)
             
             if result.get('exitcode') == 0:
@@ -365,7 +316,7 @@ class ReverseProxyManager:
     
     def _sanitize_app_name(self, app_name: str) -> str:
         """
-        Sanitize app name for use in filenames.
+        Sanitize app name for use in hostname and filenames.
         
         Args:
             app_name: Original app name
@@ -382,63 +333,47 @@ class ReverseProxyManager:
         sanitized = sanitized.strip('-')
         return sanitized
     
-    def _generate_caddy_config(
-        self,
-        app_name: str,
-        backend_ip: str,
-        backend_port: int,
-        public_port: int,
-        internal_port: int
-    ) -> str:
+    def _generate_caddy_config(self, hostname: str, backend_ip: str, backend_port: int) -> str:
         """
-        Generate Caddy configuration for port-based virtual host.
+        Generate Caddy configuration for a virtual host with dual-access strategy.
 
-        Platinum Edition v2.0 Architecture: Port-Based Access
-        
-        Each application receives TWO dedicated ports:
-        1. Public Port (30000-30999): Standard access with security headers intact
-        2. Internal Port (40000-40999): Iframe-embeddable with security headers stripped
+        v2.0 In-App Canvas Feature: Generates THREE access methods:
+        1. Hostname-based: app-name.prox.local (for internal DNS)
+        2. Path-based PUBLIC: /app-name (standard external access)
+        3. Path-based IFRAME: /proxy/internal/app-name (for in-app embedding)
 
-        BENEFITS:
-        - Better application compatibility (no URL rewriting/path conflicts)
-        - Simpler configuration (no handle_path or strip_prefix)
-        - Clearer access model (IP:PORT vs IP/path)
-        - Scalable (1000 ports per range = 1000 apps)
-        - Ready for SSL/VPN enhancements
+        CRITICAL SECURITY:
+        - Public paths preserve security headers (X-Frame-Options, CSP)
+        - Iframe path strips security headers to allow embedding
+        - This dual strategy enables unified UX while maintaining security
 
         Args:
-            app_name: Application name (sanitized)
+            hostname: Hostname for the vhost (e.g., "nginx-01.prox.local")
             backend_ip: Backend IP address
             backend_port: Backend port
-            public_port: Public access port
-            internal_port: Internal iframe port
 
         Returns:
-            Caddy configuration string with port-based proxy blocks
+            Caddy configuration string with public AND iframe proxy blocks
         """
-        
-        config = f"""# Port-based virtual host for {app_name}
-# Platinum Edition v2.0 - Port-Based Architecture
-# Generated: {app_name}
-#
-# Access Methods:
-#   Public:   http://<appliance-ip>:{public_port}
-#   Iframe:   http://<appliance-ip>:{internal_port}
-#
-# Backend: {backend_ip}:{backend_port}
+        # Extract app name from hostname (e.g., "nginx-01" from "nginx-01.prox.local")
+        app_name = hostname.replace(f".{self.DNS_DOMAIN}", "")
 
-# ============================================================================
-# PUBLIC ACCESS PORT: {public_port}
-# Security headers PRESERVED - Standard external access
-# ============================================================================
-:{public_port} {{
+        config = f"""# Virtual host for {hostname}
+# v2.0 In-App Canvas: Dual-access configuration
+# Accessible via:
+#   - http://{hostname} (with DNS)
+#   - http://<appliance-ip>/{app_name} (public path-based access)
+#   - http://<appliance-ip>/proxy/internal/{app_name} (iframe-embeddable)
+
+# Method 1: Hostname-based routing (requires DNS or /etc/hosts)
+{hostname} {{
     reverse_proxy http://{backend_ip}:{backend_port} {{
         # Health checks
         health_uri /
         health_interval 30s
         health_timeout 5s
 
-        # Standard proxy headers
+        # Headers
         header_up Host {{upstream_hostport}}
         header_up X-Real-IP {{remote_host}}
         header_up X-Forwarded-For {{remote_host}}
@@ -447,35 +382,46 @@ class ReverseProxyManager:
 
     # Logging
     log {{
-        output file /var/log/caddy/{app_name}-public.log
+        output file /var/log/caddy/{hostname}.log
         format json
     }}
 }}
 
-# ============================================================================
-# INTERNAL IFRAME PORT: {internal_port}
-# Security headers STRIPPED - For in-app canvas embedding only
-# ============================================================================
-:{internal_port} {{
-    reverse_proxy http://{backend_ip}:{backend_port} {{
-        # Standard proxy headers
-        header_up Host {{upstream_hostport}}
-        header_up X-Real-IP {{remote_host}}
-        header_up X-Forwarded-For {{remote_host}}
-        header_up X-Forwarded-Proto {{scheme}}
-
-        # CRITICAL: Strip frame-busting headers to allow iframe embedding
-        # These directives make apps embeddable in the Proximity canvas
-        header_down -X-Frame-Options
-        header_down -Content-Security-Policy
-        header_down -X-Content-Security-Policy
-        header_down -X-WebKit-CSP
+# Method 2: PUBLIC path-based routing (works without DNS)
+# Access via: http://<appliance-wan-ip>/{app_name}
+# Security headers PRESERVED - this is the standard public access
+:80 {{
+    handle_path /{app_name} {{
+        reverse_proxy http://{backend_ip}:{backend_port} {{
+            # Headers for path-based proxy
+            header_up Host {{upstream_hostport}}
+            header_up X-Real-IP {{remote_host}}
+            header_up X-Forwarded-For {{remote_host}}
+            header_up X-Forwarded-Proto {{scheme}}
+            header_up X-Forwarded-Prefix /{app_name}
+        }}
     }}
 
-    # Logging
-    log {{
-        output file /var/log/caddy/{app_name}-internal.log
-        format json
+    # Method 3: IFRAME-EMBEDDABLE internal proxy (In-App Canvas)
+    # Access via: http://<appliance-wan-ip>/proxy/internal/{app_name}
+    # CRITICAL: Security headers STRIPPED to allow iframe embedding
+    # This path is ONLY for the Proximity UI canvas feature
+    handle_path /proxy/internal/{app_name} {{
+        reverse_proxy http://{backend_ip}:{backend_port} {{
+            # Standard proxy headers
+            header_up Host {{upstream_hostport}}
+            header_up X-Real-IP {{remote_host}}
+            header_up X-Forwarded-For {{remote_host}}
+            header_up X-Forwarded-Proto {{scheme}}
+            header_up X-Forwarded-Prefix /proxy/internal/{app_name}
+
+            # CRITICAL: Strip frame-busting headers to allow iframe embedding
+            # These directives make apps embeddable in the Proximity canvas
+            header_down -X-Frame-Options
+            header_down -Content-Security-Policy
+            header_down -X-Content-Security-Policy
+            header_down -X-WebKit-CSP
+        }}
     }}
 }}
 """

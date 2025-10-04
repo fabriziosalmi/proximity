@@ -275,5 +275,52 @@
             </div>
         </div>
 
+        <!-- In-App Canvas Modal -->
+        <div id="canvasModal" class="modal canvas-modal">
+            <div class="canvas-modal-content">
+                <div class="canvas-modal-header">
+                    <div class="canvas-modal-title">
+                        <i data-lucide="monitor"></i>
+                        <span id="canvasAppName">Application</span>
+                    </div>
+                    <div class="canvas-modal-actions">
+                        <button class="canvas-btn" onclick="openInNewTab()" title="Open in new tab">
+                            <i data-lucide="external-link"></i>
+                        </button>
+                        <button class="canvas-btn" onclick="refreshCanvas()" title="Refresh">
+                            <i data-lucide="refresh-cw"></i>
+                        </button>
+                        <button class="canvas-btn canvas-close" onclick="closeCanvas()" title="Close">
+                            <i data-lucide="x"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="canvas-modal-body">
+                    <div id="canvasLoading" class="canvas-loading">
+                        <div class="loading-spinner"></div>
+                        <div class="canvas-loading-text">Loading application...</div>
+                    </div>
+                    <div id="canvasError" class="canvas-error hidden">
+                        <i data-lucide="alert-circle"></i>
+                        <div class="canvas-error-text">
+                            <h3>Unable to load application</h3>
+                            <p id="canvasErrorMessage">The application could not be loaded in the canvas.</p>
+                            <button class="btn btn-primary" onclick="openInNewTab()">
+                                Open in New Tab
+                            </button>
+                        </div>
+                    </div>
+                    <iframe 
+                        id="canvasIframe" 
+                        class="canvas-iframe hidden"
+                        sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals"
+                        referrerpolicy="no-referrer-when-downgrade"
+                    ></iframe>
+                </div>
+            </div>
+        </div>
+
 </body>
+</html>
+```</body>
 </html>

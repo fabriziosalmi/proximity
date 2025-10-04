@@ -66,6 +66,14 @@ class TestAppService:
         assert app.hostname == "test-nginx"
         assert app.catalog_id == "nginx"
         assert app.status == AppStatus.RUNNING
+        
+        # Verify ports were assigned (port-based architecture)
+        assert app.public_port is not None, "Public port should be assigned"
+        assert app.internal_port is not None, "Internal port should be assigned"
+        assert app.public_port >= 30000, "Public port should be in correct range"
+        assert app.public_port <= 30999, "Public port should be in correct range"
+        assert app.internal_port >= 40000, "Internal port should be in correct range"
+        assert app.internal_port <= 40999, "Internal port should be in correct range"
 
     @pytest.mark.asyncio
     async def test_get_app_success(self, app_service, db_session):
@@ -190,8 +198,13 @@ class TestAppService:
 
         app = await app_service.deploy_app(app_data)
 
-        # Verify proxy was configured
+        # Verify proxy was configured with port-based architecture
         assert app_service.proxy_manager.create_vhost.called
+        
+        # Verify create_vhost was called with public_port and internal_port
+        call_args = app_service.proxy_manager.create_vhost.call_args
+        assert 'public_port' in call_args.kwargs, "create_vhost should receive public_port"
+        assert 'internal_port' in call_args.kwargs, "create_vhost should receive internal_port"
 
     @pytest.mark.asyncio
     async def test_deployment_cleanup_on_failure(self, app_service, sample_app_create):
