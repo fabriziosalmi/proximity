@@ -64,8 +64,6 @@ class LoginPage(BasePage):
         """
         logger.info("Waiting for auth modal to appear")
         self.wait_for_selector(self.AUTH_MODAL, timeout=timeout)
-        # Wait for tabs to render
-        self.wait_for_selector(self.REGISTER_TAB, timeout=timeout)
     
     def wait_for_modal_close(self, timeout: int = 10000) -> None:
         """
@@ -85,73 +83,49 @@ class LoginPage(BasePage):
         """Switch from login mode to register mode."""
         logger.info("Switching to register mode")
         
-        # Check if we're already in register mode by checking if tab is active
-        register_tab = self.page.locator(self.REGISTER_TAB)
-        if register_tab.get_attribute("class") and "active" in register_tab.get_attribute("class"):
+        # Check if we're already in register mode
+        modal_title = self.get_text(self.MODAL_TITLE)
+        if "Register" in modal_title:
             logger.info("Already in register mode")
             return
         
-        # Click the register tab
-        self.click(self.REGISTER_TAB)
-        self.wait_for_selector(self.REGISTER_USERNAME_INPUT)
+        # Click the "Don't have an account?" link
+        self.click(self.SWITCH_TO_REGISTER_LINK)
+        self.wait_for_text("Register")
     
     def switch_to_login_mode(self) -> None:
         """Switch from register mode to login mode."""
         logger.info("Switching to login mode")
         
-        # Check if we're already in login mode by checking if tab is active
-        login_tab = self.page.locator(self.LOGIN_TAB)
-        if login_tab.get_attribute("class") and "active" in login_tab.get_attribute("class"):
+        # Check if we're already in login mode
+        modal_title = self.get_text(self.MODAL_TITLE)
+        if "Login" in modal_title:
             logger.info("Already in login mode")
             return
         
-        # Click the login tab
-        self.click(self.LOGIN_TAB)
-        self.wait_for_selector(self.LOGIN_USERNAME_INPUT)
+        # Click the "Already have an account?" link
+        self.click(self.SWITCH_TO_LOGIN_LINK)
+        self.wait_for_text("Login")
     
-    def fill_username(self, username: str, mode: str = "auto") -> None:
+    def fill_username(self, username: str) -> None:
         """
         Fill the username field.
         
         Args:
             username: Username to enter
-            mode: "login", "register", or "auto" (detects current mode)
         """
         logger.info(f"Filling username: {username}")
-        
-        # Auto-detect mode if not specified
-        if mode == "auto":
-            if self.is_visible(self.LOGIN_USERNAME_INPUT):
-                mode = "login"
-            elif self.is_visible(self.REGISTER_USERNAME_INPUT):
-                mode = "register"
-            else:
-                raise Exception("Could not detect login or register mode")
-        
-        selector = self.LOGIN_USERNAME_INPUT if mode == "login" else self.REGISTER_USERNAME_INPUT
-        self.fill(selector, username)
+        self.fill(self.USERNAME_INPUT, username)
     
-    def fill_password(self, password: str, mode: str = "auto") -> None:
+    def fill_password(self, password: str) -> None:
         """
         Fill the password field.
         
         Args:
             password: Password to enter
-            mode: "login", "register", or "auto" (detects current mode)
         """
         logger.info("Filling password")
-        
-        # Auto-detect mode if not specified
-        if mode == "auto":
-            if self.is_visible(self.LOGIN_PASSWORD_INPUT):
-                mode = "login"
-            elif self.is_visible(self.REGISTER_PASSWORD_INPUT):
-                mode = "register"
-            else:
-                raise Exception("Could not detect login or register mode")
-        
-        selector = self.LOGIN_PASSWORD_INPUT if mode == "login" else self.REGISTER_PASSWORD_INPUT
-        self.fill(selector, password)
+        self.fill(self.PASSWORD_INPUT, password)
     
     def fill_email(self, email: str) -> None:
         """
@@ -161,12 +135,12 @@ class LoginPage(BasePage):
             email: Email address to enter
         """
         logger.info(f"Filling email: {email}")
-        self.fill(self.REGISTER_EMAIL_INPUT, email)
+        self.fill(self.EMAIL_INPUT, email)
     
     def click_login_button(self) -> None:
-        """Click the Login submit button."""
-        logger.info("Clicking Login submit button")
-        self.click(self.LOGIN_SUBMIT_BUTTON)
+        """Click the Login button."""
+        logger.info("Clicking Login button")
+        self.click(self.LOGIN_BUTTON)
     
     def click_register_button(self) -> None:
         """Click the Register button."""
@@ -192,8 +166,8 @@ class LoginPage(BasePage):
         self.switch_to_login_mode()
         
         # Fill credentials
-        self.fill_username(username, mode="login")
-        self.fill_password(password, mode="login")
+        self.fill_username(username)
+        self.fill_password(password)
         
         # Submit
         self.click_login_button()
@@ -219,11 +193,11 @@ class LoginPage(BasePage):
         self.switch_to_register_mode()
         
         # Fill credentials
-        self.fill_username(username, mode="register")
-        self.fill_password(password, mode="register")
+        self.fill_username(username)
+        self.fill_password(password)
         
         # Fill email if provided
-        if email and self.is_visible(self.REGISTER_EMAIL_INPUT):
+        if email and self.is_visible(self.EMAIL_INPUT):
             self.fill_email(email)
         
         # Submit
@@ -253,9 +227,9 @@ class LoginPage(BasePage):
         # Wait a moment for potential error
         self.wait_for_timeout(2000)
         
-        # Check for error message in login error div
-        if self.is_visible(self.LOGIN_ERROR):
-            error_text = self.get_text(self.LOGIN_ERROR)
+        # Check for error message
+        if self.is_visible(self.ERROR_MESSAGE):
+            error_text = self.get_text(self.ERROR_MESSAGE)
             logger.info(f"Login error: {error_text}")
             return error_text
         
@@ -293,13 +267,11 @@ class LoginPage(BasePage):
     def assert_in_login_mode(self) -> None:
         """Assert that the modal is in login mode."""
         logger.info("Asserting login mode")
-        login_tab = self.page.locator(self.LOGIN_TAB)
-        tab_class = login_tab.get_attribute("class") or ""
-        assert "active" in tab_class, f"Login tab should be active, got class: {tab_class}"
+        modal_title = self.get_text(self.MODAL_TITLE)
+        assert "Login" in modal_title, f"Expected 'Login' in title, got: {modal_title}"
     
     def assert_in_register_mode(self) -> None:
         """Assert that the modal is in register mode."""
         logger.info("Asserting register mode")
-        register_tab = self.page.locator(self.REGISTER_TAB)
-        tab_class = register_tab.get_attribute("class") or ""
-        assert "active" in tab_class, f"Register tab should be active, got class: {tab_class}"
+        modal_title = self.get_text(self.MODAL_TITLE)
+        assert "Register" in modal_title, f"Expected 'Register' in title, got: {modal_title}"

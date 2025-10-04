@@ -184,10 +184,11 @@ def test_password_field_masking(page: Page):
     
     # Act
     login_page.wait_for_auth_modal()
-    login_page.fill_password("TestPassword123!")
+    # Use register mode password field (default mode on load)
+    login_page.fill_password("TestPassword123!", mode="register")
     
     # Assert - Password field is masked
-    password_input = page.locator(login_page.PASSWORD_INPUT)
+    password_input = page.locator(login_page.REGISTER_PASSWORD_INPUT)
     input_type = password_input.get_attribute("type")
     
     assert input_type == "password", \
@@ -200,7 +201,7 @@ def test_switch_between_login_and_register(page: Page):
     Test switching between login and register modes.
     
     Steps:
-    1. Start in login mode
+    1. Start in login mode (or register mode by default)
     2. Switch to register mode
     3. Verify register form elements
     4. Switch back to login mode
@@ -214,24 +215,27 @@ def test_switch_between_login_and_register(page: Page):
     
     login_page.wait_for_auth_modal()
     
-    # Act & Assert - Start in login mode
-    login_page.assert_in_login_mode()
-    
-    # Switch to register
+    # Act & Assert - Ensure we're in register mode first
     login_page.switch_to_register_mode()
     login_page.assert_in_register_mode()
     
-    # Register mode should show email field (optional)
-    # and different button text
-    modal_title = login_page.get_text(login_page.MODAL_TITLE)
-    assert "Register" in modal_title
+    # Verify register form elements are present
+    assert login_page.is_visible(login_page.REGISTER_USERNAME_INPUT), \
+        "Register username input should be visible"
+    assert login_page.is_visible(login_page.REGISTER_PASSWORD_INPUT), \
+        "Register password input should be visible"
+    assert login_page.is_visible(login_page.REGISTER_EMAIL_INPUT), \
+        "Register email input should be visible"
     
-    # Switch back to login
+    # Switch to login mode
     login_page.switch_to_login_mode()
     login_page.assert_in_login_mode()
     
-    modal_title = login_page.get_text(login_page.MODAL_TITLE)
-    assert "Login" in modal_title
+    # Verify login form elements are present
+    assert login_page.is_visible(login_page.LOGIN_USERNAME_INPUT), \
+        "Login username input should be visible"
+    assert login_page.is_visible(login_page.LOGIN_PASSWORD_INPUT), \
+        "Login password input should be visible"
 
 
 @pytest.mark.auth

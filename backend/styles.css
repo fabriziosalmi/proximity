@@ -1469,6 +1469,11 @@ a.connection-value:hover::after {
     display: flex;
 }
 
+/* Prevent body scrolling when modal is open */
+body.modal-open {
+    overflow: hidden;
+}
+
 .modal-content {
     background: var(--bg-secondary);
     backdrop-filter: blur(20px);
