@@ -109,17 +109,23 @@ class DashboardPage(BasePage):
         """Perform logout action."""
         logger.info("Logging out")
         
-        # Click user menu if it's a dropdown
-        if self.is_visible(self.USER_MENU):
-            self.click(self.USER_MENU)
-            self.wait_for_timeout(500)
+        # The logout button is inside a dropdown menu, so we need to open it first
+        # Wait for the user menu toggle to be visible and click it
+        logger.info("Opening user menu dropdown")
+        user_info = self.page.locator(".user-info")
+        user_info.wait_for(state="visible", timeout=10000)
+        user_info.click()
         
-        # Click logout button
-        self.click(self.LOGOUT_BUTTON)
+        # Wait for the dropdown menu to appear
+        self.wait_for_timeout(500)
         
-        # Wait for auth modal to reappear
-        self.wait_for_selector("#authModal", timeout=10000)
-        logger.info("Logout successful")
+        # Now click the logout button (it should be visible in the dropdown)
+        logger.info("Clicking logout button")
+        logout_link = self.page.locator(".user-menu-item.logout")
+        logout_link.wait_for(state="visible", timeout=5000)
+        logout_link.click()
+        
+        logger.info("Logout action completed")
     
     # ========================================================================
     # Dashboard Content Methods
