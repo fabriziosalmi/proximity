@@ -13,13 +13,24 @@ backend_path = Path(__file__).parent.parent / "backend"
 sys.path.insert(0, str(backend_path))
 
 from main import create_app
+from models.database import get_db
 from services.auth_service import AuthService
 
 
 @pytest.fixture
-def client():
-    """Create test client."""
+def client(db_session):
+    """Create test client with test database."""
     app = create_app()
+    
+    # Override database dependency to use test database
+    def override_get_db():
+        try:
+            yield db_session
+        finally:
+            pass  # Session cleanup handled by db_session fixture
+    
+    app.dependency_overrides[get_db] = override_get_db
+    
     return TestClient(app)
 
 

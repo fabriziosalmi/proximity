@@ -8,6 +8,7 @@ from pathlib import Path
 from unittest.mock import Mock, AsyncMock
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.pool import StaticPool
 
 # Add backend to path
 backend_path = Path(__file__).parent.parent / "backend"
@@ -21,7 +22,13 @@ from services.auth_service import AuthService
 @pytest.fixture(scope="session")
 def test_db_engine():
     """Create a test database engine."""
-    engine = create_engine("sqlite:///:memory:", echo=False)
+    # Use StaticPool to share the same connection across threads (needed for TestClient)
+    engine = create_engine(
+        "sqlite:///:memory:",
+        echo=False,
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool
+    )
     Base.metadata.create_all(engine)
     yield engine
     engine.dispose()
@@ -36,12 +43,13 @@ def db_session(test_db_engine):
     yield session
 
     session.rollback()
-    session.close()
     
     # Clean all tables after each test to ensure isolation
     for table in reversed(Base.metadata.sorted_tables):
         session.execute(table.delete())
     session.commit()
+    
+    session.close()
 
 
 @pytest.fixture
