@@ -4,6 +4,13 @@
 
 Proximity is a cloud-native application delivery platform that abstracts the complexity of Proxmox VE, providing a simple, web-based interface for deploying and managing containerized applications. Think Heroku or Cloudron, but for your own Proxmox infrastructure.
 
+---
+
+[![Tests](https://img.shields.io/badge/tests-250%2B%20passing-success)](tests/)
+[![E2E Tests](https://img.shields.io/badge/E2E-Playwright%20%2B%20Pytest-blue)](e2e_tests/)
+[![Security](https://img.shields.io/badge/security-hardened-green)](#-security)
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
 ## 🌟 Features
 
 - **One-Click App Deployment**: Deploy applications from a curated catalog with a single click
@@ -94,6 +101,7 @@ Proximity uses a **fully isolated network architecture** powered by a dedicated 
 - **[Changelog](docs/CHANGELOG.md)** - Version history and release notes
 - **[Security Refactoring](docs/SECURITY_REFACTORING_SAFE_COMMANDS.md)** - Safe command system documentation
 - **[Safe Commands Reference](docs/SAFE_COMMANDS_REFERENCE.md)** - Quick reference for secure container commands
+- **[E2E Testing Guide](e2e_tests/README.md)** - End-to-end testing with Playwright and Pytest
 
 ## 🔒 Security
 
@@ -232,11 +240,50 @@ cp .env.example .env
 python main.py
 ```
 
+### Running Tests
+
+**Unit and Integration Tests (250+ tests):**
+```bash
+cd tests/
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+pytest -v
+```
+
+**End-to-End Tests (Playwright):**
+```bash
+cd e2e_tests/
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+playwright install chromium
+
+# Run all E2E tests
+pytest -v
+
+# Run specific test suite
+pytest test_auth_flow.py -v
+
+# Run with headed browser (watch tests run)
+pytest --headed -v
+
+# Run smoke tests only
+pytest -m smoke -v
+```
+
+See [E2E Testing Guide](e2e_tests/README.md) for comprehensive testing documentation.
+
 ### Contributing
 
 We welcome contributions! Please see:
 - **[Development Guide](docs/development.md)** for code structure and workflow
 - **[Contributing](CONTRIBUTING.md)** for contribution guidelines
+
+**Testing:**
+- **Unit Tests**: Run `pytest` in the `tests/` directory (250+ tests)
+- **E2E Tests**: Run `pytest` in the `e2e_tests/` directory (Playwright-based browser tests)
+- See [E2E Testing Guide](e2e_tests/README.md) for comprehensive testing documentation
 
 ### Project Structure
 
@@ -256,6 +303,12 @@ proximity/
 │   ├── deployment.md
 │   ├── development.md
 │   └── troubleshooting.md
+├── e2e_tests/               # End-to-end tests
+│   ├── pages/               # Page Object Model
+│   ├── utils/               # Test utilities
+│   ├── conftest.py          # Pytest fixtures
+│   └── test_*.py            # Test suites
+├── tests/                   # Unit and integration tests
 └── README.md
 ```
 
@@ -275,8 +328,11 @@ proximity/
 - [x] **Safe Command System** - Secure, predefined command execution (Oct 2025)
 - [x] **Audit Logging** - Complete command execution tracking (Oct 2025)
 - [x] **Command Injection Prevention** - Eliminated arbitrary command execution (Oct 2025)
+- [x] **Comprehensive Test Suite** - 250+ unit/integration tests + E2E tests with Playwright (Oct 2025)
+- [x] **E2E Testing Framework** - Page Object Model pattern with Pytest and Playwright (Oct 2025)
 
 ### 🚧 In Progress
+- [ ] Complete E2E test coverage (app lifecycle, settings, infrastructure)
 - [ ] Advanced dashboard with real-time metrics
 - [ ] Application health monitoring
 - [ ] Log aggregation and search

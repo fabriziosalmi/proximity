@@ -10,6 +10,7 @@ This guide covers common issues, debugging techniques, and solutions for problem
 - [Container Problems](#container-problems)
 - [Performance Issues](#performance-issues)
 - [Safe Command Console](#safe-command-console)
+- [E2E Testing Issues](#e2e-testing-issues)
 - [Bug Fixes & Patches](#bug-fixes--patches)
 
 ---
@@ -590,6 +591,176 @@ services:
         limits:
           cpus: '2'
           memory: 2G
+```
+
+---
+
+## E2E Testing Issues
+
+### pytest-playwright Not Found
+
+**Problem**: Tests fail with "fixture 'browser' not found" or "fixture 'context' not found"
+
+**Symptoms:**
+```
+E   fixture 'browser' not found
+E   fixture 'context' not found
+```
+
+**Solution:**
+
+1. **Ensure pytest-playwright is installed:**
+   ```bash
+   cd e2e_tests/
+   pip install -r requirements.txt
+   playwright install chromium
+   ```
+
+2. **Run pytest with python -m:**
+   ```bash
+   python -m pytest -v
+   ```
+
+3. **Verify plugin is loaded:**
+   ```bash
+   pytest --version
+   # Should show playwright in plugins list
+   ```
+
+### Connection Refused Error
+
+**Problem**: Tests fail with "net::ERR_CONNECTION_REFUSED"
+
+**Symptoms:**
+```
+Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+```
+
+**Solution:**
+
+1. **Start Proximity backend:**
+   ```bash
+   cd backend/
+   source venv/bin/activate
+   python main.py
+   ```
+
+2. **Verify server is running:**
+   ```bash
+   curl http://127.0.0.1:8765/
+   # Should return HTML
+   ```
+
+3. **Update test URL if needed:**
+   ```bash
+   export PROXIMITY_E2E_URL=http://localhost:8765
+   pytest -v
+   ```
+
+### Invalid pytest.ini Configuration
+
+**Problem**: pytest fails with "unrecognized arguments: --headed"
+
+**Symptoms:**
+```
+pytest: error: unrecognized arguments: --headed --headless for CI
+```
+
+**Solution:**
+
+The `pytest.ini` file should not include `--headed` in `addopts`. Use command-line flags instead:
+
+```bash
+# Headless mode (default)
+pytest -v
+
+# Headed mode (watch browser)
+pytest --headed -v
+
+# Slow motion for debugging
+pytest --headed --slowmo 1000 -v
+```
+
+### Browser Not Installed
+
+**Problem**: Tests fail with "Executable doesn't exist"
+
+**Symptoms:**
+```
+Error: browserType.launch: Executable doesn't exist at ...
+```
+
+**Solution:**
+
+```bash
+# Install Chromium
+playwright install chromium
+
+# Or install all browsers
+playwright install
+```
+
+### Test Timeouts
+
+**Problem**: Tests fail with timeout errors
+
+**Symptoms:**
+```
+Error: page.wait_for_selector: Timeout 30000ms exceeded
+```
+
+**Solutions:**
+
+1. **Increase timeout in environment:**
+   ```bash
+   export TIMEOUT=60000
+   pytest -v
+   ```
+
+2. **Use slow motion for debugging:**
+   ```bash
+   export SLOW_MO=500
+   pytest --headed -v
+   ```
+
+3. **Check element selectors:**
+   ```python
+   # Use more robust selectors
+   page.wait_for_selector("#username", timeout=60000)
+   ```
+
+### Running Specific Tests
+
+**Run all tests:**
+```bash
+cd e2e_tests/
+python -m pytest -v
+```
+
+**Run specific test file:**
+```bash
+python -m pytest test_auth_flow.py -v
+```
+
+**Run specific test:**
+```bash
+python -m pytest test_auth_flow.py::test_registration_and_login -v
+```
+
+**Run tests by marker:**
+```bash
+python -m pytest -m smoke -v  # Smoke tests only
+python -m pytest -m auth -v   # Authentication tests only
+```
+
+**Run in headed mode (watch browser):**
+```bash
+python -m pytest --headed -v
+```
+
+**Run with screenshots on failure:**
+```bash
+python -m pytest --screenshot on -v
 ```
 
 ---

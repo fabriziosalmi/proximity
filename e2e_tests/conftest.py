@@ -8,7 +8,7 @@ and test data generation.
 import os
 import pytest
 from typing import Generator
-from playwright.sync_api import Page, Browser, BrowserContext, Playwright
+from playwright.sync_api import Page, BrowserContext
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -55,13 +55,14 @@ def timeout() -> int:
 
 
 # ============================================================================
-# Browser Fixtures
+# Browser Fixtures (using pytest-playwright)
 # ============================================================================
 
 @pytest.fixture(scope="session")
 def browser_type_launch_args(slow_mo: int, headless: bool) -> dict:
     """
     Launch arguments for the browser.
+    This is used by pytest-playwright's browser fixture.
     """
     return {
         "headless": headless,
@@ -76,6 +77,7 @@ def browser_type_launch_args(slow_mo: int, headless: bool) -> dict:
 def browser_context_args() -> dict:
     """
     Context arguments for browser isolation.
+    This is used by pytest-playwright's context fixture.
     """
     return {
         "viewport": {"width": 1920, "height": 1080},
@@ -84,37 +86,20 @@ def browser_context_args() -> dict:
     }
 
 
-@pytest.fixture(scope="function")
-def context(browser: Browser, browser_context_args: dict, base_url: str, timeout: int) -> Generator[BrowserContext, None, None]:
-    """
-    Create a new browser context for each test (isolation).
-    Automatically sets default timeout and navigation timeout.
-    """
-    ctx = browser.new_context(**browser_context_args)
-    ctx.set_default_timeout(timeout)
-    ctx.set_default_navigation_timeout(timeout)
-    
-    yield ctx
-    
-    # Cleanup: Close context and all pages
-    ctx.close()
-
-
-@pytest.fixture(scope="function")
+@pytest.fixture
 def page(context: BrowserContext, base_url: str) -> Generator[Page, None, None]:
     """
     Create a new page for each test.
-    Automatically navigates to base URL.
+    Automatically navigates to base URL and sets timeout.
+    Note: 'context' is provided by pytest-playwright.
     """
     page = context.new_page()
+    page.set_default_timeout(int(os.getenv("TIMEOUT", "30000")))
     page.goto(base_url)
     
     yield page
     
-    # Take screenshot on failure (captured by pytest)
-    if hasattr(page, "_test_failed"):
-        page.screenshot(path=f"screenshots/failure_{page._test_name}.png")
-    
+    # Cleanup
     page.close()
 
 
