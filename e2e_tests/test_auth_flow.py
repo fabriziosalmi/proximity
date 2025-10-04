@@ -237,11 +237,11 @@ def test_invalid_login(page: Page):
     print("📋 Step 8: Verifying modal still visible")
     login_page.assert_auth_modal_visible()
     
-    # Verify dashboard not accessible (should be hidden or not present)
-    print("📋 Step 9: Verifying dashboard is NOT accessible")
-    # After failed login, dashboard should remain hidden
-    expect(dashboard_page.dashboard_container).to_be_hidden(timeout=2000)
-    print("✓ Dashboard is not visible - access properly denied")
+    # Verify user is NOT authenticated (no token stored after failed login)
+    print("📋 Step 9: Verifying user is NOT authenticated (no token saved)")
+    token = page.evaluate("localStorage.getItem('proximity_token')")
+    assert token is None, f"Token should not be saved after failed login, but found: {token}"
+    print("✓ No auth token stored - access properly denied")
     
     print("✅ Test passed: Invalid login correctly rejected")
 
