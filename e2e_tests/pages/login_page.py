@@ -52,6 +52,45 @@ class LoginPage(BasePage):
         super().__init__(page)
     
     # ========================================================================
+    # Locator Properties (for use with expect() assertions)
+    # ========================================================================
+    
+    @property
+    def modal(self):
+        """
+        Return a Locator for the authentication modal.
+        
+        This property is designed for use with Playwright's expect() assertions,
+        which provide automatic retrying and are the recommended way to wait for
+        async UI updates.
+        
+        Example:
+            expect(login_page.modal).to_be_hidden(timeout=15000)
+            expect(login_page.modal).to_be_visible(timeout=10000)
+        
+        Returns:
+            Playwright Locator for the auth modal element
+        """
+        return self.page.locator(self.AUTH_MODAL)
+    
+    @property
+    def login_error_element(self):
+        """
+        Return a Locator for the login error message element.
+        
+        This property is designed for use with Playwright's expect() assertions
+        to wait for error messages to appear after failed login attempts.
+        
+        Example:
+            expect(login_page.login_error_element).to_be_visible()
+            expect(login_page.login_error_element).to_contain_text("Invalid")
+        
+        Returns:
+            Playwright Locator for the login error element
+        """
+        return self.page.locator(self.LOGIN_ERROR)
+    
+    # ========================================================================
     # Wait Methods
     # ========================================================================
     

@@ -46,6 +46,27 @@ class DashboardPage(BasePage):
         super().__init__(page)
     
     # ========================================================================
+    # Locator Properties (for use with expect() assertions)
+    # ========================================================================
+    
+    @property
+    def dashboard_container(self):
+        """
+        Return a Locator for the main dashboard container.
+        
+        This property is designed for use with Playwright's expect() assertions,
+        which provide automatic retrying and are the recommended way to wait for
+        async UI updates (e.g., after auto-login completes).
+        
+        Example:
+            expect(dashboard_page.dashboard_container).to_be_visible(timeout=15000)
+        
+        Returns:
+            Playwright Locator for the dashboard view element
+        """
+        return self.page.locator(self.DASHBOARD_VIEW)
+    
+    # ========================================================================
     # Wait Methods
     # ========================================================================
     

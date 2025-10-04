@@ -6,7 +6,7 @@ Validates JWT token management and session persistence.
 """
 
 import pytest
-from playwright.sync_api import Page
+from playwright.sync_api import Page, expect
 from pages.login_page import LoginPage
 from pages.dashboard_page import DashboardPage
 from utils.test_data import generate_test_user
@@ -16,27 +16,24 @@ from utils.test_data import generate_test_user
 @pytest.mark.auth
 def test_registration_and_login(page: Page):
     """
-    Test complete registration and login flow.
+    Test complete registration and auto-login flow.
     
-    This test validates the ACTUAL UX flow where registration automatically
-    switches to the login tab with pre-filled credentials, but does NOT auto-login.
-    The user must click the login button to complete authentication.
+    UPDATED: This test now reflects the improved UX where registration returns a JWT token
+    and the frontend automatically logs the user in and closes the modal. The test uses
+    Playwright's robust expect() assertions to wait for the asynchronous auto-login to complete.
     
     Steps:
     1. Navigate to Proximity UI
     2. Fill registration form with unique credentials
     3. Submit registration
-    4. Wait for success notification
-    5. Verify modal switches to login tab (automatic)
-    6. Verify username is pre-filled in login form
-    7. Click login button to complete authentication
-    8. Verify modal closes
-    9. Verify dashboard is visible
+    4. Wait for auto-login to complete by waiting for dashboard to appear
+    5. Verify modal is closed
+    6. Verify dashboard is visible
     
-    Expected: User successfully registered, must manually click login,
-              then dashboard loads and auth modal is hidden.
+    Expected: User successfully registered, automatically logged in,
+              dashboard loads and auth modal is hidden.
     """
-    print("\n🔍 Test: Registration and Login Flow")
+    print("\n🔍 Test: Registration and Auto-Login Flow")
     
     # Arrange
     test_user = generate_test_user()
@@ -61,29 +58,35 @@ def test_registration_and_login(page: Page):
     print("📋 Step 4: Clicking register button")
     login_page.click_register_button()
     
-    # Assert - Verify registration success and auto-switch to login
-    print("📋 Step 5: Waiting for success notification (optional)")
-    page.wait_for_timeout(2000)  # Give time for registration to process
+    # --- CRITICAL FIX: Wait for auto-login to complete ---
+    # After registration, the backend returns a JWT token and the frontend
+    # automatically logs the user in, which involves:
+    # 1. Storing the token in localStorage
+    # 2. Closing the auth modal
+    # 3. Loading the dashboard data
+    # 4. Updating the UI to show the dashboard
+    # 
+    # We MUST wait for the dashboard to appear, which confirms all these
+    # asynchronous steps have completed.
+    print("📋 Step 5: Waiting for dashboard to appear (confirms auto-login completed)")
     
-    print("📋 Step 6: Verifying modal switched to login tab")
-    login_page.assert_in_login_mode()
+    # Use Playwright's expect() with auto-retrying assertion
+    # This is the recommended pattern for waiting on async UI updates
+    expect(dashboard_page.dashboard_container).to_be_visible(timeout=15000)
+    print("✓ Dashboard is now visible - auto-login completed successfully")
     
-    print("📋 Step 7: Verifying username is pre-filled")
-    login_page.assert_username_prefilled(test_user["username"])
+    # --- END OF CRITICAL FIX ---
     
-    print("📋 Step 8: Clicking login button to complete authentication")
-    login_page.click_login_button()
+    # Now that we know the dashboard is visible, we can safely verify other things
+    print("📋 Step 6: Verifying modal is closed")
+    expect(login_page.modal).to_be_hidden()
+    print("✓ Auth modal is hidden")
     
-    print("📋 Step 9: Verifying modal closes")
-    login_page.assert_auth_modal_hidden()
-    
-    print("📋 Step 10: Verifying dashboard is visible")
-    dashboard_page.wait_for_dashboard_load()
+    print("📋 Step 7: Verifying we're on the dashboard")
     dashboard_page.assert_on_dashboard()
     
-    # Additional verification - Check if we're truly authenticated
-    # The dashboard being visible and modal being hidden is sufficient proof
-    print("✅ Test passed: Registration and login flow works correctly")
+    # Additional verification - Dashboard should have loaded properly
+    print("✅ Test passed: Registration with auto-login works correctly")
 
 
 @pytest.mark.auth
