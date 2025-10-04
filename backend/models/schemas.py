@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, validator, EmailStr
+from pydantic import BaseModel, Field, field_validator, EmailStr, ConfigDict
 from typing import List, Optional, Dict, Any, Union
 from enum import Enum
 from datetime import datetime
@@ -110,7 +110,8 @@ class AppCreate(BaseModel):
     environment: Dict[str, str] = Field(default_factory=dict, description="Custom environment variables")
     node: Optional[str] = Field(None, description="Target Proxmox node (auto-select if not specified)")
     
-    @validator('hostname')
+    @field_validator('hostname')
+    @classmethod
     def validate_hostname(cls, v):
         if not v.replace('-', '').replace('_', '').isalnum():
             raise ValueError('Hostname must contain only alphanumeric characters, hyphens, and underscores')
@@ -130,7 +131,8 @@ class AppAction(BaseModel):
     """Application action request"""
     action: str = Field(..., description="Action to perform: start, stop, restart, rebuild")
     
-    @validator('action')
+    @field_validator('action')
+    @classmethod
     def validate_action(cls, v):
         allowed_actions = ['start', 'stop', 'restart', 'rebuild']
         if v not in allowed_actions:
@@ -206,13 +208,15 @@ class UserCreate(BaseModel):
     password: str = Field(..., min_length=8)
     role: str = Field(default="user")
 
-    @validator('username')
+    @field_validator('username')
+    @classmethod
     def validate_username(cls, v):
         if not v.replace('-', '').replace('_', '').isalnum():
             raise ValueError('Username must contain only alphanumeric characters, hyphens, and underscores')
         return v.lower()
 
-    @validator('role')
+    @field_validator('role')
+    @classmethod
     def validate_role(cls, v):
         if v not in ['user', 'admin']:
             raise ValueError('Role must be either "user" or "admin"')
@@ -234,8 +238,7 @@ class UserResponse(BaseModel):
     is_active: bool
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class Token(BaseModel):
