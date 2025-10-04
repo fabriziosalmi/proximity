@@ -63,7 +63,7 @@ async def register(
     )
 
     # Return token with user info
-    user_response = UserResponse.from_orm(user)
+    user_response = UserResponse.model_validate(user)
 
     return Token(
         access_token=access_token,
@@ -111,7 +111,7 @@ async def login(
     )
 
     # Return token with user info
-    user_response = UserResponse.from_orm(user)
+    user_response = UserResponse.model_validate(user)
 
     logger.info(f"User '{user.username}' logged in from {request.client.host}")
 
@@ -162,7 +162,7 @@ async def get_current_user_info(
     """
     Get current authenticated user information.
     """
-    return UserResponse.from_orm(current_user)
+    return UserResponse.model_validate(current_user)
 
 
 @router.post("/change-password")
@@ -227,7 +227,7 @@ async def refresh_token(
         }
     )
 
-    user_response = UserResponse.from_orm(user)
+    user_response = UserResponse.model_validate(user)
 
     return Token(
         access_token=access_token,
