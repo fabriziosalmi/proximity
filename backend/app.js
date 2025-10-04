@@ -2849,3 +2849,138 @@ function setupEventListeners() {
 
 // Initialize on load
 document.addEventListener('DOMContentLoaded', init);
+
+// --- Auth Modal (Register/Login) Logic ---
+// Show Auth Modal (Register/Login)
+function showAuthModal() {
+        const modal = document.getElementById('authModal');
+        const body = document.getElementById('authModalBody');
+        modal.classList.add('show');
+        renderAuthTabs('register');
+}
+
+function closeAuthModal() {
+        document.getElementById('authModal').classList.remove('show');
+}
+
+function renderAuthTabs(defaultTab = 'register') {
+        const body = document.getElementById('authModalBody');
+        body.innerHTML = `
+            <div class="auth-tabs">
+                <button id="registerTab" class="auth-tab ${defaultTab === 'register' ? 'active' : ''}" onclick="switchAuthTab('register')">Register</button>
+                <button id="loginTab" class="auth-tab ${defaultTab === 'login' ? 'active' : ''}" onclick="switchAuthTab('login')">Login</button>
+            </div>
+            <div id="authTabContent"></div>
+        `;
+        switchAuthTab(defaultTab);
+}
+
+function switchAuthTab(tab) {
+        document.getElementById('registerTab').classList.toggle('active', tab === 'register');
+        document.getElementById('loginTab').classList.toggle('active', tab === 'login');
+        if (tab === 'register') {
+                renderRegisterForm();
+        } else {
+                renderLoginForm();
+        }
+}
+
+function renderRegisterForm() {
+        const content = document.getElementById('authTabContent');
+        content.innerHTML = `
+            <form id="registerForm" class="auth-form">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="registerUsername" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="registerPassword" required autocomplete="new-password">
+                </div>
+                <div class="form-group">
+                    <label>Email (optional)</label>
+                    <input type="email" id="registerEmail" autocomplete="email">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width:100%;margin-top:1rem;">Register</button>
+                <div id="registerError" class="form-error"></div>
+            </form>
+        `;
+        document.getElementById('registerForm').onsubmit = handleRegisterSubmit;
+}
+
+function renderLoginForm(prefill = {}) {
+        const content = document.getElementById('authTabContent');
+        content.innerHTML = `
+            <form id="loginForm" class="auth-form">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="loginUsername" required autocomplete="username" value="${prefill.username || ''}">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="loginPassword" required autocomplete="current-password" value="${prefill.password || ''}">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width:100%;margin-top:1rem;">Login</button>
+                <div id="loginError" class="form-error"></div>
+            </form>
+        `;
+        document.getElementById('loginForm').onsubmit = handleLoginSubmit;
+}
+
+async function handleRegisterSubmit(e) {
+        e.preventDefault();
+        const username = document.getElementById('registerUsername').value.trim();
+        const password = document.getElementById('registerPassword').value;
+        const email = document.getElementById('registerEmail').value.trim();
+        const errorDiv = document.getElementById('registerError');
+        errorDiv.textContent = '';
+        try {
+                const res = await fetch(`${API_BASE}/auth/register`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password, email })
+                });
+                if (!res.ok) {
+                        const err = await res.json();
+                        errorDiv.textContent = err.detail || 'Registration failed.';
+                        return;
+                }
+                // Registration successful, auto-fill login form
+                renderAuthTabs('login');
+                renderLoginForm({ username, password });
+                showNotification('Registration successful! Please log in.', 'success');
+        } catch (err) {
+                errorDiv.textContent = 'Network error.';
+        }
+}
+
+async function handleLoginSubmit(e) {
+        e.preventDefault();
+        const username = document.getElementById('loginUsername').value.trim();
+        const password = document.getElementById('loginPassword').value;
+        const errorDiv = document.getElementById('loginError');
+        errorDiv.textContent = '';
+        try {
+                const res = await fetch(`${API_BASE}/auth/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                });
+                if (!res.ok) {
+                        const err = await res.json();
+                        errorDiv.textContent = err.detail || 'Login failed.';
+                        return;
+                }
+                const data = await res.json();
+                Auth.setToken(data.access_token, data.user);
+                closeAuthModal();
+                showNotification('Login successful!', 'success');
+                // Re-init app
+                setTimeout(() => window.location.reload(), 500);
+        } catch (err) {
+                errorDiv.textContent = 'Network error.';
+        }
+}
+
+// Patch: override showLoginModal to showAuthModal for legacy calls
+window.showLoginModal = showAuthModal;
