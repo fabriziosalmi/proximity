@@ -11,6 +11,7 @@ from models.schemas import (
 from models.database import AuditLog, get_db
 from services.app_service import AppService, AppServiceError, get_app_service
 from services.command_service import SafeCommandService, SafeCommandError, get_command_service
+from services.monitoring_service import get_monitoring_service
 from api.middleware.auth import get_current_user
 from core.exceptions import (
     ProximityError,
@@ -480,3 +481,64 @@ async def update_app(
     except Exception as e:
         logger.error(f"Unexpected error updating app {app_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Update failed: {str(e)}")
+
+
+@router.get("/{app_id}/stats/current")
+async def get_app_current_stats(
+    app_id: str,
+    service: AppService = Depends(get_app_service),
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Get current resource usage statistics for an application.
+
+    This endpoint provides real-time CPU, RAM, and disk usage metrics
+    with intelligent caching to ensure scalability.
+
+    Performance Characteristics:
+    - Cache-first design: Sub-millisecond response on cache hit
+    - 10-second TTL prevents API abuse
+    - Zero overhead when not actively monitored
+
+    Args:
+        app_id: Application ID
+        service: Injected AppService
+        current_user: Authenticated user from token
+
+    Returns:
+        Dict with current metrics:
+        {
+            "cpu_percent": 15.2,
+            "mem_used_gb": 1.2,
+            "mem_total_gb": 4.0,
+            "mem_percent": 30.0,
+            "disk_used_gb": 5.5,
+            "disk_total_gb": 20.0,
+            "disk_percent": 27.5,
+            "uptime_seconds": 3600,
+            "status": "running",
+            "cached": true,
+            "timestamp": "2025-10-04T12:34:56Z"
+        }
+
+    Raises:
+        404: App not found
+        500: Proxmox API error
+    """
+    try:
+        # Get app from database
+        app = await service.get_app(app_id)
+
+        # Get monitoring service
+        monitoring_service = get_monitoring_service(service.proxmox_service)
+
+        # Fetch current stats (with caching)
+        stats = await monitoring_service.get_current_app_stats(app)
+
+        return stats
+
+    except AppNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        logger.error(f"Failed to get stats for app {app_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to fetch stats: {str(e)}")

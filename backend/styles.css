@@ -2868,3 +2868,175 @@ body.modal-open {
     font-family: 'Monaco', 'Courier New', monospace;
     font-size: 0.85rem;
 }
+
+/* =============================================================================
+   MONITORING - At-a-Glance Resource Usage
+   ============================================================================= */
+
+.monitoring-container {
+    padding: 0;
+}
+
+.monitoring-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.monitoring-status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    background: var(--bg-secondary);
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+}
+
+.status-indicator.status-running {
+    color: var(--success);
+}
+
+.status-indicator.status-stopped {
+    color: var(--text-tertiary);
+}
+
+.status-indicator.status-unknown {
+    color: var(--text-secondary);
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.monitoring-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.meta-separator {
+    opacity: 0.5;
+}
+
+.monitoring-gauges {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    padding: 1.5rem;
+}
+
+.gauge-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    transition: all 0.2s ease;
+}
+
+.gauge-card:hover {
+    border-color: var(--primary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.gauge-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.gauge-icon {
+    width: 16px;
+    height: 16px;
+    color: var(--text-secondary);
+}
+
+.gauge-title {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.gauge-value {
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.75rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.gauge-bar-container {
+    height: 8px;
+    background: var(--bg-secondary);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.gauge-bar {
+    height: 100%;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    background: var(--success);
+}
+
+.gauge-bar.gauge-ok {
+    background: linear-gradient(90deg, var(--success), #059669);
+}
+
+.gauge-bar.gauge-warning {
+    background: linear-gradient(90deg, #f59e0b, #d97706);
+}
+
+.gauge-bar.gauge-critical {
+    background: linear-gradient(90deg, #ef4444, #dc2626);
+}
+
+.gauge-label {
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+    text-align: center;
+}
+
+.monitoring-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.cache-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+}
+
+.cache-indicator.cached {
+    color: var(--primary);
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}

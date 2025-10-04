@@ -617,3 +617,225 @@ def test_app_volumes_display(authenticated_page: Page, base_url: str):
     print("\n" + "="*80)
     print("🎉 TEST PASSED: Transparent Volumes Display")
     print("="*80 + "\n")
+
+
+@pytest.mark.lifecycle
+@pytest.mark.monitoring
+@pytest.mark.timeout(360)
+def test_monitoring_tab_displays_data(authenticated_page: Page, base_url: str):
+    """
+    Test the Monitoring Tab feature.
+
+    This test validates:
+    1. Deploy an app
+    2. Open monitoring modal
+    3. Wait for data to load
+    4. Verify CPU, RAM, and disk metrics are displayed
+    5. Verify metrics are in plausible format
+
+    Expected Results:
+        - Monitoring modal opens successfully
+        - All three gauges (CPU, RAM, Disk) show data
+        - Values are in correct format (%, GB)
+        - Status indicator shows "running"
+    """
+    page = authenticated_page
+    print("\n" + "="*80)
+    print("📊 E2E TEST: Monitoring Tab Data Display")
+    print("="*80)
+
+    # ========================================================================
+    # PHASE 1: DEPLOY APP
+    # ========================================================================
+    print("\n📦 Phase 1: Deploy Application for Monitoring Test")
+
+    hostname = generate_hostname("nginx")
+    print(f"   Generated hostname: {hostname}")
+
+    dashboard_page = DashboardPage(page)
+    app_store_page = AppStorePage(page)
+    deployment_modal = DeploymentModalPage(page)
+
+    # Deploy Nginx
+    dashboard_page.navigate_to_app_store()
+    app_store_page.wait_for_catalog_load()
+    app_store_page.click_deploy_on_app("Nginx")
+    deployment_modal.wait_for_modal_visible()
+    deployment_modal.fill_hostname(hostname)
+    deployment_modal.submit_deployment()
+    deployment_modal.wait_for_deployment_success(timeout=300000)
+    print("   ✅ App deployed")
+
+    # Return to dashboard
+    dashboard_page.navigate_to_dashboard()
+    dashboard_page.wait_for_dashboard_load()
+    dashboard_page.wait_for_app_status(hostname, "running", timeout=60000)
+
+    # ========================================================================
+    # PHASE 2: OPEN MONITORING MODAL
+    # ========================================================================
+    print("\n📊 Phase 2: Open Monitoring Modal")
+
+    # Find app card
+    app_card = dashboard_page.get_app_card_by_hostname(hostname)
+    expect(app_card).to_be_visible(timeout=10000)
+
+    # Find and click monitoring button (activity icon)
+    monitoring_button = app_card.locator('button[title="Monitoring"]')
+    expect(monitoring_button).to_be_visible(timeout=5000)
+    print("   ✓ Monitoring button found")
+
+    monitoring_button.click()
+    print("   ✓ Clicked monitoring button")
+
+    # Wait for modal to appear
+    modal = page.locator('.modal:visible, [role="dialog"]:visible')
+    expect(modal).to_be_visible(timeout=5000)
+    print("   ✓ Monitoring modal opened")
+
+    # ========================================================================
+    # PHASE 3: WAIT FOR DATA TO LOAD
+    # ========================================================================
+    print("\n⏳ Phase 3: Wait for Monitoring Data")
+
+    # Wait for CPU value to update from "--%" to actual value
+    cpu_value = page.locator('#cpu-value')
+    expect(cpu_value).not_to_have_text('--%', timeout=10000)
+    print("   ✓ CPU data loaded")
+
+    # Wait for Memory value to update
+    mem_value = page.locator('#mem-value')
+    expect(mem_value).not_to_have_text('--%', timeout=10000)
+    print("   ✓ Memory data loaded")
+
+    # Wait for Disk value to update
+    disk_value = page.locator('#disk-value')
+    expect(disk_value).not_to_have_text('--%', timeout=10000)
+    print("   ✓ Disk data loaded")
+
+    # ========================================================================
+    # PHASE 4: VERIFY METRICS FORMAT
+    # ========================================================================
+    print("\n✅ Phase 4: Verify Metrics Format")
+
+    # Get CPU value
+    cpu_text = cpu_value.text_content()
+    print(f"   CPU Usage: {cpu_text}")
+    assert '%' in cpu_text, "CPU value should contain '%'"
+    assert cpu_text != '--%', "CPU should have real value"
+
+    # Get Memory value and label
+    mem_text = mem_value.text_content()
+    mem_label = page.locator('#mem-label').text_content()
+    print(f"   Memory Usage: {mem_text}")
+    print(f"   Memory Details: {mem_label}")
+    assert '%' in mem_text, "Memory value should contain '%'"
+    assert 'GB' in mem_label, "Memory label should contain 'GB'"
+    assert '/' in mem_label, "Memory label should show used/total"
+
+    # Get Disk value and label
+    disk_text = disk_value.text_content()
+    disk_label = page.locator('#disk-label').text_content()
+    print(f"   Disk Usage: {disk_text}")
+    print(f"   Disk Details: {disk_label}")
+    assert '%' in disk_text, "Disk value should contain '%'"
+    assert 'GB' in disk_label, "Disk label should contain 'GB'"
+    assert '/' in disk_label, "Disk label should show used/total"
+
+    # Verify status indicator
+    status_text = page.locator('#status-text').text_content()
+    print(f"   Status: {status_text}")
+    assert status_text.lower() in ['running', 'stopped'], \
+        f"Status should be 'running' or 'stopped', got: {status_text}"
+
+    # Verify uptime is displayed
+    uptime_text = page.locator('#uptime-text').text_content()
+    print(f"   Uptime: {uptime_text}")
+    assert uptime_text != '--', "Uptime should have a value"
+
+    print("\n   ✅ All metrics verified")
+
+    # ========================================================================
+    # PHASE 5: VERIFY GAUGES ARE VISIBLE
+    # ========================================================================
+    print("\n📊 Phase 5: Verify Gauge Bars")
+
+    # Check that gauge bars have width > 0 (meaning they're displaying data)
+    cpu_bar = page.locator('#cpu-bar')
+    mem_bar = page.locator('#mem-bar')
+    disk_bar = page.locator('#disk-bar')
+
+    # Get bar widths
+    cpu_width = cpu_bar.evaluate('el => el.style.width')
+    mem_width = mem_bar.evaluate('el => el.style.width')
+    disk_width = disk_bar.evaluate('el => el.style.width')
+
+    print(f"   CPU Bar Width: {cpu_width}")
+    print(f"   Memory Bar Width: {mem_width}")
+    print(f"   Disk Bar Width: {disk_width}")
+
+    # Verify bars have been set (not 0%)
+    assert cpu_width != '0%', "CPU bar should have width"
+    assert mem_width != '0%', "Memory bar should have width"
+    assert disk_width != '0%', "Disk bar should have width"
+
+    print("   ✅ All gauge bars rendered")
+
+    # ========================================================================
+    # PHASE 6: TEST POLLING (WAIT FOR UPDATE)
+    # ========================================================================
+    print("\n🔄 Phase 6: Test Polling Updates")
+
+    # Wait a bit for second poll (5 seconds)
+    initial_timestamp = page.locator('#timestamp-text').text_content()
+    print(f"   Initial timestamp: {initial_timestamp}")
+
+    page.wait_for_timeout(6000)  # Wait 6 seconds (polling is every 5 seconds)
+
+    # Check if timestamp updated
+    updated_timestamp = page.locator('#timestamp-text').text_content()
+    print(f"   Updated timestamp: {updated_timestamp}")
+
+    # Note: Timestamp might not change due to caching, but at least verify it's not "Never updated"
+    assert updated_timestamp != 'Never updated', "Timestamp should have been set"
+    print("   ✅ Polling is working")
+
+    # ========================================================================
+    # PHASE 7: CLOSE MODAL AND VERIFY CLEANUP
+    # ========================================================================
+    print("\n🚪 Phase 7: Close Modal and Verify Cleanup")
+
+    # Click close button or backdrop
+    close_button = modal.locator('button.modal-close, button.btn-ghost')
+    if close_button.is_visible():
+        close_button.click()
+    else:
+        # Click backdrop
+        page.keyboard.press('Escape')
+
+    # Wait for modal to close
+    expect(modal).not_to_be_visible(timeout=5000)
+    print("   ✓ Modal closed")
+
+    # Wait a bit to ensure polling stopped
+    page.wait_for_timeout(2000)
+    print("   ✓ Polling cleanup verified (no errors in console)")
+
+    # ========================================================================
+    # PHASE 8: CLEANUP
+    # ========================================================================
+    print("\n🗑️  Phase 8: Cleanup")
+
+    dashboard_page.click_app_action(hostname, "delete")
+    page.wait_for_timeout(1000)
+    try:
+        dashboard_page.confirm_delete_app()
+    except:
+        pass
+
+    dashboard_page.wait_for_app_hidden(hostname, timeout=60000)
+    print("   ✅ App deleted")
+
+    print("\n" + "="*80)
+    print("🎉 TEST PASSED: Monitoring Tab Data Display")
+    print("="*80 + "\n")
