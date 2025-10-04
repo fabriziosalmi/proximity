@@ -48,18 +48,216 @@ We welcome contributions to Proximity! This document provides guidelines for con
 Run tests before submitting your changes:
 
 ```bash
-# Backend tests
-cd backend
-pytest
+# Run all tests (backend + E2E) in one command
+./run_all_tests.sh
 
-# Code formatting
-black .
-isort .
+# Or use Python version (cross-platform)
+python run_all_tests.py
 
-# Linting
-flake8 .
-mypy .
+# Run only backend tests
+cd tests
+pytest -v
+
+# Run only E2E tests (requires backend running)
+cd e2e_tests
+pytest --browser chromium -v
+
+# Run specific test file
+pytest tests/test_auth_service.py -v
 ```
+
+### Pre-commit Hooks: Automated Quality Gates 🔒
+
+**Proximity uses automated pre-commit hooks to maintain code quality and prevent broken code from being committed.**
+
+#### What Are Pre-commit Hooks?
+
+Pre-commit hooks are automated checks that run **before every commit**. They act as quality gates, ensuring:
+
+- ✅ Code is properly formatted (Black, Ruff)
+- ✅ No syntax errors in YAML/JSON files
+- ✅ No trailing whitespace or mixed line endings
+- ✅ **Backend tests pass 100%** (when activated)
+- ✅ **E2E tests pass 100%** (when activated)
+
+If any check fails, **the commit is blocked** until you fix the issues.
+
+#### Installation (One-Time Setup)
+
+After cloning the repository and setting up your virtual environment:
+
+```bash
+# Install pre-commit framework
+pip install -r requirements.txt  # This includes pre-commit
+
+# Install the Git hooks (ONE-TIME command per repository clone)
+pre-commit install
+
+# ✅ Done! Hooks will now run automatically on every commit
+```
+
+#### What Runs on Every Commit?
+
+**Phase 1: Code Quality (ACTIVE NOW)** ⚡ Fast (~2-5 seconds)
+
+These hooks run immediately and automatically fix most issues:
+
+- **YAML/JSON validation**: Prevents syntax errors in config files
+- **Black formatter**: Auto-formats Python code to PEP 8 style
+- **Ruff linter**: Catches common Python issues and auto-fixes them
+- **Whitespace fixes**: Removes trailing spaces, ensures newlines at end of files
+- **Large file detection**: Prevents accidentally committing files >500KB
+- **Merge conflict detection**: Catches unresolved conflict markers
+
+**Phase 2: Backend Test Guardian (READY - Uncomment to activate)** 🐍 Medium (~10-30 seconds)
+
+When activated, this hook runs the entire backend pytest suite:
+
+```bash
+pytest tests/ --tb=short -q
+```
+
+If any backend test fails, **the commit is blocked**. This prevents:
+- Broken API endpoints
+- Database schema issues
+- Authentication/authorization bugs
+- Business logic regressions
+
+**Phase 3: E2E Test Guardian (READY - Uncomment to activate)** 🎭 Slow (~5-10 minutes)
+
+When activated, this hook runs the full Playwright E2E suite:
+
+```bash
+pytest e2e_tests/ --browser chromium --tb=short -q
+```
+
+If any E2E test fails, **the commit is blocked**. This prevents:
+- UI regressions
+- Broken user workflows
+- Integration issues between frontend and backend
+
+#### Running Hooks Manually
+
+You can run all hooks without making a commit:
+
+```bash
+# Run all hooks on all files
+pre-commit run --all-files
+
+# Run all hooks on staged files only
+pre-commit run
+
+# Run specific hook
+pre-commit run black --all-files
+pre-commit run pytest-backend --all-files
+```
+
+**Use this after activating new hooks** to ensure everything passes before committing.
+
+#### Skipping Hooks (Use Sparingly!)
+
+For **trivial commits only** (typos in comments, minor doc changes), you can bypass hooks:
+
+```bash
+# Skip ALL hooks for this commit
+git commit -m "docs: Fix typo in README" --no-verify
+```
+
+**⚠️ WARNING: Use --no-verify ONLY for trivial changes!**
+
+- The CI/CD pipeline will still run all tests regardless
+- Your PR may be rejected if tests fail in CI
+- Use this for minor documentation fixes, not code changes
+
+#### Gradual Activation Strategy
+
+The `.pre-commit-config.yaml` file uses a **phased approach** to activate hooks:
+
+**RIGHT NOW (Phase 1)**: Code quality hooks are ACTIVE
+- Run on every commit automatically
+- Fix formatting and linting issues
+- Very fast, no impact on developer flow
+
+**When Backend Tests Are Stable (Phase 2)**:
+1. Ensure `pytest tests/` passes 100%
+2. Edit `.pre-commit-config.yaml`
+3. Uncomment the `pytest-backend` hook section
+4. Run `pre-commit run --all-files`
+5. Commit the change
+
+**When E2E Tests Are Stable (Phase 3)**:
+1. Ensure `pytest e2e_tests/` passes 100%
+2. Edit `.pre-commit-config.yaml`
+3. Uncomment the `pytest-e2e` hook section
+4. Run `pre-commit run --all-files`
+5. Commit the change
+
+#### Troubleshooting
+
+**Hook fails with import errors:**
+```bash
+# Make sure you're in the virtual environment
+source venv/bin/activate  # or your venv path
+
+# Reinstall dependencies
+pip install -r backend/requirements.txt
+pip install -r tests/requirements.txt
+pip install -r e2e_tests/requirements.txt
+```
+
+**E2E hook fails - backend not running:**
+```bash
+# Start backend in another terminal
+cd backend
+python main.py
+
+# Then retry your commit
+```
+
+**Want to update hook versions:**
+```bash
+pre-commit autoupdate
+```
+
+**Want to clean hook cache:**
+```bash
+pre-commit clean
+```
+
+**Want to uninstall hooks:**
+```bash
+pre-commit uninstall
+```
+
+#### Best Practices
+
+1. **Always let hooks run** for significant code changes
+2. **Fix issues immediately** - don't try to bypass hooks repeatedly
+3. **Use --no-verify sparingly** - only for truly trivial commits
+4. **Run hooks manually** after pulling changes: `pre-commit run --all-files`
+5. **Keep hooks fast** - if E2E tests are too slow, consider pre-push hooks instead
+
+#### Performance Tips
+
+- **Code quality hooks**: ~2-5 seconds (negligible impact)
+- **Backend tests**: ~10-30 seconds (acceptable for most commits)
+- **E2E tests**: ~5-10 minutes (consider using `--no-verify` for minor commits)
+
+**For faster commits during active development:**
+- Work on a feature branch
+- Commit frequently without E2E hooks
+- Run full suite (`./run_all_tests.sh`) before pushing to remote
+- Let CI/CD validate everything
+
+#### CI/CD Integration
+
+Pre-commit hooks are your **first line of defense**, but remember:
+
+- CI/CD will **always** run the full test suite, regardless of `--no-verify`
+- Failed tests in CI will block PR merges
+- Hooks save you time by catching issues before pushing
+
+**Think of pre-commit hooks as your personal QA assistant! 🤖**
 
 ## 📝 Coding Standards
 

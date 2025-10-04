@@ -278,12 +278,35 @@ See [E2E Testing Guide](e2e_tests/README.md) for comprehensive testing documenta
 
 We welcome contributions! Please see:
 - **[Development Guide](docs/development.md)** for code structure and workflow
-- **[Contributing](CONTRIBUTING.md)** for contribution guidelines
+- **[Contributing Guide](CONTRIBUTING.md)** for contribution guidelines
+- **[Pre-commit Quick Start](PRE_COMMIT_QUICK_START.md)** for automated quality gates
 
 **Testing:**
-- **Unit Tests**: Run `pytest` in the `tests/` directory (250+ tests)
-- **E2E Tests**: Run `pytest` in the `e2e_tests/` directory (Playwright-based browser tests)
+- **Run All Tests**: Use `./run_all_tests.sh` or `python run_all_tests.py`
+- **Backend Unit Tests**: 250+ tests in `tests/` directory - `pytest tests/`
+- **E2E Tests**: Playwright-based browser tests in `e2e_tests/` - `pytest e2e_tests/`
+- **Pre-commit Hooks**: Automated code quality and test execution before commits
 - See [E2E Testing Guide](e2e_tests/README.md) for comprehensive testing documentation
+
+**Quality Assurance:**
+
+Proximity uses **automated pre-commit hooks** to ensure code quality:
+
+```bash
+# One-time setup (after cloning)
+./setup_precommit.sh
+
+# Hooks now run automatically on every commit!
+```
+
+**What's protected:**
+- ✅ Code formatting (Black, Ruff)
+- ✅ Syntax validation (YAML, JSON)
+- ✅ Whitespace cleanup
+- ✅ Backend tests (optional - activate when ready)
+- ✅ E2E tests (optional - activate when ready)
+
+See [PRE_COMMIT_QUICK_START.md](PRE_COMMIT_QUICK_START.md) for details.
 
 ### Project Structure
 

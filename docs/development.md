@@ -472,11 +472,27 @@ Proximity has a comprehensive test suite with **250+ tests** covering all critic
 ### Running Tests
 
 ```bash
-# All tests
-pytest
+# Run ALL tests (backend + E2E) in one command - RECOMMENDED
+./run_all_tests.sh
 
-# With coverage report
-pytest --cov=services --cov=models --cov=api --cov-report=html
+# Or use Python version (cross-platform including Windows)
+python run_all_tests.py
+
+# With headed browser for E2E tests
+./run_all_tests.sh --headed
+
+# Backend tests only
+pytest tests/ -v
+# OR
+./run_all_tests.sh --backend-only
+
+# E2E tests only (requires backend running)
+pytest e2e_tests/ --browser chromium -v
+# OR
+./run_all_tests.sh --e2e-only --headed
+
+# With coverage report (backend tests)
+pytest tests/ --cov=services --cov=models --cov=api --cov-report=html
 
 # Specific test file
 pytest tests/test_app_service.py -v
@@ -499,6 +515,226 @@ pytest -s
 # Parallel execution (faster)
 pytest -n auto
 ```
+
+### Pre-commit Hooks - Automated Quality Gates 🔒
+
+**Proximity uses the `pre-commit` framework to automatically enforce code quality and run tests before every commit.**
+
+#### Quick Setup
+
+After setting up your development environment:
+
+```bash
+# Install pre-commit (included in root requirements.txt)
+pip install -r requirements.txt
+
+# Install Git hooks (one-time per repository clone)
+pre-commit install
+
+# ✅ Hooks are now active!
+```
+
+#### What Happens on Every Commit?
+
+**Phase 1: Code Quality Checks (ACTIVE NOW)** - ~2-5 seconds ⚡
+
+These hooks run automatically and fix most issues:
+
+| Hook | Purpose | Auto-fix |
+|------|---------|----------|
+| `check-yaml` | Validates YAML syntax | ❌ |
+| `check-json` | Validates JSON syntax | ❌ |
+| `end-of-file-fixer` | Ensures newline at end of files | ✅ |
+| `trailing-whitespace` | Removes trailing spaces | ✅ |
+| `check-added-large-files` | Blocks files >500KB | ❌ |
+| `check-merge-conflict` | Detects `<<<<<<` markers | ❌ |
+| `mixed-line-ending` | Enforces LF line endings | ✅ |
+| `black` | Python code formatter | ✅ |
+| `ruff` | Python linter (flake8/isort/etc.) | ✅ |
+
+**Phase 2: Backend Test Guardian (READY TO ACTIVATE)** - ~10-30 seconds 🐍
+
+Once activated, this hook runs `pytest tests/` before every commit:
+
+```yaml
+# To activate: Edit .pre-commit-config.yaml and uncomment this section
+- id: pytest-backend
+  name: 🔒 Backend Test Guardian
+  entry: bash -c 'cd tests && pytest --tb=short -q'
+```
+
+**Phase 3: E2E Test Guardian (READY TO ACTIVATE)** - ~5-10 minutes 🎭
+
+Once activated, this hook runs the full Playwright E2E suite:
+
+```yaml
+# To activate: Edit .pre-commit-config.yaml and uncomment this section
+- id: pytest-e2e
+  name: 🔒 E2E Test Guardian (SLOW)
+  entry: bash -c 'cd e2e_tests && pytest --browser chromium --tb=short -q'
+```
+
+#### Running Hooks Manually
+
+```bash
+# Run all hooks on all files (do this after activation)
+pre-commit run --all-files
+
+# Run all hooks on staged files
+pre-commit run
+
+# Run specific hook
+pre-commit run black --all-files
+pre-commit run pytest-backend --all-files
+
+# Update hook versions
+pre-commit autoupdate
+```
+
+#### Bypassing Hooks (Emergency Only!)
+
+For trivial commits (typos, doc fixes), you can skip hooks:
+
+```bash
+git commit -m "docs: Fix typo" --no-verify
+```
+
+**⚠️ Use sparingly!** CI/CD will still run all tests.
+
+#### Gradual Activation Strategy
+
+The `.pre-commit-config.yaml` file uses a **3-phase rollout**:
+
+**✅ Phase 1 (Active Now)**: Code quality hooks
+- Already running on every commit
+- Fast (~2-5 seconds)
+- Auto-fixes most issues
+
+**🚧 Phase 2 (Activate When Ready)**: Backend test guardian
+1. Ensure `pytest tests/` passes 100%: `pytest tests/ -v`
+2. Edit `.pre-commit-config.yaml`
+3. Uncomment the entire `pytest-backend` hook block
+4. Test: `pre-commit run pytest-backend --all-files`
+5. Commit: `git add .pre-commit-config.yaml && git commit -m "chore: Activate backend test guardian"`
+
+**📋 Phase 3 (Activate When Ready)**: E2E test guardian
+1. Ensure `pytest e2e_tests/` passes 100%
+2. Ensure backend can be auto-started
+3. Edit `.pre-commit-config.yaml`
+4. Uncomment the `pytest-e2e` hook block
+5. Test: `pre-commit run pytest-e2e --all-files`
+6. Commit the activation
+
+#### Best Practices
+
+✅ **DO:**
+- Let hooks run for all significant code changes
+- Fix issues immediately when hooks fail
+- Run `pre-commit run --all-files` after pulling changes
+- Use `--no-verify` only for documentation fixes
+
+❌ **DON'T:**
+- Use `--no-verify` to bypass failing tests
+- Commit broken code just because "CI will catch it"
+- Disable hooks permanently
+
+#### Performance Optimization
+
+**For active development:**
+```bash
+# Commit frequently to feature branch WITHOUT E2E tests
+git commit -m "feat: WIP - Add user profile page"
+
+# Before pushing, run full suite manually
+./run_all_tests.sh
+
+# Let CI/CD validate everything
+git push origin feature/user-profile
+```
+
+**For quick iterations:**
+```bash
+# Temporarily deactivate E2E hook (comment it out in .pre-commit-config.yaml)
+# Work on your feature
+# Before final push, reactivate and run full suite
+```
+
+#### Troubleshooting
+
+**Hook fails with `ModuleNotFoundError`:**
+```bash
+# Activate virtual environment
+source venv/bin/activate
+
+# Reinstall dependencies
+pip install -r backend/requirements.txt
+pip install -r tests/requirements.txt
+pip install -r e2e_tests/requirements.txt
+```
+
+**E2E tests fail - backend not running:**
+```bash
+# The E2E hook expects backend at http://localhost:8765
+# Start backend in another terminal:
+cd backend && python main.py
+
+# Or use the unified test runner which auto-starts backend:
+./run_all_tests.sh --e2e-only
+```
+
+**Hook takes too long:**
+```bash
+# Skip for this commit
+git commit -m "message" --no-verify
+
+# Or consider moving slow hooks to pre-push instead
+# Edit .git/hooks/pre-push (advanced)
+```
+
+**Want to clean hook cache:**
+```bash
+pre-commit clean
+```
+
+**Want to uninstall all hooks:**
+```bash
+pre-commit uninstall
+```
+
+#### Hook Configuration Reference
+
+All hooks are defined in `.pre-commit-config.yaml` at the repository root. Key configuration options:
+
+```yaml
+hooks:
+  - id: hook-name
+    name: Display name
+    entry: Command to run
+    language: python | system | script
+    types: [python, javascript, css]  # File types to trigger on
+    pass_filenames: false  # Pass filenames as arguments
+    always_run: true       # Run even if no matching files changed
+    verbose: true          # Show command output
+    stages: [commit, push] # When to run (default: commit)
+```
+
+#### Integration with CI/CD
+
+Pre-commit hooks are your **first line of defense**:
+
+1. **Pre-commit hooks** → Catch issues locally before push
+2. **CI/CD pipeline** → Validate everything on server
+3. **Code review** → Human validation
+
+Even if you use `--no-verify`, CI/CD will **always** run the full test suite.
+
+#### Additional Resources
+
+- [Pre-commit Documentation](https://pre-commit.com/)
+- [Supported Hooks](https://pre-commit.com/hooks.html)
+- [Writing Custom Hooks](https://pre-commit.com/#creating-new-hooks)
+
+**Remember: Pre-commit hooks save you time by catching issues early! 🚀**
 
 ### Test Categories
 
