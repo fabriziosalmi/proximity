@@ -41,7 +41,7 @@ class TestProxmoxService:
         }
 
         result = await mock_proxmox_service.create_lxc("testnode", 100, config)
-        assert "task" in result
+        assert "task_id" in result
 
     @pytest.mark.asyncio
     async def test_start_lxc(self, mock_proxmox_service):

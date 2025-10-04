@@ -226,6 +226,7 @@ def create_app() -> FastAPI:
         # Handle OPTIONS requests for CORS preflight
         if request.method == "OPTIONS":
             return JSONResponse(
+                content={},
                 status_code=200,
                 headers={
                     "Access-Control-Allow-Origin": "*",

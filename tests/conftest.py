@@ -15,6 +15,7 @@ backend_path = Path(__file__).parent.parent / "backend"
 sys.path.insert(0, str(backend_path))
 
 from models.database import Base, User
+from models.schemas import LXCInfo, LXCStatus
 from services.proxmox_service import ProxmoxService
 from services.auth_service import AuthService
 
@@ -104,11 +105,12 @@ def mock_proxmox_service():
     mock.setup_docker_in_alpine = AsyncMock(return_value=True)
     mock.execute_in_container = AsyncMock(return_value="OK")
     mock.get_lxc_ip = AsyncMock(return_value="10.0.0.100")
-    mock.get_lxc_status = AsyncMock(return_value={
-        "vmid": 100,
-        "status": "running",
-        "name": "test-container"
-    })
+    mock.get_lxc_status = AsyncMock(return_value=LXCInfo(
+        vmid=100,
+        node="testnode",
+        status=LXCStatus.RUNNING,
+        name="test-container"
+    ))
 
     return mock
 

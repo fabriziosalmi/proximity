@@ -54,7 +54,7 @@ class TestAppService:
 
         # Mock the deployment process
         app_service.proxmox_service.get_next_vmid = AsyncMock(return_value=100)
-        app_service.proxmox_service.create_lxc = AsyncMock(return_value={"task": "UPID:test"})
+        app_service.proxmox_service.create_lxc = AsyncMock(return_value={"task_id": "UPID:test"})
         app_service.proxmox_service.start_lxc = AsyncMock(return_value="UPID:test")
         app_service.proxmox_service.setup_docker_in_alpine = AsyncMock(return_value=True)
         app_service.proxmox_service.execute_in_container = AsyncMock(return_value="deployed")
@@ -179,7 +179,7 @@ class TestAppService:
         app_data = AppCreate(**sample_app_create)
 
         app_service.proxmox_service.get_next_vmid = AsyncMock(return_value=100)
-        app_service.proxmox_service.create_lxc = AsyncMock(return_value={"task": "UPID:test"})
+        app_service.proxmox_service.create_lxc = AsyncMock(return_value={"task_id": "UPID:test"})
         app_service.proxmox_service.start_lxc = AsyncMock(return_value="UPID:test")
         app_service.proxmox_service.setup_docker_in_alpine = AsyncMock(return_value=True)
         app_service.proxmox_service.execute_in_container = AsyncMock(return_value="deployed")
@@ -199,7 +199,7 @@ class TestAppService:
         app_data = AppCreate(**sample_app_create)
 
         app_service.proxmox_service.get_next_vmid = AsyncMock(return_value=100)
-        app_service.proxmox_service.create_lxc = AsyncMock(return_value={"task": "UPID:test"})
+        app_service.proxmox_service.create_lxc = AsyncMock(return_value={"task_id": "UPID:test"})
         app_service.proxmox_service.start_lxc = AsyncMock(return_value="UPID:test")
         app_service.proxmox_service.setup_docker_in_alpine = AsyncMock(
             side_effect=Exception("Docker install failed")
