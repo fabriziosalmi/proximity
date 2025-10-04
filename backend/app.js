@@ -125,6 +125,27 @@ async function authFetch(url, options = {}) {
     }
 }
 
+// Update user info in sidebar
+function updateUserInfo() {
+    const user = Auth.getUser();
+    if (user) {
+        const userNameEl = document.querySelector('.user-name');
+        const userRoleEl = document.querySelector('.user-role');
+        const userAvatarEl = document.querySelector('.user-avatar');
+        
+        if (userNameEl) {
+            userNameEl.textContent = user.username || 'User';
+        }
+        if (userRoleEl) {
+            userRoleEl.textContent = user.role === 'admin' ? 'Administrator' : 'User';
+        }
+        if (userAvatarEl) {
+            const initials = (user.username || 'U').substring(0, 2).toUpperCase();
+            userAvatarEl.textContent = initials;
+        }
+    }
+}
+
 // Application State
 const state = {
     systemInfo: null,
@@ -143,8 +164,8 @@ async function init() {
     
     // Check authentication first
     if (!Auth.isAuthenticated()) {
-        console.log('⚠️  No authentication token found - showing login');
-        showLoginModal();
+        console.log('⚠️  No authentication token found - showing auth modal');
+        showAuthModal();
         return;
     }
     
@@ -202,7 +223,7 @@ async function loadSystemInfo() {
 
 async function loadNodes() {
     try {
-        const response = await fetch(`${API_BASE}/system/nodes`);
+        const response = await authFetch(`${API_BASE}/system/nodes`);
         if (!response.ok) throw new Error('Failed to load nodes');
         state.nodes = await response.json();
     } catch (error) {
@@ -213,7 +234,7 @@ async function loadNodes() {
 
 async function loadDeployedApps() {
     try {
-        const response = await fetch(`${API_BASE}/apps`);
+        const response = await authFetch(`${API_BASE}/apps`);
         if (!response.ok) throw new Error('Failed to load apps');
         state.deployedApps = await response.json();
         
@@ -229,7 +250,7 @@ async function loadDeployedApps() {
 
 async function loadCatalog() {
     try {
-        const response = await fetch(`${API_BASE}/apps/catalog`);
+        const response = await authFetch(`${API_BASE}/apps/catalog`);
         if (!response.ok) throw new Error('Failed to load catalog');
         state.catalog = await response.json();
         
@@ -258,7 +279,7 @@ function enrichDeployedAppsWithIcons() {
 
 async function loadProxyStatus() {
     try {
-        const response = await fetch(`${API_BASE}/system/proxy/status`);
+        const response = await authFetch(`${API_BASE}/system/proxy/status`);
         if (!response.ok) throw new Error('Failed to load proxy status');
         const result = await response.json();
         state.proxyStatus = result.data;
@@ -611,7 +632,7 @@ async function renderNodesView() {
     try {
         const token = localStorage.getItem('auth_token');
         if (token) {
-            const response = await fetch(`${API_BASE}/system/infrastructure/status`, {
+            const response = await authFetch(`${API_BASE}/system/infrastructure/status`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (response.ok) {
@@ -960,19 +981,19 @@ async function renderSettingsView() {
         const token = localStorage.getItem('auth_token');
         if (token) {
             // Load Proxmox settings
-            const proxmoxRes = await fetch(`${API_BASE}/settings/proxmox`, {
+            const proxmoxRes = await authFetch(`${API_BASE}/settings/proxmox`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (proxmoxRes.ok) proxmoxSettings = await proxmoxRes.json();
 
             // Load Network settings
-            const networkRes = await fetch(`${API_BASE}/settings/network`, {
+            const networkRes = await authFetch(`${API_BASE}/settings/network`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (networkRes.ok) networkSettings = await networkRes.json();
 
             // Load Resource settings
-            const resourceRes = await fetch(`${API_BASE}/settings/resources`, {
+            const resourceRes = await authFetch(`${API_BASE}/settings/resources`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (resourceRes.ok) resourceSettings = await resourceRes.json();
@@ -1313,12 +1334,9 @@ async function deployApp(catalogId) {
         
         // Show deployment progress modal
         showDeploymentProgress(catalogId, hostname);
-        
-        const response = await fetch(`${API_BASE}/apps/deploy`, {
+
+        const response = await authFetch(`${API_BASE}/apps/deploy`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
             body: JSON.stringify(payload)
         });
         
@@ -1437,7 +1455,7 @@ async function pollDeploymentStatus(appId) {
         pollAttempts++;
         
         try {
-            const response = await fetch(`${API_BASE}/apps/deploy/${appId}/status`);
+            const response = await authFetch(`${API_BASE}/apps/deploy/${appId}/status`);
             
             if (response.ok) {
                 const status = await response.json();
@@ -1560,7 +1578,7 @@ async function controlApp(appId, action) {
     showLoading(`${action}ing application...`);
     
     try {
-        const response = await fetch(`${API_BASE}/apps/${appId}/actions`, {
+        const response = await authFetch(`${API_BASE}/apps/${appId}/actions`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -1656,7 +1674,7 @@ async function deleteApp(appId, appName) {
         
         await updateDeletionProgress(66, 'Deleting LXC container...');
         
-        const response = await fetch(`${API_BASE}/apps/${appId}`, {
+        const response = await authFetch(`${API_BASE}/apps/${appId}`, {
             method: 'DELETE'
         });
         
@@ -2112,7 +2130,7 @@ let logsRefreshInterval = null;
 
 async function loadAppLogs(appId, type = 'all') {
     try {
-        const response = await fetch(`${API_BASE}/apps/${appId}/logs`);
+        const response = await authFetch(`${API_BASE}/apps/${appId}/logs`);
         if (!response.ok) throw new Error('Failed to load logs');
         
         const data = await response.json();
@@ -2162,7 +2180,7 @@ function toggleAutoRefresh(appId) {
 
 async function downloadLogs(appId) {
     try {
-        const response = await fetch(`${API_BASE}/apps/${appId}/logs`);
+        const response = await authFetch(`${API_BASE}/apps/${appId}/logs`);
         if (!response.ok) throw new Error('Failed to download logs');
         
         const data = await response.json();
@@ -2203,7 +2221,7 @@ async function executeCommand(appId) {
     output.parentElement.scrollTop = output.parentElement.scrollHeight;
     
     try {
-        const response = await fetch(`${API_BASE}/apps/${appId}/exec`, {
+        const response = await authFetch(`${API_BASE}/apps/${appId}/exec`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ command })
@@ -2336,7 +2354,7 @@ async function saveProxmoxSettings(formData) {
     try {
         showLoading('Saving Proxmox settings...');
 
-        const response = await fetch(`${API_BASE}/settings/proxmox`, {
+        const response = await authFetch(`${API_BASE}/settings/proxmox`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -2406,7 +2424,7 @@ async function testProxmoxConnection() {
     try {
         showLoading('Testing Proxmox connection...');
 
-        const response = await fetch(`${API_BASE}/system/info`, {
+        const response = await authFetch(`${API_BASE}/system/info`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
@@ -2478,7 +2496,7 @@ async function saveNetworkSettings(formData) {
     try {
         showLoading('Saving network settings...');
 
-        const response = await fetch(`${API_BASE}/settings/network`, {
+        const response = await authFetch(`${API_BASE}/settings/network`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -2554,7 +2572,7 @@ async function saveResourceSettings(formData) {
     try {
         showLoading('Saving resource settings...');
 
-        const response = await fetch(`${API_BASE}/settings/resources`, {
+        const response = await authFetch(`${API_BASE}/settings/resources`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -2634,7 +2652,7 @@ async function restartAppliance() {
     try {
         showLoading('Restarting network appliance...');
 
-        const response = await fetch(`${API_BASE}/system/infrastructure/appliance/restart`, {
+        const response = await authFetch(`${API_BASE}/system/infrastructure/appliance/restart`, {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -2696,7 +2714,7 @@ async function viewApplianceLogs() {
     try {
         showLoading('Fetching appliance logs...');
 
-        const response = await fetch(`${API_BASE}/system/infrastructure/appliance/logs?lines=50`, {
+        const response = await authFetch(`${API_BASE}/system/infrastructure/appliance/logs?lines=50`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
@@ -2769,7 +2787,7 @@ async function testNAT() {
     try {
         showLoading('Testing NAT connectivity...');
 
-        const response = await fetch(`${API_BASE}/system/infrastructure/test-nat`, {
+        const response = await authFetch(`${API_BASE}/system/infrastructure/test-nat`, {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -2829,6 +2847,54 @@ async function testNAT() {
 }
 
 // Event Listeners
+// User Menu Toggle
+function toggleUserMenu() {
+    const menu = document.getElementById('userMenu');
+    const profileBtn = document.getElementById('userProfileBtn');
+
+    menu.classList.toggle('active');
+    profileBtn.classList.toggle('active');
+
+    // Reinitialize Lucide icons
+    initLucideIcons();
+}
+
+// Close user menu when clicking outside
+document.addEventListener('click', (e) => {
+    const menu = document.getElementById('userMenu');
+    const profileBtn = document.getElementById('userProfileBtn');
+
+    if (menu && profileBtn && !profileBtn.contains(e.target) && !menu.contains(e.target)) {
+        menu.classList.remove('active');
+        profileBtn.classList.remove('active');
+    }
+});
+
+// Handle Logout
+async function handleLogout(e) {
+    e.preventDefault();
+
+    try {
+        // Call logout endpoint for audit logging
+        await authFetch(`${API_BASE}/auth/logout`, {
+            method: 'POST'
+        });
+    } catch (error) {
+        console.error('Logout error:', error);
+    } finally {
+        // Always clear local auth data
+        Auth.logout();
+        showNotification('You have been logged out', 'info');
+    }
+}
+
+// Show User Profile (placeholder)
+function showUserProfile(e) {
+    e.preventDefault();
+    toggleUserMenu();
+    showNotification('Profile view coming soon!', 'info');
+}
+
 function setupEventListeners() {
     // Navigation
     document.querySelectorAll('.nav-item').forEach(item => {
@@ -2838,6 +2904,12 @@ function setupEventListeners() {
             if (view) showView(view);
         });
     });
+
+    // User profile menu toggle
+    const userProfileBtn = document.getElementById('userProfileBtn');
+    if (userProfileBtn) {
+        userProfileBtn.addEventListener('click', toggleUserMenu);
+    }
 
     // Close modal on outside click
     document.getElementById('deployModal').addEventListener('click', (e) => {

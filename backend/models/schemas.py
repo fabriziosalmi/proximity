@@ -229,7 +229,7 @@ class UserResponse(BaseModel):
     """User response model (excludes password)"""
     id: int
     username: str
-    email: EmailStr
+    email: EmailStr | None = None
     role: str
     is_active: bool
     created_at: datetime

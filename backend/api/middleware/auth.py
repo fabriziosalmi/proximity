@@ -39,6 +39,10 @@ async def get_current_user(
     Raises:
         HTTPException: If token is missing or invalid
     """
+    # Allow OPTIONS requests for CORS preflight
+    if request.method == "OPTIONS":
+        return None
+
     if credentials is None:
         logger.warning(f"Authentication required: No token provided from {request.client.host}")
         raise HTTPException(

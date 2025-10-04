@@ -61,13 +61,28 @@
             </nav>
             
             <div class="sidebar-footer">
-                <div class="user-profile">
+                <div class="user-profile" id="userProfileBtn">
                     <div class="user-avatar">PR</div>
                     <div class="user-info">
                         <div class="user-name">Proxmox Root</div>
                         <div class="user-role">Administrator</div>
                     </div>
-                    <span>⋮</span>
+                    <i data-lucide="chevron-up" class="user-menu-icon"></i>
+                </div>
+                <div class="user-menu" id="userMenu">
+                    <a href="#" class="user-menu-item" onclick="showUserProfile(event)">
+                        <i data-lucide="user"></i>
+                        <span>Profile</span>
+                    </a>
+                    <a href="#" class="user-menu-item" onclick="showView('settings')">
+                        <i data-lucide="settings"></i>
+                        <span>Settings</span>
+                    </a>
+                    <hr class="user-menu-divider">
+                    <a href="#" class="user-menu-item logout" onclick="handleLogout(event)">
+                        <i data-lucide="log-out"></i>
+                        <span>Logout</span>
+                    </a>
                 </div>
             </div>
         </aside>

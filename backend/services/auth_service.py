@@ -131,14 +131,14 @@ class AuthService:
         return user
 
     @staticmethod
-    def create_user(db: Session, username: str, email: str, password: str, role: str = "user") -> User:
+    def create_user(db: Session, username: str, email: str | None, password: str, role: str = "user") -> User:
         """
         Create new user
 
         Args:
             db: Database session
             username: Username
-            email: Email address
+            email: Email address (optional)
             password: Plain text password (will be hashed)
             role: User role ('user' or 'admin')
 
@@ -155,7 +155,8 @@ class AuthService:
                 detail=f"Username '{username}' already exists"
             )
 
-        if db.query(User).filter(User.email == email).first():
+        # Only check email if provided
+        if email and db.query(User).filter(User.email == email).first():
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Email '{email}' already registered"

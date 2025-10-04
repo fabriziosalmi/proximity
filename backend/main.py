@@ -280,12 +280,20 @@ def create_app() -> FastAPI:
     @app.get("/app.js")
     async def serve_app_js():
         """Serve the JavaScript application"""
-        return FileResponse(static_dir / "app.js", media_type="application/javascript")
-    
+        response = FileResponse(static_dir / "app.js", media_type="application/javascript")
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+        return response
+
     @app.get("/styles.css")
     async def serve_styles_css():
         """Serve the CSS stylesheet"""
-        return FileResponse(static_dir / "styles.css", media_type="text/css")
+        response = FileResponse(static_dir / "styles.css", media_type="text/css")
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+        return response
     
     @app.get("/api")
     async def api_root():
