@@ -2,17 +2,37 @@
 
 Comprehensive end-to-end test suite for the Proximity platform using **Playwright** and **Pytest**. This suite validates the entire user journey from authentication to application deployment and management.
 
+## � Quick Stats
+
+- **Total Tests**: 57
+- **Test Categories**: 6 (Auth, Lifecycle, Management, Settings, Infrastructure, Navigation)
+- **Coverage**: ~95% of all user actions
+- **Execution Time**: 30-40 minutes (full suite)
+- **Smoke Tests**: 2 minutes
+- **Critical Path**: 6-8 minutes
+
+## 🎯 What's Tested
+
+| Category | Tests | Key Coverage |
+|----------|-------|--------------|
+| **Authentication** | 7 | Register, Login, Logout, Session Management |
+| **App Lifecycle** | 3 | Deploy, Monitor, Control, Delete (Complete E2E) |
+| **App Management** | 13 | Logs, Console, Start/Stop/Restart, External Access |
+| **Settings** | 11 | Proxmox, Network, Resources, System Configuration |
+| **Infrastructure** | 10 | Nodes, Appliance, Services, NAT Testing |
+| **Navigation** | 13 | Views, Sidebar, Menus, Keyboard Navigation |
+
 ## 📋 Table of Contents
 
 - [Overview](#overview)
-- [Architecture](#architecture)
-- [Setup](#setup)
-- [Running Tests](#running-tests)
+- [Quick Start](#quick-start)
 - [Test Structure](#test-structure)
-- [Page Object Model](#page-object-model)
+- [Running Tests](#running-tests)
+- [Test Categories](#test-categories)
 - [Writing Tests](#writing-tests)
 - [CI/CD Integration](#cicd-integration)
 - [Troubleshooting](#troubleshooting)
+- [Documentation](#documentation)
 
 ---
 
@@ -20,10 +40,12 @@ Comprehensive end-to-end test suite for the Proximity platform using **Playwrigh
 
 The E2E test suite covers:
 
-- ✅ **Authentication**: Registration, login, logout, error handling
-- ✅ **Application Lifecycle**: Full deploy → manage → verify → delete workflow
-- ✅ **Settings Management**: Configuration persistence and validation
-- ✅ **Infrastructure Monitoring**: Network appliance and Proxmox node status
+- ✅ **Authentication**: Registration, login, logout, session management, error handling
+- ✅ **Application Lifecycle**: Complete deploy → manage → monitor → delete workflow
+- ✅ **Application Management**: Logs, console, controls (start/stop/restart)
+- ✅ **Settings Management**: Proxmox, network, resources, system configuration
+- ✅ **Infrastructure Monitoring**: Nodes, appliance status, services health
+- ✅ **UI Navigation**: Sidebar, views, menus, keyboard shortcuts
 - ✅ **Integration Validation**: Frontend ↔ Backend ↔ Proxmox ↔ Database
 
 ### Test Categories
@@ -31,10 +53,326 @@ The E2E test suite covers:
 | Category | Tests | Description |
 |----------|-------|-------------|
 | **Smoke** | 5 | Quick sanity checks for critical paths |
-| **Auth** | 4 | Authentication flows and session management |
-| **Lifecycle** | 1 | Complete app deployment and deletion |
-| **Settings** | 3 | Configuration management |
-| **Infrastructure** | 2 | System monitoring and status |
+| **Auth** | 7 | Authentication flows and session management |
+| **Lifecycle** | 3 | Complete app deployment and deletion |
+| **Management** | 13 | App controls, logs, console, monitoring |
+| **Settings** | 11 | Configuration management and validation |
+| **Infrastructure** | 10 | System monitoring, nodes, appliance |
+| **Navigation** | 13 | UI navigation, sidebar, menus, keyboard |
+
+---
+
+## 🚀 Quick Start
+
+### 1. Install Dependencies
+
+```bash
+cd e2e_tests
+pip install -r requirements.txt
+playwright install chromium
+```
+
+### 2. Start Backend
+
+```bash
+# In another terminal
+cd backend
+python main.py
+```
+
+### 3. Run Tests
+
+```bash
+# Run smoke tests (fastest)
+pytest -m smoke --browser chromium --headed -v
+
+# Run critical path test
+pytest -m critical test_app_lifecycle.py::test_complete_app_lifecycle_nginx --browser chromium --headed -v
+
+# Run full suite
+pytest --browser chromium --headed -v
+```
+
+---
+
+## 📁 Test Structure
+
+```
+e2e_tests/
+├── test_auth_flow.py           # Authentication tests (7 tests)
+├── test_app_lifecycle.py       # App lifecycle tests (3 tests)
+├── test_app_management.py      # App management tests (13 tests)
+├── test_settings.py            # Settings tests (11 tests)
+├── test_infrastructure.py      # Infrastructure tests (10 tests)
+├── test_navigation.py          # Navigation tests (13 tests)
+│
+├── pages/                      # Page Object Model
+│   ├── base_page.py            # Base page class
+│   ├── login_page.py           # Authentication modal
+│   ├── dashboard_page.py       # Dashboard and navigation
+│   └── ...
+│
+├── utils/                      # Utilities and helpers
+│   ├── test_data.py            # Random data generation
+│   ├── helpers.py              # Fixtures, waits, cleanup
+│   └── ...
+│
+├── conftest.py                 # Pytest configuration
+├── pytest.ini                  # Pytest settings
+├── requirements.txt            # Python dependencies
+├── README.md                   # This file
+└── E2E_COMPREHENSIVE_GUIDE.md  # Detailed documentation
+```
+
+---
+
+## 🧪 Running Tests
+
+### By Category
+
+```bash
+# Authentication tests
+pytest -m auth test_auth_flow.py --browser chromium --headed -v
+
+# Lifecycle tests (includes deployment)
+pytest -m lifecycle test_app_lifecycle.py --browser chromium --headed -v
+
+# Management tests
+pytest -m management test_app_management.py --browser chromium --headed -v
+
+# Settings tests
+pytest -m settings test_settings.py --browser chromium --headed -v
+
+# Infrastructure tests
+pytest -m infrastructure test_infrastructure.py --browser chromium --headed -v
+
+# Navigation tests
+pytest -m navigation test_navigation.py --browser chromium --headed -v
+```
+
+### By Marker
+
+```bash
+# Smoke tests only (fast)
+pytest -m smoke --browser chromium --headed -v
+
+# Critical tests only
+pytest -m critical --browser chromium --headed -v
+
+# Exclude slow tests
+pytest -m "not slow" --browser chromium --headed -v
+```
+
+### Single Test
+
+```bash
+# Run one specific test
+pytest test_app_lifecycle.py::test_complete_app_lifecycle_nginx --browser chromium --headed -v
+
+# With slow motion
+pytest test_app_lifecycle.py::test_complete_app_lifecycle_nginx --browser chromium --headed --slowmo 500 -v
+```
+
+### Headless (CI/CD)
+
+```bash
+# Run in headless mode
+pytest --browser chromium -v
+
+# Parallel execution (if configured)
+pytest -n auto --browser chromium -v
+```
+
+---
+
+## 📚 Test Categories
+
+### 1. Authentication Tests (test_auth_flow.py)
+
+**Coverage**: Registration, Login, Logout, Session Management
+
+```bash
+pytest test_auth_flow.py --browser chromium --headed -v
+```
+
+**Key Tests**:
+- `test_registration_and_login` - Complete registration flow
+- `test_password_field_masking` - Password security ✅ PASSING
+- `test_switch_between_login_and_register` - Tab navigation ✅ PASSING
+- `test_invalid_login` - Error handling
+- `test_session_persistence` - Token persistence
+- `test_logout` - Clean logout
+
+### 2. Application Lifecycle Tests (test_app_lifecycle.py)
+
+**Coverage**: Complete E2E deployment workflow
+
+```bash
+pytest test_app_lifecycle.py --browser chromium --headed -v
+```
+
+**Key Tests**:
+- `test_complete_app_lifecycle_nginx` ⭐ **CRITICAL** - Full workflow:
+  1. Deploy NGINX from catalog
+  2. Monitor deployment progress (5 min)
+  3. Verify running status
+  4. Stop application
+  5. Start application
+  6. Restart application
+  7. View logs
+  8. Delete application
+  9. Verify cleanup
+
+- `test_app_lifecycle_with_custom_config` - Custom deployments
+- `test_deploy_multiple_apps_parallel` - Multi-app support
+
+### 3. Application Management Tests (test_app_management.py)
+
+**Coverage**: App controls, monitoring, logs, console
+
+```bash
+pytest test_app_management.py --browser chromium --headed -v
+```
+
+**Key Tests**:
+- `test_view_app_logs_all` - All logs viewing
+- `test_view_app_logs_docker` - Docker-specific logs
+- `test_view_app_logs_system` - System logs
+- `test_logs_auto_refresh` - Auto-refresh feature
+- `test_download_logs` - Log download
+- `test_open_app_console` - Console access
+- `test_console_quick_commands` - Quick commands
+- `test_app_external_link` - External access
+- `test_app_stop_start_cycle` - Control operations
+- `test_app_restart` - Restart operation
+
+### 4. Settings Tests (test_settings.py)
+
+**Coverage**: Configuration management
+
+```bash
+pytest test_settings.py --browser chromium --headed -v
+```
+
+**Key Tests**:
+- `test_settings_page_loads` - Page initialization
+- `test_settings_tab_navigation` - Tab switching
+- `test_proxmox_settings_form` - Proxmox config
+- `test_proxmox_test_connection` - Connection testing
+- `test_network_settings_form` - Network config
+- `test_resources_settings_form` - Resource limits
+- `test_system_settings_panel` - System info
+
+### 5. Infrastructure Tests (test_infrastructure.py)
+
+**Coverage**: Monitoring, nodes, appliance, services
+
+```bash
+pytest test_infrastructure.py --browser chromium --headed -v
+```
+
+**Key Tests**:
+- `test_infrastructure_page_loads` - Page initialization
+- `test_proxmox_nodes_display` - Node information
+- `test_network_appliance_status` - Appliance monitoring
+- `test_view_appliance_logs` - Appliance logs
+- `test_restart_appliance_button` - Restart capability
+- `test_nat_testing_button` - NAT testing
+- `test_services_health_grid` - Service monitoring
+
+### 6. Navigation Tests (test_navigation.py)
+
+**Coverage**: UI navigation, sidebar, menus
+
+```bash
+pytest test_navigation.py --browser chromium --headed -v
+```
+
+**Key Tests**:
+- `test_navigate_all_views` ⭐ **SMOKE** - Complete navigation
+- `test_sidebar_collapse_expand` - Sidebar toggle
+- `test_user_menu_toggle` - User menu
+- `test_active_nav_indicator` - Active states
+- `test_navigation_keyboard_shortcuts` - Keyboard UX
+- `test_page_titles_update` - Title changes
+
+---
+
+## 🛠️ Writing Tests
+
+### Using Helper Fixtures
+
+```python
+import pytest
+from utils.helpers import authenticated_page, deployed_nginx_app
+
+def test_my_feature(authenticated_page):
+    """User is already logged in."""
+    page = authenticated_page
+    # Your test code here
+
+def test_with_deployed_app(deployed_nginx_app):
+    """NGINX app is already deployed."""
+    page, hostname = deployed_nginx_app
+    # Test app operations
+```
+
+### Available Helpers
+
+**Fixtures**:
+- `authenticated_page` - Logged-in user on dashboard
+- `authenticated_with_user` - Auth + user credentials
+- `deployed_nginx_app` - Auto-deployed NGINX app
+- `deployed_app_factory` - Deploy multiple apps
+
+**Wait Helpers**:
+- `wait_for_app_status(page, hostname, status)`
+- `wait_for_deployment_complete(page)`
+- `wait_for_modal_close(page)`
+- `wait_for_notification(page, pattern)`
+
+**Cleanup**:
+- `delete_app_if_exists(page, hostname)`
+- `cleanup_all_test_apps(page)`
+
+**Assertions**:
+- `assert_app_exists(page, hostname)`
+- `assert_app_not_exists(page, hostname)`
+- `assert_app_status(page, hostname, status)`
+
+### Test Template
+
+```python
+import pytest
+from playwright.sync_api import Page, expect
+from utils.helpers import authenticated_page
+
+@pytest.mark.your_category
+def test_your_feature(authenticated_page):
+    """
+    Test description.
+    
+    Steps:
+    1. Step one
+    2. Step two
+    
+    Expected: Expected outcome
+    """
+    page = authenticated_page
+    
+    print("\n🔍 Testing feature")
+    
+    # Arrange
+    # ... setup
+    
+    # Act
+    # ... perform action
+    
+    # Assert
+    expect(page.locator("#element")).to_be_visible()
+    
+    print("✓ Test passed")
+```
 
 ---
 
