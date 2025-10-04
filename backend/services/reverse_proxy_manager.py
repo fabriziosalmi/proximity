@@ -310,27 +310,35 @@ class ReverseProxyManager:
     
     def _generate_caddy_config(self, hostname: str, backend_ip: str, backend_port: int) -> str:
         """
-        Generate Caddy configuration for a virtual host.
-        
-        Multi-tier access strategy:
+        Generate Caddy configuration for a virtual host with dual-access strategy.
+
+        v2.0 In-App Canvas Feature: Generates THREE access methods:
         1. Hostname-based: app-name.prox.local (for internal DNS)
-        2. Path-based: /app-name (fallback for LAN clients without DNS)
-        
+        2. Path-based PUBLIC: /app-name (standard external access)
+        3. Path-based IFRAME: /proxy/internal/app-name (for in-app embedding)
+
+        CRITICAL SECURITY:
+        - Public paths preserve security headers (X-Frame-Options, CSP)
+        - Iframe path strips security headers to allow embedding
+        - This dual strategy enables unified UX while maintaining security
+
         Args:
             hostname: Hostname for the vhost (e.g., "nginx-01.prox.local")
             backend_ip: Backend IP address
             backend_port: Backend port
-            
+
         Returns:
-            Caddy configuration string
+            Caddy configuration string with public AND iframe proxy blocks
         """
         # Extract app name from hostname (e.g., "nginx-01" from "nginx-01.prox.local")
         app_name = hostname.replace(f".{self.DNS_DOMAIN}", "")
-        
+
         config = f"""# Virtual host for {hostname}
+# v2.0 In-App Canvas: Dual-access configuration
 # Accessible via:
 #   - http://{hostname} (with DNS)
-#   - http://<appliance-ip>/{app_name} (path-based fallback)
+#   - http://<appliance-ip>/{app_name} (public path-based access)
+#   - http://<appliance-ip>/proxy/internal/{app_name} (iframe-embeddable)
 
 # Method 1: Hostname-based routing (requires DNS or /etc/hosts)
 {hostname} {{
@@ -339,14 +347,14 @@ class ReverseProxyManager:
         health_uri /
         health_interval 30s
         health_timeout 5s
-        
+
         # Headers
         header_up Host {{upstream_hostport}}
         header_up X-Real-IP {{remote_host}}
         header_up X-Forwarded-For {{remote_host}}
         header_up X-Forwarded-Proto {{scheme}}
     }}
-    
+
     # Logging
     log {{
         output file /var/log/caddy/{hostname}.log
@@ -354,8 +362,9 @@ class ReverseProxyManager:
     }}
 }}
 
-# Method 2: Path-based routing (works without DNS)
+# Method 2: PUBLIC path-based routing (works without DNS)
 # Access via: http://<appliance-wan-ip>/{app_name}
+# Security headers PRESERVED - this is the standard public access
 :80 {{
     handle_path /{app_name} {{
         reverse_proxy http://{backend_ip}:{backend_port} {{
@@ -365,6 +374,28 @@ class ReverseProxyManager:
             header_up X-Forwarded-For {{remote_host}}
             header_up X-Forwarded-Proto {{scheme}}
             header_up X-Forwarded-Prefix /{app_name}
+        }}
+    }}
+
+    # Method 3: IFRAME-EMBEDDABLE internal proxy (In-App Canvas)
+    # Access via: http://<appliance-wan-ip>/proxy/internal/{app_name}
+    # CRITICAL: Security headers STRIPPED to allow iframe embedding
+    # This path is ONLY for the Proximity UI canvas feature
+    handle_path /proxy/internal/{app_name} {{
+        reverse_proxy http://{backend_ip}:{backend_port} {{
+            # Standard proxy headers
+            header_up Host {{upstream_hostport}}
+            header_up X-Real-IP {{remote_host}}
+            header_up X-Forwarded-For {{remote_host}}
+            header_up X-Forwarded-Proto {{scheme}}
+            header_up X-Forwarded-Prefix /proxy/internal/{app_name}
+
+            # CRITICAL: Strip frame-busting headers to allow iframe embedding
+            # These directives make apps embeddable in the Proximity canvas
+            header_down -X-Frame-Options
+            header_down -Content-Security-Policy
+            header_down -X-Content-Security-Policy
+            header_down -X-WebKit-CSP
         }}
     }}
 }}

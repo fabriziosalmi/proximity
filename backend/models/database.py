@@ -91,6 +91,7 @@ class App(Base):
     hostname = Column(String(255), nullable=False, unique=True, index=True)
     status = Column(String(50), nullable=False, index=True)
     url = Column(String(512))
+    iframe_url = Column(String(512), nullable=True)  # For in-app canvas embedding
     lxc_id = Column(Integer, nullable=False, unique=True, index=True)
     node = Column(String(100), nullable=False, index=True)
     created_at = Column(DateTime, default=datetime.utcnow)
