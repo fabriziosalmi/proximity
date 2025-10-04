@@ -4,41 +4,19 @@ Tests the full stack from API to Proxmox.
 """
 
 import pytest
-from fastapi.testclient import TestClient
 from unittest.mock import AsyncMock, patch
 import sys
 from pathlib import Path
+
+# Disable pytest-flask auto-use fixtures for this file
+pytestmark = pytest.mark.usefixtures()
 
 # Add backend to path
 backend_path = Path(__file__).parent.parent / "backend"
 sys.path.insert(0, str(backend_path))
 
-from main import create_app
-from services.auth_service import AuthService
-
-
-@pytest.fixture
-def client():
-    """Create test client."""
-    app = create_app()
-    return TestClient(app)
-
-
-@pytest.fixture
-def auth_token(db_session, test_user):
-    """Generate auth token for test user."""
-    token = AuthService.create_access_token({
-        "sub": test_user.username,
-        "role": test_user.role,
-        "user_id": test_user.id
-    })
-    return token
-
-
-@pytest.fixture
-def auth_headers(auth_token):
-    """Create authorization headers."""
-    return {"Authorization": f"Bearer {auth_token}"}
+# Note: client fixture comes from conftest.py
+# Note: auth_token and auth_headers come from conftest.py
 
 
 class TestFullDeploymentWorkflow:

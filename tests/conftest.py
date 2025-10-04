@@ -86,6 +86,27 @@ def test_admin(db_session: Session):
 
 
 @pytest.fixture
+def client(db_session):
+    """Create test client with database dependency override."""
+    from fastapi.testclient import TestClient
+    from main import create_app
+    from models.database import get_db
+    
+    app = create_app()
+    
+    # Override get_db dependency to use test database
+    def override_get_db():
+        try:
+            yield db_session
+        finally:
+            pass  # Session cleanup handled by db_session fixture
+    
+    app.dependency_overrides[get_db] = override_get_db
+    
+    return TestClient(app)
+
+
+@pytest.fixture
 def mock_proxmox_service():
     """Create a mock ProxmoxService."""
     mock = AsyncMock(spec=ProxmoxService)
