@@ -65,7 +65,7 @@ class TestAppService:
         assert app is not None
         assert app.hostname == "test-nginx"
         assert app.catalog_id == "nginx"
-        assert app.status == AppStatus.running
+        assert app.status == AppStatus.RUNNING
 
     @pytest.mark.asyncio
     async def test_get_app_success(self, app_service, db_session):
@@ -111,7 +111,7 @@ class TestAppService:
         db_session.commit()
 
         app = await app_service.start_app("test-app")
-        assert app.status == AppStatus.running
+        assert app.status == AppStatus.RUNNING
 
     @pytest.mark.asyncio
     async def test_stop_app(self, app_service, db_session):
@@ -130,7 +130,7 @@ class TestAppService:
         db_session.commit()
 
         app = await app_service.stop_app("test-app")
-        assert app.status == AppStatus.stopped
+        assert app.status == AppStatus.STOPPED
 
     @pytest.mark.asyncio
     async def test_restart_app(self, app_service, db_session):
@@ -149,7 +149,7 @@ class TestAppService:
         db_session.commit()
 
         app = await app_service.restart_app("test-app")
-        assert app.status == AppStatus.running
+        assert app.status == AppStatus.RUNNING
 
     @pytest.mark.asyncio
     async def test_delete_app_success(self, app_service, db_session):
