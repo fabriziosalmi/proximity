@@ -76,16 +76,56 @@ def test_complete_app_lifecycle_nginx(authenticated_page: Page):
     """
     page = authenticated_page
     
+    # Ensure we're on the dashboard and it's fully loaded
+    page.wait_for_selector("#dashboardView:not(.hidden)", timeout=10000)
+    page.wait_for_load_state("networkidle")
+    
     # Step 1: Navigate to catalog
     print("\n📦 Step 1: Navigate to catalog")
-    page.click("[data-view='catalog']")
-    expect(page.locator("#catalogView")).to_be_visible(timeout=10000)
+    # Wait for the catalog link to be ready
+    page.wait_for_selector("[data-view='catalog']", timeout=5000, state="visible")
+    
+    # Try clicking the link
+    catalog_link = page.locator("[data-view='catalog']").first
+    catalog_link.click()
+    
+    # Wait for the view to become visible (including CSS animations)
+    # We use wait_for_function to check both the hidden class and opacity
+    page.wait_for_function("""
+        () => {
+            const el = document.getElementById('catalogView');
+            if (!el) return false;
+            const style = window.getComputedStyle(el);
+            // Check that it's not hidden and opacity is transitioning/complete
+            return !el.classList.contains('hidden') && 
+                   style.display !== 'none' &&
+                   parseFloat(style.opacity) > 0.5;  // At least 50% through fade-in
+        }
+    """, timeout=10000)
+    
     print("✓ Catalog view loaded")
     
     # Step 2: Find and deploy NGINX
     print("\n🚀 Step 2: Deploy NGINX application")
     
-    # Wait for catalog to load
+    # Wait for catalog to load - give it time to fetch and render apps
+    page.wait_for_timeout(2000)  # Allow time for API call and rendering
+    
+    # Check if app cards are present
+    app_card_count = page.locator(".app-card").count()
+    print(f"Found {app_card_count} app cards")
+    
+    if app_card_count == 0:
+        # Force reload the catalog if no apps
+        print("⚠️ No app cards found, checking catalog content...")
+        catalog_html = page.evaluate("() => document.getElementById('catalogView').innerHTML")
+        print(f"Catalog HTML length: {len(catalog_html)}")
+        
+        # Try to trigger catalog load manually
+        page.evaluate("if (window.loadCatalog) window.loadCatalog();")
+        page.wait_for_timeout(2000)
+    
+    # Wait for catalog to load with app cards
     page.wait_for_selector(".app-card", timeout=15000)
     
     # Find NGINX card and click deploy

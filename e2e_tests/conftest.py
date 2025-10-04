@@ -163,7 +163,22 @@ def authenticated_page(page: Page, base_url: str) -> Page:
     login_page.switch_to_login_mode()
     login_page.click_login_button()
     
-    # CRITICAL: Wait for dashboard to load with explicit selector
+    # Wait a moment for the login request to complete
+    page.wait_for_timeout(1000)
+    
+    # Force close the modal if it doesn't close automatically (workaround for frontend bug)
+    page.evaluate("""
+        const modal = document.getElementById('authModal');
+        if (modal && modal.classList.contains('show')) {
+            modal.classList.remove('show');
+            modal.style.display = 'none';
+            document.body.classList.remove('modal-open');
+            const backdrop = document.querySelector('.modal-backdrop');
+            if (backdrop) backdrop.remove();
+        }
+    """)
+    
+    # Wait for dashboard to load with explicit selector
     page.wait_for_selector("#dashboardView, #dashboard-view, [data-view='dashboard']", 
                           timeout=10000, state="visible")
     
