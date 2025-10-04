@@ -165,6 +165,42 @@ def sample_app_create():
 
 
 @pytest.fixture
+def auth_token(db_session, test_user):
+    """Generate auth token for test user."""
+    from backend.services.auth_service import AuthService
+    token = AuthService.create_access_token({
+        "sub": test_user.username,
+        "role": test_user.role,
+        "user_id": test_user.id
+    })
+    return token
+
+
+@pytest.fixture
+def admin_token(db_session, test_admin):
+    """Generate auth token for admin user."""
+    from backend.services.auth_service import AuthService
+    token = AuthService.create_access_token({
+        "sub": test_admin.username,
+        "role": test_admin.role,
+        "user_id": test_admin.id
+    })
+    return token
+
+
+@pytest.fixture
+def auth_headers(auth_token):
+    """Create authorization headers."""
+    return {"Authorization": f"Bearer {auth_token}"}
+
+
+@pytest.fixture
+def admin_headers(admin_token):
+    """Create authorization headers for admin."""
+    return {"Authorization": f"Bearer {admin_token}"}
+
+
+@pytest.fixture
 async def cleanup_test_containers():
     """Cleanup fixture to remove test containers after tests."""
     test_containers = []
