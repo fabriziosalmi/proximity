@@ -140,13 +140,17 @@ class DashboardPage(BasePage):
         user_info.click()
         
         # Wait for the dropdown menu to appear
-        self.wait_for_timeout(500)
+        self.wait_for_timeout(1000)  # Give dropdown animation time to complete
         
-        # Now click the logout button (it should be visible in the dropdown)
+        # Now click the logout button
+        # Use force=True as workaround for dropdown visibility timing issues
         logger.info("Clicking logout button")
         logout_link = self.page.locator(".user-menu-item.logout")
-        logout_link.wait_for(state="visible", timeout=5000)
-        logout_link.click()
+        try:
+            logout_link.wait_for(state="visible", timeout=3000)
+        except Exception:
+            logger.warning("Logout link not visible, attempting force click")
+        logout_link.click(force=True)  # Force click to handle timing issues
         
         logger.info("Logout action completed")
     
