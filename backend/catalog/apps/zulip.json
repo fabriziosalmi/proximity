@@ -1,0 +1,105 @@
+{
+  "id": "zulip",
+  "name": "Zulip",
+  "description": "Powerful team chat with threaded conversations, integrations, and enterprise-grade security features",
+  "category": "Communication",
+  "icon": "https://cdn.simpleicons.org/zulip/52C2AF",
+  "tags": ["chat", "team-communication", "collaboration", "threads", "notifications"],
+  "min_memory": 4096,
+  "min_cpu": 2,
+  "min_disk": 10,
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "zulip": {
+        "image": "zulip/docker-zulip:latest",
+        "container_name": "zulip",
+        "restart": "unless-stopped",
+        "ports": [
+          "8080:80",
+          "8443:443"
+        ],
+        "volumes": [
+          "zulip_data:/data"
+        ],
+        "environment": {
+          "SETTING_EXTERNAL_HOST": "localhost:8080",
+          "SETTING_ZULIP_ADMINISTRATOR": "admin@example.com",
+          "SECRETS_email_password": "123456789",
+          "SECRETS_secret_key": "REPLACE_WITH_SECURE_SECRET",
+          "SETTING_EMAIL_HOST": "",
+          "SETTING_EMAIL_HOST_USER": "",
+          "SSL_CERTIFICATE_GENERATION": "self-signed",
+          "DB_HOST": "zulip-database",
+          "DB_HOST_PORT": "5432",
+          "DB_USER": "zulip",
+          "POSTGRES_PASSWORD": "zulip_password",
+          "MEMCACHED_HOST": "zulip-memcached",
+          "REDIS_HOST": "zulip-redis",
+          "RABBITMQ_HOST": "zulip-rabbitmq"
+        },
+        "depends_on": [
+          "zulip-database",
+          "zulip-memcached",
+          "zulip-rabbitmq",
+          "zulip-redis"
+        ]
+      },
+      "zulip-database": {
+        "image": "zulip/zulip-postgresql:latest",
+        "container_name": "zulip-database",
+        "restart": "unless-stopped",
+        "environment": {
+          "POSTGRES_DB": "zulip",
+          "POSTGRES_USER": "zulip",
+          "POSTGRES_PASSWORD": "zulip_password"
+        },
+        "volumes": [
+          "zulip_postgresql:/var/lib/postgresql/data"
+        ]
+      },
+      "zulip-memcached": {
+        "image": "memcached:alpine",
+        "container_name": "zulip-memcached",
+        "restart": "unless-stopped",
+        "command": [
+          "memcached",
+          "-I",
+          "128m"
+        ]
+      },
+      "zulip-rabbitmq": {
+        "image": "rabbitmq:3-management",
+        "container_name": "zulip-rabbitmq",
+        "restart": "unless-stopped",
+        "hostname": "zulip-rabbitmq",
+        "environment": {
+          "RABBITMQ_DEFAULT_USER": "zulip",
+          "RABBITMQ_DEFAULT_PASS": "zulip_password"
+        },
+        "volumes": [
+          "zulip_rabbitmq:/var/lib/rabbitmq"
+        ]
+      },
+      "zulip-redis": {
+        "image": "redis:alpine",
+        "container_name": "zulip-redis",
+        "restart": "unless-stopped",
+        "command": [
+          "redis-server",
+          "--appendonly",
+          "yes"
+        ],
+        "volumes": [
+          "zulip_redis:/data"
+        ]
+      }
+    },
+    "volumes": {
+      "zulip_data": {},
+      "zulip_postgresql": {},
+      "zulip_rabbitmq": {},
+      "zulip_redis": {}
+    }
+  }
+}

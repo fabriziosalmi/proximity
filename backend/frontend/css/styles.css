@@ -1852,8 +1852,8 @@ a.connection-value:hover::after {
 }
 
 .meta-badge i[data-lucide] {
-    width: 20px;
-    height: 20px;
+    width: 14px;
+    height: 14px;
 }
 
 /* Modal */
