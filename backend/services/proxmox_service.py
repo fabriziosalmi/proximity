@@ -29,9 +29,11 @@ class ProxmoxService:
                 if self._proxmox is None:
                     try:
                         # Note: proxmoxer is synchronous, we wrap calls in asyncio.to_thread
+                        # Explicitly specify backend='https' to avoid auto-detection issues
                         self._proxmox = await asyncio.to_thread(
                             ProxmoxAPI,
                             settings.PROXMOX_HOST,
+                            backend='https',
                             user=settings.PROXMOX_USER,
                             password=settings.PROXMOX_PASSWORD,
                             verify_ssl=settings.PROXMOX_VERIFY_SSL,

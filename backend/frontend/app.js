@@ -1300,6 +1300,10 @@ async function renderSettingsView() {
     `;
 
     view.innerHTML = content;
+    
+    // Show the view
+    view.classList.remove('hidden');
+    view.style.display = 'block';
 
     // Initialize icons after rendering
     initLucideIcons();
@@ -3046,12 +3050,25 @@ function showAuthModal() {
                 return;
         }
 
-        // Show the modal
+        // Show the modal with proper Bootstrap mechanics
         modal.style.display = 'flex';
         modal.classList.add('show');
-
+        
+        // Force reflow for animation
+        modal.offsetHeight;
+        
         // Prevent body scrolling
         document.body.classList.add('modal-open');
+        document.body.style.overflow = 'hidden';
+        
+        // Create backdrop if it doesn't exist
+        let backdrop = document.querySelector('.modal-backdrop');
+        if (!backdrop) {
+                backdrop = document.createElement('div');
+                backdrop.className = 'modal-backdrop fade show';
+                document.body.appendChild(backdrop);
+        }
+        backdrop.classList.add('show');
 
         // Render the tabs
         renderAuthTabs('register');
@@ -3068,6 +3085,13 @@ function closeAuthModal() {
 
         // Restore body scrolling
         document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+        
+        // Remove backdrop
+        const backdrop = document.querySelector('.modal-backdrop');
+        if (backdrop) {
+                backdrop.remove();
+        }
 }
 
 function renderAuthTabs(defaultTab = 'register') {

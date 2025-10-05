@@ -1475,6 +1475,30 @@ a.connection-value:hover::after {
 /* Prevent body scrolling when modal is open */
 body.modal-open {
     overflow: hidden;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+}
+
+/* Modal Backdrop */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    opacity: 0;
+    transition: opacity 0.15s linear;
+}
+
+.modal-backdrop.show {
+    opacity: 1;
+}
+
+.modal-backdrop.fade {
+    opacity: 0;
 }
 
 .modal-content {
@@ -1485,9 +1509,12 @@ body.modal-open {
     max-width: 600px;
     width: 90%;
     max-height: 90vh;
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
     box-shadow: var(--shadow-xl), 0 0 60px rgba(0, 0, 0, 0.5);
     animation: slideUp 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    position: relative;
+    z-index: 1001;
 }
 
 @keyframes slideUp {
@@ -1507,6 +1534,7 @@ body.modal-open {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-shrink: 0;
 }
 
 .modal-title {
@@ -1540,6 +1568,10 @@ body.modal-open {
 .modal-body {
     padding: 2rem;
     padding-bottom: 1rem;
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex: 1 1 auto;
+    max-height: calc(90vh - 150px); /* Account for header and footer */
 }
 
 .modal-footer {
@@ -1549,6 +1581,7 @@ body.modal-open {
     gap: 0.75rem;
     justify-content: flex-end;
     margin-top: auto;
+    flex-shrink: 0;
 }
 
 /* Progress Steps */
