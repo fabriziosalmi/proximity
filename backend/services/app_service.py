@@ -81,11 +81,9 @@ class AppService:
 
     def _db_app_to_schema(self, db_app: DBApp) -> App:
         """Convert database App model to Pydantic schema"""
-        # Convert volumes from dict format to string format if needed
+        # Keep volumes in their original format (dict list or string list)
+        # The App schema now accepts both Union[List[str], List[Dict[str, str]]]
         volumes = db_app.volumes or []
-        if volumes and isinstance(volumes[0], dict):
-            # Convert dict format to string format: "host:container"
-            volumes = [f"{v.get('host_path', '')}:{v.get('container_path', '')}" for v in volumes]
         
         return App(
             id=db_app.id,
@@ -677,16 +675,24 @@ class AppService:
         """
         logger.info(f"Starting clone operation: {source_app_id} → {new_hostname}")
 
-        # Get source app
-        source_app = await self.get_app(source_app_id)
+        # Get source app from database to preserve original data formats
+        source_db_app = self.db.query(DBApp).filter(DBApp.id == source_app_id).first()
+        if not source_db_app:
+            raise AppNotFoundError(
+                f"Source app '{source_app_id}' not found",
+                details={"source_app_id": source_app_id}
+            )
 
-        # Check if target already exists
+        # Get source app schema for Proxmox operations
+        source_app = self._db_app_to_schema(source_db_app)
+
+        # Check if target hostname already exists
         new_app_id = f"{source_app.catalog_id}-{new_hostname}"
-        existing = self.db.query(DBApp).filter(DBApp.id == new_app_id).first()
+        existing = self.db.query(DBApp).filter(DBApp.hostname == new_hostname).first()
         if existing:
             raise AppAlreadyExistsError(
-                f"Application '{new_app_id}' already exists",
-                details={"app_id": new_app_id}
+                f"Application with hostname '{new_hostname}' already exists",
+                details={"hostname": new_hostname, "existing_app_id": existing.id}
             )
 
         # Get catalog item for source app
@@ -755,6 +761,18 @@ class AppService:
                 access_url = f"http://{container_ip}:{primary_port}" if container_ip else None
                 iframe_url = None
 
+            # Preserve data formats exactly as they are in source database
+            # Use source_db_app to get original dict/int formats before schema conversion
+            cloned_ports = source_db_app.ports if source_db_app.ports else {}
+            cloned_volumes = source_db_app.volumes if source_db_app.volumes else []
+            cloned_config = source_db_app.config if source_db_app.config else {}
+            cloned_environment = source_db_app.environment if source_db_app.environment else {}
+
+            # Convert volumes to string format for App schema (expects List[str])
+            volumes_for_schema = cloned_volumes
+            if cloned_volumes and isinstance(cloned_volumes[0], dict):
+                volumes_for_schema = [f"{v.get('host_path', '')}:{v.get('container_path', '')}" for v in cloned_volumes]
+
             # Create database entry for cloned app
             cloned_app = App(
                 id=new_app_id,
@@ -766,10 +784,10 @@ class AppService:
                 iframe_url=iframe_url,
                 lxc_id=new_vmid,
                 node=source_app.node,
-                config=source_app.config,
-                environment=source_app.environment,
-                ports=source_app.ports,
-                volumes=source_app.volumes,  # Volumes are copied during LXC clone
+                config=cloned_config,  # Use preserved config
+                environment=cloned_environment,  # Use preserved environment
+                ports=cloned_ports,  # Use preserved ports (will be converted to string keys by Pydantic)
+                volumes=volumes_for_schema,  # Use string format for schema
                 public_port=public_port,
                 internal_port=internal_port
             )
@@ -785,10 +803,10 @@ class AppService:
                 iframe_url=cloned_app.iframe_url,
                 lxc_id=cloned_app.lxc_id,
                 node=cloned_app.node,
-                config=cloned_app.config,
-                ports=cloned_app.ports,
-                volumes=cloned_app.volumes,
-                environment=cloned_app.environment,
+                config=cloned_config,  # Use preserved config
+                ports=cloned_ports,  # Use preserved ports
+                volumes=cloned_volumes,  # Use preserved volumes
+                environment=cloned_environment,  # Use preserved environment
                 public_port=public_port,
                 internal_port=internal_port,
                 created_at=datetime.utcnow(),
@@ -798,8 +816,11 @@ class AppService:
             self.db.commit()
             self.db.refresh(db_app)
 
+            # Convert to schema with database-persisted formats
+            result_app = self._db_app_to_schema(db_app)
+
             logger.info(f"✓ Successfully cloned {source_app_id} to {new_app_id}")
-            return cloned_app
+            return result_app
 
         except Exception as e:
             logger.error(f"Clone operation failed: {e}", exc_info=True)
@@ -858,9 +879,18 @@ class AppService:
                 details={"app_id": app_id}
             )
 
-        # Get app
-        app = await self.get_app(app_id)
+        # Get app from database
+        db_app = self.db.query(DBApp).filter(DBApp.id == app_id).first()
+        if not db_app:
+            raise AppNotFoundError(
+                f"App '{app_id}' not found",
+                details={"app_id": app_id}
+            )
+        
+        # Convert to schema for status check
+        app = self._db_app_to_schema(db_app)
 
+        was_running = False
         try:
             # Stop container before modifying resources
             was_running = app.status == AppStatus.RUNNING
@@ -868,41 +898,53 @@ class AppService:
                 logger.info(f"Stopping {app_id} for config update")
                 await self.stop_app(app_id)
 
+            # Update database config first
+            if db_app.config is None:
+                db_app.config = {}
+            
+            # Create a new config dict to ensure SQLAlchemy detects changes
+            new_config = db_app.config.copy()
+
+            if cpu_cores is not None:
+                new_config['cpu_cores'] = cpu_cores
+            if memory_mb is not None:
+                new_config['memory_mb'] = memory_mb
+            if disk_gb is not None:
+                new_config['disk_gb'] = disk_gb
+
+            # Reassign to trigger SQLAlchemy update detection
+            db_app.config = new_config
+            db_app.updated_at = datetime.utcnow()
+            self.db.commit()
+            self.db.refresh(db_app)
+
             # Update LXC configuration
             config_updates = {}
             if cpu_cores is not None:
                 config_updates['cores'] = cpu_cores
             if memory_mb is not None:
                 config_updates['memory'] = memory_mb
-            if disk_gb is not None:
-                # Disk resize requires special handling
-                await self.proxmox_service.resize_lxc_disk(app.node, app.lxc_id, disk_gb)
-
+            
             # Apply CPU/Memory changes
             if config_updates:
-                await self.proxmox_service.update_lxc_config(app.node, app.lxc_id, config_updates)
+                await self.proxmox_service.update_lxc_config(
+                    node=app.node,
+                    vmid=app.lxc_id,
+                    config=config_updates
+                )
+            
+            # Handle disk resize separately
+            if disk_gb is not None:
+                await self.proxmox_service.resize_lxc_disk(
+                    app.node,
+                    app.lxc_id,
+                    disk_gb
+                )
 
             # Restart if it was running
             if was_running:
                 logger.info(f"Restarting {app_id} with new configuration")
                 await self.start_app(app_id)
-
-            # Update database config
-            db_app = self.db.query(DBApp).filter(DBApp.id == app_id).first()
-            if db_app:
-                if db_app.config is None:
-                    db_app.config = {}
-
-                if cpu_cores is not None:
-                    db_app.config['cpu_cores'] = cpu_cores
-                if memory_mb is not None:
-                    db_app.config['memory_mb'] = memory_mb
-                if disk_gb is not None:
-                    db_app.config['disk_gb'] = disk_gb
-
-                db_app.updated_at = datetime.utcnow()
-                self.db.commit()
-                self.db.refresh(db_app)
 
             logger.info(f"✓ Successfully updated config for {app_id}")
 
@@ -913,12 +955,13 @@ class AppService:
             logger.error(f"Config update failed for {app_id}: {e}", exc_info=True)
             self.db.rollback()
 
-            # Try to restart app if it was running
+            # Try to restart app if it was running (rollback attempt)
             if was_running:
                 try:
+                    logger.info(f"Attempting to restart {app_id} after failed update")
                     await self.start_app(app_id)
-                except:
-                    pass
+                except Exception as restart_error:
+                    logger.error(f"Failed to restart {app_id} after update failure: {restart_error}")
 
             raise AppOperationError(
                 f"Failed to update configuration: {str(e)}",

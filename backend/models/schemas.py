@@ -89,7 +89,7 @@ class App(BaseModel):
     id: str = Field(..., description="Unique app instance ID")
     catalog_id: str = Field(..., description="Reference to catalog item")
     name: str = Field(..., description="App display name")
-    hostname: str = Field(..., description="App hostname")
+    hostname: str = Field(..., description="Hostname for the app")
     status: AppStatus = Field(..., description="Current status")
     url: Optional[str] = Field(None, description="App access URL")
     iframe_url: Optional[str] = Field(None, description="In-app canvas iframe URL")
@@ -100,9 +100,10 @@ class App(BaseModel):
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
     config: Dict[str, Any] = Field(default_factory=dict, description="App configuration")
-    ports: Dict[int, int] = Field(default_factory=dict, description="Port mappings (container:host)")
-    volumes: List[str] = Field(default_factory=list, description="Mounted volumes")
+    ports: Union[Dict[int, int], Dict[str, int]] = Field(default_factory=dict, description="Port mappings (container:host)")
+    volumes: Union[List[str], List[Dict[str, str]]] = Field(default_factory=list, description="Mounted volumes")
     environment: Dict[str, str] = Field(default_factory=dict, description="Environment variables")
+
 
 
 class AppCreate(BaseModel):
