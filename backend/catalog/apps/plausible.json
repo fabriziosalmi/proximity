@@ -1,0 +1,55 @@
+{
+  "id": "plausible",
+  "name": "Plausible Analytics",
+  "description": "Simple, lightweight and privacy-friendly web analytics. Open source alternative to Google Analytics.",
+  "category": "Monitoring",
+  "icon": "https://cdn.simpleicons.org/plausible",
+  "min_memory": 1024,
+  "min_cpu": 2,
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "plausible": {
+        "image": "plausible/analytics:latest",
+        "container_name": "plausible",
+        "restart": "unless-stopped",
+        "command": "sh -c 'sleep 10 && /entrypoint.sh db createdb && /entrypoint.sh db migrate && /entrypoint.sh run'",
+        "ports": ["8000:8000"],
+        "environment": {
+          "BASE_URL": "http://localhost:8000",
+          "SECRET_KEY_BASE": "change_me_please_use_openssl_rand_base64_64",
+          "DATABASE_URL": "postgres://plausible:plausible@db:5432/plausible",
+          "CLICKHOUSE_DATABASE_URL": "http://clickhouse:8123/plausible"
+        }
+      },
+      "db": {
+        "image": "postgres:14-alpine",
+        "container_name": "plausible_db",
+        "restart": "unless-stopped",
+        "environment": {
+          "POSTGRES_USER": "plausible",
+          "POSTGRES_PASSWORD": "plausible",
+          "POSTGRES_DB": "plausible"
+        },
+        "volumes": ["plausible_db:/var/lib/postgresql/data"]
+      },
+      "clickhouse": {
+        "image": "clickhouse/clickhouse-server:latest",
+        "container_name": "plausible_clickhouse",
+        "restart": "unless-stopped",
+        "volumes": ["plausible_event_data:/var/lib/clickhouse"]
+      }
+    },
+    "volumes": {
+      "plausible_db": {},
+      "plausible_event_data": {}
+    }
+  },
+  "ports": [8000],
+  "volumes": ["plausible_db", "plausible_event_data"],
+  "environment": {
+    "SECRET_KEY_BASE": "change_me_please",
+    "POSTGRES_PASSWORD": "plausible"
+  },
+  "tags": ["analytics", "privacy", "gdpr", "statistics"]
+}

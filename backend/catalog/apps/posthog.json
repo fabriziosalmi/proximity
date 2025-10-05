@@ -1,0 +1,53 @@
+{
+  "id": "posthog",
+  "name": "PostHog",
+  "description": "Product analytics, session recording, feature flagging and A/B testing. Self-hosted alternative to Mixpanel and Amplitude.",
+  "category": "Monitoring",
+  "icon": "https://cdn.simpleicons.org/posthog",
+  "min_memory": 4096,
+  "min_cpu": 4,
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "posthog": {
+        "image": "posthog/posthog:latest",
+        "container_name": "posthog",
+        "restart": "unless-stopped",
+        "ports": ["8000:8000"],
+        "environment": {
+          "DATABASE_URL": "postgres://posthog:posthog@db:5432/posthog",
+          "REDIS_URL": "redis://redis:6379/",
+          "SECRET_KEY": "change_this_secret_key",
+          "SITE_URL": "http://localhost:8000"
+        },
+        "depends_on": ["db", "redis"]
+      },
+      "db": {
+        "image": "postgres:14-alpine",
+        "container_name": "posthog_db",
+        "restart": "unless-stopped",
+        "environment": {
+          "POSTGRES_USER": "posthog",
+          "POSTGRES_PASSWORD": "posthog",
+          "POSTGRES_DB": "posthog"
+        },
+        "volumes": ["posthog_db:/var/lib/postgresql/data"]
+      },
+      "redis": {
+        "image": "redis:7-alpine",
+        "container_name": "posthog_redis",
+        "restart": "unless-stopped"
+      }
+    },
+    "volumes": {
+      "posthog_db": {}
+    }
+  },
+  "ports": [8000],
+  "volumes": ["posthog_db"],
+  "environment": {
+    "SECRET_KEY": "change_this_secret_key",
+    "POSTGRES_PASSWORD": "posthog"
+  },
+  "tags": ["analytics", "product-analytics", "session-recording", "feature-flags"]
+}

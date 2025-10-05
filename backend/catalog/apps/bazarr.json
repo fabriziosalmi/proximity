@@ -1,0 +1,42 @@
+{
+  "id": "bazarr",
+  "name": "Bazarr",
+  "description": "Companion application to Sonarr and Radarr for automatic subtitle downloads. Supports multiple languages.",
+  "category": "Media",
+  "icon": "https://cdn.simpleicons.org/bazarr",
+  "min_memory": 256,
+  "min_cpu": 1,
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "bazarr": {
+        "image": "linuxserver/bazarr:latest",
+        "container_name": "bazarr",
+        "restart": "unless-stopped",
+        "ports": ["6767:6767"],
+        "environment": {
+          "PUID": "1000",
+          "PGID": "1000",
+          "TZ": "Etc/UTC"
+        },
+        "volumes": [
+          "bazarr_config:/config",
+          "bazarr_movies:/movies",
+          "bazarr_tv:/tv"
+        ]
+      }
+    },
+    "volumes": {
+      "bazarr_config": {},
+      "bazarr_movies": {},
+      "bazarr_tv": {}
+    }
+  },
+  "ports": [6767],
+  "volumes": ["bazarr_config", "bazarr_movies", "bazarr_tv"],
+  "environment": {
+    "PUID": "1000",
+    "PGID": "1000"
+  },
+  "tags": ["media", "subtitles", "automation", "multilingual"]
+}

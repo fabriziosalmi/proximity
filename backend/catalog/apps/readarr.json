@@ -1,0 +1,42 @@
+{
+  "id": "readarr",
+  "name": "Readarr",
+  "description": "E-book and audiobook collection manager for Usenet and BitTorrent. Automatically download and organize your reading library.",
+  "category": "Media",
+  "icon": "https://cdn.simpleicons.org/readarr",
+  "min_memory": 512,
+  "min_cpu": 1,
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "readarr": {
+        "image": "linuxserver/readarr:develop",
+        "container_name": "readarr",
+        "restart": "unless-stopped",
+        "ports": ["8787:8787"],
+        "environment": {
+          "PUID": "1000",
+          "PGID": "1000",
+          "TZ": "Etc/UTC"
+        },
+        "volumes": [
+          "readarr_config:/config",
+          "readarr_books:/books",
+          "readarr_downloads:/downloads"
+        ]
+      }
+    },
+    "volumes": {
+      "readarr_config": {},
+      "readarr_books": {},
+      "readarr_downloads": {}
+    }
+  },
+  "ports": [8787],
+  "volumes": ["readarr_config", "readarr_books", "readarr_downloads"],
+  "environment": {
+    "PUID": "1000",
+    "PGID": "1000"
+  },
+  "tags": ["media", "books", "audiobooks", "automation"]
+}
