@@ -92,6 +92,25 @@ def browser_context_args(browser_context_args) -> dict:
 
 
 @pytest.fixture
+def context(browser):
+    """
+    Create a new browser context for each test.
+    This ensures complete isolation between tests with fresh storage.
+    
+    Note: Overrides pytest-playwright's default context fixture to use
+    function scope instead of session scope for better isolation.
+    """
+    context = browser.new_context(
+        viewport={"width": 1920, "height": 1080},
+        ignore_https_errors=True,
+        user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+        storage_state=None,  # No saved state
+    )
+    yield context
+    context.close()
+
+
+@pytest.fixture
 def page(context: BrowserContext, base_url: str) -> Generator[Page, None, None]:
     """
     Create a new page for each test.
@@ -237,7 +256,13 @@ def admin_authenticated_page(page: Page, base_url: str) -> Generator[Page, None,
     # Verify we're on the dashboard
     dashboard_page.wait_for_dashboard_load()
     
-    return page
+    yield page
+    
+    # Cleanup: Clear session on teardown
+    try:
+        page.evaluate("window.localStorage.clear(); window.sessionStorage.clear();")
+    except:
+        pass  # Page might be closed already
 
 
 # ============================================================================
