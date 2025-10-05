@@ -1,0 +1,39 @@
+{
+  "id": "ntfy",
+  "name": "ntfy",
+  "description": "Simple HTTP-based pub-sub notification service",
+  "version": "latest",
+  "icon": "https://raw.githubusercontent.com/binwiederhier/ntfy/main/web/public/static/images/ntfy.png",
+  "category": "Communication",
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "ntfy": {
+        "image": "binwiederhier/ntfy:latest",
+        "ports": ["8080:80"],
+        "command": "serve",
+        "environment": {
+          "TZ": "UTC"
+        },
+        "volumes": [
+          "cache:/var/cache/ntfy",
+          "config:/etc/ntfy"
+        ]
+      }
+    },
+    "volumes": {
+      "cache": {},
+      "config": {}
+    }
+  },
+  "ports": [8080],
+  "volumes": ["cache", "config"],
+  "environment": {
+    "TZ": "UTC"
+  },
+  "min_memory": 128,
+  "min_cpu": 1,
+  "tags": ["notifications", "pubsub", "messaging"],
+  "author": "Philipp C. Heckel",
+  "website": "https://ntfy.sh"
+}

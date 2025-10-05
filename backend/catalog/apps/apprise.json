@@ -1,0 +1,35 @@
+{
+  "id": "apprise",
+  "name": "Apprise API",
+  "description": "Universal notification gateway supporting 80+ services",
+  "version": "latest",
+  "icon": "https://raw.githubusercontent.com/caronc/apprise/master/apprise/assets/themes/default/apprise-logo.png",
+  "category": "Communication",
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "apprise": {
+        "image": "caronc/apprise:latest",
+        "ports": ["8000:8000"],
+        "environment": {
+          "APPRISE_STATELESS_URLS": "",
+          "APPRISE_ATTACH_SIZE": "5242880"
+        },
+        "volumes": ["config:/config"]
+      }
+    },
+    "volumes": {
+      "config": {}
+    }
+  },
+  "ports": [8000],
+  "volumes": ["config"],
+  "environment": {
+    "APPRISE_ATTACH_SIZE": "5242880"
+  },
+  "min_memory": 256,
+  "min_cpu": 1,
+  "tags": ["notifications", "api", "messaging", "alerts"],
+  "author": "Chris Caron",
+  "website": "https://github.com/caronc/apprise-api"
+}

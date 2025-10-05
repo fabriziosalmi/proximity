@@ -1,0 +1,59 @@
+{
+  "id": "healthchecks",
+  "name": "Healthchecks",
+  "description": "Cron job and background task monitoring service",
+  "version": "latest",
+  "icon": "https://raw.githubusercontent.com/healthchecks/healthchecks/master/static/img/logo.svg",
+  "category": "Monitoring",
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "healthchecks": {
+        "image": "healthchecks/healthchecks:latest",
+        "ports": ["8000:8000"],
+        "environment": {
+          "SECRET_KEY": "change_me_secret_key_minimum_50_characters_long_random_string",
+          "SITE_ROOT": "http://localhost:8000",
+          "SITE_NAME": "Healthchecks",
+          "DEFAULT_FROM_EMAIL": "healthchecks@example.com",
+          "EMAIL_HOST": "smtp.example.com",
+          "EMAIL_PORT": "587",
+          "EMAIL_USE_TLS": "True",
+          "SUPERUSER_EMAIL": "admin@example.com",
+          "SUPERUSER_PASSWORD": "change_me_password",
+          "DB": "postgres",
+          "DB_HOST": "db",
+          "DB_NAME": "healthchecks",
+          "DB_USER": "healthchecks",
+          "DB_PASSWORD": "healthchecks_password"
+        },
+        "depends_on": ["db"]
+      },
+      "db": {
+        "image": "postgres:15-alpine",
+        "environment": {
+          "POSTGRES_DB": "healthchecks",
+          "POSTGRES_USER": "healthchecks",
+          "POSTGRES_PASSWORD": "healthchecks_password"
+        },
+        "volumes": ["db_data:/var/lib/postgresql/data"]
+      }
+    },
+    "volumes": {
+      "db_data": {}
+    }
+  },
+  "ports": [8000],
+  "volumes": ["db_data"],
+  "environment": {
+    "SECRET_KEY": "change_me_secret_key_minimum_50_characters_long_random_string",
+    "SUPERUSER_EMAIL": "admin@example.com",
+    "SUPERUSER_PASSWORD": "change_me_password",
+    "DB_PASSWORD": "healthchecks_password"
+  },
+  "min_memory": 512,
+  "min_cpu": 1,
+  "tags": ["monitoring", "cron", "health-check", "uptime"],
+  "author": "Healthchecks",
+  "website": "https://healthchecks.io"
+}
