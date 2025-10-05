@@ -13,7 +13,8 @@ const state = {
     catalog: null,
     currentView: 'dashboard',
     deployedApps: [],
-    proxyStatus: null
+    proxyStatus: null,
+    proximityMode: 'AUTO' // AUTO or PRO mode
 };
 
 // Interval tracking for cleanup
@@ -126,6 +127,36 @@ export function setContext(key, value) {
 }
 
 /**
+ * Get proximity mode from localStorage or default
+ * @returns {string} 'AUTO' or 'PRO'
+ */
+export function getProximityMode() {
+    const stored = localStorage.getItem('proximityMode');
+    return stored || state.proximityMode;
+}
+
+/**
+ * Set proximity mode and persist to localStorage
+ * @param {string} mode - 'AUTO' or 'PRO'
+ */
+export function setProximityMode(mode) {
+    if (mode !== 'AUTO' && mode !== 'PRO') {
+        console.error('Invalid proximity mode:', mode);
+        return;
+    }
+    state.proximityMode = mode;
+    localStorage.setItem('proximityMode', mode);
+}
+
+/**
+ * Initialize proximity mode from localStorage
+ */
+export function initProximityMode() {
+    const stored = getProximityMode();
+    state.proximityMode = stored;
+}
+
+/**
  * Reset all state to initial values
  */
 export function resetState() {
@@ -136,6 +167,7 @@ export function resetState() {
     state.currentView = 'dashboard';
     state.deployedApps = [];
     state.proxyStatus = null;
+    state.proximityMode = getProximityMode(); // Preserve mode across resets
 
     // Clear all intervals
     Object.keys(intervals).forEach(name => clearInterval(name));

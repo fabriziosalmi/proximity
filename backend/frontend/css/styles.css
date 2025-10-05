@@ -3206,3 +3206,176 @@ body.modal-open {
     margin-bottom: 1.5rem;
 }
 
+
+/* ============================================================================
+   DUAL-MODE (AUTO/PRO) VISIBILITY SYSTEM
+   ============================================================================ */
+
+/**
+ * PRO-only features are hidden by default (AUTO mode)
+ * They only appear when body has .pro-mode class
+ */
+.pro-feature {
+    display: none !important;
+}
+
+body.pro-mode .pro-feature {
+    display: block !important;
+}
+
+/* Inline and flex items need special handling */
+body.pro-mode .pro-feature.inline {
+    display: inline !important;
+}
+
+body.pro-mode .pro-feature.inline-block {
+    display: inline-block !important;
+}
+
+body.pro-mode .pro-feature.flex {
+    display: flex !important;
+}
+
+body.pro-mode .pro-feature.inline-flex {
+    display: inline-flex !important;
+}
+
+/* Mode indicator badge for settings */
+.mode-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-md);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.mode-badge.auto {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+}
+
+.mode-badge.pro {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+}
+
+.mode-badge i {
+    width: 14px;
+    height: 14px;
+}
+
+/* Toggle switch for mode selection */
+.mode-toggle {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    margin-bottom: 1.5rem;
+}
+
+.mode-toggle-label {
+    flex: 1;
+}
+
+.mode-toggle-label h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.mode-toggle-label p {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.mode-toggle-switch {
+    position: relative;
+    width: 120px;
+    height: 40px;
+    background: var(--bg-tertiary);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: var(--transition);
+    border: 2px solid var(--border);
+}
+
+.mode-toggle-switch input {
+    display: none;
+}
+
+.mode-toggle-slider {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    width: 52px;
+    height: 28px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border-radius: 14px;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+}
+
+.mode-toggle-switch input:checked + .mode-toggle-slider {
+    left: 60px;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+/* Mode description cards */
+.mode-description {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.mode-card {
+    padding: 1.25rem;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    transition: var(--transition);
+}
+
+.mode-card.active {
+    border-color: var(--info);
+    background: var(--bg-card);
+}
+
+.mode-card h4 {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.mode-card ul {
+    list-style: none;
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    line-height: 1.8;
+}
+
+.mode-card li:before {
+    content: "✓ ";
+    color: var(--success);
+    font-weight: bold;
+    margin-right: 0.5rem;
+}

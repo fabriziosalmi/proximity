@@ -144,17 +144,65 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         else:
             logger.warning("⚠ Network appliance not available - reverse proxy disabled")
             app.state.proxy_manager = None
-        
+
+        # Step 5: Initialize Scheduler Service for AUTO mode
+        logger.info("=" * 60)
+        logger.info("STEP 5: Initializing Scheduler Service (AUTO Mode)")
+        logger.info("=" * 60)
+
+        try:
+            from services.scheduler_service import SchedulerService
+            from services.backup_service import get_backup_service
+
+            # Get services with fresh db session
+            db = next(get_db())
+            try:
+                app_service = get_app_service(db)
+                backup_service = get_backup_service(db)
+
+                # Create scheduler instance
+                scheduler = SchedulerService(
+                    backup_service=backup_service,
+                    app_service=app_service
+                )
+
+                # Start the scheduler
+                scheduler.start()
+
+                # Store in app state
+                app.state.scheduler = scheduler
+
+                logger.info("✓ Scheduler Service initialized")
+                logger.info("   • Daily backups scheduled for 2:00 AM")
+                logger.info("   • Weekly update checks scheduled for Sunday 3:00 AM")
+
+            finally:
+                db.close()
+
+        except Exception as e:
+            logger.error(f"Failed to initialize Scheduler Service: {e}")
+            logger.warning("⚠ Continuing without scheduler")
+            app.state.scheduler = None
+
     except Exception as e:
         logger.error(f"Failed to initialize services: {e}")
         # Don't fail startup, but log the error
-    
+
     logger.info(f"🚀 Proximity API started on {config_settings.API_HOST}:{config_settings.API_PORT}")
-    
+
     yield
-    
+
     # Shutdown tasks
     logger.info("Shutting down Proximity API...")
+
+    # Stop scheduler if running
+    if hasattr(app.state, 'scheduler') and app.state.scheduler:
+        try:
+            logger.info("Stopping scheduler...")
+            app.state.scheduler.stop()
+            logger.info("✓ Scheduler stopped")
+        except Exception as e:
+            logger.error(f"Error stopping scheduler: {e}")
 
 
 def create_app() -> FastAPI:

@@ -15,6 +15,7 @@ import * as API from './services/api.js';
 import * as DOM from './utils/dom.js';
 import * as Notifications from './utils/notifications.js';
 import * as Auth from './utils/auth.js';
+import * as UI from './utils/ui.js';
 
 // Make modules available globally for transition period
 // This allows the legacy code to work while we migrate
@@ -23,6 +24,10 @@ window.API = API;
 window.DOM = DOM;
 window.Notifications = Notifications;
 window.Auth = Auth;
+window.UI = UI;
+
+// Initialize UI mode (AUTO/PRO) on startup
+UI.initUIMode();
 
 console.log('✅ Proximity modular system loaded');
 console.log('📦 Available modules:', {
@@ -30,5 +35,7 @@ console.log('📦 Available modules:', {
     API: 'API service layer',
     DOM: 'DOM utilities',
     Notifications: 'Toast notifications',
-    Auth: 'Authentication'
+    Auth: 'Authentication',
+    UI: 'UI utilities and mode control'
 });
+console.log(`🎯 Current mode: ${AppState.getProximityMode()}`);

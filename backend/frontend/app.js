@@ -449,10 +449,10 @@ function createAppCard(app, isDeployed = false) {
                         <button class="action-icon" title="${isRunning ? 'Restart' : 'Start'}" onclick="controlApp('${app.id}', '${isRunning ? 'restart' : 'start'}')">
                             <i data-lucide="refresh-cw"></i>
                         </button>
-                        <button class="action-icon" title="Clone App" onclick="showCloneModal('${app.id}', '${app.name}')">
+                        <button class="action-icon pro-feature" title="Clone App" onclick="showCloneModal('${app.id}', '${app.name}')">
                             <i data-lucide="copy"></i>
                         </button>
-                        <button class="action-icon" title="Edit Resources" onclick="showEditConfigModal('${app.id}', '${app.name}')">
+                        <button class="action-icon pro-feature" title="Edit Resources" onclick="showEditConfigModal('${app.id}', '${app.name}')">
                             <i data-lucide="sliders"></i>
                         </button>
                         <button class="action-icon danger" title="Delete" onclick="confirmDeleteApp('${app.id}', '${app.name}')">
@@ -1230,6 +1230,55 @@ async function renderSettingsView() {
                         <div class="app-meta-item">
                             <span>📦</span>
                             <span>Apps: ${state.deployedApps.length}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Proximity Mode Toggle -->
+                <div class="app-card" style="margin-top: 1.5rem;">
+                    <h3 class="app-name" style="margin-bottom: 1.5rem;">
+                        <i data-lucide="zap" style="width: 20px; height: 20px; margin-right: 0.5rem;"></i>
+                        Proximity Mode
+                    </h3>
+
+                    <div class="mode-toggle">
+                        <div class="mode-toggle-label">
+                            <h3>Current Mode: <span class="mode-badge ${state.proximityMode.toLowerCase()}" id="current-mode-badge">
+                                <i data-lucide="${state.proximityMode === 'AUTO' ? 'zap' : 'wrench'}"></i>
+                                ${state.proximityMode}
+                            </span></h3>
+                            <p>Switch between AUTO (automated) and PRO (professional control) modes</p>
+                        </div>
+                        <label class="mode-toggle-switch">
+                            <input type="checkbox" id="modeToggleInput" ${state.proximityMode === 'PRO' ? 'checked' : ''} onchange="handleModeToggle(this)">
+                            <div class="mode-toggle-slider">${state.proximityMode === 'AUTO' ? 'AUTO' : 'PRO'}</div>
+                        </label>
+                    </div>
+
+                    <div class="mode-description">
+                        <div class="mode-card ${state.proximityMode === 'AUTO' ? 'active' : ''}" id="auto-mode-card">
+                            <h4>
+                                <i data-lucide="zap" style="width: 16px; height: 16px;"></i>
+                                AUTO Mode
+                            </h4>
+                            <ul>
+                                <li>Daily automated backups</li>
+                                <li>Automatic update notifications</li>
+                                <li>Simplified interface</li>
+                                <li>Hands-free operation</li>
+                            </ul>
+                        </div>
+                        <div class="mode-card ${state.proximityMode === 'PRO' ? 'active' : ''}" id="pro-mode-card">
+                            <h4>
+                                <i data-lucide="wrench" style="width: 16px; height: 16px;"></i>
+                                PRO Mode
+                            </h4>
+                            <ul>
+                                <li>Manual backup control</li>
+                                <li>Clone applications</li>
+                                <li>Edit resource configurations</li>
+                                <li>Full professional control</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
@@ -2293,6 +2342,51 @@ function closeModal() {
 }
 
 // Settings Page Helpers
+// Proximity Mode Toggle Handler
+function handleModeToggle(checkbox) {
+    const newMode = checkbox.checked ? 'PRO' : 'AUTO';
+
+    // Use the modular UI utility
+    if (window.UI && window.UI.switchProximityMode) {
+        window.UI.switchProximityMode(newMode);
+    } else {
+        // Fallback if modular system not loaded
+        state.proximityMode = newMode;
+        localStorage.setItem('proximityMode', newMode);
+        document.body.classList.toggle('pro-mode', newMode === 'PRO');
+    }
+
+    // Update slider text
+    const slider = checkbox.nextElementSibling;
+    if (slider) {
+        slider.textContent = newMode;
+    }
+
+    // Update badge
+    const badge = document.getElementById('current-mode-badge');
+    if (badge) {
+        badge.className = `mode-badge ${newMode.toLowerCase()}`;
+        badge.innerHTML = `
+            <i data-lucide="${newMode === 'AUTO' ? 'zap' : 'wrench'}"></i>
+            ${newMode}
+        `;
+        initLucideIcons();
+    }
+
+    // Update mode cards
+    const autoCard = document.getElementById('auto-mode-card');
+    const proCard = document.getElementById('pro-mode-card');
+    if (autoCard && proCard) {
+        autoCard.classList.toggle('active', newMode === 'AUTO');
+        proCard.classList.toggle('active', newMode === 'PRO');
+    }
+
+    // Show notification
+    showNotification(`✓ Switched to ${newMode} mode`, 'success');
+
+    console.log(`🎯 Mode toggled to: ${newMode}`);
+}
+
 function setupSettingsTabs() {
     const tabs = document.querySelectorAll('.settings-tab');
     const panels = document.querySelectorAll('.settings-panel');
