@@ -154,7 +154,8 @@ const state = {
     catalog: null,
     currentView: 'dashboard',
     deployedApps: [],
-    proxyStatus: null
+    proxyStatus: null,
+    proximityMode: 'AUTO' // AUTO or PRO mode
 };
 
 // Initialize Application
@@ -388,7 +389,7 @@ function createAppCard(app, isDeployed = false) {
         icon = `<img 
             src="${app.icon}" 
             alt="${app.name}" 
-            style="width: 100%; height: 100%; object-fit: contain;"
+            style="width: 75%; height: 75%; object-fit: contain;"
             onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '${escapedFallback}');"
         />`;
     }
@@ -1270,20 +1271,20 @@ async function renderSettingsView() {
 
                     <div class="mode-toggle">
                         <div class="mode-toggle-label">
-                            <h3>Current Mode: <span class="mode-badge ${state.proximityMode.toLowerCase()}" id="current-mode-badge">
-                                <i data-lucide="${state.proximityMode === 'AUTO' ? 'zap' : 'wrench'}"></i>
-                                ${state.proximityMode}
+                            <h3>Current Mode: <span class="mode-badge ${(state.proximityMode || 'AUTO').toLowerCase()}" id="current-mode-badge">
+                                <i data-lucide="${(state.proximityMode || 'AUTO') === 'AUTO' ? 'zap' : 'wrench'}"></i>
+                                ${state.proximityMode || 'AUTO'}
                             </span></h3>
                             <p>Switch between AUTO (automated) and PRO (professional control) modes</p>
                         </div>
                         <label class="mode-toggle-switch">
-                            <input type="checkbox" id="modeToggleInput" ${state.proximityMode === 'PRO' ? 'checked' : ''} onchange="handleModeToggle(this)">
-                            <div class="mode-toggle-slider">${state.proximityMode === 'AUTO' ? 'AUTO' : 'PRO'}</div>
+                            <input type="checkbox" id="modeToggleInput" ${(state.proximityMode || 'AUTO') === 'PRO' ? 'checked' : ''} onchange="handleModeToggle(this)">
+                            <div class="mode-toggle-slider">${(state.proximityMode || 'AUTO') === 'AUTO' ? 'AUTO' : 'PRO'}</div>
                         </label>
                     </div>
 
                     <div class="mode-description">
-                        <div class="mode-card ${state.proximityMode === 'AUTO' ? 'active' : ''}" id="auto-mode-card">
+                        <div class="mode-card ${(state.proximityMode || 'AUTO') === 'AUTO' ? 'active' : ''}" id="auto-mode-card">
                             <h4>
                                 <i data-lucide="zap" style="width: 16px; height: 16px;"></i>
                                 AUTO Mode
@@ -1295,7 +1296,7 @@ async function renderSettingsView() {
                                 <li>Hands-free operation</li>
                             </ul>
                         </div>
-                        <div class="mode-card ${state.proximityMode === 'PRO' ? 'active' : ''}" id="pro-mode-card">
+                        <div class="mode-card ${(state.proximityMode || 'AUTO') === 'PRO' ? 'active' : ''}" id="pro-mode-card">
                             <h4>
                                 <i data-lucide="wrench" style="width: 16px; height: 16px;"></i>
                                 PRO Mode

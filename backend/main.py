@@ -225,7 +225,7 @@ def create_app() -> FastAPI:
         allow_origins=["*"],  # In production, specify allowed origins
         allow_credentials=True,
         allow_methods=["*"],
-        allow_headers=["*"],
+        allow_headers=["*", "Authorization", "Content-Type"],  # Explicitly list Authorization for new browser security policy
     )
     
     # Trusted host middleware (security)
