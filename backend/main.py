@@ -293,16 +293,21 @@ def create_app() -> FastAPI:
     )
 
     # Serve static files (UI)
-    static_dir = Path(__file__).parent
-    
+    static_dir = Path(__file__).parent / "frontend"
+
     @app.get("/")
     async def read_root():
         """Serve the main UI"""
         return FileResponse(static_dir / "index.html")
-    
+
+    # Mount static file directory for all frontend assets
+    app.mount("/js", StaticFiles(directory=static_dir / "js"), name="js")
+    app.mount("/css", StaticFiles(directory=static_dir / "css"), name="css")
+    app.mount("/assets", StaticFiles(directory=static_dir / "assets"), name="assets")
+
     @app.get("/app.js")
     async def serve_app_js():
-        """Serve the JavaScript application"""
+        """Serve the legacy JavaScript application"""
         response = FileResponse(static_dir / "app.js", media_type="application/javascript")
         response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
         response.headers["Pragma"] = "no-cache"
@@ -311,8 +316,8 @@ def create_app() -> FastAPI:
 
     @app.get("/styles.css")
     async def serve_styles_css():
-        """Serve the CSS stylesheet"""
-        response = FileResponse(static_dir / "styles.css", media_type="text/css")
+        """Serve the CSS stylesheet (legacy path)"""
+        response = FileResponse(static_dir / "css" / "styles.css", media_type="text/css")
         response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
         response.headers["Pragma"] = "no-cache"
         response.headers["Expires"] = "0"
