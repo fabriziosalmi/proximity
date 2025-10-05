@@ -17,23 +17,7 @@ from pages.dashboard_page import DashboardPage
 from utils.test_data import generate_test_user
 
 
-@pytest.fixture
-def authenticated_page(page: Page):
-    """Fixture providing authenticated page."""
-    test_user = generate_test_user()
-    login_page = LoginPage(page)
-    
-    login_page.wait_for_auth_modal()
-    login_page.register(
-        username=test_user["username"],
-        password=test_user["password"],
-        email=test_user["email"]
-    )
-    
-    dashboard = DashboardPage(page)
-    dashboard.wait_for_dashboard_load()
-    
-    return page
+# Use authenticated_page fixture from conftest.py (has proper wait timing)
 
 
 @pytest.mark.navigation
@@ -76,12 +60,12 @@ def test_navigate_all_views(authenticated_page):
     page.click("[data-view='apps']")
     expect(page.locator("#appsView")).to_be_visible(timeout=10000)
     print("  ✓ Apps loaded")
-    
-    # Infrastructure
-    print("  → Infrastructure")
-    page.click("[data-view='infrastructure']")
-    expect(page.locator("#infrastructureView")).to_be_visible(timeout=10000)
-    print("  ✓ Infrastructure loaded")
+
+    # Nodes (Infrastructure)
+    print("  → Nodes")
+    page.click("[data-view='nodes']")
+    expect(page.locator("#nodesView")).to_be_visible(timeout=10000)
+    print("  ✓ Nodes loaded")
     
     # Monitoring (if exists)
     monitoring_nav = page.locator("[data-view='monitoring']")
@@ -298,8 +282,8 @@ def test_active_nav_indicator(authenticated_page):
     page = authenticated_page
     
     print("\n✨ Testing active navigation indicator")
-    
-    views = ["dashboard", "catalog", "apps", "infrastructure", "settings"]
+
+    views = ["dashboard", "catalog", "apps", "nodes", "settings"]
     
     for view_name in views:
         # Navigate to view
