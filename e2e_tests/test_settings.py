@@ -18,21 +18,9 @@ from utils.test_data import generate_test_user
 
 
 @pytest.fixture
-def authenticated_settings_page(page: Page):
+def authenticated_settings_page(authenticated_page: Page):
     """Fixture providing authenticated page on settings view."""
-    test_user = generate_test_user()
-    login_page = LoginPage(page)
-    
-    login_page.wait_for_auth_modal()
-    login_page.register(
-        username=test_user["username"],
-        password=test_user["password"],
-        email=test_user["email"]
-    )
-    
-    dashboard = DashboardPage(page)
-    dashboard.wait_for_dashboard_load()
-    
+    page = authenticated_page
     # Navigate to settings
     page.click("[data-view='settings']")
     expect(page.locator("#settingsView")).to_be_visible(timeout=10000)

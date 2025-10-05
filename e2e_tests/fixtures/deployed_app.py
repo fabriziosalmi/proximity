@@ -144,7 +144,7 @@ def deployed_app_with_backup(deployed_app: Dict, base_url: str, authenticated_pa
         # Create backup via API
         api_base = base_url.replace("http://", "http://").replace(":8765", ":8765/api/v1")
         response = requests.post(
-            f"{api_base}/apps/{app_id}/backup",
+            f"{api_base}/apps/{app_id}/backups",
             headers=headers,
             timeout=120  # Backups can take time
         )
@@ -218,7 +218,7 @@ def backup_manager(authenticated_page: Page, base_url: str):
             print(f"\n💾 [backup_manager] Creating backup for app ID={app_id}")
             
             response = requests.post(
-                f"{api_base}/apps/{app_id}/backup",
+                f"{api_base}/apps/{app_id}/backups",
                 headers=headers,
                 json={"compression": compression, "mode": mode},
                 timeout=120

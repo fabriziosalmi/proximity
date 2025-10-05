@@ -17,21 +17,9 @@ from utils.test_data import generate_test_user
 
 
 @pytest.fixture
-def authenticated_infra_page(page: Page):
+def authenticated_infra_page(authenticated_page: Page):
     """Fixture providing authenticated page on infrastructure view."""
-    test_user = generate_test_user()
-    login_page = LoginPage(page)
-    
-    login_page.wait_for_auth_modal()
-    login_page.register(
-        username=test_user["username"],
-        password=test_user["password"],
-        email=test_user["email"]
-    )
-    
-    dashboard = DashboardPage(page)
-    dashboard.wait_for_dashboard_load()
-    
+    page = authenticated_page
     # Navigate to infrastructure
     page.click("[data-view='infrastructure']")
     expect(page.locator("#infrastructureView")).to_be_visible(timeout=10000)

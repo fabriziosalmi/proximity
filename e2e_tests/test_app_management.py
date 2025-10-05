@@ -18,29 +18,16 @@ from pages.dashboard_page import DashboardPage
 from utils.test_data import generate_test_user
 
 
-@pytest.fixture(scope="module")
-def deployed_app_session(browser):
+@pytest.fixture(scope="function")
+def deployed_app(authenticated_page: Page):
     """
-    Module-scoped fixture that deploys an app once for all tests.
+    Function-scoped fixture that deploys an app once for each test.
     
-    This saves time by not deploying/destroying for each test.
+    This uses the robust authenticated_page fixture.
     """
-    context = browser.new_context()
-    page = context.new_page()
-    
-    # Authenticate
-    test_user = generate_test_user()
-    login_page = LoginPage(page)
-    login_page.wait_for_auth_modal()
-    login_page.register(
-        username=test_user["username"],
-        password=test_user["password"],
-        email=test_user["email"]
-    )
-    
+    page = authenticated_page
     dashboard = DashboardPage(page)
-    dashboard.wait_for_dashboard_load()
-    
+
     # Deploy a test app (NGINX)
     page.click("[data-view='catalog']")
     page.wait_for_selector(".app-card", timeout=15000)
@@ -72,12 +59,10 @@ def deployed_app_session(browser):
         delete_button.click()
         page.locator("#deployModal button:has-text('Delete Forever')").click()
         page.wait_for_selector("#deployModal:not(.show)", timeout=180000)
-    
-    context.close()
 
 
 @pytest.mark.management
-def test_view_app_logs_all(deployed_app_session):
+def test_view_app_logs_all(deployed_app):
     """
     Test viewing all application logs.
     
@@ -87,7 +72,7 @@ def test_view_app_logs_all(deployed_app_session):
     - Logs content is displayed
     - Modal can be closed
     """
-    page, hostname = deployed_app_session
+    page, hostname = deployed_app
     
     print(f"\n📋 Testing all logs for: {hostname}")
     
@@ -123,7 +108,7 @@ def test_view_app_logs_all(deployed_app_session):
 
 
 @pytest.mark.management
-def test_view_app_logs_docker(deployed_app_session):
+def test_view_app_logs_docker(deployed_app):
     """
     Test viewing docker-specific logs.
     
@@ -132,7 +117,7 @@ def test_view_app_logs_docker(deployed_app_session):
     - Docker logs are displayed
     - Tab switching works correctly
     """
-    page, hostname = deployed_app_session
+    page, hostname = deployed_app
     
     print(f"\n🐋 Testing docker logs for: {hostname}")
     
@@ -169,7 +154,7 @@ def test_view_app_logs_docker(deployed_app_session):
 
 
 @pytest.mark.management
-def test_view_app_logs_system(deployed_app_session):
+def test_view_app_logs_system(deployed_app):
     """
     Test viewing system logs.
     
@@ -177,7 +162,7 @@ def test_view_app_logs_system(deployed_app_session):
     - Can switch to System logs tab
     - System logs are displayed
     """
-    page, hostname = deployed_app_session
+    page, hostname = deployed_app
     
     print(f"\n⚙️  Testing system logs for: {hostname}")
     
@@ -207,7 +192,7 @@ def test_view_app_logs_system(deployed_app_session):
 
 
 @pytest.mark.management
-def test_logs_auto_refresh(deployed_app_session):
+def test_logs_auto_refresh(deployed_app):
     """
     Test auto-refresh functionality for logs.
     
@@ -216,7 +201,7 @@ def test_logs_auto_refresh(deployed_app_session):
     - Can enable/disable auto-refresh
     - Timestamp updates when enabled
     """
-    page, hostname = deployed_app_session
+    page, hostname = deployed_app
     
     print(f"\n🔄 Testing auto-refresh for: {hostname}")
     
@@ -253,7 +238,7 @@ def test_logs_auto_refresh(deployed_app_session):
 
 
 @pytest.mark.management
-def test_download_logs(deployed_app_session):
+def test_download_logs(deployed_app):
     """
     Test downloading logs.
     
@@ -261,7 +246,7 @@ def test_download_logs(deployed_app_session):
     - Download button exists
     - Can click download (doesn't verify actual download)
     """
-    page, hostname = deployed_app_session
+    page, hostname = deployed_app
     
     print(f"\n💾 Testing log download for: {hostname}")
     
@@ -290,7 +275,7 @@ def test_download_logs(deployed_app_session):
 
 
 @pytest.mark.management
-def test_open_app_console(deployed_app_session):
+def test_open_app_console(deployed_app):
     """
     Test opening application console.
     
@@ -300,7 +285,7 @@ def test_open_app_console(deployed_app_session):
     - Quick command suggestions are available
     - Can close console
     """
-    page, hostname = deployed_app_session
+    page, hostname = deployed_app
     
     print(f"\n💻 Testing console for: {hostname}")
     
@@ -333,13 +318,13 @@ def test_open_app_console(deployed_app_session):
 
 
 @pytest.mark.management
-def test_console_quick_commands(deployed_app_session):
+def test_console_quick_commands(deployed_app):
     """
     Test console quick command buttons.
     
     Verifies quick command suggestions (df -h, free -h, etc.) work.
     """
-    page, hostname = deployed_app_session
+    page, hostname = deployed_app
     
     print(f"\n⚡ Testing console quick commands for: {hostname}")
     
@@ -370,7 +355,7 @@ def test_console_quick_commands(deployed_app_session):
 
 
 @pytest.mark.management  
-def test_app_external_link(deployed_app_session):
+def test_app_external_link(deployed_app):
     """
     Test opening app in external tab.
     
@@ -378,7 +363,7 @@ def test_app_external_link(deployed_app_session):
     - External link button exists
     - Button is enabled when app is running
     """
-    page, hostname = deployed_app_session
+    page, hostname = deployed_app
     
     print(f"\n🔗 Testing external link for: {hostname}")
     
@@ -401,7 +386,7 @@ def test_app_external_link(deployed_app_session):
 
 
 @pytest.mark.management
-def test_app_stop_start_cycle(deployed_app_session):
+def test_app_stop_start_cycle(deployed_app):
     """
     Test stop/start cycle of an application.
     
@@ -411,7 +396,7 @@ def test_app_stop_start_cycle(deployed_app_session):
     - Can start stopped app  
     - Status changes back to Running
     """
-    page, hostname = deployed_app_session
+    page, hostname = deployed_app
     
     print(f"\n⏯️  Testing stop/start cycle for: {hostname}")
     
@@ -453,13 +438,13 @@ def test_app_stop_start_cycle(deployed_app_session):
 
 
 @pytest.mark.management
-def test_app_restart(deployed_app_session):
+def test_app_restart(deployed_app):
     """
     Test restarting an application.
     
     Verifies restart button works and app returns to running state.
     """
-    page, hostname = deployed_app_session
+    page, hostname = deployed_app
     
     print(f"\n🔄 Testing restart for: {hostname}")
     
