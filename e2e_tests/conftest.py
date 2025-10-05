@@ -315,6 +315,44 @@ def pytest_runtest_makereport(item, call):
             page._test_name = item.name
 
 
+@pytest.fixture(autouse=True, scope="function")
+def ensure_browser_cleanup(request):
+    """
+    Ensure browser resources are cleaned up after each test,
+    even if the test fails or is interrupted.
+    """
+    yield
+    
+    # Force cleanup of any remaining browser resources
+    if "page" in request.fixturenames:
+        try:
+            page = request.getfixturevalue("page")
+            if page and not page.is_closed():
+                try:
+                    page.close()
+                except Exception:
+                    pass
+        except Exception:
+            pass
+    
+    if "context" in request.fixturenames:
+        try:
+            context = request.getfixturevalue("context")
+            if context:
+                try:
+                    # Close all pages in context
+                    for page in context.pages:
+                        try:
+                            if not page.is_closed():
+                                page.close()
+                        except Exception:
+                            pass
+                except Exception:
+                    pass
+        except Exception:
+            pass
+
+
 @pytest.fixture(autouse=True)
 def log_test_info(request):
     """
