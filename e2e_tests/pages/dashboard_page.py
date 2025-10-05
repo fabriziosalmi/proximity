@@ -62,6 +62,19 @@ class DashboardPage(BasePage):
         """
         return self.page.locator(self.DASHBOARD_VIEW)
     
+    @property
+    def get_user_display_locator(self):
+        """
+        Return the user info display locator for use in expect() assertions.
+        
+        This property allows tests to verify that a user is authenticated by checking
+        if the user info element is visible. Used in Smart Wait patterns.
+        
+        Returns:
+            Locator for the user info display element (.user-info)
+        """
+        return self.page.locator(".user-info")
+    
     # ========================================================================
     # Wait Methods
     # ========================================================================

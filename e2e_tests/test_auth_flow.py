@@ -39,6 +39,14 @@ def test_registration_and_login(page: Page):
     """
     print("\n🔍 Test: Registration and Login Flow")
     
+    # --- CRITICAL ISOLATION STEP: Clean Slate Pattern ---
+    print("📋 Step 0: Ensuring clean slate (clearing session storage)")
+    page.goto(page.url)  # Go to the page first
+    page.evaluate("window.localStorage.clear(); window.sessionStorage.clear();")
+    page.reload()  # Reload the page to ensure the app re-initializes in a logged-out state
+    print("✓ Session storage cleared - starting with clean slate")
+    # --- END OF ISOLATION STEP ---
+    
     # Arrange
     test_user = generate_test_user()
     login_page = LoginPage(page)
@@ -63,32 +71,29 @@ def test_registration_and_login(page: Page):
     login_page.click_register_button()
     
     # Assert - Verify registration success and auto-switch to login
-    print("📋 Step 5: Waiting for success notification (optional)")
-    page.wait_for_timeout(2000)  # Give time for registration to process
-    
-    print("📋 Step 6: Verifying modal switched to login tab")
+    print("📋 Step 5: Verifying modal switched to login tab")
     login_page.assert_in_login_mode()
     
-    print("📋 Step 7: Verifying username is pre-filled")
+    print("📋 Step 6: Verifying username is pre-filled")
     login_page.assert_username_prefilled(test_user["username"])
     
-    print("📋 Step 8: Clicking login button to complete authentication")
+    print("📋 Step 7: Clicking login button to complete authentication")
     login_page.click_login_button()
     
-    # --- CRITICAL FIX: Wait for async auto-login to complete ---
+    # --- SMART WAIT: Wait for async auto-login to complete ---
     # After clicking login, the frontend makes an async network request to authenticate.
     # We must wait for the dashboard to appear before asserting anything else.
     # This confirms the login completed successfully and the UI has fully updated.
-    print("📋 Step 9: Waiting for dashboard to appear (confirms async auto-login completed)")
+    print("📋 Step 8: Waiting for dashboard to appear (confirms async auto-login completed)")
     expect(dashboard_page.dashboard_container).to_be_visible(timeout=15000)  # 15 seconds for network + UI update
     print("✓ Dashboard is now visible - auto-login completed successfully")
     
     # Now that we know the dashboard is visible, we can safely assert other things
-    print("📋 Step 10: Verifying modal is closed")
+    print("📋 Step 9: Verifying modal is closed")
     expect(login_page.modal).to_be_hidden()
     print("✓ Auth modal is hidden")
     
-    print("📋 Step 11: Verifying dashboard state")
+    print("📋 Step 10: Verifying dashboard state")
     dashboard_page.assert_on_dashboard()
     
     print("✅ Test passed: Registration and login flow works correctly")
@@ -129,7 +134,7 @@ def test_logout(authenticated_page: Page):
     print("📋 Step 2: Clicking logout button")
     dashboard_page.logout()
     
-    # --- CRITICAL FIX: Wait for auth modal to reappear ---
+    # --- SMART WAIT: Wait for auth modal to reappear ---
     # After clicking logout, the frontend makes an async request to invalidate the session.
     # We must wait for the auth modal to become visible before making any assertions.
     # This confirms the logout completed and the UI has fully updated.
@@ -148,6 +153,15 @@ def test_logout(authenticated_page: Page):
     
     # Verify we can't access protected content
     print("📋 Step 6: Verifying cannot access protected pages")
+    # Try to navigate to dashboard
+    dashboard_page.navigate_to("/")
+    authenticated_page.wait_for_timeout(1000)  # Give page time to load
+    
+    # Should still see auth modal (not authenticated)
+    login_page.assert_auth_modal_visible()
+    print("✓ Cannot access dashboard after logout")
+    
+    print("✅ Test passed: Logout functionality works correctly")
     # Try to navigate to dashboard
     dashboard_page.navigate_to("/")
     authenticated_page.wait_for_timeout(1000)  # Give page time to load
@@ -182,51 +196,38 @@ def test_invalid_login(page: Page):
     """
     print("\n🔍 Test: Invalid Login")
     
-    # Arrange - Ensure completely clean state
-    print("📋 Step 1: Clearing any existing session")
+    # --- CRITICAL ISOLATION STEP: Clean Slate Pattern ---
+    print("📋 Step 0: Ensuring clean slate (clearing session storage)")
+    page.goto(page.url)  # Go to the page first
     page.evaluate("window.localStorage.clear(); window.sessionStorage.clear();")
-    
-    print("📋 Step 2: Navigating to fresh page with full reload")
-    # Force a full page reload to ensure clean state
-    page.goto(page.url, wait_until="networkidle")
-    page.wait_for_timeout(1000)  # Give page time to initialize
-    
-    print("📋 Step 3: Verifying clean state (no dashboard visible)")
-    # Ensure we're starting from a clean slate - dashboard should not be visible yet
-    dashboard_page = DashboardPage(page)
-    try:
-        # Dashboard should not be visible initially
-        expect(dashboard_page.dashboard_container).to_be_hidden(timeout=2000)
-    except:
-        # If dashboard is visible, we have a problem - clear again
-        print("⚠️  Dashboard was visible, forcing another clear")
-        page.evaluate("window.localStorage.clear(); window.sessionStorage.clear();")
-        page.reload(wait_until="networkidle")
-        page.wait_for_timeout(1000)
+    page.reload()  # Reload the page to ensure the app re-initializes in a logged-out state
+    print("✓ Session storage cleared - starting with clean slate")
+    # --- END OF ISOLATION STEP ---
     
     login_page = LoginPage(page)
+    dashboard_page = DashboardPage(page)
     
-    print("📋 Step 4: Waiting for auth modal")
+    print("📋 Step 1: Waiting for auth modal")
     login_page.wait_for_auth_modal()
     
     # Act - Attempt login with bad credentials
-    print("📋 Step 5: Attempting login with invalid credentials")
+    print("📋 Step 2: Attempting login with invalid credentials")
     # Fill in the credentials manually to have more control
     login_page.switch_to_login_mode()
     login_page.fill_username("nonexistent_user_12345", mode="login")
     login_page.fill_password("wrong_password_98765", mode="login")
     login_page.click_login_button()
     
-    # --- CRITICAL FIX: Wait for error message to appear ---
+    # --- SMART WAIT: Wait for error message to appear ---
     # After clicking login with invalid credentials, the frontend makes an async request.
     # We must wait for the error element to become visible with the error message.
     # This confirms the login attempt completed and the UI has shown the error.
-    print("📋 Step 6: Waiting for error message to appear (confirms async login attempt completed)")
+    print("📋 Step 3: Waiting for error message to appear (confirms async login attempt completed)")
     expect(login_page.login_error).to_be_visible(timeout=10000)  # 10 seconds for network + UI update
     print("✓ Error message is now visible - invalid login rejected")
     
     # Assert - Verify error message content
-    print("📋 Step 7: Verifying error message content")
+    print("📋 Step 4: Verifying error message content")
     error_message = login_page.get_text(login_page.LOGIN_ERROR)
     assert error_message != "", "Expected error message for invalid login"
     assert any(keyword in error_message.lower() for keyword in ["invalid", "incorrect", "failed", "error", "not found"]), \
@@ -234,11 +235,11 @@ def test_invalid_login(page: Page):
     print(f"✓ Error message received: {error_message}")
     
     # Verify modal still visible
-    print("📋 Step 8: Verifying modal still visible")
+    print("📋 Step 5: Verifying modal still visible")
     login_page.assert_auth_modal_visible()
     
     # Verify user is NOT authenticated (no token stored after failed login)
-    print("📋 Step 9: Verifying user is NOT authenticated (no token saved)")
+    print("📋 Step 6: Verifying user is NOT authenticated (no token saved)")
     token = page.evaluate("localStorage.getItem('proximity_token')")
     assert token is None, f"Token should not be saved after failed login, but found: {token}"
     print("✓ No auth token stored - access properly denied")

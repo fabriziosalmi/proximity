@@ -200,24 +200,30 @@ def authenticated_page(page: Page, base_url: str) -> Generator[Page, None, None]
     Provides a page with an authenticated user session.
     
     This fixture:
-    1. Clears any existing session (localStorage/sessionStorage)
+    1. Clears any existing session (localStorage/sessionStorage) - CLEAN SLATE
     2. Registers a new test user
     3. Switches to login tab (app behavior after registration)
     4. Clicks login button
-    5. Waits for dashboard to load with explicit selector
+    5. Waits for dashboard to load with explicit Smart Wait
     6. Returns authenticated page
     
     Use this when tests require a logged-in user.
     
     IMPORTANT: This fixture ensures complete test isolation by clearing
-    session storage before authentication.
+    session storage before authentication and using Smart Waits.
     """
     from pages.login_page import LoginPage
     from pages.dashboard_page import DashboardPage
     from utils.test_data import generate_test_user
+    from playwright.sync_api import expect
     
-    # Clear any existing session first (test isolation)
+    # --- CRITICAL ISOLATION STEP: Clean Slate Pattern ---
+    print("📋 [authenticated_page fixture] Ensuring clean slate")
+    page.goto(base_url)
     page.evaluate("window.localStorage.clear(); window.sessionStorage.clear();")
+    page.reload()  # Reload to ensure the app re-initializes in a logged-out state
+    print("✓ Session storage cleared - starting with clean slate")
+    # --- END OF ISOLATION STEP ---
     
     # Generate unique test user
     test_user = generate_test_user()
@@ -225,11 +231,11 @@ def authenticated_page(page: Page, base_url: str) -> Generator[Page, None, None]
     login_page = LoginPage(page)
     dashboard_page = DashboardPage(page)
     
-    # Navigate to app
-    page.goto(base_url)
+    # Wait for auth modal
     login_page.wait_for_auth_modal()
     
     # Register user (this will switch to login tab with pre-filled credentials)
+    print(f"📋 [authenticated_page fixture] Registering user: {test_user['username']}")
     login_page.switch_to_register_mode()
     login_page.fill_username(test_user["username"], mode="register")
     login_page.fill_password(test_user["password"], mode="register")
@@ -238,38 +244,26 @@ def authenticated_page(page: Page, base_url: str) -> Generator[Page, None, None]
     
     login_page.click_register_button()
     
-    # Wait for registration to complete and switch to login tab
-    page.wait_for_timeout(2000)  # Give time for registration to process
-    
     # Switch to login tab and submit (credentials should be pre-filled)
+    print("📋 [authenticated_page fixture] Completing login")
     login_page.switch_to_login_mode()
     login_page.click_login_button()
     
-    # Wait a moment for the login request to complete
-    page.wait_for_timeout(1000)
+    # --- SMART WAIT: Wait for dashboard to become visible ---
+    # This confirms the login completed successfully before yielding to the test.
+    # This prevents TargetClosedError by ensuring the session is fully established.
+    print("📋 [authenticated_page fixture] Waiting for dashboard to appear (Smart Wait)")
+    expect(dashboard_page.dashboard_container).to_be_visible(timeout=15000)
+    print("✓ Dashboard visible - authentication complete")
     
-    # Force close the modal if it doesn't close automatically (workaround for frontend bug)
-    page.evaluate("""
-        const modal = document.getElementById('authModal');
-        if (modal && modal.classList.contains('show')) {
-            modal.classList.remove('show');
-            modal.style.display = 'none';
-            document.body.classList.remove('modal-open');
-            const backdrop = document.querySelector('.modal-backdrop');
-            if (backdrop) backdrop.remove();
-        }
-    """)
-    
-    # Wait for dashboard to load with explicit selector
-    page.wait_for_selector("#dashboardView, #dashboard-view, [data-view='dashboard']", 
-                          timeout=10000, state="visible")
-    
-    # Additional verification
-    dashboard_page.wait_for_dashboard_load()
+    # Additional verification with user display
+    expect(dashboard_page.get_user_display_locator).to_be_visible(timeout=10000)
+    print("✓ User info visible - session fully established")
     
     yield page
     
     # Cleanup: Clear session on teardown to prevent leakage to next test
+    print("📋 [authenticated_page fixture] Cleaning up session")
     try:
         page.evaluate("window.localStorage.clear(); window.sessionStorage.clear();")
     except:
