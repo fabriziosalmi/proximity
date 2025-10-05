@@ -26,8 +26,8 @@ def test_deployed_app_fixture(deployed_app):
     print(f"  ✓ App name: {deployed_app['name']}")
     print(f"  ✓ Hostname: {deployed_app['hostname']}")
 
-    # Verify app ID is valid
-    assert deployed_app['id'] > 0, "App ID should be positive integer"
+    # Verify app ID is valid (it's a string in this system)
+    assert len(deployed_app['id']) > 0, "App ID should not be empty"
 
     print("\n✅ deployed_app fixture works correctly!")
 

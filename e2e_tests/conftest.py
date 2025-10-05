@@ -242,9 +242,6 @@ def authenticated_page(page: Page, base_url: str) -> Generator[Page, None, None]
     print("📋 [authenticated_page fixture] Using clean slate from page fixture")
     # --- END OF ISOLATION STEP ---
 
-    # DEBUG: Enable console logging
-    page.on("console", lambda msg: print(f"  [BROWSER] {msg.type}: {msg.text}"))
-
     # Generate unique test user
     test_user = generate_test_user()
     
@@ -270,19 +267,7 @@ def authenticated_page(page: Page, base_url: str) -> Generator[Page, None, None]
     # Switch to login tab and submit (credentials should be pre-filled)
     print("📋 [authenticated_page fixture] Completing login")
     login_page.switch_to_login_mode()
-
-    # DEBUG: Check form state before clicking login
-    form_state = page.evaluate("""
-        () => {
-            const username = document.getElementById('loginUsername')?.value;
-            const password = document.getElementById('loginPassword')?.value;
-            return {username: username, password: password ? '***' : ''};
-        }
-    """)
-    print(f"🔍 Login form before click: {form_state}")
-
     login_page.click_login_button()
-    print("🔍 Login button clicked")
 
     # --- SMART WAIT: Wait for dashboard to become visible ---
     # This confirms the login completed successfully before yielding to the test.
@@ -291,12 +276,8 @@ def authenticated_page(page: Page, base_url: str) -> Generator[Page, None, None]
     expect(dashboard_page.dashboard_container).to_be_visible(timeout=15000)
     print("✓ Dashboard visible - authentication complete")
 
-    # ADDITIONAL WAIT: Give the app time to save the token
-    page.wait_for_timeout(2000)
-
-    # DEBUG: Check token right after login
-    token_after_login = page.evaluate("Auth.getToken()")
-    print(f"🔍 Token right after dashboard visible + 2s wait: {token_after_login[:50] if token_after_login else 'NOT FOUND!'}")
+    # Additional wait to ensure token is saved (race condition fix)
+    page.wait_for_timeout(500)
 
     # Additional verification with user display
     expect(dashboard_page.get_user_display_locator).to_be_visible(timeout=10000)
@@ -321,10 +302,6 @@ def authenticated_page(page: Page, base_url: str) -> Generator[Page, None, None]
         }
     """)
     print("✓ Auth modal confirmed closed")
-
-    # FINAL CHECK: Verify token is present before yielding
-    final_token = page.evaluate("Auth.getToken()")
-    print(f"✓ Token verified before yield: {final_token[:50] if final_token else 'NOT FOUND!'}")
 
     yield page
     

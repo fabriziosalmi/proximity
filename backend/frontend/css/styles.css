@@ -3342,7 +3342,12 @@ body.pro-mode .pro-feature.inline-flex {
 }
 
 .mode-toggle-switch input {
-    display: none;
+    /* Visually hidden but accessible to screen readers and test automation */
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    /* Keep pointer-events enabled for test automation */
 }
 
 .mode-toggle-slider {

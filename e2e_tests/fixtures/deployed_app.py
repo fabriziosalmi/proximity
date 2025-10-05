@@ -32,27 +32,9 @@ def deployed_app(authenticated_page: Page, base_url: str) -> Generator[Dict, Non
     """
     page = authenticated_page
 
-    # DEBUG: Check localStorage contents
-    storage = page.evaluate("Object.keys(localStorage)")
-    print(f"\n🔍 [deployed_app fixture] localStorage keys: {storage}")
-
     # Get auth token from page storage
     token = page.evaluate("localStorage.getItem('proximity_token')")
-    print(f"🔍 [deployed_app fixture] Token value: {token[:50] if token else 'NOT FOUND'}")
-
     if not token:
-        # More debugging
-        all_storage = page.evaluate("""
-            () => {
-                const items = {};
-                for (let i = 0; i < localStorage.length; i++) {
-                    const key = localStorage.key(i);
-                    items[key] = localStorage.getItem(key);
-                }
-                return items;
-            }
-        """)
-        print(f"🔍 [deployed_app fixture] All localStorage: {all_storage}")
         pytest.fail("No auth token found - authentication may have failed")
 
     headers = {
@@ -70,6 +52,8 @@ def deployed_app(authenticated_page: Page, base_url: str) -> Generator[Dict, Non
 
     print(f"\n📦 [deployed_app fixture] Deploying test app: {deploy_data['hostname']}")
 
+    app_id = None  # Initialize to None for cleanup
+
     try:
         # Deploy app via API
         api_base = base_url.replace("http://", "http://").replace(":8765", ":8765/api/v1")
@@ -77,7 +61,7 @@ def deployed_app(authenticated_page: Page, base_url: str) -> Generator[Dict, Non
             f"{api_base}/apps/deploy",
             headers=headers,
             json=deploy_data,
-            timeout=60
+            timeout=120  # Increased timeout for Docker image pull
         )
 
         if response.status_code != 200:
@@ -112,7 +96,12 @@ def deployed_app(authenticated_page: Page, base_url: str) -> Generator[Dict, Non
 
     finally:
         # Cleanup: Delete the app
-        print(f"\n🧹 [deployed_app fixture] Cleaning up app ID={app_id}")
+        if app_id:
+            print(f"\n🧹 [deployed_app fixture] Cleaning up app ID={app_id}")
+        else:
+            print(f"\n🧹 [deployed_app fixture] No app to clean up (deployment may have failed)")
+            return
+
         try:
             delete_response = requests.delete(
                 f"{api_base}/apps/{app_id}",
