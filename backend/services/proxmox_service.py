@@ -574,6 +574,74 @@ class ProxmoxService:
         except Exception as e:
             raise ProxmoxError(f"Failed to update LXC {vmid} config: {e}")
 
+    async def clone_lxc(self, node: str, vmid: int, newid: int, name: str, full: bool = True) -> Dict[str, Any]:
+        """
+        Clone an LXC container.
+
+        Args:
+            node: Proxmox node name
+            vmid: Source container VMID
+            newid: New container VMID
+            name: New container hostname
+            full: True for full clone (copies all data), False for linked clone
+
+        Returns:
+            Dict with task_id for tracking clone operation
+        """
+        try:
+            client = await self._get_client()
+
+            clone_params = {
+                'newid': newid,
+                'hostname': name,
+                'full': 1 if full else 0,
+                'description': f'Cloned from {vmid}'
+            }
+
+            task_id = await asyncio.to_thread(
+                client.nodes(node).lxc(vmid).clone.post, **clone_params
+            )
+
+            logger.info(f"LXC clone initiated: {vmid} → {newid} on {node}, task={task_id}")
+            return {"task_id": task_id, "newid": newid}
+
+        except Exception as e:
+            raise ProxmoxError(f"Failed to clone LXC {vmid} to {newid}: {e}")
+
+    async def resize_lxc_disk(self, node: str, vmid: int, size_gb: int) -> str:
+        """
+        Resize LXC container root disk.
+
+        Args:
+            node: Proxmox node name
+            vmid: Container VMID
+            size_gb: New disk size in GB
+
+        Returns:
+            Task ID for tracking resize operation
+        """
+        try:
+            client = await self._get_client()
+
+            # Proxmox expects size in format like "20G"
+            disk_param = f"{size_gb}G"
+
+            # Resize the rootfs disk
+            resize_params = {
+                'disk': 'rootfs',
+                'size': disk_param
+            }
+
+            task_id = await asyncio.to_thread(
+                client.nodes(node).lxc(vmid).resize.put, **resize_params
+            )
+
+            logger.info(f"LXC disk resize initiated: vmid={vmid}, size={disk_param}, task={task_id}")
+            return task_id
+
+        except Exception as e:
+            raise ProxmoxError(f"Failed to resize LXC {vmid} disk to {size_gb}GB: {e}")
+
     async def wait_for_task(self, node: str, task_id: str, timeout: int = 300) -> Dict[str, Any]:
         """Wait for a Proxmox task to complete"""
         try:

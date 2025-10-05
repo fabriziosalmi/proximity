@@ -652,7 +652,279 @@ class AppService:
                 f"Failed to delete application: {str(e)}",
                 details={"app_id": app_id, "operation": "delete"}
             ) from e
-    
+
+    async def clone_app(self, source_app_id: str, new_hostname: str) -> App:
+        """
+        Clone an existing application to a new LXC container with copied volumes.
+
+        This creates a complete duplicate of the source application including:
+        - New LXC container with same configuration
+        - Copied persistent volumes
+        - Identical environment variables
+        - Same Docker Compose configuration
+
+        Args:
+            source_app_id: ID of the application to clone
+            new_hostname: Hostname for the new cloned application
+
+        Returns:
+            App: The newly created cloned application
+
+        Raises:
+            AppNotFoundError: Source app not found
+            AppAlreadyExistsError: App with new_hostname already exists
+            AppOperationError: Clone operation failed
+        """
+        logger.info(f"Starting clone operation: {source_app_id} → {new_hostname}")
+
+        # Get source app
+        source_app = await self.get_app(source_app_id)
+
+        # Check if target already exists
+        new_app_id = f"{source_app.catalog_id}-{new_hostname}"
+        existing = self.db.query(DBApp).filter(DBApp.id == new_app_id).first()
+        if existing:
+            raise AppAlreadyExistsError(
+                f"Application '{new_app_id}' already exists",
+                details={"app_id": new_app_id}
+            )
+
+        # Get catalog item for source app
+        catalog_item = await self.get_catalog_item(source_app.catalog_id)
+
+        try:
+            logger.info(f"Cloning LXC container {source_app.lxc_id} from node {source_app.node}")
+
+            # Get next VMID for clone
+            new_vmid = await self.proxmox_service.get_next_vmid()
+
+            # Allocate ports for the cloned app
+            public_port, internal_port = await self.port_manager.assign_next_available_ports(new_app_id)
+
+            # Clone LXC container using Proxmox clone API
+            # This automatically copies the container's filesystem including volumes
+            clone_result = await self.proxmox_service.clone_lxc(
+                node=source_app.node,
+                vmid=source_app.lxc_id,
+                newid=new_vmid,
+                name=new_hostname,
+                full=True  # Full clone (not linked)
+            )
+
+            # Wait for clone to complete
+            await self.proxmox_service.wait_for_task(source_app.node, clone_result["task_id"])
+
+            # Start the cloned container
+            start_task = await self.proxmox_service.start_lxc(source_app.node, new_vmid)
+            await self.proxmox_service.wait_for_task(source_app.node, start_task)
+
+            # Wait for network to be ready
+            await asyncio.sleep(5)
+
+            # Get IP address of cloned container
+            container_ip = await self.proxmox_service.get_lxc_ip(source_app.node, new_vmid)
+            primary_port = catalog_item.ports[0] if catalog_item.ports else 80
+
+            # Configure reverse proxy for cloned app
+            if self.proxy_manager and container_ip:
+                vhost_created = await self.proxy_manager.create_vhost(
+                    app_name=new_hostname,
+                    backend_ip=container_ip,
+                    backend_port=primary_port,
+                    public_port=public_port,
+                    internal_port=internal_port
+                )
+
+                if vhost_created:
+                    appliance_wan_ip = None
+                    if hasattr(self.proxmox_service, 'network_manager') and self.proxmox_service.network_manager:
+                        appliance_info = self.proxmox_service.network_manager.appliance_info
+                        if appliance_info:
+                            appliance_wan_ip = appliance_info.wan_ip
+
+                    if appliance_wan_ip:
+                        access_url = f"http://{appliance_wan_ip}:{public_port}"
+                        iframe_url = f"http://{appliance_wan_ip}:{internal_port}"
+                    else:
+                        access_url = f"http://localhost:{public_port}"
+                        iframe_url = f"http://localhost:{internal_port}"
+                else:
+                    access_url = f"http://{container_ip}:{primary_port}" if container_ip else None
+                    iframe_url = None
+            else:
+                access_url = f"http://{container_ip}:{primary_port}" if container_ip else None
+                iframe_url = None
+
+            # Create database entry for cloned app
+            cloned_app = App(
+                id=new_app_id,
+                catalog_id=source_app.catalog_id,
+                name=source_app.name,
+                hostname=new_hostname,
+                status=AppStatus.RUNNING,
+                url=access_url,
+                iframe_url=iframe_url,
+                lxc_id=new_vmid,
+                node=source_app.node,
+                config=source_app.config,
+                environment=source_app.environment,
+                ports=source_app.ports,
+                volumes=source_app.volumes,  # Volumes are copied during LXC clone
+                public_port=public_port,
+                internal_port=internal_port
+            )
+
+            # Save to database
+            db_app = DBApp(
+                id=cloned_app.id,
+                catalog_id=cloned_app.catalog_id,
+                name=cloned_app.name,
+                hostname=cloned_app.hostname,
+                status=cloned_app.status.value,
+                url=cloned_app.url,
+                iframe_url=cloned_app.iframe_url,
+                lxc_id=cloned_app.lxc_id,
+                node=cloned_app.node,
+                config=cloned_app.config,
+                ports=cloned_app.ports,
+                volumes=cloned_app.volumes,
+                environment=cloned_app.environment,
+                public_port=public_port,
+                internal_port=internal_port,
+                created_at=datetime.utcnow(),
+                updated_at=datetime.utcnow()
+            )
+            self.db.add(db_app)
+            self.db.commit()
+            self.db.refresh(db_app)
+
+            logger.info(f"✓ Successfully cloned {source_app_id} to {new_app_id}")
+            return cloned_app
+
+        except Exception as e:
+            logger.error(f"Clone operation failed: {e}", exc_info=True)
+
+            # Cleanup on failure
+            if 'new_vmid' in locals():
+                try:
+                    await self.proxmox_service.destroy_lxc(source_app.node, new_vmid, force=True)
+                except:
+                    pass
+
+            if 'public_port' in locals():
+                try:
+                    await self.port_manager.release_ports_for_app(new_app_id)
+                except:
+                    pass
+
+            self.db.rollback()
+
+            raise AppOperationError(
+                f"Failed to clone application: {str(e)}",
+                details={"source_app_id": source_app_id, "new_hostname": new_hostname}
+            ) from e
+
+    async def update_app_config(
+        self,
+        app_id: str,
+        cpu_cores: Optional[int] = None,
+        memory_mb: Optional[int] = None,
+        disk_gb: Optional[int] = None
+    ) -> App:
+        """
+        Update application resource configuration (CPU, RAM, disk).
+
+        Modifies the LXC container configuration and restarts it to apply changes.
+
+        Args:
+            app_id: Application ID to update
+            cpu_cores: New CPU cores allocation (1-16)
+            memory_mb: New memory allocation in MB (512-32768)
+            disk_gb: New disk size in GB (1-500)
+
+        Returns:
+            App: Updated application
+
+        Raises:
+            AppNotFoundError: App not found
+            AppOperationError: Update failed
+        """
+        logger.info(f"Updating config for {app_id}: cpu={cpu_cores}, mem={memory_mb}, disk={disk_gb}")
+
+        # Validate that at least one parameter is provided
+        if cpu_cores is None and memory_mb is None and disk_gb is None:
+            raise AppOperationError(
+                "At least one configuration parameter must be provided",
+                details={"app_id": app_id}
+            )
+
+        # Get app
+        app = await self.get_app(app_id)
+
+        try:
+            # Stop container before modifying resources
+            was_running = app.status == AppStatus.RUNNING
+            if was_running:
+                logger.info(f"Stopping {app_id} for config update")
+                await self.stop_app(app_id)
+
+            # Update LXC configuration
+            config_updates = {}
+            if cpu_cores is not None:
+                config_updates['cores'] = cpu_cores
+            if memory_mb is not None:
+                config_updates['memory'] = memory_mb
+            if disk_gb is not None:
+                # Disk resize requires special handling
+                await self.proxmox_service.resize_lxc_disk(app.node, app.lxc_id, disk_gb)
+
+            # Apply CPU/Memory changes
+            if config_updates:
+                await self.proxmox_service.update_lxc_config(app.node, app.lxc_id, config_updates)
+
+            # Restart if it was running
+            if was_running:
+                logger.info(f"Restarting {app_id} with new configuration")
+                await self.start_app(app_id)
+
+            # Update database config
+            db_app = self.db.query(DBApp).filter(DBApp.id == app_id).first()
+            if db_app:
+                if db_app.config is None:
+                    db_app.config = {}
+
+                if cpu_cores is not None:
+                    db_app.config['cpu_cores'] = cpu_cores
+                if memory_mb is not None:
+                    db_app.config['memory_mb'] = memory_mb
+                if disk_gb is not None:
+                    db_app.config['disk_gb'] = disk_gb
+
+                db_app.updated_at = datetime.utcnow()
+                self.db.commit()
+                self.db.refresh(db_app)
+
+            logger.info(f"✓ Successfully updated config for {app_id}")
+
+            # Return updated app
+            return await self.get_app(app_id)
+
+        except Exception as e:
+            logger.error(f"Config update failed for {app_id}: {e}", exc_info=True)
+            self.db.rollback()
+
+            # Try to restart app if it was running
+            if was_running:
+                try:
+                    await self.start_app(app_id)
+                except:
+                    pass
+
+            raise AppOperationError(
+                f"Failed to update configuration: {str(e)}",
+                details={"app_id": app_id, "cpu_cores": cpu_cores, "memory_mb": memory_mb, "disk_gb": disk_gb}
+            ) from e
+
     async def deploy_app(self, app_data: AppCreate) -> App:
         """Deploy a new application"""
         app_id = f"{app_data.catalog_id}-{app_data.hostname}"

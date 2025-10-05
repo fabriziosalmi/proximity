@@ -542,3 +542,95 @@ async def get_app_current_stats(
     except Exception as e:
         logger.error(f"Failed to get stats for app {app_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to fetch stats: {str(e)}")
+
+
+@router.post("/{app_id}/clone", response_model=App, status_code=202)
+async def clone_app(
+    app_id: str,
+    new_hostname: str = Query(..., description="Hostname for the cloned app"),
+    service: AppService = Depends(get_app_service)
+):
+    """
+    Clone an existing application.
+
+    Creates a new LXC container with the same configuration as the source app
+    and copies all persistent volumes to the new container.
+
+    Args:
+        app_id: Source application ID to clone
+        new_hostname: Hostname for the new cloned application
+
+    Returns:
+        App: The newly cloned application
+
+    Raises:
+        404: Source app not found
+        409: App with new_hostname already exists
+        400: Clone operation failed
+        500: Unexpected error
+
+    Example:
+        POST /apps/nginx-01/clone?new_hostname=nginx-02
+    """
+    try:
+        logger.info(f"Cloning app {app_id} to {new_hostname}")
+        cloned_app = await service.clone_app(app_id, new_hostname)
+        return cloned_app
+    except AppNotFoundError as e:
+        logger.warning(f"Source app not found for cloning: {app_id}")
+        raise HTTPException(status_code=404, detail=str(e))
+    except AppAlreadyExistsError as e:
+        logger.warning(f"Target app already exists: {new_hostname}")
+        raise HTTPException(status_code=409, detail=str(e))
+    except AppOperationError as e:
+        logger.error(f"Clone operation failed: {e}", extra={"source_app_id": app_id, "new_hostname": new_hostname})
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Unexpected error cloning app {app_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Clone failed: {str(e)}")
+
+
+@router.put("/{app_id}/config", response_model=App)
+async def update_app_config(
+    app_id: str,
+    cpu_cores: Optional[int] = Query(None, ge=1, le=16, description="Number of CPU cores"),
+    memory_mb: Optional[int] = Query(None, ge=512, le=32768, description="Memory in MB"),
+    disk_gb: Optional[int] = Query(None, ge=1, le=500, description="Disk size in GB"),
+    service: AppService = Depends(get_app_service)
+):
+    """
+    Update application resource configuration.
+
+    Modifies CPU, memory, or disk allocation for a running application.
+    The container will be restarted to apply changes.
+
+    Args:
+        app_id: Application ID to update
+        cpu_cores: New CPU cores allocation (1-16)
+        memory_mb: New memory allocation in MB (512-32768)
+        disk_gb: New disk size in GB (1-500)
+
+    Returns:
+        App: Updated application
+
+    Raises:
+        404: App not found
+        400: Invalid configuration or update failed
+        500: Unexpected error
+
+    Example:
+        PUT /apps/nginx-01/config?cpu_cores=2&memory_mb=2048
+    """
+    try:
+        logger.info(f"Updating config for app {app_id}: cpu={cpu_cores}, mem={memory_mb}, disk={disk_gb}")
+        updated_app = await service.update_app_config(app_id, cpu_cores, memory_mb, disk_gb)
+        return updated_app
+    except AppNotFoundError as e:
+        logger.warning(f"App not found for config update: {app_id}")
+        raise HTTPException(status_code=404, detail=str(e))
+    except AppOperationError as e:
+        logger.error(f"Config update failed: {e}", extra={"app_id": app_id})
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Unexpected error updating config for {app_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Config update failed: {str(e)}")

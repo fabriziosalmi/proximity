@@ -443,8 +443,17 @@ function createAppCard(app, isDeployed = false) {
                         <button class="action-icon" title="Monitoring" onclick="showMonitoringModal('${app.id}', '${app.name}')">
                             <i data-lucide="activity"></i>
                         </button>
+                        ${app.iframe_url ? `<button class="action-icon" title="Open in Canvas" onclick="event.stopPropagation(); openCanvas(${JSON.stringify(app).replace(/"/g, '&quot;')})">
+                            <i data-lucide="monitor"></i>
+                        </button>` : ''}
                         <button class="action-icon" title="${isRunning ? 'Restart' : 'Start'}" onclick="controlApp('${app.id}', '${isRunning ? 'restart' : 'start'}')">
                             <i data-lucide="refresh-cw"></i>
+                        </button>
+                        <button class="action-icon" title="Clone App" onclick="showCloneModal('${app.id}', '${app.name}')">
+                            <i data-lucide="copy"></i>
+                        </button>
+                        <button class="action-icon" title="Edit Resources" onclick="showEditConfigModal('${app.id}', '${app.name}')">
+                            <i data-lucide="sliders"></i>
                         </button>
                         <button class="action-icon danger" title="Delete" onclick="confirmDeleteApp('${app.id}', '${app.name}')">
                             <i data-lucide="trash-2"></i>
@@ -4009,6 +4018,203 @@ function addCanvasButton(app, container) {
     
     container.appendChild(button);
     initLucideIcons();
+}
+
+/**
+ * Show clone app modal
+ */
+async function showCloneModal(appId, appName) {
+    const hostname = await showPromptModal(
+        'Clone Application',
+        `Enter a new hostname for the cloned copy of "${appName}":`,
+        '',
+        'Clone',
+        'clone-hostname'
+    );
+
+    if (!hostname) return;
+
+    try {
+        showNotification(`Cloning ${appName}...`, 'info');
+
+        const response = await fetch(`/api/v1/apps/${appId}/clone?new_hostname=${encodeURIComponent(hostname)}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${getToken()}`
+            }
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Clone failed');
+        }
+
+        const clonedApp = await response.json();
+
+        showNotification(`✓ Successfully cloned to ${hostname}`, 'success');
+
+        // Refresh apps view
+        if (currentView === 'apps') {
+            await loadApps();
+        }
+
+    } catch (error) {
+        console.error('Clone error:', error);
+        showNotification(`Failed to clone: ${error.message}`, 'error');
+    }
+}
+
+/**
+ * Show edit config modal
+ */
+async function showEditConfigModal(appId, appName) {
+    // Create modal HTML
+    const modalHTML = `
+        <div class="modal-overlay" id="editConfigOverlay">
+            <div class="modal-dialog">
+                <div class="modal-header">
+                    <h2>Edit Resources: ${appName}</h2>
+                    <button class="modal-close" onclick="closeEditConfigModal()">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="editCpu">CPU Cores (1-16)</label>
+                        <input type="number" id="editCpu" min="1" max="16" step="1"
+                               placeholder="Leave empty to keep current">
+                    </div>
+                    <div class="form-group">
+                        <label for="editMemory">Memory (MB) (512-32768)</label>
+                        <input type="number" id="editMemory" min="512" max="32768" step="512"
+                               placeholder="Leave empty to keep current">
+                    </div>
+                    <div class="form-group">
+                        <label for="editDisk">Disk Size (GB) (1-500)</label>
+                        <input type="number" id="editDisk" min="1" max="500" step="1"
+                               placeholder="Leave empty to keep current">
+                        <small class="form-help">⚠️ Disk can only be increased, not decreased</small>
+                    </div>
+                    <div class="alert alert-warning">
+                        <strong>Note:</strong> The application will be restarted to apply changes.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeEditConfigModal()">Cancel</button>
+                    <button class="btn btn-primary" onclick="submitEditConfig('${appId}', '${appName}')">
+                        Apply Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Add to body
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+    // Focus first input
+    setTimeout(() => document.getElementById('editCpu')?.focus(), 100);
+}
+
+/**
+ * Close edit config modal
+ */
+function closeEditConfigModal() {
+    const overlay = document.getElementById('editConfigOverlay');
+    if (overlay) {
+        overlay.remove();
+    }
+}
+
+/**
+ * Submit config update
+ */
+async function submitEditConfig(appId, appName) {
+    const cpuCores = document.getElementById('editCpu')?.value;
+    const memoryMb = document.getElementById('editMemory')?.value;
+    const diskGb = document.getElementById('editDisk')?.value;
+
+    // Validate at least one field is set
+    if (!cpuCores && !memoryMb && !diskGb) {
+        showNotification('Please specify at least one resource to update', 'warning');
+        return;
+    }
+
+    try {
+        closeEditConfigModal();
+        showNotification(`Updating resources for ${appName}...`, 'info');
+
+        // Build query params
+        const params = new URLSearchParams();
+        if (cpuCores) params.append('cpu_cores', cpuCores);
+        if (memoryMb) params.append('memory_mb', memoryMb);
+        if (diskGb) params.append('disk_gb', diskGb);
+
+        const response = await fetch(`/api/v1/apps/${appId}/config?${params.toString()}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${getToken()}`
+            }
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Config update failed');
+        }
+
+        showNotification(`✓ Resources updated successfully`, 'success');
+
+        // Refresh apps view
+        if (currentView === 'apps') {
+            await loadApps();
+        }
+
+    } catch (error) {
+        console.error('Config update error:', error);
+        showNotification(`Failed to update config: ${error.message}`, 'error');
+    }
+}
+
+/**
+ * Show prompt modal for text input
+ */
+function showPromptModal(title, message, defaultValue = '', confirmText = 'OK', inputId = 'promptInput') {
+    return new Promise((resolve) => {
+        const modalHTML = `
+            <div class="modal-overlay" id="promptOverlay">
+                <div class="modal-dialog">
+                    <div class="modal-header">
+                        <h2>${title}</h2>
+                        <button class="modal-close" onclick="document.getElementById('promptOverlay').remove(); window.promptResolve(null);">✕</button>
+                    </div>
+                    <div class="modal-body">
+                        <p>${message}</p>
+                        <input type="text" id="${inputId}" class="form-control" value="${defaultValue}"
+                               onkeypress="if(event.key==='Enter') document.getElementById('promptConfirm').click()">
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="document.getElementById('promptOverlay').remove(); window.promptResolve(null);">
+                            Cancel
+                        </button>
+                        <button id="promptConfirm" class="btn btn-primary" onclick="
+                            const val = document.getElementById('${inputId}').value.trim();
+                            document.getElementById('promptOverlay').remove();
+                            window.promptResolve(val);
+                        ">${confirmText}</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        window.promptResolve = resolve;
+
+        setTimeout(() => {
+            const input = document.getElementById(inputId);
+            if (input) {
+                input.focus();
+                input.select();
+            }
+        }, 100);
+    });
 }
 
 // Close canvas modal when clicking outside
