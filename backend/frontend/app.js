@@ -354,13 +354,11 @@ function updateStats() {
         
         if (status === 'running') {
             proxyInfoEl.innerHTML = `
-                <span>●</span>
                 <span>${state.proxyStatus.ip_address || 'Active'}</span>
             `;
             proxyInfoEl.className = 'stat-change positive';
         } else {
             proxyInfoEl.innerHTML = `
-                <span>●</span>
                 <span>Offline</span>
             `;
             proxyInfoEl.className = 'stat-change';
@@ -368,7 +366,6 @@ function updateStats() {
     } else {
         proxyStatusEl.textContent = '--';
         proxyInfoEl.innerHTML = `
-            <span>●</span>
             <span>Not deployed</span>
         `;
         proxyInfoEl.className = 'stat-change';
@@ -516,34 +513,28 @@ function createAppCard(app, isDeployed = false) {
         `;
     }
     
-    // Catalog app card
+    // Catalog app card - compact horizontal layout
     return `
-        <div class="app-card" onclick="showDeployModal('${app.id}')">
-            <div class="app-card-header">
-                <div class="app-icon-lg">${icon}</div>
-                <div class="app-info">
-                    <h3 class="app-name">${app.name}</h3>
-                    <span class="app-category">${app.category}</span>
+        <div class="app-card catalog-card" onclick="showDeployModal('${app.id}')" style="cursor: pointer;">
+            <div class="catalog-card-content">
+                <div class="app-icon-md">${icon}</div>
+                <div class="catalog-info">
+                    <div class="catalog-header">
+                        <h3 class="app-name">${app.name}</h3>
+                        <span class="category-badge">${app.category}</span>
+                    </div>
+                    <p class="app-description-compact">${app.description}</p>
+                    <div class="catalog-meta">
+                        <span class="meta-badge">
+                            <i data-lucide="cpu"></i>
+                            ${app.min_cpu} vCPU
+                        </span>
+                        <span class="meta-badge">
+                            <i data-lucide="database"></i>
+                            ${app.min_memory}MB
+                        </span>
+                    </div>
                 </div>
-            </div>
-            <p class="app-description">${app.description}</p>
-            <div class="app-meta">
-                <div class="app-meta-item">
-                    <span>💾</span>
-                    <span>${app.min_memory}MB RAM</span>
-                </div>
-                <div class="app-meta-item">
-                    <span>⚡</span>
-                    <span>${app.min_cpu} vCPU</span>
-                </div>
-            </div>
-            <div class="app-actions">
-                <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); showDeployModal('${app.id}')">
-                    🚀 Deploy
-                </button>
-                <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation(); showAppInfo('${app.id}')">
-                    Info
-                </button>
             </div>
         </div>
     `;
