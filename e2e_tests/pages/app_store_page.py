@@ -86,47 +86,62 @@ class AppStorePage(BasePage):
     
     def get_app_card(self, app_name: str) -> Locator:
         """
-        Find a specific app card by application name.
+        Find a specific app card by application name IN THE CATALOG (not deployed apps).
         
         This method returns a Locator for the app card that contains
-        the specified app name. The locator can be used for assertions
-        or further interactions.
+        the specified app name. The locator specifically targets catalog
+        app cards (without .deployed class) to avoid ambiguity with
+        deployed apps that may have the same name.
         
         Args:
             app_name: Name of the application (e.g., 'Nginx', 'WordPress')
         
         Returns:
-            Locator for the app card containing the app name
+            Locator for the catalog app card containing the app name
         
         Example:
             >>> app_card = app_store_page.get_app_card("Nginx")
             >>> expect(app_card).to_be_visible()
+        
+        Note:
+            Uses :not(.deployed) to exclude deployed app cards from the selection.
+            This prevents strict mode violations when multiple apps with the same
+            name exist (one in catalog, one or more deployed).
         """
-        logger.info(f"Finding app card for: {app_name}")
-        # Find the app card that contains an app-name element with the exact text
-        return self.page.locator(f"{self.APP_CARD}:has({self.APP_NAME}:text-is('{app_name}'))")
+        logger.info(f"Finding catalog app card for: {app_name}")
+        # CRITICAL FIX: Use :not(.deployed) to target ONLY catalog cards
+        # Catalog cards: <div class="app-card">
+        # Deployed cards: <div class="app-card deployed">
+        return self.page.locator(f"{self.APP_CARD}:not(.deployed):has({self.APP_NAME}:text-is('{app_name}'))")
     
     def get_all_app_cards(self) -> Locator:
         """
-        Get locator for all app cards in the catalog.
+        Get locator for all app cards in the catalog (excludes deployed apps).
         
         Returns:
-            Locator for all app cards (can be used with count(), all(), etc.)
+            Locator for all catalog app cards (can be used with count(), all(), etc.)
+        
+        Note:
+            Uses :not(.deployed) to exclude deployed app cards.
+            Only returns catalog app cards without the .deployed class.
         """
-        return self.page.locator(self.APP_CARD)
+        return self.page.locator(f"{self.APP_CARD}:not(.deployed)")
     
     def get_app_card_by_category(self, category: str) -> Locator:
         """
-        Find app cards by category.
+        Find app cards by category IN THE CATALOG (excludes deployed apps).
         
         Args:
             category: Category name (e.g., 'Web Server', 'Database')
         
         Returns:
-            Locator for app cards in the specified category
+            Locator for catalog app cards in the specified category
+        
+        Note:
+            Uses :not(.deployed) to target only catalog cards.
         """
-        logger.info(f"Finding apps in category: {category}")
-        return self.page.locator(f"{self.APP_CARD}:has({self.APP_CATEGORY}:text-is('{category}'))")
+        logger.info(f"Finding catalog apps in category: {category}")
+        return self.page.locator(f"{self.APP_CARD}:not(.deployed):has({self.APP_CATEGORY}:text-is('{category}'))")
     
     # ========================================================================
     # Deployment Initiation Methods

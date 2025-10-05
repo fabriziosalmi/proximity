@@ -33,7 +33,7 @@ def deployed_app(authenticated_page: Page, base_url: str):
     deployment_modal = DeploymentModalPage(page)
 
     dashboard_page.navigate_to_app_store()
-    app_store_page.wait_for_catalog_loaded()
+    app_store_page.wait_for_catalog_load()
     app_store_page.select_app("nginx")
     deployment_modal.wait_for_modal_visible()
     deployment_modal.enter_hostname(hostname)

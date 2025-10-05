@@ -33,7 +33,7 @@ class DashboardPage(BasePage):
     STATS_TOTAL_APPS = ".stat-card:has-text('Total Apps') .stat-value"
     STATS_RUNNING_APPS = ".stat-card:has-text('Running') .stat-value"
     DEPLOYED_APPS_LIST = "#deployedAppsList"
-    APP_CARD = ".app-card"
+    APP_CARD = ".app-card.deployed"  # Only deployed app cards, not catalog cards
     EMPTY_STATE = ".empty-state"
     
     def __init__(self, page: Page):
