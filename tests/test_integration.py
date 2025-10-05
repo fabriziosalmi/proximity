@@ -22,6 +22,7 @@ sys.path.insert(0, str(backend_path))
 class TestFullDeploymentWorkflow:
     """Test complete application deployment workflow."""
 
+    @pytest.mark.timeout(60)  # 60 seconds timeout
     @patch('services.proxmox_service.proxmox_service')
     @patch('services.app_service.get_app_service')
     def test_complete_app_lifecycle(self, mock_app_service, mock_proxmox, client, auth_headers):
@@ -97,6 +98,7 @@ class TestFullDeploymentWorkflow:
 class TestAuthenticationWorkflow:
     """Test complete authentication workflow."""
 
+    @pytest.mark.timeout(30)  # 30 seconds timeout
     def test_register_login_access_logout(self, client):
         """Test full auth flow: register -> login -> access protected -> logout."""
 
@@ -142,6 +144,7 @@ class TestAuthenticationWorkflow:
 class TestCatalogBrowsing:
     """Test catalog browsing workflow."""
 
+    @pytest.mark.timeout(20)  # 20 seconds timeout
     def test_browse_catalog_and_get_details(self, client, auth_headers):
         """Test browsing catalog and getting app details."""
 
@@ -167,6 +170,7 @@ class TestCatalogBrowsing:
 class TestSystemMonitoring:
     """Test system monitoring workflow."""
 
+    @pytest.mark.timeout(20)  # 20 seconds timeout
     @patch('services.proxmox_service.proxmox_service')
     def test_monitor_system_resources(self, mock_proxmox, client, auth_headers):
         """Test monitoring system resources and nodes."""
