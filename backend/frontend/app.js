@@ -3041,13 +3041,33 @@ document.addEventListener('DOMContentLoaded', init);
 // Show Auth Modal (Register/Login)
 function showAuthModal() {
         const modal = document.getElementById('authModal');
-        const body = document.getElementById('authModalBody');
+        if (!modal) {
+                console.error('Auth modal element not found');
+                return;
+        }
+
+        // Show the modal
+        modal.style.display = 'flex';
         modal.classList.add('show');
+
+        // Prevent body scrolling
+        document.body.classList.add('modal-open');
+
+        // Render the tabs
         renderAuthTabs('register');
+
+        console.log('✅ Auth modal displayed');
 }
 
 function closeAuthModal() {
-        document.getElementById('authModal').classList.remove('show');
+        const modal = document.getElementById('authModal');
+        if (modal) {
+                modal.classList.remove('show');
+                modal.style.display = 'none';
+        }
+
+        // Restore body scrolling
+        document.body.classList.remove('modal-open');
 }
 
 function renderAuthTabs(defaultTab = 'register') {

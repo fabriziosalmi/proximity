@@ -5,10 +5,6 @@
  * It bootstraps the application and initializes all components.
  */
 
-// Import legacy app.js as a module (temporary bridge)
-// We'll gradually replace this with proper ES6 modules
-import '../app.js';
-
 // Import new modular components
 import * as AppState from './state/appState.js';
 import * as API from './services/api.js';
@@ -26,9 +22,6 @@ window.Notifications = Notifications;
 window.Auth = Auth;
 window.UI = UI;
 
-// Initialize UI mode (AUTO/PRO) on startup
-UI.initUIMode();
-
 console.log('✅ Proximity modular system loaded');
 console.log('📦 Available modules:', {
     AppState: 'State management',
@@ -38,4 +31,14 @@ console.log('📦 Available modules:', {
     Auth: 'Authentication',
     UI: 'UI utilities and mode control'
 });
-console.log(`🎯 Current mode: ${AppState.getProximityMode()}`);
+
+// Wait for DOM to be ready, then initialize UI mode
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        UI.initUIMode();
+        console.log(`🎯 Current mode: ${AppState.getProximityMode()}`);
+    });
+} else {
+    UI.initUIMode();
+    console.log(`🎯 Current mode: ${AppState.getProximityMode()}`);
+}

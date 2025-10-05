@@ -258,7 +258,11 @@
         <div class="loading-spinner"></div>
         <div class="loading-text" id="loadingText">Loading...</div>
     </div>
-    
+
+    <!-- Load legacy app.js first (non-module) -->
+    <script src="app.js"></script>
+
+    <!-- Then load modular system (ES6 modules) -->
     <script src="js/main.js" type="module"></script>
 
         <!-- Auth Modal (Register/Login) -->
