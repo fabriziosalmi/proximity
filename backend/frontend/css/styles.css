@@ -633,6 +633,161 @@ h3 { font-size: 1.5rem; font-weight: 600; }
     margin-bottom: 2rem;
 }
 
+/* Stats Compact Card - Full Width Layout */
+.stats-compact-card {
+    background: linear-gradient(135deg, rgba(24, 24, 27, 0.8), rgba(39, 39, 42, 0.6));
+    backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid var(--border-cyan);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem 2rem;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), 
+                inset 0 1px 0 rgba(34, 211, 238, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.stats-compact-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--cyan-bright), transparent);
+    opacity: 0.6;
+}
+
+.stats-compact-card:hover {
+    border-color: var(--cyan-bright);
+    box-shadow: 0 8px 32px rgba(34, 211, 238, 0.2),
+                0 0 0 1px var(--cyan-bright),
+                inset 0 1px 0 rgba(34, 211, 238, 0.25);
+}
+
+.stats-compact-card:hover::before {
+    opacity: 1;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.stat-item .stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+.stat-item .stat-icon::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: var(--radius-md);
+    background: inherit;
+    filter: blur(8px);
+    opacity: 0.5;
+    z-index: -1;
+}
+
+.stats-compact-card:hover .stat-item .stat-icon::before {
+    opacity: 0.8;
+}
+
+.stat-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+}
+
+.stat-info .stat-label {
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.stat-info .stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1;
+}
+
+.stat-divider {
+    width: 1px;
+    height: 48px;
+    background: linear-gradient(180deg, transparent, var(--border-cyan), transparent);
+    flex-shrink: 0;
+}
+
+/* Responsive layout for compact stats */
+@media (max-width: 1400px) {
+    .stats-compact-card {
+        gap: 1.5rem;
+        padding: 1.25rem 1.5rem;
+    }
+    
+    .stat-item .stat-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.25rem;
+    }
+    
+    .stat-info .stat-value {
+        font-size: 1.5rem;
+    }
+    
+    .stat-divider {
+        height: 40px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .stats-compact-card {
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .stat-item {
+        flex: 1 1 calc(50% - 0.5rem);
+        min-width: 200px;
+    }
+    
+    .stat-divider {
+        display: none;
+    }
+}
+
+@media (max-width: 640px) {
+    .stats-compact-card {
+        padding: 1rem;
+    }
+    
+    .stat-item {
+        flex: 1 1 100%;
+    }
+}
+
 @media (min-width: 1400px) {
     .stats-grid {
         grid-template-columns: repeat(5, 1fr);
@@ -692,11 +847,10 @@ h3 { font-size: 1.5rem; font-weight: 600; }
 
 .stat-card:hover {
     border-color: var(--cyan-bright);
-    box-shadow: 0 8px 32px rgba(34, 211, 238, 0.15),
-                0 0 0 1px var(--border-cyan),
-                inset 0 1px 0 rgba(34, 211, 238, 0.2);
+    box-shadow: 0 8px 32px rgba(34, 211, 238, 0.2),
+                0 0 0 1px var(--cyan-bright),
+                inset 0 1px 0 rgba(34, 211, 238, 0.25);
     background: linear-gradient(135deg, rgba(24, 24, 27, 0.9), rgba(39, 39, 42, 0.7));
-    transform: translateY(-2px);
 }
 
 .stat-card:hover::before {
@@ -983,19 +1137,18 @@ h3 { font-size: 1.5rem; font-weight: 600; }
 
 .app-card:hover {
     border-color: var(--cyan-bright);
-    box-shadow: 0 8px 32px rgba(34, 211, 238, 0.2),
-                0 0 0 1px var(--border-cyan),
-                inset 0 1px 0 rgba(34, 211, 238, 0.15);
-    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(34, 211, 238, 0.25),
+                0 0 0 1px var(--cyan-bright),
+                inset 0 1px 0 rgba(34, 211, 238, 0.2);
 }
 
 /* Enhanced hover for clickable catalog cards */
 .catalog-grid .app-card:hover {
     border-color: var(--cyan-bright);
-    box-shadow: 0 12px 40px rgba(34, 211, 238, 0.3),
-                0 0 0 1px var(--cyan-bright),
-                inset 0 1px 0 rgba(34, 211, 238, 0.2);
-    transform: translateY(-6px);
+    box-shadow: 0 12px 40px rgba(34, 211, 238, 0.35),
+                0 0 0 2px var(--cyan-bright),
+                inset 0 1px 0 rgba(34, 211, 238, 0.25);
+    transform: scale(1.02);
 }
 
 .app-card:hover::after {
@@ -1223,9 +1376,8 @@ h3 { font-size: 1.5rem; font-weight: 600; }
 .action-icon:hover:not(:disabled) {
     background: linear-gradient(135deg, rgba(34, 211, 238, 0.15), rgba(20, 184, 166, 0.1));
     border-color: var(--cyan-bright);
-    box-shadow: 0 0 12px rgba(34, 211, 238, 0.4),
+    box-shadow: 0 0 16px rgba(34, 211, 238, 0.5),
                 0 4px 12px rgba(0, 0, 0, 0.2);
-    transform: translateY(-2px);
 }
 
 .action-icon:hover:not(:disabled) i[data-lucide] {
@@ -1739,6 +1891,9 @@ body.modal-open {
     overflow-x: hidden;
     flex: 1 1 auto;
     max-height: calc(90vh - 150px); /* Account for header and footer */
+    /* Ensure scrolling stays within modal */
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
 }
 
 .modal-footer {

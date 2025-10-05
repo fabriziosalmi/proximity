@@ -106,74 +106,63 @@
                         </div>
                     </div>
                     
-                    <!-- Stats -->
-                    <div class="stats-grid" id="statsGrid">
-                        <div class="stat-card">
-                            <div class="stat-header">
+                    <!-- Stats Compact -->
+                    <div class="stats-compact-card" id="statsGrid">
+                        <div class="stat-item">
+                            <div class="stat-icon primary">
+                                <i data-lucide="package"></i>
+                            </div>
+                            <div class="stat-info">
                                 <span class="stat-label">Total Applications</span>
-                                <div class="stat-icon primary">
-                                    <i data-lucide="package"></i>
-                                </div>
-                            </div>
-                            <div class="stat-value" id="statTotalApps">0</div>
-                            <div class="stat-change positive">
-                                <i data-lucide="trending-up" style="width: 14px; height: 14px;"></i>
-                                <span>+2 this week</span>
+                                <span class="stat-value" id="statTotalApps">0</span>
                             </div>
                         </div>
                         
-                        <div class="stat-card">
-                            <div class="stat-header">
+                        <div class="stat-divider"></div>
+                        
+                        <div class="stat-item">
+                            <div class="stat-icon success">
+                                <i data-lucide="check-circle"></i>
+                            </div>
+                            <div class="stat-info">
                                 <span class="stat-label">Running</span>
-                                <div class="stat-icon success">
-                                    <i data-lucide="check-circle"></i>
-                                </div>
-                            </div>
-                            <div class="stat-value" id="statRunningApps">0</div>
-                            <div class="stat-change positive">
-                                <i data-lucide="trending-up" style="width: 14px; height: 14px;"></i>
-                                <span>All systems operational</span>
+                                <span class="stat-value" id="statRunningApps">0</span>
                             </div>
                         </div>
                         
-                        <div class="stat-card">
-                            <div class="stat-header">
+                        <div class="stat-divider"></div>
+                        
+                        <div class="stat-item">
+                            <div class="stat-icon info">
+                                <i data-lucide="server"></i>
+                            </div>
+                            <div class="stat-info">
                                 <span class="stat-label">Infrastructure Nodes</span>
-                                <div class="stat-icon info">
-                                    <i data-lucide="server"></i>
-                                </div>
-                            </div>
-                            <div class="stat-value" id="statNodes">0</div>
-                            <div class="stat-change positive">
-                                <span>●</span>
-                                <span>Online</span>
+                                <span class="stat-value" id="statNodes">0</span>
                             </div>
                         </div>
                         
-                        <div class="stat-card">
-                            <div class="stat-header">
+                        <div class="stat-divider"></div>
+                        
+                        <div class="stat-item">
+                            <div class="stat-icon warning">
+                                <i data-lucide="zap"></i>
+                            </div>
+                            <div class="stat-info">
                                 <span class="stat-label">Resources Used</span>
-                                <div class="stat-icon warning">
-                                    <i data-lucide="zap"></i>
-                                </div>
-                            </div>
-                            <div class="stat-value" id="statResources">--</div>
-                            <div class="stat-change">
-                                <span>Normal usage</span>
+                                <span class="stat-value" id="statResources">--</span>
                             </div>
                         </div>
                         
-                        <div class="stat-card">
-                            <div class="stat-header">
-                                <span class="stat-label">Reverse Proxy</span>
-                                <div class="stat-icon info">
-                                    <i data-lucide="globe"></i>
-                                </div>
+                        <div class="stat-divider"></div>
+                        
+                        <div class="stat-item">
+                            <div class="stat-icon info">
+                                <i data-lucide="globe"></i>
                             </div>
-                            <div class="stat-value" id="statProxyStatus">--</div>
-                            <div class="stat-change" id="statProxyInfo">
-                                <span>●</span>
-                                <span>Not deployed</span>
+                            <div class="stat-info">
+                                <span class="stat-label">Reverse Proxy</span>
+                                <span class="stat-value" id="statProxyStatus">--</span>
                             </div>
                         </div>
                     </div>

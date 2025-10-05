@@ -214,22 +214,32 @@ async function init() {
 async function loadSystemInfo() {
     try {
         const response = await authFetch(`${API_BASE}/system/info`);
-        if (!response.ok) throw new Error('Failed to load system info');
+        if (!response.ok) {
+            console.warn('Failed to load system info:', response.status);
+            state.systemInfo = null;
+            return;
+        }
         state.systemInfo = await response.json();
     } catch (error) {
         console.error('Error loading system info:', error);
-        throw error;
+        state.systemInfo = null;
+        // Don't throw - allow app to continue
     }
 }
 
 async function loadNodes() {
     try {
         const response = await authFetch(`${API_BASE}/system/nodes`);
-        if (!response.ok) throw new Error('Failed to load nodes');
+        if (!response.ok) {
+            console.warn('Failed to load nodes:', response.status);
+            state.nodes = [];
+            return;
+        }
         state.nodes = await response.json();
     } catch (error) {
         console.error('Error loading nodes:', error);
-        throw error;
+        state.nodes = [];
+        // Don't throw - allow app to continue
     }
 }
 
@@ -252,14 +262,19 @@ async function loadDeployedApps() {
 async function loadCatalog() {
     try {
         const response = await authFetch(`${API_BASE}/apps/catalog`);
-        if (!response.ok) throw new Error('Failed to load catalog');
+        if (!response.ok) {
+            console.warn('Failed to load catalog:', response.status);
+            state.catalog = { items: [], categories: [] };
+            return;
+        }
         state.catalog = await response.json();
         
         // Enrich deployed apps with icon URLs after catalog is loaded
         enrichDeployedAppsWithIcons();
     } catch (error) {
         console.error('Error loading catalog:', error);
-        throw error;
+        state.catalog = { items: [], categories: [] };
+        // Don't throw - allow app to continue
     }
 }
 
@@ -301,22 +316,33 @@ function updateUI() {
 function updateStats() {
     // Update basic stats (only if systemInfo is available)
     if (state.systemInfo) {
-        document.getElementById('statTotalApps').textContent = state.systemInfo.total_apps || 0;
-        document.getElementById('statRunningApps').textContent = state.systemInfo.running_apps || 0;
-        document.getElementById('statNodes').textContent = state.systemInfo.nodes?.length || 0;
+        const statTotalApps = document.getElementById('statTotalApps');
+        const statRunningApps = document.getElementById('statRunningApps');
+        const statNodes = document.getElementById('statNodes');
+        const statResources = document.getElementById('statResources');
+        
+        if (statTotalApps) statTotalApps.textContent = state.systemInfo.total_apps || 0;
+        if (statRunningApps) statRunningApps.textContent = state.systemInfo.running_apps || 0;
+        if (statNodes) statNodes.textContent = state.systemInfo.nodes?.length || 0;
         
         // Calculate resource usage
-        if (state.systemInfo.nodes && state.systemInfo.nodes.length > 0) {
+        if (state.systemInfo.nodes && state.systemInfo.nodes.length > 0 && statResources) {
             const totalMem = state.systemInfo.nodes.reduce((sum, n) => sum + (n.maxmem || 0), 0);
             const usedMem = state.systemInfo.nodes.reduce((sum, n) => sum + (n.mem || 0), 0);
             const percentage = totalMem > 0 ? Math.round((usedMem / totalMem) * 100) : 0;
-            document.getElementById('statResources').textContent = `${percentage}%`;
+            statResources.textContent = `${percentage}%`;
         }
     }
     
     // Update proxy status (independent of systemInfo)
     const proxyStatusEl = document.getElementById('statProxyStatus');
     const proxyInfoEl = document.getElementById('statProxyInfo');
+    
+    // Safety check - elements might not exist in current view
+    if (!proxyStatusEl || !proxyInfoEl) {
+        console.log('Proxy status elements not found in current view - skipping update');
+        return;
+    }
     
     console.log('Updating proxy status UI, state.proxyStatus:', state.proxyStatus);
     
@@ -351,7 +377,10 @@ function updateStats() {
 
 function updateAppsCount() {
     const count = state.deployedApps.length;
-    document.getElementById('appsCount').textContent = count;
+    const appsCountEl = document.getElementById('appsCount');
+    if (appsCountEl) {
+        appsCountEl.textContent = count;
+    }
 }
 
 function updateRecentApps() {
@@ -958,34 +987,51 @@ function renderMonitoringView() {
             </div>
         </div>
         
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-header">
+        <div class="stats-compact-card">
+            <div class="stat-item">
+                <div class="stat-icon primary">
+                    <i data-lucide="package"></i>
+                </div>
+                <div class="stat-info">
                     <span class="stat-label">Total Applications</span>
-                    <div class="stat-icon primary">📦</div>
+                    <span class="stat-value">${state.deployedApps.length}</span>
                 </div>
-                <div class="stat-value">${state.deployedApps.length}</div>
             </div>
-            <div class="stat-card">
-                <div class="stat-header">
+            
+            <div class="stat-divider"></div>
+            
+            <div class="stat-item">
+                <div class="stat-icon success">
+                    <i data-lucide="check-circle"></i>
+                </div>
+                <div class="stat-info">
                     <span class="stat-label">Running</span>
-                    <div class="stat-icon success">✓</div>
+                    <span class="stat-value">${state.deployedApps.filter(a => a.status === 'running').length}</span>
                 </div>
-                <div class="stat-value">${state.deployedApps.filter(a => a.status === 'running').length}</div>
             </div>
-            <div class="stat-card">
-                <div class="stat-header">
+            
+            <div class="stat-divider"></div>
+            
+            <div class="stat-item">
+                <div class="stat-icon warning">
+                    <i data-lucide="pause"></i>
+                </div>
+                <div class="stat-info">
                     <span class="stat-label">Stopped</span>
-                    <div class="stat-icon warning">⏸</div>
+                    <span class="stat-value">${state.deployedApps.filter(a => a.status === 'stopped').length}</span>
                 </div>
-                <div class="stat-value">${state.deployedApps.filter(a => a.status === 'stopped').length}</div>
             </div>
-            <div class="stat-card">
-                <div class="stat-header">
-                    <span class="stat-label">Containers</span>
-                    <div class="stat-icon info">🐳</div>
+            
+            <div class="stat-divider"></div>
+            
+            <div class="stat-item">
+                <div class="stat-icon info">
+                    <i data-lucide="server"></i>
                 </div>
-                <div class="stat-value">${state.systemInfo?.total_lxc || 0}</div>
+                <div class="stat-info">
+                    <span class="stat-label">Containers</span>
+                    <span class="stat-value">${state.systemInfo?.total_lxc || 0}</span>
+                </div>
             </div>
         </div>
     `;
@@ -1555,6 +1601,7 @@ function showDeploymentProgress(catalogId, hostname) {
 async function pollDeploymentStatus(appId) {
     let pollAttempts = 0;
     const maxAttempts = 120; // 120 attempts * 2 seconds = 4 minutes max
+    let lastKnownProgress = 10; // Start at 10% (initial state)
     
     deploymentProgressInterval = setInterval(async () => {
         pollAttempts++;
@@ -1564,77 +1611,128 @@ async function pollDeploymentStatus(appId) {
             
             if (response.ok) {
                 const status = await response.json();
+                console.log('✓ Deployment status received:', status);
                 
                 // Update UI with real status
                 updateDeploymentProgressFromStatus(status);
+                lastKnownProgress = status.progress || lastKnownProgress;
                 
                 // Check if deployment is complete or failed
                 if (status.status === 'running' || status.status === 'error') {
                     clearInterval(deploymentProgressInterval);
                     deploymentProgressInterval = null;
+                    console.log('✓ Deployment complete or failed, stopping polling');
                     
                     // Don't hide modal automatically - let deployApp() handle it
                 }
             } else if (response.status === 404) {
-                // Deployment status not found yet, keep polling
-                console.log('Deployment status not available yet, continuing to poll...');
+                // Deployment status not found yet, use simulated progress
+                console.log('⚠️ Deployment status not available yet, using simulated progress');
+                
+                // Simulate progress advancement (slower as we get closer to 90%)
+                if (lastKnownProgress < 90) {
+                    lastKnownProgress += Math.random() * 2 + 1; // Increase by 1-3%
+                    
+                    // Update simulated progress
+                    const simulatedStep = getStepFromProgress(lastKnownProgress);
+                    updateDeploymentProgressFromStatus({
+                        progress: Math.min(lastKnownProgress, 90),
+                        current_step: simulatedStep,
+                        message: simulatedStep
+                    });
+                }
             }
             
         } catch (error) {
             console.error('Error polling deployment status:', error);
+            
+            // Even on error, advance simulated progress slightly
+            if (lastKnownProgress < 85) {
+                lastKnownProgress += 1;
+            }
         }
         
         // Stop polling after max attempts
         if (pollAttempts >= maxAttempts) {
             clearInterval(deploymentProgressInterval);
             deploymentProgressInterval = null;
-            console.warn('Deployment polling timeout reached');
+            console.warn('⚠️ Deployment polling timeout reached');
         }
     }, 2000); // Poll every 2 seconds
 }
 
+// Helper function to determine step based on progress percentage
+function getStepFromProgress(progress) {
+    if (progress < 20) return 'Creating LXC container';
+    if (progress < 35) return 'Starting container';
+    if (progress < 50) return 'Installing Docker';
+    if (progress < 70) return 'Pulling Docker images';
+    if (progress < 85) return 'Starting services';
+    return 'Finalizing deployment';
+}
+
 function updateDeploymentProgressFromStatus(status) {
+    console.log('📊 Updating deployment progress:', status);
+    
     const progressBar = document.getElementById('progressBar');
     const progressMessage = document.getElementById('progressMessage');
     
     if (progressBar) {
-        progressBar.style.width = `${status.progress || 0}%`;
+        const progress = status.progress || 0;
+        progressBar.style.width = `${progress}%`;
+        console.log(`Progress bar: ${progress}%`);
     }
     
     if (progressMessage) {
-        progressMessage.textContent = status.current_step || 'Processing...';
+        const message = status.current_step || status.message || 'Processing...';
+        progressMessage.textContent = message;
+        console.log(`Progress message: ${message}`);
     }
     
     // Update step indicators based on current_step
     const progressSteps = document.getElementById('progressSteps');
-    if (progressSteps && status.current_step) {
-        updateProgressSteps(status.current_step);
+    if (progressSteps && (status.current_step || status.message)) {
+        updateProgressSteps(status.current_step || status.message);
     }
 }
 
 function updateProgressSteps(currentStepText) {
     const progressSteps = document.getElementById('progressSteps');
-    if (!progressSteps) return;
+    if (!progressSteps) {
+        console.warn('Progress steps container not found');
+        return;
+    }
+    
+    console.log('📊 Updating progress steps with:', currentStepText);
     
     // Map status text to step names
     const stepMap = {
         'Creating container': 'creating',
         'Reserving container ID': 'creating',
+        'Creating LXC': 'creating',
         'Starting container': 'starting',
+        'Container started': 'starting',
         'Setting up Docker': 'docker',
         'Installing Docker': 'docker',
+        'Docker installed': 'docker',
         'Pulling Docker images': 'images',
+        'Pulling images': 'images',
+        'Images pulled': 'images',
         'Setting up application': 'services',
+        'Starting application': 'services',
         'Configuring reverse proxy': 'services',
+        'Application started': 'services',
         'Finalizing deployment': 'finalizing',
-        'Deployment complete': 'finalizing'
+        'Deployment complete': 'finalizing',
+        'Complete': 'finalizing'
     };
     
     // Find which step we're on
     let currentStep = 'creating';
     for (const [text, step] of Object.entries(stepMap)) {
-        if (currentStepText.includes(text)) {
+        if (currentStepText.toLowerCase().includes(text.toLowerCase())) {
             currentStep = step;
+            console.log(`✓ Matched step: ${text} -> ${step}`);
             break;
         }
     }
@@ -1650,6 +1748,7 @@ function updateProgressSteps(currentStepText) {
     };
     
     const currentStepIndex = allSteps.indexOf(currentStep);
+    console.log(`Current step index: ${currentStepIndex} (${currentStep})`);
     
     // Update the steps display with colored circles
     progressSteps.innerHTML = allSteps.map((step, index) => {
@@ -3300,14 +3399,27 @@ async function initializeAuthenticatedSession() {
         // 3. Show loading state
         showLoading('Loading your applications...');
         
-        // 4. Load all necessary data
-        await Promise.all([
-            loadSystemInfo(),
-            loadNodes(),
-            loadDeployedApps(),
-            loadCatalog(),
-            loadProxyStatus()
-        ]);
+        // 4. Load all necessary data with individual error handling
+        console.log('4️⃣ Loading data...');
+        console.log('   ⏳ Loading system info...');
+        await loadSystemInfo();
+        console.log('   ✓ System info loaded');
+        
+        console.log('   ⏳ Loading nodes...');
+        await loadNodes();
+        console.log('   ✓ Nodes loaded');
+        
+        console.log('   ⏳ Loading deployed apps...');
+        await loadDeployedApps();
+        console.log('   ✓ Deployed apps loaded');
+        
+        console.log('   ⏳ Loading catalog...');
+        await loadCatalog();
+        console.log('   ✓ Catalog loaded');
+        
+        console.log('   ⏳ Loading proxy status...');
+        await loadProxyStatus();
+        console.log('   ✓ Proxy status loaded');
         
         // 5. Update the UI with loaded data
         console.log('5️⃣ Updating UI...');
