@@ -152,10 +152,27 @@ def page(context: BrowserContext, base_url: str) -> Generator[Page, None, None]:
     # Wait for app to initialize
     page.wait_for_load_state("networkidle")
     
-    # Force show auth modal if not authenticated (workaround for timing issues)
+    # Force show auth modal if not authenticated (with proper Bootstrap modal display)
     page.evaluate("""
-        if (typeof showAuthModal === 'function' && !Auth.isAuthenticated()) {
-            showAuthModal();
+        if (typeof Auth !== 'undefined' && !Auth.isAuthenticated()) {
+            const modal = document.getElementById('authModal');
+            if (modal) {
+                // Use the app's showAuthModal function if available
+                if (typeof showAuthModal === 'function') {
+                    showAuthModal();
+                }
+                // Ensure modal is actually visible with proper styling
+                modal.style.display = 'block';
+                modal.classList.add('show');
+                document.body.classList.add('modal-open');
+                
+                // Add backdrop if not present
+                if (!document.querySelector('.modal-backdrop')) {
+                    const backdrop = document.createElement('div');
+                    backdrop.className = 'modal-backdrop fade show';
+                    document.body.appendChild(backdrop);
+                }
+            }
         }
     """)
     
