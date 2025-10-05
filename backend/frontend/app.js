@@ -3214,10 +3214,29 @@ function renderRegisterForm() {
             }
             return;
         }
-        // Registration successful, auto-fill login form
-        renderAuthTabs('login');
-        renderLoginForm({ username, password });
-        showNotification('Registration successful! Please log in.', 'success');
+        
+        // Registration successful - extract token and authenticate user
+        const result = await res.json();
+        
+        // Critical fix: Check if token is present
+        if (!result.access_token) {
+            console.error('Registration successful, but no token received:', result);
+            errorDiv.textContent = 'Login failed after registration. Please log in manually.';
+            // Fallback: switch to login form with credentials pre-filled
+            renderAuthTabs('login');
+            renderLoginForm({ username, password });
+            return;
+        }
+        
+        // Store the token and user data
+        Auth.setToken(result.access_token, result.user || { username });
+        
+        // Show success notification
+        showNotification('Registration successful! Welcome to Proximity.', 'success');
+        
+        // Initialize authenticated session (close modal, load dashboard, etc.)
+        await initializeAuthenticatedSession();
+        
     } catch (err) {
         console.error('Registration error:', err);
         errorDiv.textContent = 'Network error. Please try again.';
@@ -3240,14 +3259,66 @@ function renderRegisterForm() {
             return;
         }
         const data = await res.json();
+        
+        // Store the token and user data
         Auth.setToken(data.access_token, data.user);
-        closeAuthModal();
+        
         showNotification('Login successful!', 'success');
-        // Re-init app
-        setTimeout(() => window.location.reload(), 500);
+        
+        // Initialize authenticated session (uses same flow as registration)
+        await initializeAuthenticatedSession();
+        
     } catch (err) {
         console.error('Login error:', err);
         errorDiv.textContent = 'Network error. Please try again.';
+    }
+}
+
+/**
+ * Centralized function to initialize authenticated session
+ * Called after both successful registration and login
+ * Ensures consistent authentication state across the application
+ */
+async function initializeAuthenticatedSession() {
+    console.log('🔐 Initializing authenticated session...');
+    
+    try {
+        // 1. Close the auth modal
+        closeAuthModal();
+        
+        // 2. Update user info in sidebar
+        updateUserInfo();
+        
+        // 3. Show loading state
+        showLoading('Loading your applications...');
+        
+        // 4. Load all necessary data
+        await Promise.all([
+            loadSystemInfo(),
+            loadNodes(),
+            loadDeployedApps(),
+            loadCatalog(),
+            loadProxyStatus()
+        ]);
+        
+        // 5. Update the UI with loaded data
+        updateUI();
+        
+        // 6. Show the dashboard view
+        showView('dashboard');
+        
+        // 7. Hide loading state
+        hideLoading();
+        
+        // 8. Initialize Lucide icons
+        initLucideIcons();
+        
+        console.log('✅ Authenticated session initialized successfully');
+        
+    } catch (error) {
+        console.error('❌ Error initializing authenticated session:', error);
+        hideLoading();
+        showNotification('Failed to load application data. Please refresh the page.', 'error');
     }
 }
 

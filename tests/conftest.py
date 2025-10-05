@@ -114,19 +114,20 @@ def mock_proxmox_service():
     
     mock = AsyncMock(spec=ProxmoxService)
 
-    # Mock node resolution - return node objects with 'name' attribute
-    mock_node = MagicMock()
-    mock_node.node = "testnode"
-    mock_node.name = "testnode"
-    mock_node.status = "online"
-    mock_node.cpu = 0.1
-    mock_node.maxcpu = 8
-    mock_node.mem = 2147483648  # 2GB
-    mock_node.maxmem = 8589934592  # 8GB
+    # Mock node resolution - return dictionary to match Proxmox API structure
+    mock_node_data = {
+        "node": "testnode",
+        "name": "testnode",
+        "status": "online",
+        "cpu": 0.1,
+        "maxcpu": 8,
+        "mem": 2147483648,  # 2GB
+        "maxmem": 8589934592  # 8GB
+    }
     
     # Mock common methods
     mock.test_connection = AsyncMock(return_value=True)
-    mock.get_nodes = AsyncMock(return_value=[mock_node])
+    mock.get_nodes = AsyncMock(return_value=[mock_node_data])
     mock.get_next_vmid = AsyncMock(return_value=100)
     mock.get_best_node = AsyncMock(return_value="testnode")
     mock.create_lxc = AsyncMock(return_value={"task_id": "UPID:testnode:00001234:00005678:task1:::"})
