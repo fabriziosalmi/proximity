@@ -1120,7 +1120,7 @@ iface {self.BRIDGE_NAME} inet manual
             
             # Use Proxmox API to check if container exists
             try:
-                container_info = await self.proxmox.get_lxc_info(node, self.APPLIANCE_VMID)
+                container_info = await self.proxmox.get_lxc_status(node, self.APPLIANCE_VMID)
                 if container_info:
                     # LXC exists, get its details
                     wan_ip = await self._get_lxc_wan_ip(node, self.APPLIANCE_VMID)
@@ -1137,8 +1137,9 @@ iface {self.BRIDGE_NAME} inet manual
                         status='running',
                         services={}
                     )
-            except:
+            except Exception as e:
                 # Container doesn't exist or API call failed
+                logger.debug(f"Container check failed: {e}")
                 pass
             
             logger.info(f"No existing appliance found at VMID {self.APPLIANCE_VMID}, will create new one")

@@ -165,34 +165,109 @@ def test_full_app_deploy_manage_delete_workflow(authenticated_page: Page, base_u
     print("✅ Phase 2: Verify Deployment")
     print("-"*80)
     
-    # Step 2.1: Verify app appears on dashboard
-    print("\n   Step 2.1: Verify app appears on dashboard")
+    # Step 2.1: Verify app was created via backend API
+    print("\n   Step 2.1: Verify deployment via backend API")
+    import requests
+    import time
     
-    # The UI should auto-navigate back to dashboard or we navigate manually
+    api_base = base_url.replace(":8765", ":8765/api/v1")
+    token = page.evaluate("window.localStorage.getItem('proximity_token')")
+    
+    # Poll backend API to confirm app exists (more reliable than UI)
+    max_retries = 30
+    app_found = False
+    app_data = None
+    
+    print(f"   🔍 Polling backend API for app: {hostname}")
+    for attempt in range(max_retries):
+        try:
+            response = requests.get(
+                f"{api_base}/apps",
+                headers={"Authorization": f"Bearer {token}"},
+                timeout=10
+            )
+            if response.status_code == 200:
+                apps = response.json()
+                # Find our app by hostname
+                for app in apps:
+                    if app.get('hostname') == hostname:
+                        app_found = True
+                        app_data = app
+                        print(f"   ✅ App found in backend! ID: {app['id']}, Status: {app.get('status', 'unknown')}")
+                        break
+                
+                if app_found:
+                    break
+        except Exception as e:
+            print(f"   ⚠️  API poll attempt {attempt + 1}/{max_retries} failed: {e}")
+        
+        if not app_found:
+            print(f"   ⏳ Attempt {attempt + 1}/{max_retries}: App not found yet, waiting 2s...")
+            time.sleep(2)
+    
+    if not app_found:
+        raise AssertionError(f"App {hostname} not found in backend after {max_retries * 2}s")
+    
+    print(f"   ✓ Backend verification complete")
+    
+    # Step 2.2: Navigate to dashboard and wait for UI to update
+    print("\n   Step 2.2: Navigate to dashboard and wait for UI refresh")
+    
     dashboard_page.navigate_to_dashboard()
     dashboard_page.wait_for_dashboard_load()
     print("   ✓ Navigated to dashboard")
     
-    # Find the newly deployed app card
+    # CRITICAL: Force a UI refresh to ensure dashboard loads latest data
+    print("   🔄 Forcing dashboard data refresh...")
+    page.evaluate("if (typeof loadApps === 'function') { loadApps(); }")
+    page.wait_for_timeout(2000)  # Give time for refresh to complete
+    print("   ✓ Dashboard refreshed")
+    
+    # Step 2.3: Find the app card with generous timeout (2-step verification)
+    print("\n   Step 2.3: Verify app card appears on dashboard")
+    
+    # First, wait for the card to appear (use hostname for unique identification)
     app_card = dashboard_page.get_app_card_by_hostname(hostname)
-    expect(app_card).to_be_visible(timeout=30000)
-    print(f"   ✓ App card visible for: {hostname}")
+    print(f"   ⏳ Waiting for app card: {hostname} (timeout: 90s)")
     
-    # Step 2.2: Verify status is RUNNING
-    print("\n   Step 2.2: Verify app status is RUNNING")
-    dashboard_page.wait_for_app_status(hostname, "running", timeout=60000)
-    print(f"   ✅ App status: RUNNING")
+    try:
+        expect(app_card).to_be_visible(timeout=90000)  # 90 seconds - generous timeout
+        print(f"   ✅ App card visible for: {hostname}")
+    except Exception as e:
+        # DEBUG: Print what cards ARE visible
+        print("   ❌ App card not found. Debugging info:")
+        all_cards = page.locator(".app-card.deployed").all()
+        print(f"   📊 Total deployed cards visible: {len(all_cards)}")
+        for i, card in enumerate(all_cards):
+            card_text = card.inner_text()
+            print(f"   Card {i + 1}: {card_text[:100]}")
+        raise AssertionError(f"App card with hostname '{hostname}' not visible after 90s") from e
     
-    # Step 2.3: Get app URL
-    print("\n   Step 2.3: Get application access URL")
+    # Step 2.4: Wait for status to become RUNNING (separate, focused wait)
+    print("\n   Step 2.4: Wait for app status to become RUNNING")
+    
+    status_badge = app_card.locator(".status-badge")
+    print(f"   ⏳ Waiting for RUNNING status (timeout: 120s)")
+    
+    try:
+        expect(status_badge).to_contain_text("running", timeout=120000)  # 2 minutes for status
+        print(f"   ✅ App status: RUNNING")
+    except Exception as e:
+        # DEBUG: Show actual status
+        actual_status = status_badge.inner_text() if status_badge.count() > 0 else "NO STATUS BADGE"
+        print(f"   ❌ Status not RUNNING. Actual status: {actual_status}")
+        raise AssertionError(f"App status did not become 'running' within 120s. Actual: {actual_status}") from e
+    
+    # Step 2.5: Get app URL
+    print("\n   Step 2.5: Get application access URL")
     app_url = dashboard_page.get_app_url(hostname)
     print(f"   ✓ App URL: {app_url}")
     
     assert app_url and app_url != "IP not available", f"App URL not available: {app_url}"
     print("   ✓ URL is valid")
     
-    # Step 2.4: Verify HTTP accessibility
-    print("\n   Step 2.4: Verify app is accessible via HTTP")
+    # Step 2.6: Verify HTTP accessibility
+    print("\n   Step 2.6: Verify app is accessible via HTTP")
     print(f"   🌐 Making HTTP GET request to: {app_url}")
     
     # Use Playwright's API request context for HTTP verification

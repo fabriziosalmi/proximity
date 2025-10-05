@@ -14,7 +14,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from sqlalchemy.orm import Session
 
-from models.database import get_db, App, SystemSettings
+from models.database import get_db, App, Setting
 from services.backup_service import BackupService
 from services.app_service import AppService
 
@@ -56,10 +56,10 @@ class SchedulerService:
             bool: True if system is in AUTO mode
         """
         # Check system settings for proximity mode
-        # For now, we'll default to True if not explicitly set
-        settings = db.query(SystemSettings).first()
-        if settings and hasattr(settings, 'proximity_mode'):
-            return settings.proximity_mode == 'AUTO'
+        # Query the Setting table for 'proximity_mode' key
+        setting = db.query(Setting).filter(Setting.key == 'proximity_mode').first()
+        if setting and setting.value:
+            return setting.value.upper() == 'AUTO'
 
         # Default to AUTO mode
         return True

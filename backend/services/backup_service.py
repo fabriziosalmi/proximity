@@ -311,3 +311,16 @@ class BackupService:
                 backup.error_message = "Backup creation timeout"
                 self.db.commit()
                 break
+
+
+def get_backup_service(db: Session) -> BackupService:
+    """
+    Factory function to create a BackupService instance.
+    
+    Args:
+        db: Database session
+        
+    Returns:
+        BackupService instance
+    """
+    return BackupService(db)
