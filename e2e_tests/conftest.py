@@ -107,7 +107,22 @@ def context(browser):
         storage_state=None,  # No saved state
     )
     yield context
-    context.close()
+    
+    # Ensure all pages are closed before closing context
+    try:
+        for page in context.pages:
+            try:
+                page.close()
+            except Exception:
+                pass
+    except Exception:
+        pass
+    
+    # Close context
+    try:
+        context.close()
+    except Exception:
+        pass
 
 
 @pytest.fixture
