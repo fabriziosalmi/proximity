@@ -97,14 +97,30 @@ def page(context: BrowserContext, base_url: str) -> Generator[Page, None, None]:
     Create a new page for each test.
     Automatically navigates to base URL and sets timeout.
     Note: 'context' is provided by pytest-playwright.
+    
+    CRITICAL: This fixture ensures test isolation by:
+    1. Creating a fresh page
+    2. Clearing all storage before navigation
+    3. Navigating to base URL
+    4. Cleaning up after test
     """
     page = context.new_page()
     page.set_default_timeout(int(os.getenv("TIMEOUT", "30000")))
+    
+    # Clear all storage BEFORE navigating to ensure clean state
     page.goto(base_url)
+    page.evaluate("window.localStorage.clear(); window.sessionStorage.clear();")
+    
+    # Reload to ensure the cleared state takes effect
+    page.reload()
     
     yield page
     
-    # Cleanup
+    # Cleanup: Clear storage and close page
+    try:
+        page.evaluate("window.localStorage.clear(); window.sessionStorage.clear();")
+    except:
+        pass  # Page might already be closed
     page.close()
 
 
@@ -113,7 +129,7 @@ def page(context: BrowserContext, base_url: str) -> Generator[Page, None, None]:
 # ============================================================================
 
 @pytest.fixture(scope="function")
-def authenticated_page(page: Page, base_url: str) -> Page:
+def authenticated_page(page: Page, base_url: str) -> Generator[Page, None, None]:
     """
     Provides a page with an authenticated user session.
     
@@ -195,7 +211,7 @@ def authenticated_page(page: Page, base_url: str) -> Page:
 
 
 @pytest.fixture(scope="function")
-def admin_authenticated_page(page: Page, base_url: str) -> Page:
+def admin_authenticated_page(page: Page, base_url: str) -> Generator[Page, None, None]:
     """
     Provides a page with an authenticated admin user session.
     
