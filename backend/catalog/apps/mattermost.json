@@ -1,0 +1,55 @@
+{
+  "id": "mattermost",
+  "name": "Mattermost",
+  "description": "Open source team communication and collaboration platform",
+  "version": "latest",
+  "icon": "https://cdn.simpleicons.org/mattermost/0058CC",
+  "category": "Communication",
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "mattermost": {
+        "image": "mattermost/mattermost-team-edition:latest",
+        "ports": ["8065:8065"],
+        "environment": {
+          "MM_SQLSETTINGS_DRIVERNAME": "postgres",
+          "MM_SQLSETTINGS_DATASOURCE": "postgres://mattermost:mattermost_password@db:5432/mattermost?sslmode=disable",
+          "MM_SERVICESETTINGS_SITEURL": "http://localhost:8065"
+        },
+        "volumes": [
+          "mattermost_config:/mattermost/config",
+          "mattermost_data:/mattermost/data",
+          "mattermost_logs:/mattermost/logs"
+        ],
+        "depends_on": ["db"],
+        "restart": "always"
+      },
+      "db": {
+        "image": "postgres:14",
+        "environment": {
+          "POSTGRES_DB": "mattermost",
+          "POSTGRES_USER": "mattermost",
+          "POSTGRES_PASSWORD": "mattermost_password"
+        },
+        "volumes": ["postgres_data:/var/lib/postgresql/data"],
+        "restart": "always"
+      }
+    },
+    "volumes": {
+      "mattermost_config": {},
+      "mattermost_data": {},
+      "mattermost_logs": {},
+      "postgres_data": {}
+    }
+  },
+  "ports": [8065],
+  "volumes": ["mattermost_config", "mattermost_data", "mattermost_logs", "postgres_data"],
+  "environment": {
+    "POSTGRES_PASSWORD": "mattermost_password"
+  },
+  "min_memory": 2048,
+  "min_cpu": 2,
+  "tags": ["chat", "collaboration", "team", "communication"],
+  "author": "Mattermost Inc",
+  "website": "https://mattermost.com"
+}

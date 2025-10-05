@@ -1,0 +1,47 @@
+{
+  "id": "nocodb",
+  "name": "NocoDB",
+  "description": "Open source Airtable alternative - smart spreadsheet",
+  "version": "latest",
+  "icon": "https://cdn.simpleicons.org/airtable/18BFFF",
+  "category": "Automation",
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "nocodb": {
+        "image": "nocodb/nocodb:latest",
+        "ports": ["8080:8080"],
+        "environment": {
+          "NC_DB": "pg://db:5432?u=nocodb&p=nocodb_password&d=nocodb"
+        },
+        "volumes": ["nocodb_data:/usr/app/data"],
+        "depends_on": ["db"],
+        "restart": "always"
+      },
+      "db": {
+        "image": "postgres:14",
+        "environment": {
+          "POSTGRES_DB": "nocodb",
+          "POSTGRES_USER": "nocodb",
+          "POSTGRES_PASSWORD": "nocodb_password"
+        },
+        "volumes": ["postgres_data:/var/lib/postgresql/data"],
+        "restart": "always"
+      }
+    },
+    "volumes": {
+      "nocodb_data": {},
+      "postgres_data": {}
+    }
+  },
+  "ports": [8080],
+  "volumes": ["nocodb_data", "postgres_data"],
+  "environment": {
+    "POSTGRES_PASSWORD": "nocodb_password"
+  },
+  "min_memory": 1024,
+  "min_cpu": 1,
+  "tags": ["database", "spreadsheet", "no-code", "automation"],
+  "author": "NocoDB",
+  "website": "https://nocodb.com"
+}

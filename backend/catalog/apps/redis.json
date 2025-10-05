@@ -1,0 +1,33 @@
+{
+  "id": "redis",
+  "name": "Redis",
+  "description": "In-memory data structure store for caching and databases",
+  "version": "latest",
+  "icon": "https://cdn.simpleicons.org/redis/DC382D",
+  "category": "Database",
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "redis": {
+        "image": "redis:latest",
+        "ports": ["6379:6379"],
+        "command": "redis-server --requirepass redis_password",
+        "volumes": ["redis_data:/data"],
+        "restart": "always"
+      }
+    },
+    "volumes": {
+      "redis_data": {}
+    }
+  },
+  "ports": [6379],
+  "volumes": ["redis_data"],
+  "environment": {
+    "REDIS_PASSWORD": "redis_password"
+  },
+  "min_memory": 256,
+  "min_cpu": 1,
+  "tags": ["cache", "database", "nosql", "key-value"],
+  "author": "Redis Ltd",
+  "website": "https://redis.io"
+}

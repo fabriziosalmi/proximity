@@ -1,0 +1,34 @@
+{
+  "id": "vaultwarden",
+  "name": "Vaultwarden",
+  "description": "Unofficial Bitwarden server for password management",
+  "version": "latest",
+  "icon": "https://cdn.simpleicons.org/bitwarden/175DDC",
+  "category": "Security",
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "vaultwarden": {
+        "image": "vaultwarden/server:latest",
+        "ports": ["8080:80"],
+        "environment": {
+          "WEBSOCKET_ENABLED": "true",
+          "SIGNUPS_ALLOWED": "true"
+        },
+        "volumes": ["vaultwarden_data:/data"],
+        "restart": "always"
+      }
+    },
+    "volumes": {
+      "vaultwarden_data": {}
+    }
+  },
+  "ports": [8080],
+  "volumes": ["vaultwarden_data"],
+  "environment": {},
+  "min_memory": 256,
+  "min_cpu": 1,
+  "tags": ["password-manager", "security", "encryption", "vault"],
+  "author": "Vaultwarden Contributors",
+  "website": "https://github.com/dani-garcia/vaultwarden"
+}

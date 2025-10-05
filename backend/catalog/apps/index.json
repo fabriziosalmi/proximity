@@ -1,6 +1,6 @@
 {
-  "version": "1.0.0",
-  "last_updated": "2025-10-03",
+  "version": "1.1.0",
+  "last_updated": "2025-10-05",
   "description": "Proximity App Catalog - Self-hosted Docker applications",
   "apps": [
     "wordpress.json",
@@ -13,7 +13,23 @@
     "uptime-kuma.json",
     "jellyfin.json",
     "ghost.json",
-    "code-server.json"
+    "code-server.json",
+    "postgres.json",
+    "mariadb.json",
+    "redis.json",
+    "mongodb.json",
+    "jenkins.json",
+    "gitlab.json",
+    "prometheus.json",
+    "mattermost.json",
+    "rocketchat.json",
+    "plex.json",
+    "traefik.json",
+    "caddy.json",
+    "vaultwarden.json",
+    "nocodb.json",
+    "minio.json",
+    "wikijs.json"
   ],
   "categories": [
     "CMS",

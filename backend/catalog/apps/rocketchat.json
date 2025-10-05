@@ -1,0 +1,41 @@
+{
+  "id": "rocketchat",
+  "name": "Rocket.Chat",
+  "description": "Open source team chat and collaboration platform",
+  "version": "latest",
+  "icon": "https://cdn.simpleicons.org/rocketdotchat/F5455C",
+  "category": "Communication",
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "rocketchat": {
+        "image": "rocket.chat:latest",
+        "ports": ["3000:3000"],
+        "environment": {
+          "MONGO_URL": "mongodb://mongo:27017/rocketchat",
+          "MONGO_OPLOG_URL": "mongodb://mongo:27017/local",
+          "ROOT_URL": "http://localhost:3000"
+        },
+        "depends_on": ["mongo"],
+        "restart": "always"
+      },
+      "mongo": {
+        "image": "mongo:5.0",
+        "command": "mongod --oplogSize 128 --replSet rs0",
+        "volumes": ["mongo_data:/data/db"],
+        "restart": "always"
+      }
+    },
+    "volumes": {
+      "mongo_data": {}
+    }
+  },
+  "ports": [3000],
+  "volumes": ["mongo_data"],
+  "environment": {},
+  "min_memory": 2048,
+  "min_cpu": 2,
+  "tags": ["chat", "messaging", "collaboration", "communication"],
+  "author": "Rocket.Chat",
+  "website": "https://rocket.chat"
+}

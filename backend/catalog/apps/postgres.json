@@ -1,0 +1,37 @@
+{
+  "id": "postgres",
+  "name": "PostgreSQL",
+  "description": "Advanced open-source relational database",
+  "version": "latest",
+  "icon": "https://cdn.simpleicons.org/postgresql/4169E1",
+  "category": "Database",
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "postgres": {
+        "image": "postgres:latest",
+        "ports": ["5432:5432"],
+        "environment": {
+          "POSTGRES_USER": "postgres",
+          "POSTGRES_PASSWORD": "postgres_password",
+          "POSTGRES_DB": "postgres"
+        },
+        "volumes": ["postgres_data:/var/lib/postgresql/data"],
+        "restart": "always"
+      }
+    },
+    "volumes": {
+      "postgres_data": {}
+    }
+  },
+  "ports": [5432],
+  "volumes": ["postgres_data"],
+  "environment": {
+    "POSTGRES_PASSWORD": "postgres_password"
+  },
+  "min_memory": 512,
+  "min_cpu": 1,
+  "tags": ["database", "sql", "postgresql", "relational"],
+  "author": "PostgreSQL Global Development Group",
+  "website": "https://www.postgresql.org"
+}

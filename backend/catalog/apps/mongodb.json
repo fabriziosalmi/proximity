@@ -1,0 +1,36 @@
+{
+  "id": "mongodb",
+  "name": "MongoDB",
+  "description": "Popular NoSQL document database",
+  "version": "latest",
+  "icon": "https://cdn.simpleicons.org/mongodb/47A248",
+  "category": "Database",
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "mongodb": {
+        "image": "mongo:latest",
+        "ports": ["27017:27017"],
+        "environment": {
+          "MONGO_INITDB_ROOT_USERNAME": "admin",
+          "MONGO_INITDB_ROOT_PASSWORD": "admin_password"
+        },
+        "volumes": ["mongodb_data:/data/db"],
+        "restart": "always"
+      }
+    },
+    "volumes": {
+      "mongodb_data": {}
+    }
+  },
+  "ports": [27017],
+  "volumes": ["mongodb_data"],
+  "environment": {
+    "MONGO_INITDB_ROOT_PASSWORD": "admin_password"
+  },
+  "min_memory": 512,
+  "min_cpu": 1,
+  "tags": ["database", "nosql", "document", "mongodb"],
+  "author": "MongoDB Inc",
+  "website": "https://www.mongodb.com"
+}
