@@ -1,0 +1,33 @@
+{
+  "id": "homer",
+  "name": "Homer",
+  "description": "Dead simple static homepage for your server with live service status and search",
+  "category": "Automation",
+  "icon": "https://cdn.simpleicons.org/homeassistantcommunitystore/41BDF5",
+  "tags": ["dashboard", "homepage", "static", "services", "bookmarks"],
+  "min_memory": 64,
+  "min_cpu": 1,
+  "min_disk": 1,
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "homer": {
+        "image": "b4bz/homer:latest",
+        "container_name": "homer",
+        "restart": "unless-stopped",
+        "ports": [
+          "8080:8080"
+        ],
+        "volumes": [
+          "homer_assets:/www/assets"
+        ],
+        "environment": {
+          "INIT_ASSETS": "1"
+        }
+      }
+    },
+    "volumes": {
+      "homer_assets": {}
+    }
+  }
+}

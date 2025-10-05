@@ -1,0 +1,38 @@
+{
+  "id": "jackett",
+  "name": "Jackett",
+  "description": "API support for torrent trackers - works with Sonarr, Radarr, Lidarr and other arr apps",
+  "category": "Media",
+  "icon": "https://cdn.simpleicons.org/transmission/D32F2F",
+  "tags": ["torrent", "tracker", "indexer", "api", "automation"],
+  "min_memory": 256,
+  "min_cpu": 1,
+  "min_disk": 1,
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "jackett": {
+        "image": "lscr.io/linuxserver/jackett:latest",
+        "container_name": "jackett",
+        "restart": "unless-stopped",
+        "environment": {
+          "PUID": "1000",
+          "PGID": "1000",
+          "TZ": "Etc/UTC",
+          "AUTO_UPDATE": "true"
+        },
+        "volumes": [
+          "jackett_config:/config",
+          "jackett_downloads:/downloads"
+        ],
+        "ports": [
+          "9117:9117"
+        ]
+      }
+    },
+    "volumes": {
+      "jackett_config": {},
+      "jackett_downloads": {}
+    }
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "id": "ttrss",
+  "name": "Tiny Tiny RSS",
+  "description": "Web-based news feed (RSS/Atom) aggregator with powerful filtering and plugin system",
+  "category": "Communication",
+  "icon": "https://cdn.simpleicons.org/rss/FF6600",
+  "tags": ["rss", "atom", "feed", "news", "aggregator"],
+  "min_memory": 512,
+  "min_cpu": 1,
+  "min_disk": 2,
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "ttrss": {
+        "image": "cthulhoo/ttrss-fpm-pgsql-static:latest",
+        "container_name": "ttrss",
+        "restart": "unless-stopped",
+        "environment": {
+          "TTRSS_DB_TYPE": "pgsql",
+          "TTRSS_DB_HOST": "ttrss-db",
+          "TTRSS_DB_PORT": "5432",
+          "TTRSS_DB_NAME": "ttrss",
+          "TTRSS_DB_USER": "ttrss",
+          "TTRSS_DB_PASS": "ttrss",
+          "TTRSS_SELF_URL_PATH": "http://localhost:8280"
+        },
+        "volumes": [
+          "ttrss_app:/var/www/html"
+        ],
+        "depends_on": [
+          "ttrss-db"
+        ]
+      },
+      "ttrss-web": {
+        "image": "cthulhoo/ttrss-web:latest",
+        "container_name": "ttrss-web",
+        "restart": "unless-stopped",
+        "ports": [
+          "8280:80"
+        ],
+        "volumes": [
+          "ttrss_app:/var/www/html:ro"
+        ],
+        "depends_on": [
+          "ttrss"
+        ]
+      },
+      "ttrss-db": {
+        "image": "postgres:15-alpine",
+        "container_name": "ttrss-db",
+        "restart": "unless-stopped",
+        "environment": {
+          "POSTGRES_USER": "ttrss",
+          "POSTGRES_PASSWORD": "ttrss",
+          "POSTGRES_DB": "ttrss"
+        },
+        "volumes": [
+          "ttrss_db:/var/lib/postgresql/data"
+        ]
+      }
+    },
+    "volumes": {
+      "ttrss_app": {},
+      "ttrss_db": {}
+    }
+  }
+}

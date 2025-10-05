@@ -1,0 +1,39 @@
+{
+  "id": "lidarr",
+  "name": "Lidarr",
+  "description": "Music collection manager for Usenet and BitTorrent users - automatic downloads and organization",
+  "category": "Media",
+  "icon": "https://cdn.simpleicons.org/musicbrainz/BA478F",
+  "tags": ["music", "download", "automation", "usenet", "torrent"],
+  "min_memory": 256,
+  "min_cpu": 1,
+  "min_disk": 2,
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "lidarr": {
+        "image": "lscr.io/linuxserver/lidarr:latest",
+        "container_name": "lidarr",
+        "restart": "unless-stopped",
+        "environment": {
+          "PUID": "1000",
+          "PGID": "1000",
+          "TZ": "Etc/UTC"
+        },
+        "volumes": [
+          "lidarr_config:/config",
+          "lidarr_music:/music",
+          "lidarr_downloads:/downloads"
+        ],
+        "ports": [
+          "8686:8686"
+        ]
+      }
+    },
+    "volumes": {
+      "lidarr_config": {},
+      "lidarr_music": {},
+      "lidarr_downloads": {}
+    }
+  }
+}

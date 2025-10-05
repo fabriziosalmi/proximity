@@ -1,0 +1,50 @@
+{
+  "id": "miniflux",
+  "name": "Miniflux",
+  "description": "Minimalist and opinionated RSS feed reader with focus on simplicity and performance",
+  "category": "Communication",
+  "icon": "https://cdn.simpleicons.org/rss/FFA500",
+  "tags": ["rss", "feed", "reader", "minimalist", "news"],
+  "min_memory": 128,
+  "min_cpu": 1,
+  "min_disk": 1,
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "miniflux": {
+        "image": "miniflux/miniflux:latest",
+        "container_name": "miniflux",
+        "restart": "unless-stopped",
+        "ports": [
+          "8080:8080"
+        ],
+        "depends_on": [
+          "miniflux-db"
+        ],
+        "environment": {
+          "DATABASE_URL": "postgres://miniflux:miniflux@miniflux-db/miniflux?sslmode=disable",
+          "RUN_MIGRATIONS": "1",
+          "CREATE_ADMIN": "1",
+          "ADMIN_USERNAME": "admin",
+          "ADMIN_PASSWORD": "admin123"
+        }
+      },
+      "miniflux-db": {
+        "image": "postgres:15-alpine",
+        "container_name": "miniflux-db",
+        "restart": "unless-stopped",
+        "environment": {
+          "POSTGRES_USER": "miniflux",
+          "POSTGRES_PASSWORD": "miniflux",
+          "POSTGRES_DB": "miniflux"
+        },
+        "volumes": [
+          "miniflux_db:/var/lib/postgresql/data"
+        ]
+      }
+    },
+    "volumes": {
+      "miniflux_db": {}
+    }
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "id": "organizr",
+  "name": "Organizr",
+  "description": "HTPC/Homelab services organizer with SSO, customizable tabs and homepage builder",
+  "category": "Automation",
+  "icon": "https://cdn.simpleicons.org/homeassistant/18BCF2",
+  "tags": ["dashboard", "homepage", "htpc", "homelab", "sso"],
+  "min_memory": 256,
+  "min_cpu": 1,
+  "min_disk": 1,
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "organizr": {
+        "image": "organizr/organizr:latest",
+        "container_name": "organizr",
+        "restart": "unless-stopped",
+        "ports": [
+          "8080:80"
+        ],
+        "volumes": [
+          "organizr_config:/config"
+        ],
+        "environment": {
+          "PUID": "1000",
+          "PGID": "1000",
+          "TZ": "Etc/UTC"
+        }
+      }
+    },
+    "volumes": {
+      "organizr_config": {}
+    }
+  }
+}

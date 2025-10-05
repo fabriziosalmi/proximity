@@ -1,0 +1,36 @@
+{
+  "id": "privateGPT",
+  "name": "PrivateGPT",
+  "description": "Interact with your documents using the power of LLMs with 100% privacy - no data leaves your device",
+  "category": "AI",
+  "icon": "https://cdn.simpleicons.org/openai/412991",
+  "tags": ["llm", "ai", "privacy", "rag", "documents", "local"],
+  "min_memory": 4096,
+  "min_cpu": 4,
+  "min_disk": 10,
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "privategpt": {
+        "image": "zylonai/privategpt:latest",
+        "container_name": "privategpt",
+        "restart": "unless-stopped",
+        "ports": [
+          "8001:8001"
+        ],
+        "volumes": [
+          "privategpt_data:/app/local_data",
+          "privategpt_models:/app/models"
+        ],
+        "environment": {
+          "PORT": "8001",
+          "PGPT_PROFILES": "local"
+        }
+      }
+    },
+    "volumes": {
+      "privategpt_data": {},
+      "privategpt_models": {}
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "id": "focalboard",
+  "name": "Focalboard",
+  "description": "Open-source alternative to Trello, Notion, and Asana - project management for technical teams",
+  "category": "Automation",
+  "icon": "https://cdn.simpleicons.org/mattermost/0058CC",
+  "tags": ["kanban", "project-management", "notion", "trello", "collaboration"],
+  "min_memory": 512,
+  "min_cpu": 1,
+  "min_disk": 2,
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "focalboard": {
+        "image": "mattermost/focalboard:latest",
+        "container_name": "focalboard",
+        "restart": "unless-stopped",
+        "ports": [
+          "8000:8000"
+        ],
+        "volumes": [
+          "focalboard_data:/opt/focalboard/data"
+        ],
+        "environment": {
+          "FOCALBOARD_SERVER_ROOT": "http://localhost:8000"
+        }
+      }
+    },
+    "volumes": {
+      "focalboard_data": {}
+    }
+  }
+}
