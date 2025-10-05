@@ -8,11 +8,13 @@ Proximity is a cloud-native application delivery platform that abstracts the com
 
 [![Tests](https://img.shields.io/badge/tests-250%2B%20passing-success)](tests/)
 [![E2E Tests](https://img.shields.io/badge/E2E-Playwright%20%2B%20Pytest-blue)](e2e_tests/)
+[![Dual Mode](https://img.shields.io/badge/mode-AUTO%20%7C%20PRO-purple)](#-dual-mode-operation-new)
 [![Security](https://img.shields.io/badge/security-hardened-green)](#-security)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 ## 🌟 Features
 
+### Core Platform
 - **One-Click App Deployment**: Deploy applications from a curated catalog with a single click
 - **Fully Automated Setup**: Docker installation, networking, and proxy configuration—all automatic
 - **Isolated Network Architecture**: Dedicated `proximity-lan` network with automatic DHCP/DNS
@@ -21,6 +23,26 @@ Proximity is a cloud-native application delivery platform that abstracts the com
 - **REST API**: Full API access for automation and integration
 - **Secure by Default**: Unprivileged containers, network isolation, JWT authentication
 - **Self-Hosted**: Complete control over your data and applications
+
+### 🤖 Dual-Mode Operation (NEW!)
+**Proximity now offers two distinct operating modes to match your workflow:**
+
+#### AUTO Mode 🤖
+Perfect for hands-free operation and peace of mind:
+- ✅ **Daily Automated Backups** - All running apps backed up automatically at 2:00 AM
+- ✅ **Weekly Update Checks** - System checks for application updates every Sunday
+- ✅ **Simplified Interface** - Clean UI focused on essential features
+- ✅ **Hands-Free Operation** - Set it and forget it
+
+#### PRO Mode 🛠️
+Full professional control for power users:
+- ✅ **Manual Backup Control** - Create backups on-demand whenever needed
+- ✅ **Clone Applications** - Duplicate running apps with one click
+- ✅ **Edit Resources** - Adjust CPU, RAM, and disk allocations on the fly
+- ✅ **Advanced Features** - Access all professional-grade tools
+- ✅ **Complete Control** - You decide when and how things happen
+
+**Switch modes anytime** from Settings → System → Proximity Mode
 
 ## 🏗️ Architecture
 
@@ -46,6 +68,8 @@ Proximity uses a **fully isolated network architecture** powered by a dedicated 
 - **App Service**: Application lifecycle management with Docker Compose
 - **Reverse Proxy Manager**: Dynamic Caddy vhost configuration
 - **Authentication**: JWT-based with role-based access control
+- **Scheduler Service**: Automated backup and maintenance tasks (AUTO mode)
+- **Modular Frontend**: ES6 modules with state management and component architecture
 
 ## 🚀 Quick Start
 
@@ -94,14 +118,21 @@ Proximity uses a **fully isolated network architecture** powered by a dedicated 
 
 ## 📖 Documentation
 
+### Core Guides
 - **[Architecture Guide](docs/architecture.md)** - System design, network topology, and technical details
 - **[Deployment Guide](docs/deployment.md)** - Installation, configuration, operations, and troubleshooting
 - **[Development Guide](docs/development.md)** - Contributing, code structure, and adding features
 - **[Troubleshooting](docs/troubleshooting.md)** - Common issues, fixes, and debugging techniques
 - **[Changelog](docs/CHANGELOG.md)** - Version history and release notes
+
+### Security & Testing
 - **[Security Refactoring](docs/SECURITY_REFACTORING_SAFE_COMMANDS.md)** - Safe command system documentation
 - **[Safe Commands Reference](docs/SAFE_COMMANDS_REFERENCE.md)** - Quick reference for secure container commands
 - **[E2E Testing Guide](e2e_tests/README.md)** - End-to-end testing with Playwright and Pytest
+
+### Feature Documentation
+- **[Dual-Mode Operation](#-dual-mode-operation-new)** - AUTO vs PRO mode comparison (see Features section above)
+- **[Frontend Architecture](#modular-frontend-architecture-new)** - ES6 modules and component structure (see below)
 
 ## 🔒 Security
 
@@ -315,12 +346,32 @@ proximity/
 ├── backend/
 │   ├── api/endpoints/       # REST API routes
 │   ├── services/            # Business logic
+│   │   ├── app_service.py
+│   │   ├── backup_service.py
+│   │   ├── scheduler_service.py  # NEW: AUTO mode automation
+│   │   └── ...
 │   ├── models/              # Database models
 │   ├── catalog/             # Application catalog
 │   ├── core/                # Core utilities
 │   ├── main.py              # Application entry point
-│   ├── app.js               # Frontend JavaScript
-│   └── index.html           # Web UI
+│   └── frontend/            # NEW: Modular frontend
+│       ├── index.html       # Entry point
+│       ├── app.js           # Legacy (compatibility)
+│       ├── css/
+│       │   └── styles.css   # Global styles + dual-mode CSS
+│       ├── js/
+│       │   ├── main.js      # ES6 module entry point
+│       │   ├── state/
+│       │   │   └── appState.js      # State management
+│       │   ├── services/
+│       │   │   └── api.js           # API service layer
+│       │   ├── utils/
+│       │   │   ├── auth.js          # Authentication
+│       │   │   ├── dom.js           # DOM utilities
+│       │   │   ├── notifications.js # Toast system
+│       │   │   └── ui.js            # UI mode control
+│       │   └── components/          # Future: React-like components
+│       └── assets/          # Images, icons, etc.
 ├── docs/                    # Documentation
 │   ├── architecture.md
 │   ├── deployment.md
@@ -330,14 +381,74 @@ proximity/
 │   ├── pages/               # Page Object Model
 │   ├── utils/               # Test utilities
 │   ├── conftest.py          # Pytest fixtures
+│   ├── test_dual_mode_experience.py  # NEW: Dual-mode tests
 │   └── test_*.py            # Test suites
 ├── tests/                   # Unit and integration tests
 └── README.md
 ```
 
+## 🎨 Modular Frontend Architecture (NEW!)
+
+Proximity's frontend has been completely refactored into a modern, maintainable ES6 module system:
+
+### Architecture Highlights
+
+**Before**: 4,200+ lines monolithic `app.js`
+**After**: Clean, modular structure with separation of concerns
+
+```
+frontend/js/
+├── main.js              ← Entry point (bootstraps everything)
+├── state/
+│   └── appState.js      ← Centralized state management
+├── services/
+│   └── api.js           ← API abstraction (40+ endpoints)
+├── utils/
+│   ├── auth.js          ← JWT token management
+│   ├── dom.js           ← DOM manipulation helpers
+│   ├── notifications.js ← Toast notification system
+│   └── ui.js            ← Dual-mode visibility control
+└── components/          ← Future: Component modules
+```
+
+### Key Features
+
+- ✅ **ES6 Modules**: Clean import/export syntax
+- ✅ **State Management**: Centralized state with getters/setters
+- ✅ **API Layer**: All backend calls abstracted to `api.js`
+- ✅ **Utility Functions**: Reusable helpers for DOM, auth, notifications
+- ✅ **Backward Compatible**: Legacy code still works during transition
+- ✅ **Dual-Mode Control**: CSS-based visibility system for AUTO/PRO modes
+
+### Usage Example
+
+```javascript
+// Import modules
+import { getState, setState } from './state/appState.js';
+import { getApps, deployApp } from './services/api.js';
+import { showNotification } from './utils/notifications.js';
+import { switchProximityMode } from './utils/ui.js';
+
+// Use state management
+const currentMode = getState('proximityMode');
+setState('proximityMode', 'PRO');
+
+// Call APIs
+const apps = await getApps();
+await deployApp({ catalog_id: 'nginx', hostname: 'my-app' });
+
+// Show notifications
+showNotification('App deployed successfully!', 'success');
+
+// Switch modes
+switchProximityMode('AUTO');
+```
+
 ## 📋 Roadmap
 
 ### ✅ Completed
+
+#### Core Platform (v1.0)
 - [x] Direct Proxmox API integration
 - [x] LXC container management
 - [x] Automated Docker installation via SSH
@@ -348,14 +459,27 @@ proximity/
 - [x] JWT authentication with RBAC
 - [x] Application catalog system
 - [x] Template caching for fast deployments
-- [x] **Safe Command System** - Secure, predefined command execution (Oct 2025)
-- [x] **Audit Logging** - Complete command execution tracking (Oct 2025)
-- [x] **Command Injection Prevention** - Eliminated arbitrary command execution (Oct 2025)
-- [x] **Comprehensive Test Suite** - 250+ unit/integration tests + E2E tests with Playwright (Oct 2025)
-- [x] **E2E Testing Framework** - Page Object Model pattern with Pytest and Playwright (Oct 2025)
+
+#### Security & Testing (Oct 2025)
+- [x] **Safe Command System** - Secure, predefined command execution
+- [x] **Audit Logging** - Complete command execution tracking
+- [x] **Command Injection Prevention** - Eliminated arbitrary command execution
+- [x] **Comprehensive Test Suite** - 250+ unit/integration tests + E2E tests with Playwright
+- [x] **E2E Testing Framework** - Page Object Model pattern with Pytest and Playwright
+
+#### Phase 2: Dual-Mode & Modularization (Oct 2025)
+- [x] **🤖 AUTO/PRO Mode System** - Dual operating modes for different workflows
+- [x] **Automated Backups** - Daily scheduled backups in AUTO mode (2:00 AM)
+- [x] **Weekly Update Checks** - Automatic update notifications (Sunday 3:00 AM)
+- [x] **Clone Applications** - One-click app duplication (PRO mode)
+- [x] **Edit Resources** - Dynamic CPU/RAM/Disk configuration (PRO mode)
+- [x] **Scheduler Service** - APScheduler integration for automated tasks
+- [x] **Modular Frontend** - ES6 modules with state management
+- [x] **Component Architecture** - Separation of concerns (state, services, utils)
+- [x] **Dual-Mode E2E Tests** - Complete test coverage for AUTO/PRO modes
 
 ### 🚧 In Progress
-- [ ] Complete E2E test coverage (app lifecycle, settings, infrastructure)
+- [ ] Complete E2E test coverage (all edge cases)
 - [ ] Advanced dashboard with real-time metrics
 - [ ] Application health monitoring
 - [ ] Log aggregation and search
@@ -363,7 +487,7 @@ proximity/
 ### 📋 Planned
 - [ ] Multi-node deployment and load balancing
 - [ ] Application scaling (horizontal/vertical)
-- [ ] Backup and restore functionality
+- [ ] Backup retention policies and cleanup
 - [ ] Custom application builder UI
 - [ ] Team collaboration features
 - [ ] Marketplace integration

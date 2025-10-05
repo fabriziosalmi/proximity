@@ -1,0 +1,2331 @@
+[1m============================= test session starts ==============================[0m
+platform darwin -- Python 3.13.7, pytest-8.4.2, pluggy-1.6.0 -- /Users/fab/GitHub/proximity/venv/bin/python3.13
+cachedir: .pytest_cache
+rootdir: /Users/fab/GitHub/proximity/e2e_tests
+configfile: pytest.ini
+plugins: asyncio-1.2.0, anyio-4.11.0, xdist-3.8.0, timeout-2.4.0, Faker-37.8.0, rerunfailures-16.0.1, base-url-2.1.0, playwright-0.7.1
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+timeout: 300.0s
+timeout method: signal
+timeout func_only: False
+[1mcollecting ... [0mcollected 74 items
+
+e2e_tests/test_app_canvas.py::test_open_and_close_canvas_with_button[chromium] 
+================================================================================
+Starting test: test_open_and_close_canvas_with_button[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_open_and_close_canvas_with_button[chromium]
+================================================================================
+
+
+e2e_tests/test_app_canvas.py::test_close_canvas_with_escape_key[chromium] 
+================================================================================
+Starting test: test_close_canvas_with_escape_key[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_close_canvas_with_escape_key[chromium]
+================================================================================
+
+
+e2e_tests/test_app_canvas.py::test_close_canvas_by_clicking_outside[chromium] 
+================================================================================
+Starting test: test_close_canvas_by_clicking_outside[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_close_canvas_by_clicking_outside[chromium]
+================================================================================
+
+
+e2e_tests/test_app_canvas.py::test_refresh_canvas[chromium] 
+================================================================================
+Starting test: test_refresh_canvas[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_refresh_canvas[chromium]
+================================================================================
+
+
+e2e_tests/test_app_canvas.py::test_canvas_displays_correct_app_name[chromium] 
+================================================================================
+Starting test: test_canvas_displays_correct_app_name[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_canvas_displays_correct_app_name[chromium]
+================================================================================
+
+
+e2e_tests/test_app_canvas.py::test_canvas_iframe_loads_content[chromium] 
+================================================================================
+Starting test: test_canvas_iframe_loads_content[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_canvas_iframe_loads_content[chromium]
+================================================================================
+
+
+e2e_tests/test_app_canvas.py::test_canvas_button_only_visible_for_running_apps[chromium] 
+================================================================================
+Starting test: test_canvas_button_only_visible_for_running_apps[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_canvas_button_only_visible_for_running_apps[chromium]
+================================================================================
+
+
+e2e_tests/test_app_canvas.py::test_canvas_error_handling[chromium] [33mSKIPPED[0m
+e2e_tests/test_app_lifecycle.py::test_full_app_deploy_manage_delete_workflow[chromium] 
+================================================================================
+Starting test: test_full_app_deploy_manage_delete_workflow[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_full_app_deploy_manage_delete_workflow[chromium]
+================================================================================
+
+
+e2e_tests/test_app_lifecycle.py::test_app_update_workflow_with_pre_update_backup[chromium] 
+================================================================================
+Starting test: test_app_update_workflow_with_pre_update_backup[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_app_update_workflow_with_pre_update_backup[chromium]
+================================================================================
+
+
+e2e_tests/test_app_lifecycle.py::test_app_volumes_display[chromium] 
+================================================================================
+Starting test: test_app_volumes_display[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_app_volumes_display[chromium]
+================================================================================
+
+
+e2e_tests/test_app_lifecycle.py::test_monitoring_tab_displays_data[chromium] 
+================================================================================
+Starting test: test_monitoring_tab_displays_data[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_monitoring_tab_displays_data[chromium]
+================================================================================
+
+
+e2e_tests/test_app_management.py::test_view_app_logs_all[chromium] 
+[1m-------------------------------- live log setup --------------------------------[0m
+2025-10-05 11:30:18 [[32m    INFO[0m] Waiting for auth modal to appear
+2025-10-05 11:30:18 [[32m    INFO[0m] Waiting for #authModal to be visible
+[31mERROR[0m
+e2e_tests/test_app_management.py::test_view_app_logs_docker[chromium] [31mERROR[0m
+e2e_tests/test_app_management.py::test_view_app_logs_system[chromium] [31mERROR[0m
+e2e_tests/test_app_management.py::test_logs_auto_refresh[chromium] [31mERROR[0m
+e2e_tests/test_app_management.py::test_download_logs[chromium] [31mERROR[0m
+e2e_tests/test_app_management.py::test_open_app_console[chromium] [31mERROR[0m
+e2e_tests/test_app_management.py::test_console_quick_commands[chromium] [31mERROR[0m
+e2e_tests/test_app_management.py::test_app_external_link[chromium] [31mERROR[0m
+e2e_tests/test_app_management.py::test_app_stop_start_cycle[chromium] [31mERROR[0m
+e2e_tests/test_app_management.py::test_app_restart[chromium] [31mERROR[0m
+e2e_tests/test_auth_flow.py::test_registration_and_login[chromium] 
+================================================================================
+Starting test: test_registration_and_login[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_registration_and_login[chromium]
+================================================================================
+
+
+e2e_tests/test_auth_flow.py::test_logout[chromium] 
+================================================================================
+Starting test: test_logout[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_logout[chromium]
+================================================================================
+
+
+e2e_tests/test_auth_flow.py::test_invalid_login[chromium] 
+================================================================================
+Starting test: test_invalid_login[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_invalid_login[chromium]
+================================================================================
+
+
+e2e_tests/test_auth_flow.py::test_session_persistence[chromium] 
+================================================================================
+Starting test: test_session_persistence[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_session_persistence[chromium]
+================================================================================
+
+
+e2e_tests/test_auth_flow.py::test_password_field_masking[chromium] 
+================================================================================
+Starting test: test_password_field_masking[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_password_field_masking[chromium]
+================================================================================
+
+
+e2e_tests/test_auth_flow.py::test_switch_between_login_and_register[chromium] 
+================================================================================
+Starting test: test_switch_between_login_and_register[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_switch_between_login_and_register[chromium]
+================================================================================
+
+
+e2e_tests/test_auth_flow.py::test_admin_user_login[chromium] 
+================================================================================
+Starting test: test_admin_user_login[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_admin_user_login[chromium]
+================================================================================
+
+
+e2e_tests/test_backup_restore_flow.py::test_backup_creation_and_listing[chromium] 
+================================================================================
+Starting test: test_backup_creation_and_listing[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_backup_creation_and_listing[chromium]
+================================================================================
+
+
+e2e_tests/test_backup_restore_flow.py::test_backup_completion_polling[chromium] 
+================================================================================
+Starting test: test_backup_completion_polling[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_backup_completion_polling[chromium]
+================================================================================
+
+
+e2e_tests/test_backup_restore_flow.py::test_backup_restore_workflow[chromium] 
+================================================================================
+Starting test: test_backup_restore_workflow[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_backup_restore_workflow[chromium]
+================================================================================
+
+
+e2e_tests/test_backup_restore_flow.py::test_backup_deletion[chromium] 
+================================================================================
+Starting test: test_backup_deletion[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_backup_deletion[chromium]
+================================================================================
+
+
+e2e_tests/test_backup_restore_flow.py::test_backup_ui_feedback[chromium] 
+================================================================================
+Starting test: test_backup_ui_feedback[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_backup_ui_feedback[chromium]
+================================================================================
+
+
+e2e_tests/test_backup_restore_flow.py::test_backup_security_ownership[chromium] 
+================================================================================
+Starting test: test_backup_security_ownership[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_backup_security_ownership[chromium]
+================================================================================
+
+
+e2e_tests/test_clone_and_config.py::test_clone_app_workflow[chromium] 
+================================================================================
+Starting test: test_clone_app_workflow[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_clone_app_workflow[chromium]
+================================================================================
+
+
+e2e_tests/test_clone_and_config.py::test_edit_config_workflow[chromium] 
+================================================================================
+Starting test: test_edit_config_workflow[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_edit_config_workflow[chromium]
+================================================================================
+
+
+e2e_tests/test_dual_mode_experience.py::test_auto_mode_hides_pro_features[chromium] 
+================================================================================
+Starting test: test_auto_mode_hides_pro_features[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_auto_mode_hides_pro_features[chromium]
+================================================================================
+
+
+e2e_tests/test_dual_mode_experience.py::test_switching_to_pro_mode_reveals_features[chromium] 
+================================================================================
+Starting test: test_switching_to_pro_mode_reveals_features[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_switching_to_pro_mode_reveals_features[chromium]
+================================================================================
+
+
+e2e_tests/test_dual_mode_experience.py::test_mode_persists_across_reloads[chromium] 
+================================================================================
+Starting test: test_mode_persists_across_reloads[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_mode_persists_across_reloads[chromium]
+================================================================================
+
+
+e2e_tests/test_dual_mode_experience.py::test_mode_toggle_ui_behavior[chromium] 
+================================================================================
+Starting test: test_mode_toggle_ui_behavior[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_mode_toggle_ui_behavior[chromium]
+================================================================================
+
+
+e2e_tests/test_infrastructure.py::test_infrastructure_page_loads[chromium] 
+================================================================================
+Starting test: test_infrastructure_page_loads[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_infrastructure_page_loads[chromium]
+================================================================================
+
+
+e2e_tests/test_infrastructure.py::test_proxmox_nodes_display[chromium] 
+================================================================================
+Starting test: test_proxmox_nodes_display[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_proxmox_nodes_display[chromium]
+================================================================================
+
+
+e2e_tests/test_infrastructure.py::test_network_appliance_status[chromium] 
+================================================================================
+Starting test: test_network_appliance_status[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_network_appliance_status[chromium]
+================================================================================
+
+
+e2e_tests/test_infrastructure.py::test_refresh_infrastructure[chromium] 
+================================================================================
+Starting test: test_refresh_infrastructure[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_refresh_infrastructure[chromium]
+================================================================================
+
+
+e2e_tests/test_infrastructure.py::test_view_appliance_logs[chromium] 
+================================================================================
+Starting test: test_view_appliance_logs[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_view_appliance_logs[chromium]
+================================================================================
+
+
+e2e_tests/test_infrastructure.py::test_restart_appliance_button[chromium] 
+================================================================================
+Starting test: test_restart_appliance_button[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_restart_appliance_button[chromium]
+================================================================================
+
+
+e2e_tests/test_infrastructure.py::test_nat_testing_button[chromium] 
+================================================================================
+Starting test: test_nat_testing_button[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_nat_testing_button[chromium]
+================================================================================
+
+
+e2e_tests/test_infrastructure.py::test_services_health_grid[chromium] 
+================================================================================
+Starting test: test_services_health_grid[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_services_health_grid[chromium]
+================================================================================
+
+
+e2e_tests/test_infrastructure.py::test_infrastructure_statistics[chromium] 
+================================================================================
+Starting test: test_infrastructure_statistics[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_infrastructure_statistics[chromium]
+================================================================================
+
+
+e2e_tests/test_infrastructure.py::test_infrastructure_alerts[chromium] 
+================================================================================
+Starting test: test_infrastructure_alerts[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_infrastructure_alerts[chromium]
+================================================================================
+
+
+e2e_tests/test_infrastructure.py::test_infrastructure_realtime_updates[chromium] 
+================================================================================
+Starting test: test_infrastructure_realtime_updates[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_infrastructure_realtime_updates[chromium]
+================================================================================
+
+
+e2e_tests/test_navigation.py::test_navigate_all_views[chromium] 
+================================================================================
+Starting test: test_navigate_all_views[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_navigate_all_views[chromium]
+================================================================================
+
+
+e2e_tests/test_navigation.py::test_sidebar_collapse_expand[chromium] 
+================================================================================
+Starting test: test_sidebar_collapse_expand[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_sidebar_collapse_expand[chromium]
+================================================================================
+
+
+e2e_tests/test_navigation.py::test_user_menu_toggle[chromium] 
+================================================================================
+Starting test: test_user_menu_toggle[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_user_menu_toggle[chromium]
+================================================================================
+
+
+e2e_tests/test_navigation.py::test_user_profile_info_display[chromium] 
+================================================================================
+Starting test: test_user_profile_info_display[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_user_profile_info_display[chromium]
+================================================================================
+
+
+e2e_tests/test_navigation.py::test_navigate_to_profile[chromium] 
+================================================================================
+Starting test: test_navigate_to_profile[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_navigate_to_profile[chromium]
+================================================================================
+
+
+e2e_tests/test_navigation.py::test_active_nav_indicator[chromium] 
+================================================================================
+Starting test: test_active_nav_indicator[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_active_nav_indicator[chromium]
+================================================================================
+
+
+e2e_tests/test_navigation.py::test_navigation_keyboard_shortcuts[chromium] 
+================================================================================
+Starting test: test_navigation_keyboard_shortcuts[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_navigation_keyboard_shortcuts[chromium]
+================================================================================
+
+
+e2e_tests/test_navigation.py::test_breadcrumb_navigation[chromium] 
+================================================================================
+Starting test: test_breadcrumb_navigation[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_breadcrumb_navigation[chromium]
+================================================================================
+
+
+e2e_tests/test_navigation.py::test_page_titles_update[chromium] 
+================================================================================
+Starting test: test_page_titles_update[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_page_titles_update[chromium]
+================================================================================
+
+
+e2e_tests/test_navigation.py::test_quick_deploy_button[chromium] 
+================================================================================
+Starting test: test_quick_deploy_button[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_quick_deploy_button[chromium]
+================================================================================
+
+
+e2e_tests/test_navigation.py::test_logo_click_returns_home[chromium] 
+================================================================================
+Starting test: test_logo_click_returns_home[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_logo_click_returns_home[chromium]
+================================================================================
+
+
+e2e_tests/test_settings.py::test_settings_page_loads[chromium] 
+================================================================================
+Starting test: test_settings_page_loads[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_settings_page_loads[chromium]
+================================================================================
+
+
+e2e_tests/test_settings.py::test_settings_tab_navigation[chromium] 
+================================================================================
+Starting test: test_settings_tab_navigation[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_settings_tab_navigation[chromium]
+================================================================================
+
+
+e2e_tests/test_settings.py::test_proxmox_settings_form[chromium] 
+================================================================================
+Starting test: test_proxmox_settings_form[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_proxmox_settings_form[chromium]
+================================================================================
+
+
+e2e_tests/test_settings.py::test_proxmox_test_connection[chromium] 
+================================================================================
+Starting test: test_proxmox_test_connection[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_proxmox_test_connection[chromium]
+================================================================================
+
+
+e2e_tests/test_settings.py::test_network_settings_form[chromium] 
+================================================================================
+Starting test: test_network_settings_form[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_network_settings_form[chromium]
+================================================================================
+
+
+e2e_tests/test_settings.py::test_resources_settings_form[chromium] 
+================================================================================
+Starting test: test_resources_settings_form[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_resources_settings_form[chromium]
+================================================================================
+
+
+e2e_tests/test_settings.py::test_system_settings_panel[chromium] 
+================================================================================
+Starting test: test_system_settings_panel[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_system_settings_panel[chromium]
+================================================================================
+
+
+e2e_tests/test_settings.py::test_save_proxmox_settings[chromium] [33mSKIPPED[0m
+e2e_tests/test_settings.py::test_settings_keyboard_navigation[chromium] 
+================================================================================
+Starting test: test_settings_keyboard_navigation[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_settings_keyboard_navigation[chromium]
+================================================================================
+
+
+e2e_tests/test_settings.py::test_settings_form_validation[chromium] 
+================================================================================
+Starting test: test_settings_form_validation[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_settings_form_validation[chromium]
+================================================================================
+
+
+e2e_tests/test_settings.py::test_settings_help_text[chromium] 
+================================================================================
+Starting test: test_settings_help_text[chromium]
+================================================================================
+[31mERROR[0m
+================================================================================
+Finished test: test_settings_help_text[chromium]
+================================================================================
+
+
+
+==================================== ERRORS ====================================
+[31m[1m______ ERROR at setup of test_open_and_close_canvas_with_button[chromium] ______[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m________ ERROR at setup of test_close_canvas_with_escape_key[chromium] _________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m______ ERROR at setup of test_close_canvas_by_clicking_outside[chromium] _______[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m_______________ ERROR at setup of test_refresh_canvas[chromium] ________________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m______ ERROR at setup of test_canvas_displays_correct_app_name[chromium] _______[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m_________ ERROR at setup of test_canvas_iframe_loads_content[chromium] _________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m_ ERROR at setup of test_canvas_button_only_visible_for_running_apps[chromium] _[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m___ ERROR at setup of test_full_app_deploy_manage_delete_workflow[chromium] ____[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m_ ERROR at setup of test_app_update_workflow_with_pre_update_backup[chromium] __[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m_____________ ERROR at setup of test_app_volumes_display[chromium] _____________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m________ ERROR at setup of test_monitoring_tab_displays_data[chromium] _________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m______________ ERROR at setup of test_view_app_logs_all[chromium] ______________[0m
+[1m[31me2e_tests/test_app_management.py[0m:34: in deployed_app_session
+    [0mlogin_page.wait_for_auth_modal()[90m[39;49;00m
+[1m[31me2e_tests/pages/login_page.py[0m:103: in wait_for_auth_modal
+    [0m[96mself[39;49;00m.wait_for_selector([96mself[39;49;00m.AUTH_MODAL, timeout=timeout)[90m[39;49;00m
+[1m[31me2e_tests/pages/base_page.py[0m:156: in wait_for_selector
+    [0m[94mreturn[39;49;00m [96mself[39;49;00m.page.wait_for_selector(selector, timeout=timeout, state=state)[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:8182: in wait_for_selector
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:423: in wait_for_selector
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.wait_for_selector(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:369: in wait_for_selector
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.TargetClosedError: Page.wait_for_selector: Target page, context or browser has been closed[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - waiting for locator("#authModal") to be visible[0m
+------------------------------ Captured log setup ------------------------------
+[32mINFO    [0m pages.login_page:login_page.py:102 Waiting for auth modal to appear
+[32mINFO    [0m pages.base_page:base_page.py:155 Waiting for #authModal to be visible
+[31m[1m____________ ERROR at setup of test_view_app_logs_docker[chromium] _____________[0m
+[1m[31me2e_tests/test_app_management.py[0m:34: in deployed_app_session
+    [0mlogin_page.wait_for_auth_modal()[90m[39;49;00m
+[1m[31me2e_tests/pages/login_page.py[0m:103: in wait_for_auth_modal
+    [0m[96mself[39;49;00m.wait_for_selector([96mself[39;49;00m.AUTH_MODAL, timeout=timeout)[90m[39;49;00m
+[1m[31me2e_tests/pages/base_page.py[0m:156: in wait_for_selector
+    [0m[94mreturn[39;49;00m [96mself[39;49;00m.page.wait_for_selector(selector, timeout=timeout, state=state)[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:8182: in wait_for_selector
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:423: in wait_for_selector
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.wait_for_selector(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:369: in wait_for_selector
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.TargetClosedError: Page.wait_for_selector: Target page, context or browser has been closed[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - waiting for locator("#authModal") to be visible[0m
+[31m[1m____________ ERROR at setup of test_view_app_logs_system[chromium] _____________[0m
+[1m[31me2e_tests/test_app_management.py[0m:34: in deployed_app_session
+    [0mlogin_page.wait_for_auth_modal()[90m[39;49;00m
+[1m[31me2e_tests/pages/login_page.py[0m:103: in wait_for_auth_modal
+    [0m[96mself[39;49;00m.wait_for_selector([96mself[39;49;00m.AUTH_MODAL, timeout=timeout)[90m[39;49;00m
+[1m[31me2e_tests/pages/base_page.py[0m:156: in wait_for_selector
+    [0m[94mreturn[39;49;00m [96mself[39;49;00m.page.wait_for_selector(selector, timeout=timeout, state=state)[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:8182: in wait_for_selector
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:423: in wait_for_selector
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.wait_for_selector(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:369: in wait_for_selector
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.TargetClosedError: Page.wait_for_selector: Target page, context or browser has been closed[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - waiting for locator("#authModal") to be visible[0m
+[31m[1m______________ ERROR at setup of test_logs_auto_refresh[chromium] ______________[0m
+[1m[31me2e_tests/test_app_management.py[0m:34: in deployed_app_session
+    [0mlogin_page.wait_for_auth_modal()[90m[39;49;00m
+[1m[31me2e_tests/pages/login_page.py[0m:103: in wait_for_auth_modal
+    [0m[96mself[39;49;00m.wait_for_selector([96mself[39;49;00m.AUTH_MODAL, timeout=timeout)[90m[39;49;00m
+[1m[31me2e_tests/pages/base_page.py[0m:156: in wait_for_selector
+    [0m[94mreturn[39;49;00m [96mself[39;49;00m.page.wait_for_selector(selector, timeout=timeout, state=state)[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:8182: in wait_for_selector
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:423: in wait_for_selector
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.wait_for_selector(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:369: in wait_for_selector
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.TargetClosedError: Page.wait_for_selector: Target page, context or browser has been closed[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - waiting for locator("#authModal") to be visible[0m
+[31m[1m________________ ERROR at setup of test_download_logs[chromium] ________________[0m
+[1m[31me2e_tests/test_app_management.py[0m:34: in deployed_app_session
+    [0mlogin_page.wait_for_auth_modal()[90m[39;49;00m
+[1m[31me2e_tests/pages/login_page.py[0m:103: in wait_for_auth_modal
+    [0m[96mself[39;49;00m.wait_for_selector([96mself[39;49;00m.AUTH_MODAL, timeout=timeout)[90m[39;49;00m
+[1m[31me2e_tests/pages/base_page.py[0m:156: in wait_for_selector
+    [0m[94mreturn[39;49;00m [96mself[39;49;00m.page.wait_for_selector(selector, timeout=timeout, state=state)[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:8182: in wait_for_selector
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:423: in wait_for_selector
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.wait_for_selector(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:369: in wait_for_selector
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.TargetClosedError: Page.wait_for_selector: Target page, context or browser has been closed[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - waiting for locator("#authModal") to be visible[0m
+[31m[1m______________ ERROR at setup of test_open_app_console[chromium] _______________[0m
+[1m[31me2e_tests/test_app_management.py[0m:34: in deployed_app_session
+    [0mlogin_page.wait_for_auth_modal()[90m[39;49;00m
+[1m[31me2e_tests/pages/login_page.py[0m:103: in wait_for_auth_modal
+    [0m[96mself[39;49;00m.wait_for_selector([96mself[39;49;00m.AUTH_MODAL, timeout=timeout)[90m[39;49;00m
+[1m[31me2e_tests/pages/base_page.py[0m:156: in wait_for_selector
+    [0m[94mreturn[39;49;00m [96mself[39;49;00m.page.wait_for_selector(selector, timeout=timeout, state=state)[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:8182: in wait_for_selector
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:423: in wait_for_selector
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.wait_for_selector(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:369: in wait_for_selector
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.TargetClosedError: Page.wait_for_selector: Target page, context or browser has been closed[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - waiting for locator("#authModal") to be visible[0m
+[31m[1m___________ ERROR at setup of test_console_quick_commands[chromium] ____________[0m
+[1m[31me2e_tests/test_app_management.py[0m:34: in deployed_app_session
+    [0mlogin_page.wait_for_auth_modal()[90m[39;49;00m
+[1m[31me2e_tests/pages/login_page.py[0m:103: in wait_for_auth_modal
+    [0m[96mself[39;49;00m.wait_for_selector([96mself[39;49;00m.AUTH_MODAL, timeout=timeout)[90m[39;49;00m
+[1m[31me2e_tests/pages/base_page.py[0m:156: in wait_for_selector
+    [0m[94mreturn[39;49;00m [96mself[39;49;00m.page.wait_for_selector(selector, timeout=timeout, state=state)[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:8182: in wait_for_selector
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:423: in wait_for_selector
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.wait_for_selector(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:369: in wait_for_selector
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.TargetClosedError: Page.wait_for_selector: Target page, context or browser has been closed[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - waiting for locator("#authModal") to be visible[0m
+[31m[1m______________ ERROR at setup of test_app_external_link[chromium] ______________[0m
+[1m[31me2e_tests/test_app_management.py[0m:34: in deployed_app_session
+    [0mlogin_page.wait_for_auth_modal()[90m[39;49;00m
+[1m[31me2e_tests/pages/login_page.py[0m:103: in wait_for_auth_modal
+    [0m[96mself[39;49;00m.wait_for_selector([96mself[39;49;00m.AUTH_MODAL, timeout=timeout)[90m[39;49;00m
+[1m[31me2e_tests/pages/base_page.py[0m:156: in wait_for_selector
+    [0m[94mreturn[39;49;00m [96mself[39;49;00m.page.wait_for_selector(selector, timeout=timeout, state=state)[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:8182: in wait_for_selector
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:423: in wait_for_selector
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.wait_for_selector(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:369: in wait_for_selector
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.TargetClosedError: Page.wait_for_selector: Target page, context or browser has been closed[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - waiting for locator("#authModal") to be visible[0m
+[31m[1m____________ ERROR at setup of test_app_stop_start_cycle[chromium] _____________[0m
+[1m[31me2e_tests/test_app_management.py[0m:34: in deployed_app_session
+    [0mlogin_page.wait_for_auth_modal()[90m[39;49;00m
+[1m[31me2e_tests/pages/login_page.py[0m:103: in wait_for_auth_modal
+    [0m[96mself[39;49;00m.wait_for_selector([96mself[39;49;00m.AUTH_MODAL, timeout=timeout)[90m[39;49;00m
+[1m[31me2e_tests/pages/base_page.py[0m:156: in wait_for_selector
+    [0m[94mreturn[39;49;00m [96mself[39;49;00m.page.wait_for_selector(selector, timeout=timeout, state=state)[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:8182: in wait_for_selector
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:423: in wait_for_selector
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.wait_for_selector(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:369: in wait_for_selector
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.TargetClosedError: Page.wait_for_selector: Target page, context or browser has been closed[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - waiting for locator("#authModal") to be visible[0m
+[31m[1m_________________ ERROR at setup of test_app_restart[chromium] _________________[0m
+[1m[31me2e_tests/test_app_management.py[0m:34: in deployed_app_session
+    [0mlogin_page.wait_for_auth_modal()[90m[39;49;00m
+[1m[31me2e_tests/pages/login_page.py[0m:103: in wait_for_auth_modal
+    [0m[96mself[39;49;00m.wait_for_selector([96mself[39;49;00m.AUTH_MODAL, timeout=timeout)[90m[39;49;00m
+[1m[31me2e_tests/pages/base_page.py[0m:156: in wait_for_selector
+    [0m[94mreturn[39;49;00m [96mself[39;49;00m.page.wait_for_selector(selector, timeout=timeout, state=state)[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:8182: in wait_for_selector
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:423: in wait_for_selector
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.wait_for_selector(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:369: in wait_for_selector
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.TargetClosedError: Page.wait_for_selector: Target page, context or browser has been closed[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - waiting for locator("#authModal") to be visible[0m
+[31m[1m___________ ERROR at setup of test_registration_and_login[chromium] ____________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m___________________ ERROR at setup of test_logout[chromium] ____________________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m________________ ERROR at setup of test_invalid_login[chromium] ________________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m_____________ ERROR at setup of test_session_persistence[chromium] _____________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m___________ ERROR at setup of test_password_field_masking[chromium] ____________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m______ ERROR at setup of test_switch_between_login_and_register[chromium] ______[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m______________ ERROR at setup of test_admin_user_login[chromium] _______________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m_________ ERROR at setup of test_backup_creation_and_listing[chromium] _________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m__________ ERROR at setup of test_backup_completion_polling[chromium] __________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m___________ ERROR at setup of test_backup_restore_workflow[chromium] ___________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m_______________ ERROR at setup of test_backup_deletion[chromium] _______________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m_____________ ERROR at setup of test_backup_ui_feedback[chromium] ______________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m__________ ERROR at setup of test_backup_security_ownership[chromium] __________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m_____________ ERROR at setup of test_clone_app_workflow[chromium] ______________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m____________ ERROR at setup of test_edit_config_workflow[chromium] _____________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m________ ERROR at setup of test_auto_mode_hides_pro_features[chromium] _________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m___ ERROR at setup of test_switching_to_pro_mode_reveals_features[chromium] ____[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m________ ERROR at setup of test_mode_persists_across_reloads[chromium] _________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m___________ ERROR at setup of test_mode_toggle_ui_behavior[chromium] ___________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m__________ ERROR at setup of test_infrastructure_page_loads[chromium] __________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m____________ ERROR at setup of test_proxmox_nodes_display[chromium] ____________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m__________ ERROR at setup of test_network_appliance_status[chromium] ___________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m___________ ERROR at setup of test_refresh_infrastructure[chromium] ____________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m_____________ ERROR at setup of test_view_appliance_logs[chromium] _____________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m__________ ERROR at setup of test_restart_appliance_button[chromium] ___________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m_____________ ERROR at setup of test_nat_testing_button[chromium] ______________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m____________ ERROR at setup of test_services_health_grid[chromium] _____________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m__________ ERROR at setup of test_infrastructure_statistics[chromium] __________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m____________ ERROR at setup of test_infrastructure_alerts[chromium] ____________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m_______ ERROR at setup of test_infrastructure_realtime_updates[chromium] _______[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m_____________ ERROR at setup of test_navigate_all_views[chromium] ______________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m___________ ERROR at setup of test_sidebar_collapse_expand[chromium] ___________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m______________ ERROR at setup of test_user_menu_toggle[chromium] _______________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m__________ ERROR at setup of test_user_profile_info_display[chromium] __________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m_____________ ERROR at setup of test_navigate_to_profile[chromium] _____________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m____________ ERROR at setup of test_active_nav_indicator[chromium] _____________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m________ ERROR at setup of test_navigation_keyboard_shortcuts[chromium] ________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m____________ ERROR at setup of test_breadcrumb_navigation[chromium] ____________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m_____________ ERROR at setup of test_page_titles_update[chromium] ______________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m_____________ ERROR at setup of test_quick_deploy_button[chromium] _____________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m___________ ERROR at setup of test_logo_click_returns_home[chromium] ___________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m_____________ ERROR at setup of test_settings_page_loads[chromium] _____________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m___________ ERROR at setup of test_settings_tab_navigation[chromium] ___________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m____________ ERROR at setup of test_proxmox_settings_form[chromium] ____________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m___________ ERROR at setup of test_proxmox_test_connection[chromium] ___________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m____________ ERROR at setup of test_network_settings_form[chromium] ____________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m___________ ERROR at setup of test_resources_settings_form[chromium] ___________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m____________ ERROR at setup of test_system_settings_panel[chromium] ____________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m________ ERROR at setup of test_settings_keyboard_navigation[chromium] _________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m__________ ERROR at setup of test_settings_form_validation[chromium] ___________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[31m[1m_____________ ERROR at setup of test_settings_help_text[chromium] ______________[0m
+[1m[31mvenv/lib/python3.13/site-packages/pytest_asyncio/plugin.py[0m:733: in pytest_fixture_setup
+    [0m[94mreturn[39;49;00m ([94myield[39;49;00m)[90m[39;49;00m
+            ^^^^^[90m[39;49;00m
+[1m[31me2e_tests/conftest.py[0m:103: in page
+    [0mpage.goto(base_url)[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/sync_api/_generated.py[0m:9019: in goto
+    [0m[96mself[39;49;00m._sync([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_page.py[0m:556: in goto
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._main_frame.goto(**locals_to_params([96mlocals[39;49;00m()))[90m[39;49;00m
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_frame.py[0m:153: in goto
+    [0m[94mawait[39;49;00m [96mself[39;49;00m._channel.send([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:69: in send
+    [0m[94mreturn[39;49;00m [94mawait[39;49;00m [96mself[39;49;00m._connection.wrap_api_call([90m[39;49;00m
+[1m[31mvenv/lib/python3.13/site-packages/playwright/_impl/_connection.py[0m:558: in wrap_api_call
+    [0m[94mraise[39;49;00m rewrite_error(error, [33mf[39;49;00m[33m"[39;49;00m[33m{[39;49;00mparsed_st[[33m'[39;49;00m[33mapiName[39;49;00m[33m'[39;49;00m][33m}[39;49;00m[33m: [39;49;00m[33m{[39;49;00merror[33m}[39;49;00m[33m"[39;49;00m) [94mfrom[39;49;00m[90m [39;49;00m[94mNone[39;49;00m[90m[39;49;00m
+[1m[31mE   playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/[0m
+[1m[31mE   Call log:[0m
+[1m[31mE     - navigating to "http://127.0.0.1:8765/", waiting until "load"[0m
+[36m[1m=========================== short test summary info ============================[0m
+[31mERROR[0m e2e_tests/test_app_canvas.py::[1mtest_open_and_close_canvas_with_button[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_app_canvas.py::[1mtest_close_canvas_with_escape_key[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_app_canvas.py::[1mtest_close_canvas_by_clicking_outside[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_app_canvas.py::[1mtest_refresh_canvas[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_app_canvas.py::[1mtest_canvas_displays_correct_app_name[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_app_canvas.py::[1mtest_canvas_iframe_loads_content[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_app_canvas.py::[1mtest_canvas_button_only_visible_for_running_apps[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_app_lifecycle.py::[1mtest_full_app_deploy_manage_delete_workflow[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_app_lifecycle.py::[1mtest_app_update_workflow_with_pre_update_backup[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_app_lifecycle.py::[1mtest_app_volumes_display[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_app_lifecycle.py::[1mtest_monitoring_tab_displays_data[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_app_management.py::[1mtest_view_app_logs_all[chromium][0m - playwright._impl._errors.TargetClosedError: Page.wait_for_selector: Target page, context or browser has been closed
+Call log:
+  - waiting for locator("#authModal") to be visible
+[31mERROR[0m e2e_tests/test_app_management.py::[1mtest_view_app_logs_docker[chromium][0m - playwright._impl._errors.TargetClosedError: Page.wait_for_selector: Target page, context or browser has been closed
+Call log:
+  - waiting for locator("#authModal") to be visible
+[31mERROR[0m e2e_tests/test_app_management.py::[1mtest_view_app_logs_system[chromium][0m - playwright._impl._errors.TargetClosedError: Page.wait_for_selector: Target page, context or browser has been closed
+Call log:
+  - waiting for locator("#authModal") to be visible
+[31mERROR[0m e2e_tests/test_app_management.py::[1mtest_logs_auto_refresh[chromium][0m - playwright._impl._errors.TargetClosedError: Page.wait_for_selector: Target page, context or browser has been closed
+Call log:
+  - waiting for locator("#authModal") to be visible
+[31mERROR[0m e2e_tests/test_app_management.py::[1mtest_download_logs[chromium][0m - playwright._impl._errors.TargetClosedError: Page.wait_for_selector: Target page, context or browser has been closed
+Call log:
+  - waiting for locator("#authModal") to be visible
+[31mERROR[0m e2e_tests/test_app_management.py::[1mtest_open_app_console[chromium][0m - playwright._impl._errors.TargetClosedError: Page.wait_for_selector: Target page, context or browser has been closed
+Call log:
+  - waiting for locator("#authModal") to be visible
+[31mERROR[0m e2e_tests/test_app_management.py::[1mtest_console_quick_commands[chromium][0m - playwright._impl._errors.TargetClosedError: Page.wait_for_selector: Target page, context or browser has been closed
+Call log:
+  - waiting for locator("#authModal") to be visible
+[31mERROR[0m e2e_tests/test_app_management.py::[1mtest_app_external_link[chromium][0m - playwright._impl._errors.TargetClosedError: Page.wait_for_selector: Target page, context or browser has been closed
+Call log:
+  - waiting for locator("#authModal") to be visible
+[31mERROR[0m e2e_tests/test_app_management.py::[1mtest_app_stop_start_cycle[chromium][0m - playwright._impl._errors.TargetClosedError: Page.wait_for_selector: Target page, context or browser has been closed
+Call log:
+  - waiting for locator("#authModal") to be visible
+[31mERROR[0m e2e_tests/test_app_management.py::[1mtest_app_restart[chromium][0m - playwright._impl._errors.TargetClosedError: Page.wait_for_selector: Target page, context or browser has been closed
+Call log:
+  - waiting for locator("#authModal") to be visible
+[31mERROR[0m e2e_tests/test_auth_flow.py::[1mtest_registration_and_login[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_auth_flow.py::[1mtest_logout[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_auth_flow.py::[1mtest_invalid_login[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_auth_flow.py::[1mtest_session_persistence[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_auth_flow.py::[1mtest_password_field_masking[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_auth_flow.py::[1mtest_switch_between_login_and_register[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_auth_flow.py::[1mtest_admin_user_login[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_backup_restore_flow.py::[1mtest_backup_creation_and_listing[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_backup_restore_flow.py::[1mtest_backup_completion_polling[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_backup_restore_flow.py::[1mtest_backup_restore_workflow[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_backup_restore_flow.py::[1mtest_backup_deletion[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_backup_restore_flow.py::[1mtest_backup_ui_feedback[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_backup_restore_flow.py::[1mtest_backup_security_ownership[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_clone_and_config.py::[1mtest_clone_app_workflow[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_clone_and_config.py::[1mtest_edit_config_workflow[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_dual_mode_experience.py::[1mtest_auto_mode_hides_pro_features[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_dual_mode_experience.py::[1mtest_switching_to_pro_mode_reveals_features[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_dual_mode_experience.py::[1mtest_mode_persists_across_reloads[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_dual_mode_experience.py::[1mtest_mode_toggle_ui_behavior[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_infrastructure.py::[1mtest_infrastructure_page_loads[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_infrastructure.py::[1mtest_proxmox_nodes_display[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_infrastructure.py::[1mtest_network_appliance_status[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_infrastructure.py::[1mtest_refresh_infrastructure[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_infrastructure.py::[1mtest_view_appliance_logs[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_infrastructure.py::[1mtest_restart_appliance_button[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_infrastructure.py::[1mtest_nat_testing_button[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_infrastructure.py::[1mtest_services_health_grid[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_infrastructure.py::[1mtest_infrastructure_statistics[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_infrastructure.py::[1mtest_infrastructure_alerts[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_infrastructure.py::[1mtest_infrastructure_realtime_updates[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_navigation.py::[1mtest_navigate_all_views[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_navigation.py::[1mtest_sidebar_collapse_expand[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_navigation.py::[1mtest_user_menu_toggle[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_navigation.py::[1mtest_user_profile_info_display[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_navigation.py::[1mtest_navigate_to_profile[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_navigation.py::[1mtest_active_nav_indicator[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_navigation.py::[1mtest_navigation_keyboard_shortcuts[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_navigation.py::[1mtest_breadcrumb_navigation[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_navigation.py::[1mtest_page_titles_update[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_navigation.py::[1mtest_quick_deploy_button[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_navigation.py::[1mtest_logo_click_returns_home[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_settings.py::[1mtest_settings_page_loads[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_settings.py::[1mtest_settings_tab_navigation[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_settings.py::[1mtest_proxmox_settings_form[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_settings.py::[1mtest_proxmox_test_connection[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_settings.py::[1mtest_network_settings_form[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_settings.py::[1mtest_resources_settings_form[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_settings.py::[1mtest_system_settings_panel[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_settings.py::[1mtest_settings_keyboard_navigation[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_settings.py::[1mtest_settings_form_validation[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31mERROR[0m e2e_tests/test_settings.py::[1mtest_settings_help_text[chromium][0m - playwright._impl._errors.Error: Page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8765/
+Call log:
+  - navigating to "http://127.0.0.1:8765/", waiting until "load"
+[31m================== [33m2 skipped[0m, [33m3 warnings[0m, [31m[1m72 errors[0m[31m in 27.02s[0m[31m ==================[0m
