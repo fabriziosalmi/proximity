@@ -3,7 +3,7 @@ Backup Service for managing application backups.
 Handles backup creation, listing, restoration, and deletion.
 """
 
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import List, Optional
 import asyncio
 from sqlalchemy.orm import Session
@@ -68,7 +68,7 @@ class BackupService:
                 storage = "local"
 
         # Generate filename
-        timestamp = datetime.utcnow().strftime("%Y_%m_%d-%H_%M_%S")
+        timestamp = datetime.now(UTC).strftime("%Y_%m_%d-%H_%M_%S")
         extension = ".tar.zst" if compress == "zstd" else ".tar.gz" if compress == "gzip" else ".tar"
         filename = f"vzdump-lxc-{app.lxc_id}-{timestamp}{extension}"
 
@@ -271,7 +271,7 @@ class BackupService:
             backup_id: Backup ID to poll
             timeout: Maximum time to wait in seconds (default 1 hour)
         """
-        start_time = datetime.utcnow().timestamp()
+        start_time = datetime.now(UTC).timestamp()
         poll_interval = 5  # seconds
 
         while True:
@@ -297,7 +297,7 @@ class BackupService:
                         # Backup completed!
                         backup.status = "available"
                         backup.size_bytes = proxmox_backup.get("size", 0)
-                        backup.completed_at = datetime.utcnow()
+                        backup.completed_at = datetime.now(UTC)
                         self.db.commit()
                         return
 
@@ -306,7 +306,7 @@ class BackupService:
                 print(f"Error polling backup {backup_id}: {e}")
 
             # Check timeout
-            if datetime.utcnow().timestamp() - start_time > timeout:
+            if datetime.now(UTC).timestamp() - start_time > timeout:
                 backup.status = "failed"
                 backup.error_message = "Backup creation timeout"
                 self.db.commit()

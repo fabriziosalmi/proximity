@@ -16,7 +16,7 @@ Date: October 2025
 """
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from typing import Dict, Optional, Tuple
 from models.database import App
 
@@ -102,7 +102,7 @@ class MonitoringService:
         # ================================================================
         if lxc_id in self._cache:
             cached_time, cached_data = self._cache[lxc_id]
-            age = (datetime.utcnow() - cached_time).total_seconds()
+            age = (datetime.now(UTC) - cached_time).total_seconds()
 
             if age < self.CACHE_TTL:
                 logger.debug(
@@ -185,13 +185,13 @@ class MonitoringService:
 
             # Metadata
             "cached": False,
-            "timestamp": datetime.utcnow().isoformat() + "Z"
+            "timestamp": datetime.now(UTC).isoformat() + "Z"
         }
 
         # ================================================================
         # PHASE 4: UPDATE CACHE
         # ================================================================
-        self._cache[lxc_id] = (datetime.utcnow(), metrics)
+        self._cache[lxc_id] = (datetime.now(UTC), metrics)
         logger.debug(f"💾 Cached stats for LXC {lxc_id} (cache size: {len(self._cache)})")
 
         return metrics
@@ -220,7 +220,7 @@ class MonitoringService:
         Returns:
             Dict with cache metrics
         """
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
 
         valid_entries = 0
         expired_entries = 0

@@ -41,7 +41,7 @@ logger = logging.getLogger(__name__)
 def parse_json_datetime(dt_str: str) -> datetime:
     """Parse datetime string from JSON with multiple format support"""
     if not dt_str:
-        return datetime.utcnow()
+        return datetime.now(UTC)
 
     # Try different datetime formats
     formats = [
@@ -59,7 +59,7 @@ def parse_json_datetime(dt_str: str) -> datetime:
 
     # If all formats fail, return current time
     logger.warning(f"Could not parse datetime '{dt_str}', using current time")
-    return datetime.utcnow()
+    return datetime.now(UTC)
 
 
 def migrate_apps(db: Session, json_file_path: Path) -> dict:

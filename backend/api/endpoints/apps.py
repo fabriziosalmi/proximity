@@ -407,7 +407,7 @@ async def execute_safe_command(
             "app_id": app_id,
             "app_name": app.name,
             "output": output,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(UTC).isoformat()
         }
         
     except (AppServiceError, AppNotFoundError) as e:

@@ -8,8 +8,7 @@ This module defines the database schema for:
 """
 
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, JSON, ForeignKey, create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session, relationship
+from sqlalchemy.orm import sessionmaker, Session, relationship, DeclarativeBase
 from datetime import datetime
 from contextlib import contextmanager
 import bcrypt
@@ -26,7 +25,9 @@ engine = create_engine(
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-Base = declarative_base()
+class Base(DeclarativeBase):
+    """Base class for all database models"""
+    pass
 
 
 # Dependency for FastAPI

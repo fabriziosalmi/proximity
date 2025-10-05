@@ -4,7 +4,7 @@ Authentication Service for Proximity
 Handles JWT token generation, verification, and user authentication.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from jose import JWTError, jwt
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
@@ -41,10 +41,10 @@ class AuthService:
             Encoded JWT token
         """
         to_encode = data.copy()
-        expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+        expire = datetime.now(UTC) + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
         to_encode.update({
             "exp": expire,
-            "iat": datetime.utcnow()
+            "iat": datetime.now(UTC)
         })
 
         encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)

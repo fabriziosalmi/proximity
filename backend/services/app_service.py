@@ -4,7 +4,7 @@ import logging
 import os
 import tempfile
 import yaml
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import List, Dict, Any, Optional
 from pathlib import Path
 
@@ -407,7 +407,7 @@ class AppService:
                     if db_app:
                         db_app.status = app.status.value
                         db_app.url = app.url
-                        db_app.updated_at = datetime.utcnow()
+                        db_app.updated_at = datetime.now(UTC)
                         status_changed = True
             
             # Commit changes if any
@@ -445,7 +445,7 @@ class AppService:
             db_app = self.db.query(DBApp).filter(DBApp.id == app_id).first()
             if db_app:
                 db_app.status = AppStatus.RUNNING.value
-                db_app.updated_at = datetime.utcnow()
+                db_app.updated_at = datetime.now(UTC)
                 self.db.commit()
             
             app.status = AppStatus.RUNNING
@@ -458,7 +458,7 @@ class AppService:
             db_app = self.db.query(DBApp).filter(DBApp.id == app_id).first()
             if db_app:
                 db_app.status = AppStatus.ERROR.value
-                db_app.updated_at = datetime.utcnow()
+                db_app.updated_at = datetime.now(UTC)
                 self.db.commit()
             raise AppOperationError(
                 f"Failed to start application: {str(e)}",
@@ -476,7 +476,7 @@ class AppService:
             db_app = self.db.query(DBApp).filter(DBApp.id == app_id).first()
             if db_app:
                 db_app.status = AppStatus.ERROR.value
-                db_app.updated_at = datetime.utcnow()
+                db_app.updated_at = datetime.now(UTC)
                 self.db.commit()
             raise AppOperationError(
                 f"Failed to start application: {str(e)}",
@@ -501,7 +501,7 @@ class AppService:
             db_app = self.db.query(DBApp).filter(DBApp.id == app_id).first()
             if db_app:
                 db_app.status = AppStatus.STOPPED.value
-                db_app.updated_at = datetime.utcnow()
+                db_app.updated_at = datetime.now(UTC)
                 self.db.commit()
             
             app.status = AppStatus.STOPPED
@@ -514,7 +514,7 @@ class AppService:
             db_app = self.db.query(DBApp).filter(DBApp.id == app_id).first()
             if db_app:
                 db_app.status = AppStatus.ERROR.value
-                db_app.updated_at = datetime.utcnow()
+                db_app.updated_at = datetime.now(UTC)
                 self.db.commit()
             raise AppOperationError(
                 f"Failed to stop application: {str(e)}",
@@ -532,7 +532,7 @@ class AppService:
             db_app = self.db.query(DBApp).filter(DBApp.id == app_id).first()
             if db_app:
                 db_app.status = AppStatus.ERROR.value
-                db_app.updated_at = datetime.utcnow()
+                db_app.updated_at = datetime.now(UTC)
                 self.db.commit()
             raise AppOperationError(
                 f"Failed to stop application: {str(e)}",
@@ -809,8 +809,8 @@ class AppService:
                 environment=cloned_environment,  # Use preserved environment
                 public_port=public_port,
                 internal_port=internal_port,
-                created_at=datetime.utcnow(),
-                updated_at=datetime.utcnow()
+                created_at=datetime.now(UTC),
+                updated_at=datetime.now(UTC)
             )
             self.db.add(db_app)
             self.db.commit()
@@ -914,7 +914,7 @@ class AppService:
 
             # Reassign to trigger SQLAlchemy update detection
             db_app.config = new_config
-            db_app.updated_at = datetime.utcnow()
+            db_app.updated_at = datetime.now(UTC)
             self.db.commit()
             self.db.refresh(db_app)
 
@@ -1166,8 +1166,8 @@ class AppService:
                 environment=app.environment,
                 public_port=public_port,
                 internal_port=internal_port,
-                created_at=datetime.utcnow(),
-                updated_at=datetime.utcnow()
+                created_at=datetime.now(UTC),
+                updated_at=datetime.now(UTC)
             )
             self.db.add(db_app)
             self.db.commit()
@@ -1378,7 +1378,7 @@ COMPOSE_EOF
             if db_app:
                 db_log = DBDeploymentLog(
                     app_id=app_id,
-                    timestamp=datetime.utcnow(),
+                    timestamp=datetime.now(UTC),
                     level=level,
                     message=message,
                     step=step
@@ -1421,7 +1421,7 @@ COMPOSE_EOF
         if app_update.status is not None:
             db_app.status = app_update.status.value
         
-        db_app.updated_at = datetime.utcnow()
+        db_app.updated_at = datetime.now(UTC)
         self.db.commit()
         self.db.refresh(db_app)
 
@@ -1552,7 +1552,7 @@ COMPOSE_EOF
 
                             # Update success
                             app.status = "running"
-                            app.updated_at = datetime.utcnow()
+                            app.updated_at = datetime.now(UTC)
                             self.db.commit()
 
                             logger.info(f"🎉 Update completed successfully for '{app.hostname}'")
@@ -1569,7 +1569,7 @@ COMPOSE_EOF
                 # No URL to check, assume success based on docker compose result
                 logger.warning(f"⚠️  No URL available for health check, assuming success")
                 app.status = "running"
-                app.updated_at = datetime.utcnow()
+                app.updated_at = datetime.now(UTC)
                 self.db.commit()
                 return app
 

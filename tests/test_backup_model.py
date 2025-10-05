@@ -4,7 +4,7 @@ Tests model creation, relationships, and constraints.
 """
 
 import pytest
-from datetime import datetime
+from datetime import datetime, UTC
 from sqlalchemy.exc import IntegrityError
 from models.database import Backup, App, User
 
@@ -153,7 +153,7 @@ class TestBackupModel:
         # Update to 'available'
         backup.status = "available"
         backup.size_bytes = 1024000
-        backup.completed_at = datetime.utcnow()
+        backup.completed_at = datetime.now(UTC)
         db_session.commit()
 
         assert backup.status == "available"

@@ -561,7 +561,7 @@ class TestBackupServicePolling:
         mock_proxmox.get_backup_list.return_value = [{
             "volid": "local:backup/vzdump-lxc-100-2025_10_04.tar.zst",
             "size": 5000000,
-            "ctime": datetime.utcnow().timestamp()
+            "ctime": datetime.now(UTC).timestamp()
         }]
         mock_proxmox_class.return_value = mock_proxmox
 
