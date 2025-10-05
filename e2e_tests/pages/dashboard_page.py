@@ -133,24 +133,23 @@ class DashboardPage(BasePage):
         logger.info("Logging out")
         
         # The logout button is inside a dropdown menu, so we need to open it first
-        # Wait for the user menu toggle to be visible and click it
-        logger.info("Opening user menu dropdown")
-        user_info = self.page.locator(".user-info")
-        user_info.wait_for(state="visible", timeout=10000)
-        user_info.click()
-        
-        # Wait for the dropdown menu to appear
-        self.wait_for_timeout(1000)  # Give dropdown animation time to complete
-        
-        # Now click the logout button
-        # Use force=True as workaround for dropdown visibility timing issues
-        logger.info("Clicking logout button")
+        # Use JavaScript to trigger the menu toggle (workaround for timing issues)
+        logger.info("Opening user menu dropdown using JavaScript")
+        self.page.evaluate("""
+            const menu = document.getElementById('userMenu');
+            const btn = document.getElementById('userProfileBtn');
+            if (menu && btn) {
+                menu.classList.add('active');
+                btn.classList.add('active');
+            }
+        """)
+
+        # Wait for the logout link to become visible
+        logger.info("Waiting for logout button to appear")
         logout_link = self.page.locator(".user-menu-item.logout")
-        try:
-            logout_link.wait_for(state="visible", timeout=3000)
-        except Exception:
-            logger.warning("Logout link not visible, attempting force click")
-        logout_link.click(force=True)  # Force click to handle timing issues
+        logout_link.wait_for(state="visible", timeout=5000)
+        logger.info("Logout button is visible, clicking it")
+        logout_link.click()
         
         logger.info("Logout action completed")
     

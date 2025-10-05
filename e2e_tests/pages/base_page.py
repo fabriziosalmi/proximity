@@ -23,11 +23,14 @@ class BasePage:
     def __init__(self, page: Page):
         """
         Initialize the base page.
-        
+
         Args:
             page: Playwright Page instance
         """
         self.page = page
+        # Extract base URL from current page URL
+        import os
+        self.base_url = os.getenv("PROXIMITY_E2E_URL", "http://127.0.0.1:8765")
     
     # ========================================================================
     # Navigation Methods
@@ -36,12 +39,18 @@ class BasePage:
     def navigate_to(self, path: str) -> None:
         """
         Navigate to a specific path relative to base URL.
-        
+
         Args:
-            path: Relative path (e.g., '/dashboard', '/apps')
+            path: Relative path (e.g., '/dashboard', '/apps') or full URL
         """
-        logger.info(f"Navigating to: {path}")
-        self.page.goto(path)
+        # If path is relative, prepend base_url
+        if path.startswith('/'):
+            full_url = f"{self.base_url}{path}"
+        else:
+            full_url = path
+
+        logger.info(f"Navigating to: {full_url}")
+        self.page.goto(full_url)
     
     def reload(self) -> None:
         """Reload the current page."""

@@ -610,12 +610,15 @@ function renderAppsView() {
 }
 
 function renderCatalogView() {
+    console.log('🏪 renderCatalogView() called');
     const view = document.getElementById('catalogView');
-    
+
     if (!state.catalog || !state.catalog.items) {
+        console.log('⚠️  Catalog data not loaded yet');
         view.innerHTML = '<div class="loading-spinner"></div>';
         return;
     }
+    console.log(`✓ Rendering ${state.catalog.items.length} catalog items`);
     
     const categories = state.catalog.categories || [];
     
@@ -3043,13 +3046,20 @@ function showUserProfile(e) {
 }
 
 function setupEventListeners() {
+    console.log('🔧 setupEventListeners() called');
+
     // Navigation
-    document.querySelectorAll('.nav-item').forEach(item => {
+    const navItems = document.querySelectorAll('.nav-item');
+    console.log(`📍 Found ${navItems.length} nav items`);
+
+    navItems.forEach((item, index) => {
         item.addEventListener('click', (e) => {
             e.preventDefault();
             const view = item.dataset.view;
+            console.log(`🖱️  Nav item clicked: ${view}`);
             if (view) showView(view);
         });
+        console.log(`  ✓ Attached listener to nav item ${index}: ${item.dataset.view}`);
     });
 
     // User profile menu toggle
@@ -3157,15 +3167,17 @@ function renderRegisterForm() {
           <input type="password" class="form-input" id="registerPassword" required autocomplete="new-password" placeholder="Min. 8 characters">
         </div>
         <div class="form-group">
-          <label class="form-label">Email (optional)</label>
-          <input type="email" class="form-input" id="registerEmail" autocomplete="email" placeholder="your@email.com">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-input" id="registerEmail" required autocomplete="email" placeholder="your@email.com">
         </div>
         <div id="registerError" class="form-error" style="margin-bottom: 1rem;"></div>
         <button type="submit" class="btn btn-primary" style="width:100%;">Register</button>
       </form>
     `;
     document.getElementById('registerForm').onsubmit = handleRegisterSubmit;
-}function renderLoginForm(prefill = {}) {
+}
+
+function renderLoginForm(prefill = {}) {
     const content = document.getElementById('authTabContent');
     content.innerHTML = `
       <form id="loginForm" class="auth-form">
@@ -3182,7 +3194,9 @@ function renderRegisterForm() {
       </form>
     `;
     document.getElementById('loginForm').onsubmit = handleLoginSubmit;
-}async function handleRegisterSubmit(e) {
+}
+
+async function handleRegisterSubmit(e) {
     e.preventDefault();
     const username = document.getElementById('registerUsername').value.trim();
     const password = document.getElementById('registerPassword').value;
@@ -3190,11 +3204,8 @@ function renderRegisterForm() {
     const errorDiv = document.getElementById('registerError');
     errorDiv.textContent = '';
     
-    // Build payload (only include email if provided)
-    const payload = { username, password };
-    if (email) {
-        payload.email = email;
-    }
+    // Build payload (email is required)
+    const payload = { username, password, email };
     
     try {
         const res = await fetch(`${API_BASE}/auth/register`, {
@@ -3215,33 +3226,30 @@ function renderRegisterForm() {
             return;
         }
         
-        // Registration successful - extract token and authenticate user
+        // Registration successful - switch to login tab
         const result = await res.json();
-        
-        // Critical fix: Check if token is present
-        if (!result.access_token) {
-            console.error('Registration successful, but no token received:', result);
-            errorDiv.textContent = 'Login failed after registration. Please log in manually.';
-            // Fallback: switch to login form with credentials pre-filled
-            renderAuthTabs('login');
-            renderLoginForm({ username, password });
-            return;
-        }
-        
-        // Store the token and user data
-        Auth.setToken(result.access_token, result.user || { username });
-        
+
         // Show success notification
-        showNotification('Registration successful! Welcome to Proximity.', 'success');
-        
-        // Initialize authenticated session (close modal, load dashboard, etc.)
-        await initializeAuthenticatedSession();
+        showNotification('✓ Registration successful! Please log in.', 'success');
+
+        // Switch to login tab with pre-filled credentials
+        switchAuthTab('login');
+
+        // Pre-fill the login form after a brief delay to ensure DOM is ready
+        setTimeout(() => {
+            const usernameInput = document.getElementById('loginUsername');
+            const passwordInput = document.getElementById('loginPassword');
+            if (usernameInput) usernameInput.value = username;
+            if (passwordInput) passwordInput.value = password;
+        }, 100);
         
     } catch (err) {
         console.error('Registration error:', err);
         errorDiv.textContent = 'Network error. Please try again.';
     }
-}async function handleLoginSubmit(e) {
+}
+
+async function handleLoginSubmit(e) {
     e.preventDefault();
     const username = document.getElementById('loginUsername').value.trim();
     const password = document.getElementById('loginPassword').value;
@@ -3302,16 +3310,26 @@ async function initializeAuthenticatedSession() {
         ]);
         
         // 5. Update the UI with loaded data
+        console.log('5️⃣ Updating UI...');
         updateUI();
-        
-        // 6. Show the dashboard view
-        showView('dashboard');
-        
-        // 7. Hide loading state
-        hideLoading();
-        
-        // 8. Initialize Lucide icons
+
+        // 6. Setup event listeners FIRST (before showing views)
+        console.log('6️⃣ Setting up event listeners...');
+        setupEventListeners();
+        console.log('   ✓ Event listeners attached');
+
+        // Set global flag to indicate event listeners are ready
+        window.eventListenersReady = true;
+
+        // 7. Initialize Lucide icons
         initLucideIcons();
+
+        // 8. Hide loading state
+        hideLoading();
+
+        // 9. Show the dashboard view (LAST - after everything is ready)
+        console.log('7️⃣ Showing dashboard view...');
+        showView('dashboard');
         
         console.log('✅ Authenticated session initialized successfully');
         

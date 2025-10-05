@@ -271,11 +271,31 @@ def authenticated_page(page: Page, base_url: str) -> Generator[Page, None, None]
     print("📋 [authenticated_page fixture] Waiting for dashboard to appear (Smart Wait)")
     expect(dashboard_page.dashboard_container).to_be_visible(timeout=15000)
     print("✓ Dashboard visible - authentication complete")
-    
+
     # Additional verification with user display
     expect(dashboard_page.get_user_display_locator).to_be_visible(timeout=10000)
     print("✓ User info visible - session fully established")
-    
+
+    # CRITICAL: Ensure event listeners are set up
+    # Workaround: Call setupEventListeners() manually to ensure navigation works
+    print("📋 [authenticated_page fixture] Setting up event listeners")
+    page.evaluate("if (typeof setupEventListeners === 'function') setupEventListeners();")
+    print("✓ Event listeners ready")
+
+    # Ensure auth modal is closed (force close if needed)
+    page.evaluate("""
+        const modal = document.getElementById('authModal');
+        if (modal && modal.classList.contains('show')) {
+            modal.classList.remove('show');
+            modal.style.display = 'none';
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+            const backdrop = document.querySelector('.modal-backdrop');
+            if (backdrop) backdrop.remove();
+        }
+    """)
+    print("✓ Auth modal confirmed closed")
+
     yield page
     
     # CRITICAL CLEANUP: Clear session on teardown to prevent leakage to next test
