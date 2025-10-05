@@ -14,6 +14,9 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
+# Import additional fixtures
+pytest_plugins = ['fixtures.deployed_app']
+
 
 # ============================================================================
 # Configuration Fixtures
@@ -234,13 +237,14 @@ def authenticated_page(page: Page, base_url: str) -> Generator[Page, None, None]
     from playwright.sync_api import expect
     
     # --- CRITICAL ISOLATION STEP: Clean Slate Pattern ---
-    print("📋 [authenticated_page fixture] Ensuring clean slate")
-    page.goto(base_url)
-    page.evaluate("window.localStorage.clear(); window.sessionStorage.clear();")
-    page.reload()  # Reload to ensure the app re-initializes in a logged-out state
-    print("✓ Session storage cleared - starting with clean slate")
+    # NOTE: The `page` fixture already cleared storage and navigated to base_url
+    # We rely on that, so NO additional clearing here to avoid breaking app state
+    print("📋 [authenticated_page fixture] Using clean slate from page fixture")
     # --- END OF ISOLATION STEP ---
-    
+
+    # DEBUG: Enable console logging
+    page.on("console", lambda msg: print(f"  [BROWSER] {msg.type}: {msg.text}"))
+
     # Generate unique test user
     test_user = generate_test_user()
     
@@ -259,18 +263,40 @@ def authenticated_page(page: Page, base_url: str) -> Generator[Page, None, None]
         login_page.fill_email(test_user.get("email", f"{test_user['username']}@test.com"))
     
     login_page.click_register_button()
-    
+
+    # Wait for registration to complete and credentials to be pre-filled
+    page.wait_for_timeout(1000)
+
     # Switch to login tab and submit (credentials should be pre-filled)
     print("📋 [authenticated_page fixture] Completing login")
     login_page.switch_to_login_mode()
+
+    # DEBUG: Check form state before clicking login
+    form_state = page.evaluate("""
+        () => {
+            const username = document.getElementById('loginUsername')?.value;
+            const password = document.getElementById('loginPassword')?.value;
+            return {username: username, password: password ? '***' : ''};
+        }
+    """)
+    print(f"🔍 Login form before click: {form_state}")
+
     login_page.click_login_button()
-    
+    print("🔍 Login button clicked")
+
     # --- SMART WAIT: Wait for dashboard to become visible ---
     # This confirms the login completed successfully before yielding to the test.
     # This prevents TargetClosedError by ensuring the session is fully established.
     print("📋 [authenticated_page fixture] Waiting for dashboard to appear (Smart Wait)")
     expect(dashboard_page.dashboard_container).to_be_visible(timeout=15000)
     print("✓ Dashboard visible - authentication complete")
+
+    # ADDITIONAL WAIT: Give the app time to save the token
+    page.wait_for_timeout(2000)
+
+    # DEBUG: Check token right after login
+    token_after_login = page.evaluate("Auth.getToken()")
+    print(f"🔍 Token right after dashboard visible + 2s wait: {token_after_login[:50] if token_after_login else 'NOT FOUND!'}")
 
     # Additional verification with user display
     expect(dashboard_page.get_user_display_locator).to_be_visible(timeout=10000)
@@ -295,6 +321,10 @@ def authenticated_page(page: Page, base_url: str) -> Generator[Page, None, None]
         }
     """)
     print("✓ Auth modal confirmed closed")
+
+    # FINAL CHECK: Verify token is present before yielding
+    final_token = page.evaluate("Auth.getToken()")
+    print(f"✓ Token verified before yield: {final_token[:50] if final_token else 'NOT FOUND!'}")
 
     yield page
     
