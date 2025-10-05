@@ -1,0 +1,49 @@
+{
+  "id": "librechat",
+  "name": "LibreChat",
+  "description": "Enhanced ChatGPT clone with support for multiple AI providers (OpenAI, Anthropic, local LLMs)",
+  "category": "AI",
+  "icon": "https://cdn.simpleicons.org/openai/412991",
+  "tags": ["chatgpt", "ai", "llm", "ollama", "chat", "assistant"],
+  "min_memory": 1024,
+  "min_cpu": 2,
+  "min_disk": 4,
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "librechat": {
+        "image": "ghcr.io/danny-avila/librechat:latest",
+        "container_name": "librechat",
+        "restart": "unless-stopped",
+        "ports": [
+          "3080:3080"
+        ],
+        "depends_on": [
+          "librechat-mongodb"
+        ],
+        "environment": {
+          "HOST": "0.0.0.0",
+          "PORT": "3080",
+          "MONGO_URI": "mongodb://librechat-mongodb:27017/LibreChat",
+          "ENDPOINTS": "ollama,openAI,anthropic",
+          "OLLAMA_BASE_URL": "http://host.docker.internal:11434"
+        },
+        "volumes": [
+          "librechat_data:/app/client/public/images"
+        ]
+      },
+      "librechat-mongodb": {
+        "image": "mongo:latest",
+        "container_name": "librechat-mongodb",
+        "restart": "unless-stopped",
+        "volumes": [
+          "librechat_mongodb:/data/db"
+        ]
+      }
+    },
+    "volumes": {
+      "librechat_data": {},
+      "librechat_mongodb": {}
+    }
+  }
+}

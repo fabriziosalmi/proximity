@@ -1,0 +1,47 @@
+{
+  "id": "wekan",
+  "name": "Wekan",
+  "description": "Open-source Kanban board for project management with real-time collaboration",
+  "category": "Automation",
+  "icon": "https://cdn.simpleicons.org/trello/0079BF",
+  "tags": ["kanban", "project-management", "tasks", "collaboration", "board"],
+  "min_memory": 512,
+  "min_cpu": 1,
+  "min_disk": 2,
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "wekan": {
+        "image": "wekanteam/wekan:latest",
+        "container_name": "wekan",
+        "restart": "unless-stopped",
+        "ports": [
+          "8080:8080"
+        ],
+        "environment": {
+          "MONGO_URL": "mongodb://wekan-db:27017/wekan",
+          "ROOT_URL": "http://localhost:8080",
+          "WITH_API": "true",
+          "RICHER_CARD_COMMENT_EDITOR": "true"
+        },
+        "depends_on": [
+          "wekan-db"
+        ]
+      },
+      "wekan-db": {
+        "image": "mongo:6",
+        "container_name": "wekan-db",
+        "restart": "unless-stopped",
+        "command": "mongod --logpath /dev/null --oplogSize 128 --quiet",
+        "volumes": [
+          "wekan_db:/data/db",
+          "wekan_dump:/dump"
+        ]
+      }
+    },
+    "volumes": {
+      "wekan_db": {},
+      "wekan_dump": {}
+    }
+  }
+}

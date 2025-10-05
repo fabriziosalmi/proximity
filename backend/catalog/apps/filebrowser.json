@@ -1,0 +1,38 @@
+{
+  "id": "filebrowser",
+  "name": "File Browser",
+  "description": "Web-based file manager with user management, permissions, and multiple storage backend support",
+  "category": "Storage",
+  "icon": "https://cdn.simpleicons.org/files/4285F4",
+  "tags": ["files", "file-manager", "storage", "upload", "download"],
+  "min_memory": 256,
+  "min_cpu": 1,
+  "min_disk": 2,
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "filebrowser": {
+        "image": "filebrowser/filebrowser:latest",
+        "container_name": "filebrowser",
+        "restart": "unless-stopped",
+        "ports": [
+          "8080:80"
+        ],
+        "volumes": [
+          "filebrowser_data:/srv",
+          "filebrowser_database:/database",
+          "filebrowser_config:/config"
+        ],
+        "environment": {
+          "PUID": "1000",
+          "PGID": "1000"
+        }
+      }
+    },
+    "volumes": {
+      "filebrowser_data": {},
+      "filebrowser_database": {},
+      "filebrowser_config": {}
+    }
+  }
+}

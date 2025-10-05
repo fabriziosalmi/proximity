@@ -1,0 +1,30 @@
+{
+  "id": "actualbudget",
+  "name": "Actual Budget",
+  "description": "Local-first personal finance tool with zero-knowledge encryption and budget management",
+  "category": "Automation",
+  "icon": "https://cdn.simpleicons.org/moneygram/00A3E0",
+  "tags": ["budget", "finance", "money", "accounting", "personal-finance"],
+  "min_memory": 256,
+  "min_cpu": 1,
+  "min_disk": 1,
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "actualbudget": {
+        "image": "actualbudget/actual-server:latest",
+        "container_name": "actualbudget",
+        "restart": "unless-stopped",
+        "ports": [
+          "5006:5006"
+        ],
+        "volumes": [
+          "actualbudget_data:/data"
+        ]
+      }
+    },
+    "volumes": {
+      "actualbudget_data": {}
+    }
+  }
+}

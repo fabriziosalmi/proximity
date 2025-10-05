@@ -1,0 +1,35 @@
+{
+  "id": "bitwarden",
+  "name": "Bitwarden",
+  "description": "Official Bitwarden password manager - secure credential storage with sync across devices",
+  "category": "Security",
+  "icon": "https://cdn.simpleicons.org/bitwarden/175DDC",
+  "tags": ["password", "vault", "security", "2fa", "encryption"],
+  "min_memory": 1024,
+  "min_cpu": 1,
+  "min_disk": 4,
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "bitwarden": {
+        "image": "bitwarden/self-host:beta",
+        "container_name": "bitwarden",
+        "restart": "unless-stopped",
+        "ports": [
+          "8080:8080"
+        ],
+        "volumes": [
+          "bitwarden_data:/etc/bitwarden"
+        ],
+        "environment": {
+          "BW_DOMAIN": "localhost",
+          "BW_INSTALLATION_ID": "REPLACE_WITH_INSTALLATION_ID",
+          "BW_INSTALLATION_KEY": "REPLACE_WITH_INSTALLATION_KEY"
+        }
+      }
+    },
+    "volumes": {
+      "bitwarden_data": {}
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "id": "nginx-proxy-manager",
+  "name": "Nginx Proxy Manager",
+  "description": "Easy-to-use web interface for managing Nginx reverse proxy with SSL certificate automation",
+  "category": "Web Server",
+  "icon": "https://cdn.simpleicons.org/nginx/009639",
+  "tags": ["proxy", "reverse-proxy", "ssl", "nginx", "certificates"],
+  "min_memory": 512,
+  "min_cpu": 1,
+  "min_disk": 2,
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "nginx-proxy-manager": {
+        "image": "jc21/nginx-proxy-manager:latest",
+        "container_name": "nginx-proxy-manager",
+        "restart": "unless-stopped",
+        "ports": [
+          "80:80",
+          "443:443",
+          "81:81"
+        ],
+        "environment": {
+          "DB_MYSQL_HOST": "npm-db",
+          "DB_MYSQL_PORT": "3306",
+          "DB_MYSQL_USER": "npm",
+          "DB_MYSQL_PASSWORD": "npm",
+          "DB_MYSQL_NAME": "npm"
+        },
+        "volumes": [
+          "npm_data:/data",
+          "npm_letsencrypt:/etc/letsencrypt"
+        ],
+        "depends_on": [
+          "npm-db"
+        ]
+      },
+      "npm-db": {
+        "image": "jc21/mariadb-aria:latest",
+        "container_name": "npm-db",
+        "restart": "unless-stopped",
+        "environment": {
+          "MYSQL_ROOT_PASSWORD": "npm",
+          "MYSQL_DATABASE": "npm",
+          "MYSQL_USER": "npm",
+          "MYSQL_PASSWORD": "npm"
+        },
+        "volumes": [
+          "npm_mysql:/var/lib/mysql"
+        ]
+      }
+    },
+    "volumes": {
+      "npm_data": {},
+      "npm_letsencrypt": {},
+      "npm_mysql": {}
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "id": "adguard",
+  "name": "AdGuard Home",
+  "description": "Network-wide ad and tracker blocking DNS server with parental control features",
+  "category": "Security",
+  "icon": "https://cdn.simpleicons.org/adguard/68BC71",
+  "tags": ["dns", "ad-blocker", "privacy", "network", "filtering"],
+  "min_memory": 256,
+  "min_cpu": 1,
+  "min_disk": 1,
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "adguard": {
+        "image": "adguard/adguardhome:latest",
+        "container_name": "adguard",
+        "restart": "unless-stopped",
+        "ports": [
+          "53:53/tcp",
+          "53:53/udp",
+          "3000:3000/tcp",
+          "80:80/tcp",
+          "443:443/tcp"
+        ],
+        "volumes": [
+          "adguard_work:/opt/adguardhome/work",
+          "adguard_conf:/opt/adguardhome/conf"
+        ]
+      }
+    },
+    "volumes": {
+      "adguard_work": {},
+      "adguard_conf": {}
+    }
+  }
+}
