@@ -106,23 +106,31 @@ def context(browser):
         user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
         storage_state=None,  # No saved state
     )
+    
     yield context
     
-    # Ensure all pages are closed before closing context
+    # CRITICAL CLEANUP: Ensure all pages are closed before closing context
+    # This prevents Chromium from staying open
+    print("\n🧹 [Cleanup] Closing browser context and all pages")
     try:
-        for page in context.pages:
+        # Get list of pages before iteration (avoid modification during iteration)
+        pages = list(context.pages)
+        for page in pages:
             try:
-                page.close()
-            except Exception:
-                pass
-    except Exception:
-        pass
+                if not page.is_closed():
+                    print(f"  - Closing page: {page.url[:50] if page.url else 'unknown'}")
+                    page.close()
+            except Exception as e:
+                print(f"  ⚠️  Error closing page: {e}")
+    except Exception as e:
+        print(f"  ⚠️  Error accessing pages: {e}")
     
     # Close context
     try:
         context.close()
-    except Exception:
-        pass
+        print("  ✓ Context closed successfully")
+    except Exception as e:
+        print(f"  ⚠️  Error closing context: {e}")
 
 
 @pytest.fixture
@@ -178,16 +186,24 @@ def page(context: BrowserContext, base_url: str) -> Generator[Page, None, None]:
     
     yield page
     
-    # Cleanup: Clear storage and close page
+    # CRITICAL CLEANUP: Ensure page is properly closed
+    print("\n🧹 [Cleanup] Closing page fixture")
     try:
-        page.evaluate("window.localStorage.clear(); window.sessionStorage.clear();")
-    except Exception:
-        pass  # Page might already be closed
-    
-    try:
-        page.close()
-    except Exception:
-        pass  # Page might already be closed
+        if not page.is_closed():
+            # Try to clear storage first
+            try:
+                page.evaluate("window.localStorage.clear(); window.sessionStorage.clear();")
+                print("  ✓ Storage cleared")
+            except Exception:
+                pass  # Page might be in bad state
+            
+            # Close the page
+            page.close()
+            print("  ✓ Page closed successfully")
+        else:
+            print("  ℹ️  Page was already closed")
+    except Exception as e:
+        print(f"  ⚠️  Error during page cleanup: {e}")
 
 
 # ============================================================================
@@ -262,12 +278,16 @@ def authenticated_page(page: Page, base_url: str) -> Generator[Page, None, None]
     
     yield page
     
-    # Cleanup: Clear session on teardown to prevent leakage to next test
-    print("📋 [authenticated_page fixture] Cleaning up session")
+    # CRITICAL CLEANUP: Clear session on teardown to prevent leakage to next test
+    print("\n🧹 [authenticated_page fixture] Cleaning up session")
     try:
-        page.evaluate("window.localStorage.clear(); window.sessionStorage.clear();")
-    except:
-        pass  # Page might be closed already
+        if not page.is_closed():
+            page.evaluate("window.localStorage.clear(); window.sessionStorage.clear();")
+            print("  ✓ Session cleared")
+        else:
+            print("  ℹ️  Page already closed, skipping session clear")
+    except Exception as e:
+        print(f"  ⚠️  Error clearing session: {e}")
 
 
 @pytest.fixture(scope="function")
@@ -329,39 +349,49 @@ def pytest_runtest_makereport(item, call):
 @pytest.fixture(autouse=True, scope="function")
 def ensure_browser_cleanup(request):
     """
-    Ensure browser resources are cleaned up after each test,
+    Final safety net to ensure browser resources are cleaned up after each test,
     even if the test fails or is interrupted.
+    
+    This runs AFTER other fixture teardowns as a last resort cleanup.
     """
     yield
+    
+    print("\n🛡️  [Safety Net] Final cleanup check")
     
     # Force cleanup of any remaining browser resources
     if "page" in request.fixturenames:
         try:
             page = request.getfixturevalue("page")
             if page and not page.is_closed():
+                print("  ⚠️  Found unclosed page, closing now...")
                 try:
                     page.close()
-                except Exception:
-                    pass
-        except Exception:
-            pass
+                    print("  ✓ Page closed")
+                except Exception as e:
+                    print(f"  ⚠️  Error closing page: {e}")
+        except Exception as e:
+            print(f"  ⚠️  Error accessing page: {e}")
     
     if "context" in request.fixturenames:
         try:
             context = request.getfixturevalue("context")
             if context:
+                unclosed_count = 0
                 try:
                     # Close all pages in context
-                    for page in context.pages:
+                    for page in list(context.pages):
                         try:
                             if not page.is_closed():
+                                unclosed_count += 1
                                 page.close()
                         except Exception:
                             pass
-                except Exception:
-                    pass
-        except Exception:
-            pass
+                    if unclosed_count > 0:
+                        print(f"  ⚠️  Closed {unclosed_count} unclosed page(s)")
+                except Exception as e:
+                    print(f"  ⚠️  Error cleaning context pages: {e}")
+        except Exception as e:
+            print(f"  ⚠️  Error accessing context: {e}")
 
 
 @pytest.fixture(autouse=True)
