@@ -70,6 +70,17 @@
   Next Start: Server will create fresh DB with nullable email
 
 ┌───────────────────────────────────────────────────────────────────────┐
+│ ✅ RESOLVED: MISSING DEPENDENCIES                                     │
+└───────────────────────────────────────────────────────────────────────┘
+
+  Problem: "No module named 'apscheduler'" on server start
+  Cause: requirements.txt updated but packages not installed
+  Solution: Installed apscheduler and all backend requirements
+  
+  Packages Added: apscheduler, alembic, cryptography, email-validator,
+                  passlib, python-jose, and others
+
+┌───────────────────────────────────────────────────────────────────────┐
 │ ✅ IMPROVEMENTS APPLIED                                               │
 └───────────────────────────────────────────────────────────────────────┘
 
