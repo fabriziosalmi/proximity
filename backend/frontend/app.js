@@ -1002,27 +1002,54 @@ async function renderSettingsView() {
         const token = localStorage.getItem('auth_token');
         if (token) {
             // Load Proxmox settings
-            const proxmoxRes = await authFetch(`${API_BASE}/settings/proxmox`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (proxmoxRes.ok) proxmoxSettings = await proxmoxRes.json();
+            try {
+                const proxmoxRes = await authFetch(`${API_BASE}/settings/proxmox`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (proxmoxRes.ok) {
+                    proxmoxSettings = await proxmoxRes.json();
+                } else {
+                    console.warn('Failed to load Proxmox settings:', proxmoxRes.status);
+                }
+            } catch (err) {
+                console.warn('Error loading Proxmox settings:', err);
+            }
 
             // Load Network settings
-            const networkRes = await authFetch(`${API_BASE}/settings/network`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (networkRes.ok) networkSettings = await networkRes.json();
+            try {
+                const networkRes = await authFetch(`${API_BASE}/settings/network`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (networkRes.ok) {
+                    networkSettings = await networkRes.json();
+                } else {
+                    console.warn('Failed to load Network settings:', networkRes.status);
+                }
+            } catch (err) {
+                console.warn('Error loading Network settings:', err);
+            }
 
             // Load Resource settings
-            const resourceRes = await authFetch(`${API_BASE}/settings/resources`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (resourceRes.ok) resourceSettings = await resourceRes.json();
+            try {
+                const resourceRes = await authFetch(`${API_BASE}/settings/resources`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (resourceRes.ok) {
+                    resourceSettings = await resourceRes.json();
+                } else {
+                    console.warn('Failed to load Resource settings:', resourceRes.status);
+                }
+            } catch (err) {
+                console.warn('Error loading Resource settings:', err);
+            }
+        } else {
+            console.warn('No auth token found, using default settings');
         }
     } catch (error) {
         console.error('Error loading settings:', error);
+    } finally {
+        hideLoading();
     }
-    hideLoading();
 
     const content = `
         <div class="page-header">
