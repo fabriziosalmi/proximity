@@ -24,3 +24,6 @@ alembic==1.12.1
 
 # Encryption (Phase 2)
 cryptography==41.0.7
+
+# Scheduling (Phase 2: AUTO Mode)
+apscheduler>=3.10.4
