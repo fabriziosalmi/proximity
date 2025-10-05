@@ -1,0 +1,33 @@
+{
+  "id": "stable-diffusion-webui",
+  "name": "Stable Diffusion WebUI",
+  "description": "Generate AI images locally with Stable Diffusion",
+  "version": "latest",
+  "icon": "https://cdn.simpleicons.org/stablediffusion/4F46E5",
+  "category": "AI",
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "stable-diffusion": {
+        "image": "ghcr.io/abetlen/stable-diffusion-webui:latest",
+        "ports": ["7860:7860"],
+        "volumes": ["sd_data:/data"],
+        "environment": {
+          "CLI_ARGS": "--listen"
+        },
+        "restart": "always"
+      }
+    },
+    "volumes": {
+      "sd_data": {}
+    }
+  },
+  "ports": [7860],
+  "volumes": ["sd_data"],
+  "environment": {},
+  "min_memory": 8192,
+  "min_cpu": 4,
+  "tags": ["ai", "image-generation", "stable-diffusion", "art"],
+  "author": "AUTOMATIC1111",
+  "website": "https://github.com/AUTOMATIC1111/stable-diffusion-webui"
+}

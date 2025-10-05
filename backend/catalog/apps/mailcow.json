@@ -1,0 +1,42 @@
+{
+  "id": "mailcow",
+  "name": "Mailcow",
+  "description": "Complete mail server suite with webmail",
+  "version": "latest",
+  "icon": "https://cdn.simpleicons.org/mail/0078D4",
+  "category": "Communication",
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "mailcow": {
+        "image": "mailcow/mailcow-dockerized:latest",
+        "ports": ["25:25", "143:143", "587:587", "993:993", "443:443", "80:80"],
+        "environment": {
+          "MAILCOW_HOSTNAME": "mail.example.com",
+          "DBNAME": "mailcow",
+          "DBUSER": "mailcow",
+          "DBPASS": "mailcow_password"
+        },
+        "volumes": [
+          "mailcow_data:/var/vmail",
+          "mailcow_mysql:/var/lib/mysql"
+        ],
+        "restart": "always"
+      }
+    },
+    "volumes": {
+      "mailcow_data": {},
+      "mailcow_mysql": {}
+    }
+  },
+  "ports": [25, 143, 587, 993, 443, 80],
+  "volumes": ["mailcow_data", "mailcow_mysql"],
+  "environment": {
+    "DBPASS": "mailcow_password"
+  },
+  "min_memory": 4096,
+  "min_cpu": 4,
+  "tags": ["mail", "email", "smtp", "communication"],
+  "author": "Mailcow",
+  "website": "https://mailcow.email"
+}

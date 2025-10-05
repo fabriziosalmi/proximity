@@ -1,0 +1,38 @@
+{
+  "id": "syncthing",
+  "name": "Syncthing",
+  "description": "Continuous file synchronization between devices",
+  "version": "latest",
+  "icon": "https://cdn.simpleicons.org/syncthing/0891D5",
+  "category": "Storage",
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "syncthing": {
+        "image": "syncthing/syncthing:latest",
+        "ports": ["8384:8384", "22000:22000", "21027:21027/udp"],
+        "environment": {
+          "PUID": "1000",
+          "PGID": "1000"
+        },
+        "volumes": [
+          "syncthing_config:/var/syncthing/config",
+          "syncthing_data:/var/syncthing"
+        ],
+        "restart": "always"
+      }
+    },
+    "volumes": {
+      "syncthing_config": {},
+      "syncthing_data": {}
+    }
+  },
+  "ports": [8384, 22000, 21027],
+  "volumes": ["syncthing_config", "syncthing_data"],
+  "environment": {},
+  "min_memory": 256,
+  "min_cpu": 1,
+  "tags": ["sync", "storage", "backup", "p2p"],
+  "author": "Syncthing",
+  "website": "https://syncthing.net"
+}

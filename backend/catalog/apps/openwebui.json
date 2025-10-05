@@ -1,0 +1,33 @@
+{
+  "id": "openwebui",
+  "name": "Open WebUI",
+  "description": "Beautiful web interface for LLMs - ChatGPT-style UI for Ollama",
+  "version": "latest",
+  "icon": "https://cdn.simpleicons.org/openai/412991",
+  "category": "AI",
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "openwebui": {
+        "image": "ghcr.io/open-webui/open-webui:main",
+        "ports": ["3000:8080"],
+        "environment": {
+          "OLLAMA_API_BASE_URL": "http://host.docker.internal:11434"
+        },
+        "volumes": ["openwebui_data:/app/backend/data"],
+        "restart": "always"
+      }
+    },
+    "volumes": {
+      "openwebui_data": {}
+    }
+  },
+  "ports": [3000],
+  "volumes": ["openwebui_data"],
+  "environment": {},
+  "min_memory": 1024,
+  "min_cpu": 2,
+  "tags": ["ai", "llm", "chat", "interface"],
+  "author": "Open WebUI",
+  "website": "https://openwebui.com"
+}
