@@ -130,8 +130,8 @@ def test_full_app_deploy_manage_delete_workflow(authenticated_page: Page, base_u
     deployment_modal.wait_for_modal_visible()
     print("   ✓ Deployment modal opened")
     
-    # Verify modal title
-    expect(deployment_modal.modal_title).to_have_text("Deploy Application")
+    # Verify modal title (dynamically shows app name)
+    expect(deployment_modal.modal_title).to_contain_text("Deploy")
     print("   ✓ Modal title verified")
     
     # Fill hostname (the only required field for basic deployment)

@@ -27,7 +27,7 @@ class DeploymentModalPage(BasePage):
     MODAL = "#deployModal"
     MODAL_CONTENT = ".modal-content"
     MODAL_HEADER = ".modal-header"
-    MODAL_TITLE = ".modal-title"
+    MODAL_TITLE = "#deployModal #modalTitle"  # Specific to deployment modal, not generic .modal-title
     MODAL_CLOSE = ".modal-close"
     MODAL_BODY = ".modal-body"
     MODAL_FOOTER = ".modal-footer"
