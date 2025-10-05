@@ -121,26 +121,41 @@ def page(context: BrowserContext, base_url: str) -> Generator[Page, None, None]:
     1. Creating a fresh page
     2. Clearing all storage before navigation
     3. Navigating to base URL
-    4. Cleaning up after test
+    4. Triggering auth modal if not authenticated
+    5. Cleaning up after test
     """
     page = context.new_page()
     page.set_default_timeout(int(os.getenv("TIMEOUT", "30000")))
     
     # Clear all storage BEFORE navigating to ensure clean state
-    page.goto(base_url)
+    page.goto(base_url, wait_until="domcontentloaded")
     page.evaluate("window.localStorage.clear(); window.sessionStorage.clear();")
     
     # Reload to ensure the cleared state takes effect
-    page.reload()
+    page.reload(wait_until="domcontentloaded")
+    
+    # Wait for app to initialize
+    page.wait_for_load_state("networkidle")
+    
+    # Force show auth modal if not authenticated (workaround for timing issues)
+    page.evaluate("""
+        if (typeof showAuthModal === 'function' && !Auth.isAuthenticated()) {
+            showAuthModal();
+        }
+    """)
     
     yield page
     
     # Cleanup: Clear storage and close page
     try:
         page.evaluate("window.localStorage.clear(); window.sessionStorage.clear();")
-    except:
+    except Exception:
         pass  # Page might already be closed
-    page.close()
+    
+    try:
+        page.close()
+    except Exception:
+        pass  # Page might already be closed
 
 
 # ============================================================================
