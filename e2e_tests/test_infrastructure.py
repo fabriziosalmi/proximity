@@ -20,9 +20,9 @@ from utils.test_data import generate_test_user
 def authenticated_infra_page(authenticated_page: Page):
     """Fixture providing authenticated page on infrastructure view."""
     page = authenticated_page
-    # Navigate to infrastructure
-    page.click("[data-view='infrastructure']")
-    expect(page.locator("#infrastructureView")).to_be_visible(timeout=10000)
+    # Navigate to infrastructure (nodes view)
+    page.click("[data-view='nodes']")
+    expect(page.locator("#nodesView")).to_be_visible(timeout=10000)
     
     return page
 
@@ -40,8 +40,8 @@ def test_infrastructure_page_loads(authenticated_infra_page):
     
     print("\n🏗️  Testing infrastructure page load")
     
-    # Verify infrastructure view
-    infra_view = page.locator("#infrastructureView")
+    # Verify infrastructure view (nodes view)
+    infra_view = page.locator("#nodesView")
     expect(infra_view).to_be_visible()
     print("✓ Infrastructure view loaded")
     
@@ -350,14 +350,14 @@ def test_infrastructure_realtime_updates(authenticated_infra_page):
     print("\n⏱️  Testing real-time updates")
     
     # Take initial snapshot of status
-    initial_html = page.locator("#infrastructureView").inner_html()
+    initial_html = page.locator("#nodesView").inner_html()
     
     # Wait for auto-refresh (usually 10-30 seconds)
     print("  Waiting for auto-refresh...")
     page.wait_for_timeout(35000)
     
     # Take new snapshot
-    updated_html = page.locator("#infrastructureView").inner_html()
+    updated_html = page.locator("#nodesView").inner_html()
     
     # Check if content changed (indicating refresh occurred)
     if initial_html != updated_html:

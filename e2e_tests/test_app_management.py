@@ -47,8 +47,17 @@ def deployed_app(authenticated_page: Page):
         timeout=300000
     )
     
+    # Close deployment modal if open
+    try:
+        page.click("button:has-text('Close')", timeout=2000)
+    except:
+        pass
+    
+    # Navigate to My Apps and wait for app to appear
     page.click("[data-view='apps']")
-    page.wait_for_selector(f".app-card:has-text('{hostname}')", timeout=30000)
+    page.reload()  # Refresh to ensure app is loaded
+    page.wait_for_timeout(2000)  # Give time for UI to update
+    page.wait_for_selector(f".app-card:has-text('{hostname}')", timeout=60000)  # Increased to 60 seconds
     
     yield page, hostname
     

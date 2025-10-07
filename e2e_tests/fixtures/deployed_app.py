@@ -80,7 +80,11 @@ def deployed_app(authenticated_page: Page, base_url: str) -> Generator[Dict, Non
         # Wait for app to be visible in UI
         print("📋 Waiting for app to appear in UI...")
         page.reload()  # Refresh to see new app
-        page.wait_for_timeout(2000)  # Give UI time to update
+        page.wait_for_timeout(3000)  # Give UI time to update
+        
+        # Navigate to apps view
+        page.click("[data-view='apps']")
+        page.wait_for_timeout(2000)  # Wait for view to load
 
         # Prepare app info for test
         app_info = {
@@ -100,22 +104,20 @@ def deployed_app(authenticated_page: Page, base_url: str) -> Generator[Dict, Non
         # Cleanup: Delete the app
         if app_id:
             print(f"\n🧹 [deployed_app fixture] Cleaning up app ID={app_id}")
+            try:
+                delete_response = requests.delete(
+                    f"{api_base}/apps/{app_id}",
+                    headers=headers,
+                    timeout=30
+                )
+                if delete_response.status_code == 200:
+                    print(f"✓ App deleted successfully")
+                else:
+                    print(f"⚠️  Failed to delete app: {delete_response.status_code}")
+            except Exception as e:
+                print(f"⚠️  Error deleting app: {e}")
         else:
             print(f"\n🧹 [deployed_app fixture] No app to clean up (deployment may have failed)")
-            return
-
-        try:
-            delete_response = requests.delete(
-                f"{api_base}/apps/{app_id}",
-                headers=headers,
-                timeout=30
-            )
-            if delete_response.status_code == 200:
-                print(f"✓ App deleted successfully")
-            else:
-                print(f"⚠️  Failed to delete app: {delete_response.status_code}")
-        except Exception as e:
-            print(f"⚠️  Error deleting app: {e}")
 
 
 @pytest.fixture

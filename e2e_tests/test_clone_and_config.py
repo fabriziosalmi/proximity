@@ -34,7 +34,8 @@ def deployed_app(authenticated_page: Page, base_url: str):
 
     dashboard_page.navigate_to_app_store()
     app_store_page.wait_for_catalog_load()
-    app_store_page.search_apps("nginx")
+    # Click on nginx app card directly (no search function exists)
+    app_store_page.click_app_card("Nginx")
     deployment_modal.wait_for_modal_visible()
     deployment_modal.enter_hostname(hostname)
     deployment_modal.submit_deployment()
