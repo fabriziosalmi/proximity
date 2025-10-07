@@ -1,6 +1,7 @@
 {
   "id": "adminer",
   "name": "Adminer",
+  "version": "1.0.0",
   "description": "Full-featured database management tool in a single file",
   "version": "latest",
   "icon": "https://cdn.simpleicons.org/adminer/34567C",

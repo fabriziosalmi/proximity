@@ -1,6 +1,7 @@
 {
   "id": "filebrowser",
   "name": "File Browser",
+  "version": "1.0.0",
   "description": "Web-based file manager with user management, permissions, and multiple storage backend support",
   "category": "Storage",
   "icon": "https://cdn.simpleicons.org/files/4285F4",

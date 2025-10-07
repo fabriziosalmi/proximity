@@ -8,7 +8,7 @@ a specialized Alpine Linux LXC that provides comprehensive network services:
 - DHCP server for automatic IP assignment (10.20.0.100-250)
 - DNS server with .prox.local domain resolution
 - Caddy reverse proxy for unified app access
-- Cockpit management UI for appliance administration
+- Webmin management UI for appliance administration
 
 Architecture:
 ┌─────────────────────────────────────────────────────────────┐
@@ -29,7 +29,7 @@ Architecture:
 │              │  - NAT/Routing      │                        │
 │              │  - DHCP/DNS         │                        │
 │              │  - Caddy Proxy      │                        │
-│              │  - Cockpit UI       │                        │
+│              │  - Webmin UI        │                        │
 │              └─────────────────────┘                        │
 │                         │                                    │
 │                         │ 10.20.0.0/24                       │
@@ -57,6 +57,7 @@ import logging
 import re
 from typing import Optional, Dict, Any, List
 from dataclasses import dataclass
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -81,7 +82,7 @@ class NetworkApplianceOrchestrator:
     This class handles:
     1. Host bridge provisioning (proximity-lan)
     2. Appliance LXC provisioning (prox-appliance)
-    3. Deep service configuration (DHCP, DNS, NAT, Caddy, Cockpit)
+    3. Deep service configuration (DHCP, DNS, NAT, Caddy)
     4. Health monitoring and maintenance
     """
     
@@ -99,7 +100,6 @@ class NetworkApplianceOrchestrator:
     DNS_DOMAIN = "prox.local"
     
     # Service ports
-    COCKPIT_PORT = 9090
     CADDY_HTTP_PORT = 80
     CADDY_HTTPS_PORT = 443
     
@@ -167,7 +167,7 @@ class NetworkApplianceOrchestrator:
                 logger.warning("⚠️  Appliance health check reported warnings")
             
             logger.info("✅ Proximity Network Appliance initialized successfully")
-            logger.info(f"   Management UI: http://{appliance.wan_ip}:{self.COCKPIT_PORT}")
+            logger.info(f"   Appliance root password: invaders")
             logger.info(f"   LAN Gateway: {self.LAN_GATEWAY}")
             logger.info(f"   DNS Domain: .{self.DNS_DOMAIN}")
             
@@ -318,10 +318,9 @@ iface {self.BRIDGE_NAME} inet manual
             logger.info(f"Creating new appliance LXC on node {node}: {self.APPLIANCE_HOSTNAME}")
             
             # LXC configuration
+            # Note: ostemplate is NOT specified here - create_lxc will handle template selection
             config = {
-                'vmid': self.APPLIANCE_VMID,
                 'hostname': self.APPLIANCE_HOSTNAME,
-                'ostemplate': 'local:vztmpl/alpine-3.18-default_20230607_amd64.tar.xz',
                 'unprivileged': 0,  # Privileged container (required for iptables)
                 'features': 'nesting=1,keyctl=1',
                 'cores': 2,
@@ -342,11 +341,23 @@ iface {self.BRIDGE_NAME} inet manual
             # bypass_network_manager=True tells create_lxc to use net0/net1 from config directly
             result = await self.proxmox.create_lxc(node, self.APPLIANCE_VMID, config, bypass_network_manager=True)
             
-            if not result:
-                logger.error("Failed to create appliance LXC")
+            if not result or 'task_id' not in result:
+                logger.error("Failed to create appliance LXC: no task ID returned")
                 return None
             
-            # Wait for LXC to start
+            # Wait for the LXC creation task to complete (can take 30-60 seconds)
+            task_id = result['task_id']
+            logger.info(f"Waiting for LXC creation task to complete: {task_id}")
+            
+            try:
+                await self.proxmox.wait_for_task(node, task_id, timeout=120)
+                logger.info(f"✓ LXC creation task completed successfully")
+            except Exception as e:
+                logger.error(f"LXC creation task failed: {e}")
+                return None
+            
+            # Wait for LXC to fully boot up
+            logger.info("Waiting for LXC to boot up...")
             await asyncio.sleep(10)
             
             # Get WAN IP (DHCP assigned)
@@ -379,7 +390,7 @@ iface {self.BRIDGE_NAME} inet manual
         2. NAT firewall (iptables)
         3. DHCP/DNS (dnsmasq)
         4. Reverse proxy (Caddy)
-        5. Management UI (Cockpit)
+        5. Set root password
         
         Args:
             vmid: VMID of the appliance LXC
@@ -410,9 +421,9 @@ iface {self.BRIDGE_NAME} inet manual
             if not await self._configure_caddy(vmid):
                 return False
             
-            # Step 5: Configure Cockpit management UI
-            logger.info("  [5/5] Configuring Cockpit management UI...")
-            if not await self._configure_cockpit(vmid):
+            # Step 5: Set root password
+            logger.info("  [5/5] Setting root password...")
+            if not await self._set_root_password(vmid, "invaders"):
                 return False
             
             logger.info("✓ Appliance configuration complete")
@@ -425,9 +436,8 @@ iface {self.BRIDGE_NAME} inet manual
     async def _setup_base_system(self, vmid: int) -> bool:
         """Install packages and configure base system."""
         try:
-            # Install required packages
+            # Install required packages (Webmin will be installed separately)
             packages = "bash nano curl iptables ip6tables dnsmasq caddy"
-            # Note: Cockpit might not be available in Alpine repos, we'll handle that separately
             
             install_cmd = f"apk update && apk add {packages}"
             result = await self._exec_in_lxc(vmid, install_cmd)
@@ -562,25 +572,90 @@ import /etc/caddy/sites-enabled/*
             logger.error(f"Caddy configuration failed: {e}")
             return False
     
-    async def _configure_cockpit(self, vmid: int) -> bool:
-        """Configure Cockpit management UI."""
+    async def _set_root_password(self, vmid: int, password: str) -> bool:
+        """
+        Set the root password in the appliance LXC.
+        """
         try:
-            # Cockpit might not be available in standard Alpine repos
-            # We'll try to install it, but won't fail if unavailable
+            cmd = f"echo 'root:{password}' | chpasswd"
+            result = await self._exec_in_lxc(vmid, cmd)
+            if result.get('exitcode') == 0:
+                logger.info("    ✓ Root password set successfully")
+                return True
+            else:
+                logger.error("Failed to set root password")
+                return False
+        except Exception as e:
+            logger.error(f"Failed to set root password: {e}")
+            return False
+            await self._exec_in_lxc(vmid, setup_config)
             
-            enable_cmd = "rc-update add cockpit default && rc-service cockpit start"
-            result = await self._exec_in_lxc(vmid, enable_cmd)
+            # Run setup with config file
+            install_cmd = f"cd /tmp/webmin-{webmin_version} && ./setup.sh /etc/webmin"
+            result = await self._exec_in_lxc(vmid, install_cmd)
             
             if result.get('exitcode') != 0:
-                logger.warning("Cockpit not available (optional feature)")
-                logger.info("    ⚠️  Cockpit not configured (optional)")
-                return True  # Don't fail, it's optional
+                logger.warning(f"Webmin installation failed: {{result.get('error', 'unknown error')}}")
+                logger.info("    ⚠️  Webmin not configured (optional)")
+                return True
             
-            logger.info("    ✓ Cockpit management UI configured")
+            # Verify installation
+            verify_cmd = "test -f /usr/local/webmin/miniserv.pl && echo 'OK'"
+            result = await self._exec_in_lxc(vmid, verify_cmd)
+            
+            if result.get('exitcode') != 0 or 'OK' not in result.get('output', ''):
+                logger.warning("Webmin installation verification failed")
+                logger.info("    ⚠️  Webmin not configured (optional)")
+                return True
+            
+            # Create proper init script
+            init_script = f"""cat > /etc/init.d/webmin << 'INITEOF'
+#!/sbin/openrc-run
+
+name="Webmin"
+description="Webmin administration interface"
+command="/usr/local/webmin/miniserv.pl"
+command_args="/etc/webmin/miniserv.conf"
+pidfile="/var/webmin/miniserv.pid"
+command_background=true
+
+depend() {{
+    need net
+    after firewall
+}}
+
+start_pre() {{
+    checkpath -d -o root:root /var/webmin
+}}
+INITEOF
+chmod +x /etc/init.d/webmin
+"""
+            await self._exec_in_lxc(vmid, init_script)
+            
+            # Enable and start Webmin
+            logger.info("      Starting Webmin service...")
+            enable_cmd = "rc-update add webmin default"
+            await self._exec_in_lxc(vmid, enable_cmd)
+            
+            start_cmd = "rc-service webmin start"
+            result = await self._exec_in_lxc(vmid, start_cmd)
+            
+            if result.get('exitcode') == 0:
+                logger.info(f"    ✓ Webmin management UI configured on port {self.WEBMIN_PORT}")
+                logger.info(f"       Default credentials: admin / admin123")
+                logger.info(f"       ⚠️  CHANGE PASSWORD AFTER FIRST LOGIN!")
+                
+                # Cleanup
+                cleanup_cmd = f"rm -rf /tmp/webmin-{webmin_version}*"
+                await self._exec_in_lxc(vmid, cleanup_cmd)
+            else:
+                logger.warning(f"Webmin service start failed: {{result.get('error', 'unknown')}}")
+                logger.info("    ⚠️  Webmin not fully configured (optional)")
+            
             return True
             
         except Exception as e:
-            logger.warning(f"Cockpit configuration skipped: {e}")
+            logger.warning(f"Webmin configuration skipped: {e}")
             return True  # Don't fail on optional feature
     
     async def verify_appliance_health(self) -> bool:
@@ -799,7 +874,7 @@ iface {self.BRIDGE_NAME} inet manual
                     'wan_interface': self.appliance_info.wan_interface,
                     'lan_ip': self.appliance_info.lan_ip,
                     'lan_interface': self.appliance_info.lan_interface,
-                    'management_url': f"http://{self.appliance_info.wan_ip}:{self.COCKPIT_PORT}" if self.appliance_info.wan_ip else None
+                    'management_url': f"http://{self.appliance_info.wan_ip}:{self.WEBMIN_PORT}" if self.appliance_info.wan_ip else None
                 }
                 
                 # Get resource usage
@@ -1184,6 +1259,196 @@ iface {self.BRIDGE_NAME} inet manual
         except Exception as e:
             logger.debug(f"Could not get WAN IP: {e}")
             return None
+    
+    async def diagnose_initialization_failure(self) -> Dict[str, Any]:
+        """
+        Comprehensive diagnostic to understand why appliance initialization failed.
+        
+        Returns:
+            Dict with detailed diagnostic information including what's missing/broken
+        """
+        diagnostics = {
+            'timestamp': datetime.now().isoformat(),
+            'checks': {},
+            'summary': [],
+            'recommendations': []
+        }
+        
+        try:
+            # 1. Check Proxmox connectivity
+            logger.info("🔍 Diagnostic Step 1: Proxmox Connection")
+            try:
+                node = await self._get_default_node()
+                if node:
+                    diagnostics['checks']['proxmox_connection'] = {
+                        'status': 'OK',
+                        'node': node,
+                        'message': f'Connected to Proxmox node: {node}'
+                    }
+                    logger.info(f"  ✅ Connected to node: {node}")
+                else:
+                    diagnostics['checks']['proxmox_connection'] = {
+                        'status': 'FAIL',
+                        'message': 'Could not determine Proxmox node'
+                    }
+                    diagnostics['summary'].append('❌ Cannot connect to Proxmox')
+                    diagnostics['recommendations'].append('Check Proxmox credentials and network connectivity')
+                    logger.error("  ❌ Could not determine Proxmox node")
+                    return diagnostics
+            except Exception as e:
+                diagnostics['checks']['proxmox_connection'] = {
+                    'status': 'FAIL',
+                    'error': str(e)
+                }
+                diagnostics['summary'].append(f'❌ Proxmox connection failed: {e}')
+                diagnostics['recommendations'].append('Verify backend/data/settings.json has correct Proxmox credentials')
+                logger.error(f"  ❌ Connection error: {e}")
+                return diagnostics
+            
+            # 2. Check if bridge exists
+            logger.info(f"🔍 Diagnostic Step 2: Network Bridge ({self.BRIDGE_NAME})")
+            try:
+                check_cmd = f"ip link show {self.BRIDGE_NAME}"
+                result = await self._exec_on_host(check_cmd)
+                
+                if result and result.get('exitcode') == 0:
+                    diagnostics['checks']['bridge'] = {
+                        'status': 'OK',
+                        'name': self.BRIDGE_NAME,
+                        'message': f'Bridge {self.BRIDGE_NAME} exists'
+                    }
+                    logger.info(f"  ✅ Bridge {self.BRIDGE_NAME} exists")
+                else:
+                    diagnostics['checks']['bridge'] = {
+                        'status': 'MISSING',
+                        'name': self.BRIDGE_NAME,
+                        'message': f'Bridge {self.BRIDGE_NAME} does not exist on host'
+                    }
+                    diagnostics['summary'].append(f'❌ Bridge {self.BRIDGE_NAME} missing')
+                    diagnostics['recommendations'].append(f'Run: ip link add name {self.BRIDGE_NAME} type bridge && ip link set {self.BRIDGE_NAME} up')
+                    logger.warning(f"  ⚠️  Bridge {self.BRIDGE_NAME} not found")
+            except Exception as e:
+                diagnostics['checks']['bridge'] = {
+                    'status': 'ERROR',
+                    'error': str(e)
+                }
+                logger.error(f"  ❌ Bridge check failed: {e}")
+            
+            # 3. Check if appliance LXC exists
+            logger.info(f"🔍 Diagnostic Step 3: Appliance LXC (VMID {self.APPLIANCE_VMID})")
+            try:
+                container_info = await self.proxmox.get_lxc_status(node, self.APPLIANCE_VMID)
+                
+                if container_info:
+                    status = container_info.get('status', 'unknown')
+                    diagnostics['checks']['appliance_lxc'] = {
+                        'status': 'EXISTS',
+                        'vmid': self.APPLIANCE_VMID,
+                        'container_status': status,
+                        'message': f'Appliance container exists with status: {status}'
+                    }
+                    logger.info(f"  ✅ Container VMID {self.APPLIANCE_VMID} exists (status: {status})")
+                    
+                    if status != 'running':
+                        diagnostics['summary'].append(f'⚠️  Appliance container exists but is {status}')
+                        diagnostics['recommendations'].append(f'Start container: pct start {self.APPLIANCE_VMID}')
+                else:
+                    diagnostics['checks']['appliance_lxc'] = {
+                        'status': 'MISSING',
+                        'vmid': self.APPLIANCE_VMID,
+                        'message': f'No container found at VMID {self.APPLIANCE_VMID}'
+                    }
+                    diagnostics['summary'].append(f'❌ Appliance LXC missing (VMID {self.APPLIANCE_VMID})')
+                    diagnostics['recommendations'].append('Appliance needs to be created - this should happen automatically on first boot')
+                    logger.warning(f"  ⚠️  No container at VMID {self.APPLIANCE_VMID}")
+            except Exception as e:
+                diagnostics['checks']['appliance_lxc'] = {
+                    'status': 'ERROR',
+                    'error': str(e)
+                }
+                logger.error(f"  ❌ Container check failed: {e}")
+            
+            # 4. Check Alpine template availability
+            logger.info("🔍 Diagnostic Step 4: Alpine Linux Template")
+            try:
+                # Check for Alpine template
+                check_template_cmd = "ls /var/lib/vz/template/cache/ | grep -i alpine"
+                result = await self._exec_on_host(check_template_cmd)
+                
+                if result and result.get('exitcode') == 0 and result.get('output', '').strip():
+                    templates = result.get('output', '').strip().split('\n')
+                    diagnostics['checks']['template'] = {
+                        'status': 'OK',
+                        'templates': templates,
+                        'message': f'Found {len(templates)} Alpine template(s)'
+                    }
+                    logger.info(f"  ✅ Alpine templates available: {', '.join(templates)}")
+                else:
+                    diagnostics['checks']['template'] = {
+                        'status': 'MISSING',
+                        'message': 'No Alpine Linux template found'
+                    }
+                    diagnostics['summary'].append('❌ Alpine Linux template missing')
+                    diagnostics['recommendations'].append('Download template: pveam download local alpine-3.19-default_20240207_amd64.tar.xz')
+                    logger.warning("  ⚠️  No Alpine template found")
+            except Exception as e:
+                diagnostics['checks']['template'] = {
+                    'status': 'ERROR',
+                    'error': str(e)
+                }
+                logger.error(f"  ❌ Template check failed: {e}")
+            
+            # 5. Check SSH connectivity to host
+            logger.info("🔍 Diagnostic Step 5: SSH Host Access")
+            try:
+                test_cmd = "echo 'SSH test successful'"
+                result = await self._exec_on_host(test_cmd)
+                
+                if result and result.get('exitcode') == 0:
+                    diagnostics['checks']['ssh_access'] = {
+                        'status': 'OK',
+                        'message': 'SSH commands execute successfully'
+                    }
+                    logger.info("  ✅ SSH host access working")
+                else:
+                    diagnostics['checks']['ssh_access'] = {
+                        'status': 'FAIL',
+                        'message': 'SSH commands failing'
+                    }
+                    diagnostics['summary'].append('❌ Cannot execute commands on Proxmox host via SSH')
+                    diagnostics['recommendations'].append('Check SSH configuration in settings.json')
+                    logger.error("  ❌ SSH commands not working")
+            except Exception as e:
+                diagnostics['checks']['ssh_access'] = {
+                    'status': 'ERROR',
+                    'error': str(e)
+                }
+                logger.error(f"  ❌ SSH test failed: {e}")
+            
+            # Generate summary if no issues found yet
+            if not diagnostics['summary']:
+                diagnostics['summary'].append('✅ All infrastructure components present')
+                diagnostics['summary'].append('⚠️  Initialization may have failed due to timing or configuration issue')
+                diagnostics['recommendations'].append('Check full logs for detailed error messages')
+                diagnostics['recommendations'].append('Try manual initialization via API: POST /api/v1/system/network-appliance/reinitialize')
+            
+            logger.info("=" * 60)
+            logger.info("🔍 DIAGNOSTIC SUMMARY:")
+            for item in diagnostics['summary']:
+                logger.info(f"  {item}")
+            logger.info("")
+            logger.info("💡 RECOMMENDATIONS:")
+            for rec in diagnostics['recommendations']:
+                logger.info(f"  • {rec}")
+            logger.info("=" * 60)
+            
+            return diagnostics
+            
+        except Exception as e:
+            logger.error(f"Diagnostic process failed: {e}")
+            diagnostics['error'] = str(e)
+            diagnostics['summary'].append(f'❌ Diagnostic failed: {e}')
+            return diagnostics
     
     async def _exec_on_host(self, command: str) -> Optional[Dict[str, Any]]:
         """

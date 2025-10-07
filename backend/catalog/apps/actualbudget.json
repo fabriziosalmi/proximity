@@ -1,6 +1,7 @@
 {
   "id": "actualbudget",
   "name": "Actual Budget",
+  "version": "1.0.0",
   "description": "Local-first personal finance tool with zero-knowledge encryption and budget management",
   "category": "Automation",
   "icon": "https://cdn.simpleicons.org/moneygram/00A3E0",

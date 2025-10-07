@@ -1,6 +1,7 @@
 {
   "id": "owncloud",
   "name": "ownCloud",
+  "version": "1.0.0",
   "description": "Secure file sharing and collaboration platform with desktop and mobile sync clients",
   "category": "Storage",
   "icon": "https://cdn.simpleicons.org/owncloud/1D2D44",

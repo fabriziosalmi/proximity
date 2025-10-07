@@ -2,6 +2,7 @@
   "id": "zulip",
   "name": "Zulip",
   "description": "Powerful team chat with threaded conversations, integrations, and enterprise-grade security features",
+  "version": "latest",
   "category": "Communication",
   "icon": "https://cdn.simpleicons.org/zulip/52C2AF",
   "tags": ["chat", "team-communication", "collaboration", "threads", "notifications"],

@@ -1,6 +1,7 @@
 {
   "id": "nginx-proxy-manager",
   "name": "Nginx Proxy Manager",
+  "version": "1.0.0",
   "description": "Easy-to-use web interface for managing Nginx reverse proxy with SSL certificate automation",
   "category": "Web Server",
   "icon": "https://cdn.simpleicons.org/nginx/009639",

@@ -67,11 +67,43 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         from services.network_appliance_orchestrator import NetworkApplianceOrchestrator
         
         orchestrator = NetworkApplianceOrchestrator(proxmox_service)
+        
+        # Try to initialize network appliance
         network_init_success = await orchestrator.initialize()
         
         if not network_init_success:
-            logger.warning("⚠️  Network appliance initialization failed")
-            logger.info("ℹ️  Containers will use default Proxmox networking (vmbr0)")
+            logger.error("❌ Network appliance initialization failed")
+            logger.error("=" * 60)
+            logger.error("CRITICAL: Network Appliance Required")
+            logger.error("=" * 60)
+            logger.error("The Proximity platform requires a network appliance for:")
+            logger.error("  • Isolated application networking (proximity-lan)")
+            logger.error("  • DHCP/DNS services for containers")
+            logger.error("  • NAT gateway for internet access")
+            logger.error("  • Reverse proxy for unified app access")
+            logger.error("")
+            logger.error("Running comprehensive diagnostics to identify the issue...")
+            logger.error("")
+            
+            # Run detailed diagnostics to identify root cause
+            try:
+                diagnostics = await orchestrator.diagnose_initialization_failure()
+                # Diagnostic output is already logged by the function
+                
+            except Exception as diag_error:
+                logger.error(f"⚠️  Diagnostics failed: {diag_error}")
+            
+            logger.error("")
+            logger.error("FALLBACK MODE ACTIVE:")
+            logger.error("  ⚠️  Containers will use default Proxmox networking (vmbr0)")
+            logger.error("  ⚠️  Some features will be unavailable:")
+            logger.error("      - Network isolation")
+            logger.error("      - Automatic reverse proxy")
+            logger.error("      - Unified DNS (.prox.local domain)")
+            logger.error("")
+            logger.error("=" * 60)
+            
+            # Set orchestrator to None to use fallback networking
             orchestrator = None
         else:
             logger.info("✅ Network Appliance ready:")

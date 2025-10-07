@@ -1,6 +1,7 @@
 {
   "id": "adguard",
   "name": "AdGuard Home",
+  "version": "1.0.0",
   "description": "Network-wide ad and tracker blocking DNS server with parental control features",
   "category": "Security",
   "icon": "https://cdn.simpleicons.org/adguard/68BC71",
