@@ -223,8 +223,9 @@ def test_network_settings_form(authenticated_settings_page):
     expect(network_form.locator("input").first).to_be_visible()
     print("✓ Network form has input fields")
     
-    # Verify Save button
-    save_button = page.locator("button:has-text('Save Settings'), button[type='submit']")
+    # Verify Save button (search within the active network panel)
+    network_panel = page.locator("#network-panel.active")
+    save_button = network_panel.locator("button:has-text('Save Settings'), button[type='submit']")
     expect(save_button.first).to_be_visible()
     print("✓ Save button found")
 
@@ -256,8 +257,9 @@ def test_resources_settings_form(authenticated_settings_page):
     expect(resources_form.locator("input").first).to_be_visible()
     print("✓ Resources form has input fields")
     
-    # Verify Save button
-    save_button = page.locator("button:has-text('Save Settings'), button[type='submit']")
+    # Verify Save button (search within the active resources panel)
+    resources_panel = page.locator("#resources-panel.active")
+    save_button = resources_panel.locator("button:has-text('Save Settings'), button[type='submit']")
     expect(save_button.first).to_be_visible()
     print("✓ Save button found")
 
