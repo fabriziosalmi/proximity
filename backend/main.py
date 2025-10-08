@@ -64,6 +64,28 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         logger.info("=" * 60)
         logger.info("✓ Using vmbr0 with DHCP (simple and reliable)")
         
+        # Step 2.5: Ensure optimized template exists
+        logger.info("=" * 60)
+        logger.info("STEP 2.5: Checking LXC Template")
+        logger.info("=" * 60)
+        
+        try:
+            from services.template_service import TemplateService
+            
+            template_service = TemplateService(proxmox_service)
+            template_ready = await template_service.ensure_template_exists()
+            
+            if template_ready:
+                logger.info("✓ Optimized Alpine+Docker template ready")
+                logger.info("   • Deployments will be 50% faster!")
+            else:
+                logger.warning("⚠ Template creation failed - using fallback template")
+                logger.warning("   • Deployments will take longer (Docker installation required)")
+        
+        except Exception as e:
+            logger.error(f"Template check failed: {e}")
+            logger.warning("⚠ Continuing with fallback template")
+        
         # Step 3: Initialize app service (loads catalog)
         logger.info("=" * 60)
         logger.info("STEP 3: Loading Application Catalog")

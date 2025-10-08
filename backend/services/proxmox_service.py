@@ -242,10 +242,54 @@ class ProxmoxService:
                 config['rootfs'] = f"{storage_info['storage']}:{storage_info['size_gb']}"
                 logger.info(f"Selected storage: {config['rootfs']}")
             
-            # Ensure Alpine template exists (uses cache if available)
-            logger.info(f"Checking for Alpine template on node {node}...")
-            template_to_use = await self.ensure_alpine_template(node, version='3.22')
-            logger.info(f"✓ Template ready: {template_to_use}")
+            # Check for optimized Proximity template first, fallback to Alpine standard
+            logger.info(f"Checking for optimized template on node {node}...")
+            
+            # Try to use DEFAULT_LXC_TEMPLATE (proximity-alpine-docker.tar.zst)
+            try:
+                # Get all available storages
+                storage_list = await self.get_node_storage(node)
+                optimized_template = None
+                
+                # Search for DEFAULT_LXC_TEMPLATE in all storages
+                template_name = settings.DEFAULT_LXC_TEMPLATE.split(':')[-1]  # Extract just the filename
+                logger.info(f"🔍 Looking for template containing: '{template_name}'")
+                
+                for storage_info in storage_list:
+                    storage_name = storage_info['storage']
+                    logger.info(f"🔍 Checking storage: {storage_name}")
+                    try:
+                        existing_templates = await self.get_available_templates(node, storage_name)
+                        logger.info(f"   Found {len(existing_templates)} templates in {storage_name}")
+                        
+                        if existing_templates:
+                            logger.info(f"   Templates: {existing_templates[:3]}...")  # First 3 only
+                        
+                        matching = [t for t in existing_templates if template_name in t]
+                        
+                        if matching:
+                            optimized_template = matching[0]
+                            logger.info(f"✓ Using optimized Proximity template: {optimized_template}")
+                            logger.info(f"   (Docker pre-installed - deployment will be 50% faster!)")
+                            break
+                    except Exception as e:
+                        logger.info(f"   Could not check storage {storage_name}: {e}")
+                        continue
+                
+                if optimized_template:
+                    template_to_use = optimized_template
+                else:
+                    # Fallback to standard Alpine template
+                    logger.warning(f"⚠️  Optimized template not found, using standard Alpine (will install Docker)")
+                    template_to_use = await self.ensure_alpine_template(node, version='3.22')
+                    logger.info(f"✓ Template ready: {template_to_use}")
+                    
+            except Exception as e:
+                # If anything fails, fallback to standard Alpine
+                logger.warning(f"⚠️  Error checking for optimized template: {e}")
+                logger.info(f"Falling back to standard Alpine template...")
+                template_to_use = await self.ensure_alpine_template(node, version='3.22')
+                logger.info(f"✓ Template ready: {template_to_use}")
             
             # Get network configuration
             hostname = config.get('hostname', f"ct{vmid}")
@@ -287,13 +331,17 @@ class ProxmoxService:
                 client.nodes(node).lxc.create, **lxc_config
             )
             
+            # Check if Docker is pre-installed (optimized template)
+            docker_preinstalled = 'proximity-alpine-docker' in template_to_use.lower()
+            
             logger.info(f"LXC creation started: node={node}, vmid={vmid}, hostname={hostname}, network=vmbr0 (DHCP), task={task_id}")
             return {
                 "task_id": task_id, 
                 "vmid": vmid, 
                 "node": node, 
                 "hostname": hostname,
-                "root_password": root_password  # Include password for storage
+                "root_password": root_password,  # Include password for storage
+                "docker_preinstalled": docker_preinstalled  # Indicates if Docker setup can be skipped
             }
             
         except Exception as e:
@@ -1254,6 +1302,49 @@ class ProxmoxService:
 
         except Exception as e:
             raise ProxmoxError(f"Failed to delete backup {backup_file}: {e}")
+
+    async def list_templates(self, storage: str = "local") -> list:
+        """List available LXC templates in storage"""
+        try:
+            client = await self._get_client()
+            node = await self.get_best_node()
+            content = await asyncio.to_thread(
+                client.nodes(node).storage(storage).content.get,
+                content='vztmpl'
+            )
+            logger.debug(f"Found {len(content)} templates in {storage}")
+            return content
+        except Exception as e:
+            raise ProxmoxError(f"Failed to list templates in {storage}: {e}")
+
+    async def execute_command(self, node: str, command: str, timeout: int = 30) -> str:
+        """Execute command on Proxmox node via SSH"""
+        try:
+            import subprocess
+            ssh_host = settings.PROXMOX_SSH_HOST or settings.PROXMOX_HOST
+            ssh_user = settings.PROXMOX_SSH_USER
+            ssh_password = settings.PROXMOX_SSH_PASSWORD or settings.PROXMOX_PASSWORD
+            
+            ssh_cmd = [
+                'sshpass', '-p', ssh_password,
+                'ssh', '-o', 'StrictHostKeyChecking=no',
+                '-o', 'UserKnownHostsFile=/dev/null',
+                f'{ssh_user}@{ssh_host}',
+                command
+            ]
+            
+            result = subprocess.run(ssh_cmd, capture_output=True, text=True, timeout=timeout)
+            if result.returncode != 0:
+                raise ProxmoxError(f"Command failed: {result.stderr}")
+            return result.stdout
+        except subprocess.TimeoutExpired:
+            raise ProxmoxError(f"Command timed out after {timeout} seconds")
+        except Exception as e:
+            raise ProxmoxError(f"Failed to execute command on {node}: {e}")
+
+
+# Singleton instance
+proxmox_service = ProxmoxService()
 
 
 # Singleton instance

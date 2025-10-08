@@ -1042,6 +1042,9 @@ class AppService:
             root_password = create_result.get("root_password")
             encrypted_password = encrypt_password(root_password) if root_password else None
             
+            # Check if Docker is pre-installed in the template
+            docker_preinstalled = create_result.get("docker_preinstalled", False)
+            
             # Wait for container creation
             await self.proxmox_service.wait_for_task(target_node, create_result["task_id"])
             
@@ -1053,15 +1056,22 @@ class AppService:
             start_task = await self.proxmox_service.start_lxc(target_node, vmid)
             await self.proxmox_service.wait_for_task(target_node, start_task)
             
-            # Step 4.5: Setup Docker in Alpine
-            await self._log_deployment(app_id, "info", "Installing Docker in Alpine container")
-            deployment_status.progress = 50
-            deployment_status.current_step = "Setting up Docker"
-            
-            await self.proxmox_service.setup_docker_in_alpine(target_node, vmid)
-            
-            # Wait for Docker to be fully ready
-            await asyncio.sleep(5)
+            # Step 4.5: Setup Docker in Alpine (skip if using optimized template)
+            if docker_preinstalled:
+                await self._log_deployment(app_id, "info", "✓ Using optimized template with Docker pre-installed")
+                deployment_status.progress = 60
+                deployment_status.current_step = "Docker ready (from optimized template)"
+                # Just wait a bit for container to be fully ready
+                await asyncio.sleep(3)
+            else:
+                await self._log_deployment(app_id, "info", "Installing Docker in Alpine container")
+                deployment_status.progress = 50
+                deployment_status.current_step = "Setting up Docker"
+                
+                await self.proxmox_service.setup_docker_in_alpine(target_node, vmid)
+                
+                # Wait for Docker to be fully ready
+                await asyncio.sleep(5)
             
             # Step 5: Setup Docker Compose
             await self._log_deployment(app_id, "info", "Setting up application")

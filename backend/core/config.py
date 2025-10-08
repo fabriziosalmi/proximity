@@ -32,7 +32,8 @@ class Settings(BaseSettings):
     DEBUG: bool = False
     
     # LXC Template Settings
-    DEFAULT_LXC_TEMPLATE: str = "local:vztmpl/proximity-docker-template.tar.zst"
+    DEFAULT_LXC_TEMPLATE: str = "local:vztmpl/proximity-alpine-docker.tar.zst"
+    FALLBACK_LXC_TEMPLATE: str = "local:vztmpl/alpine-3.19-default_20231225_amd64.tar.xz"
     LXC_STORAGE: str = "local-lvm"
     LXC_MEMORY: int = 2048  # MB
     LXC_CORES: int = 2
