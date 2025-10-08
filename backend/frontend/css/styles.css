@@ -1094,25 +1094,24 @@ h3 { font-size: 1.5rem; font-weight: 600; }
                 inset 0 1px 0 rgba(34, 211, 238, 0.05);
 }
 
-/* Add padding for cards in settings and infrastructure that don't have explicit child containers */
-.settings-panel .app-card,
-.infrastructure-section .app-card {
+/* Add padding for cards in settings that don't have explicit child containers */
+.settings-panel .app-card {
     padding: 1.5rem;
 }
 
 /* Remove extra padding from forms since the card already has padding */
-.settings-panel .app-card .settings-form,
-.infrastructure-section .app-card .settings-form {
+.settings-panel .app-card .settings-form {
     padding: 0;
     margin: 0;
 }
 
 /* Adjust header padding when inside a padded card */
-.settings-panel .app-card .app-card-header,
-.infrastructure-section .app-card .app-card-header {
+.settings-panel .app-card .app-card-header {
     margin: -1.5rem -1.5rem 1.5rem -1.5rem;
     padding: 1.5rem;
 }
+
+/* Infrastructure section now uses standard deployed app-card layout - no custom padding needed */
 
 /* Deployed card compact style */
 .app-card.deployed {

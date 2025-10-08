@@ -783,72 +783,75 @@ async function renderNodesView() {
         ${appliance ? `
         <div class="infrastructure-section">
             <h2 class="section-title">Network Appliance</h2>
-            <div class="app-card">
-                <div class="app-card-header">
-                    <div class="app-icon-lg">🌐</div>
-                    <div class="app-info">
-                        <h3 class="app-name">${appliance.hostname || 'Network Appliance'}</h3>
-                        <span class="status-badge ${appliance.status === 'running' ? 'running' : 'stopped'}">
-                            <span class="status-dot"></span>
-                            ${appliance.status || 'unknown'}
-                        </span>
+            <div class="apps-grid deployed">
+                <div class="app-card deployed">
+                    <!-- Header with icon, name, status and quick actions -->
+                    <div class="app-card-header">
+                        <div class="app-icon-lg">🌐</div>
+                        <div class="app-info">
+                            <h3 class="app-name">${appliance.hostname || 'Network Appliance'}</h3>
+                            <span class="status-badge ${appliance.status === 'running' ? 'running' : 'stopped'}">
+                                <span class="status-dot"></span>
+                                ${appliance.status || 'unknown'}
+                            </span>
+                        </div>
+                        
+                        <!-- Quick Actions -->
+                        <div class="app-quick-actions">
+                            <button class="action-icon" title="Restart Appliance" onclick="restartAppliance()">
+                                <i data-lucide="rotate-cw"></i>
+                            </button>
+                            <button class="action-icon" title="View Logs" onclick="viewApplianceLogs()">
+                                <i data-lucide="file-text"></i>
+                            </button>
+                            <button class="action-icon" title="Test NAT" onclick="testNAT()">
+                                <i data-lucide="zap"></i>
+                            </button>
+                        </div>
                     </div>
-                </div>
 
-                <div class="app-meta" style="margin-top: 1rem;">
-                    <div class="app-meta-item">
-                        <span>🔢</span>
-                        <span>VMID: ${appliance.vmid || 'N/A'}</span>
+                    <!-- Connection info -->
+                    <div class="app-connection-info">
+                        <div class="connection-item" title="VMID">
+                            <i data-lucide="hash" class="connection-icon"></i>
+                            <span class="connection-value">${appliance.vmid || 'N/A'}</span>
+                        </div>
+                        <div class="connection-item" title="Node">
+                            <i data-lucide="server" class="connection-icon"></i>
+                            <span class="connection-value">${appliance.node || 'N/A'}</span>
+                        </div>
+                        <div class="connection-item" title="WAN interface (eth0) - DHCP from external network via vmbr0">
+                            <i data-lucide="globe" class="connection-icon"></i>
+                            <span class="connection-value">WAN: ${appliance.wan_ip || 'N/A'}</span>
+                        </div>
+                        <div class="connection-item" title="LAN interface (eth1) - Gateway for applications on proximity-lan">
+                            <i data-lucide="network" class="connection-icon"></i>
+                            <span class="connection-value">LAN: ${appliance.lan_ip || 'N/A'}</span>
+                        </div>
                     </div>
-                    <div class="app-meta-item">
-                        <span>🖥️</span>
-                        <span>Node: ${appliance.node || 'N/A'}</span>
-                    </div>
-                    <div class="app-meta-item" title="WAN interface (eth0) - DHCP from external network via vmbr0">
-                        <span>🌍</span>
-                        <span>WAN IP: ${appliance.wan_ip || 'N/A'} <small style="opacity: 0.6;">(DHCP)</small></span>
-                    </div>
-                    <div class="app-meta-item" title="LAN interface (eth1) - Gateway for applications on proximity-lan">
-                        <span>🔌</span>
-                        <span>LAN IP: ${appliance.lan_ip || 'N/A'} <small style="opacity: 0.6;">(Gateway)</small></span>
-                    </div>
-                </div>
 
-                <div class="app-meta" style="margin-top: 0.75rem;">
-                    <div class="app-meta-item">
-                        <span>💾</span>
-                        <span>RAM: ${appliance.memory || 'N/A'} MB</span>
+                    <!-- Resource stats -->
+                    <div class="app-connection-info" style="margin-top: 0.5rem;">
+                        <div class="connection-item">
+                            <i data-lucide="cpu" class="connection-icon"></i>
+                            <span class="connection-value">${appliance.cores || 'N/A'} cores</span>
+                        </div>
+                        <div class="connection-item">
+                            <i data-lucide="memory-stick" class="connection-icon"></i>
+                            <span class="connection-value">${appliance.memory || 'N/A'} MB</span>
+                        </div>
+                        <div class="connection-item">
+                            <i data-lucide="hard-drive" class="connection-icon"></i>
+                            <span class="connection-value">${appliance.disk || 'N/A'} GB</span>
+                        </div>
+                        <div class="connection-item">
+                            <i data-lucide="clock" class="connection-icon"></i>
+                            <span class="connection-value">${appliance.uptime || 'N/A'}</span>
+                        </div>
                     </div>
-                    <div class="app-meta-item">
-                        <span>⚡</span>
-                        <span>CPU: ${appliance.cores || 'N/A'} cores</span>
-                    </div>
-                    <div class="app-meta-item">
-                        <span>💿</span>
-                        <span>Disk: ${appliance.disk || 'N/A'} GB</span>
-                    </div>
-                    <div class="app-meta-item">
-                        <span>⏱️</span>
-                        <span>Uptime: ${appliance.uptime || 'N/A'}</span>
-                    </div>
-                </div>
 
-                <div class="infrastructure-actions" style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
-                    <button class="btn btn-secondary btn-sm" onclick="restartAppliance()">
-                        <i data-lucide="rotate-cw"></i>
-                        <span>Restart Appliance</span>
-                    </button>
-                    <button class="btn btn-secondary btn-sm" onclick="viewApplianceLogs()">
-                        <i data-lucide="file-text"></i>
-                        <span>View Logs</span>
-                    </button>
-                    <button class="btn btn-secondary btn-sm" onclick="testNAT()">
-                        <i data-lucide="zap"></i>
-                        <span>Test NAT</span>
-                    </button>
+                    <div id="infrastructureStatus" style="margin-top: 1rem;"></div>
                 </div>
-
-                <div id="infrastructureStatus" style="margin-top: 1rem;"></div>
             </div>
         </div>
         ` : `
