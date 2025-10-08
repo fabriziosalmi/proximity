@@ -379,28 +379,40 @@ async def get_infrastructure_status():
     This endpoint provides all information needed for the Infrastructure page.
     """
     try:
+        logger.info("🔍 Infrastructure status endpoint called")
+        
         # Try to get orchestrator from app state
         from main import app
         orchestrator = getattr(app.state, 'orchestrator', None)
         
-        logger.info(f"Orchestrator from app.state: {orchestrator is not None}")
+        logger.info(f"📦 Orchestrator from app.state: {orchestrator is not None}")
         if orchestrator:
-            logger.info(f"Orchestrator appliance_info: {orchestrator.appliance_info is not None}")
+            logger.info(f"📦 Orchestrator appliance_info: {orchestrator.appliance_info}")
         
         if not orchestrator:
             # Fallback: create new orchestrator instance
+            logger.info("Creating new orchestrator instance...")
             from services.network_appliance_orchestrator import NetworkApplianceOrchestrator
             from services.proxmox_service import proxmox_service
             
             orchestrator = NetworkApplianceOrchestrator(proxmox_service)
+            logger.info("✓ Orchestrator created")
             
             # Check if appliance exists
+            logger.info("Searching for existing appliance...")
             appliance_info = await orchestrator._find_existing_appliance()
+            logger.info(f"📦 Found appliance: {appliance_info}")
+            
             if appliance_info:
                 orchestrator.appliance_info = appliance_info
+                logger.info("✓ Appliance info set on orchestrator")
+            else:
+                logger.warning("❌ No appliance found")
         
         # Get comprehensive infrastructure status
+        logger.info("Getting infrastructure status from orchestrator...")
         infrastructure = await orchestrator.get_infrastructure_status()
+        logger.info(f"📊 Infrastructure data: {infrastructure}")
         
         logger.info(f"Infrastructure appliance: {infrastructure.get('appliance') is not None}")
         
@@ -415,6 +427,7 @@ async def get_infrastructure_status():
             is_healthy = appliance_running and services_ok
         
         health_status = "healthy" if is_healthy else "degraded" if infrastructure.get('appliance') else "not_initialized"
+        logger.info(f"✓ Infrastructure health status: {health_status}")
         
         return APIResponse(
             message=f"Infrastructure status: {health_status}",
@@ -426,7 +439,7 @@ async def get_infrastructure_status():
         )
         
     except Exception as e:
-        logger.error(f"Failed to get infrastructure status: {e}")
+        logger.error(f"❌ Failed to get infrastructure status: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 

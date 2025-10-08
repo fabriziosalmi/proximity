@@ -1,13 +1,6 @@
 // Utility function to reinitialize Lucide icons
 function initLucideIcons() {
     if (typeof lucide !== 'undefined') {
-        lucide.createIcons();
-    }
-}
-
-// Utility function to reinitialize Lucide icons
-function initLucideIcons() {
-    if (typeof lucide !== 'undefined') {
         setTimeout(() => lucide.createIcons(), 0);
     }
 }
@@ -676,7 +669,7 @@ async function renderNodesView() {
     let error = null;
 
     try {
-        const token = localStorage.getItem('auth_token');
+        const token = localStorage.getItem('authToken');
         if (token) {
             console.log('[Infrastructure] Fetching status...');
             const response = await authFetch(`${API_BASE}/system/infrastructure/status`, {
@@ -1063,7 +1056,7 @@ async function renderSettingsView() {
     let resourceSettings = { lxc_memory: 2048, lxc_cores: 2, lxc_disk: 8, lxc_storage: 'local-lvm' };
 
     try {
-        const token = localStorage.getItem('auth_token');
+        const token = localStorage.getItem('authToken');
         if (token) {
             // Load Proxmox settings
             try {
@@ -1547,6 +1540,7 @@ async function deployApp(catalogId) {
         const result = await response.json();
         
         hideDeploymentProgress();
+        closeModal(); // Close the deployment modal
         showNotification(`Application deployed successfully!`, 'success');
         
         // Wait a moment for proxy vhost to be fully propagated
@@ -1565,6 +1559,7 @@ async function deployApp(catalogId) {
         
     } catch (error) {
         hideDeploymentProgress();
+        closeModal(); // Close the deployment modal on error
         showNotification('Deployment failed: ' + error.message, 'error');
         console.error('Deployment error:', error);
     }
@@ -2650,7 +2645,7 @@ function setupSettingsForms() {
 
 async function saveProxmoxSettings(formData) {
     const statusDiv = document.getElementById('proxmoxStatus');
-    const token = localStorage.getItem('auth_token');
+    const token = localStorage.getItem('authToken');
 
     if (!token) {
         statusDiv.innerHTML = `
@@ -2728,7 +2723,7 @@ async function saveProxmoxSettings(formData) {
 
 async function testProxmoxConnection() {
     const statusDiv = document.getElementById('proxmoxStatus');
-    const token = localStorage.getItem('auth_token');
+    const token = localStorage.getItem('authToken');
 
     if (!token) {
         statusDiv.innerHTML = `
@@ -2792,7 +2787,7 @@ async function testProxmoxConnection() {
 
 async function saveNetworkSettings(formData) {
     const statusDiv = document.getElementById('networkStatus');
-    const token = localStorage.getItem('auth_token');
+    const token = localStorage.getItem('authToken');
 
     if (!token) {
         statusDiv.innerHTML = `
@@ -2869,7 +2864,7 @@ async function saveNetworkSettings(formData) {
 
 async function saveResourceSettings(formData) {
     const statusDiv = document.getElementById('resourcesStatus');
-    const token = localStorage.getItem('auth_token');
+    const token = localStorage.getItem('authToken');
 
     if (!token) {
         statusDiv.innerHTML = `
@@ -2952,7 +2947,7 @@ async function refreshInfrastructure() {
 
 async function restartAppliance() {
     const statusDiv = document.getElementById('infrastructureStatus');
-    const token = localStorage.getItem('auth_token');
+    const token = localStorage.getItem('authToken');
 
     if (!token) {
         statusDiv.innerHTML = `
@@ -3025,7 +3020,7 @@ async function restartAppliance() {
 }
 
 async function viewApplianceLogs() {
-    const token = localStorage.getItem('auth_token');
+    const token = localStorage.getItem('authToken');
 
     if (!token) {
         showNotification('Not authenticated', 'error');
@@ -3091,7 +3086,7 @@ async function viewApplianceLogs() {
 
 async function testNAT() {
     const statusDiv = document.getElementById('infrastructureStatus');
-    const token = localStorage.getItem('auth_token');
+    const token = localStorage.getItem('authToken');
 
     if (!token) {
         statusDiv.innerHTML = `

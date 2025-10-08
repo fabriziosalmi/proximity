@@ -5,7 +5,7 @@ Tests backup creation, listing, restoration, and deletion with TDD approach.
 
 import pytest
 from unittest.mock import AsyncMock, Mock, patch, MagicMock
-from datetime import datetime
+from datetime import datetime, UTC
 from sqlalchemy.exc import IntegrityError
 from models.database import Backup, App, User
 import sys
