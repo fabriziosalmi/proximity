@@ -1368,36 +1368,67 @@ h3 { font-size: 1.5rem; font-weight: 600; }
     position: relative;
 }
 
-.action-icon i[data-lucide] {
+/* Stato normale: icone meno luminose (opache) */
+.app-card .action-icon i[data-lucide] {
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0.4;
+    color: var(--text-secondary);
+    width: 16px;
+    height: 16px;
+    stroke-width: 2.25;
 }
 
-.action-icon:hover:not(:disabled) {
+/* Hover sulla card: icone diventano più luminose */
+.app-card:hover .action-icon i[data-lucide] {
+    opacity: 1;
+    color: var(--text-primary);
+}
+
+/* Hover sull'icona specifica: diventa bianca */
+.app-card .action-icon:hover:not(:disabled) {
     background: linear-gradient(135deg, rgba(34, 211, 238, 0.15), rgba(20, 184, 166, 0.1));
     border-color: var(--cyan-bright);
     box-shadow: 0 0 16px rgba(34, 211, 238, 0.5),
                 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-.action-icon:hover:not(:disabled) i[data-lucide] {
-    color: var(--cyan-bright);
-    filter: brightness(1.3);
+.app-card .action-icon:hover:not(:disabled) i[data-lucide] {
+    color: #ffffff !important;
+    opacity: 1 !important;
+    filter: brightness(1);
+}
+
+/* Click: diventa cyan (stesso colore del bordo card) */
+.app-card .action-icon:active:not(:disabled) i[data-lucide] {
+    color: var(--cyan-bright) !important;
 }
 
 .action-icon.danger {
     border-color: rgba(239, 68, 68, 0.3);
 }
 
-.action-icon.danger:hover:not(:disabled) {
+/* Hover sulla card: icone danger diventano più luminose */
+.app-card:hover .action-icon.danger i[data-lucide] {
+    opacity: 1;
+    color: rgba(239, 68, 68, 0.8);
+}
+
+/* Hover sull'icona danger: diventa bianca */
+.app-card .action-icon.danger:hover:not(:disabled) {
     background: rgba(239, 68, 68, 0.15);
     border-color: var(--danger);
-    color: var(--danger);
     box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2), var(--shadow-md);
 }
 
-.action-icon.danger:hover:not(:disabled) i[data-lucide] {
-    color: var(--danger);
-    filter: brightness(1.2);
+.app-card .action-icon.danger:hover:not(:disabled) i[data-lucide] {
+    color: #ffffff !important;
+    opacity: 1 !important;
+    filter: brightness(1);
+}
+
+/* Click sull'icona danger: diventa rosso intenso */
+.app-card .action-icon.danger:active:not(:disabled) i[data-lucide] {
+    color: var(--danger) !important;
 }
 
 .action-icon:active:not(:disabled) {
@@ -1460,11 +1491,7 @@ h3 { font-size: 1.5rem; font-weight: 600; }
     filter: brightness(1.2);
 }
 
-.action-icon i[data-lucide] {
-    width: 16px;
-    height: 16px;
-    stroke-width: 2.25;
-}
+/* Dimensioni icone già definite sopra nel selettore .app-card .action-icon i[data-lucide] */
 
 .connection-value {
     color: var(--text-secondary);
@@ -3906,6 +3933,9 @@ body.pro-mode .pro-feature.inline-flex {
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3),
                 inset 0 1px 0 rgba(34, 211, 238, 0.1);
     transition: all 0.3s ease;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 #xtermContainer:hover {
@@ -3922,15 +3952,16 @@ body.pro-mode .pro-feature.inline-flex {
 #xtermContainer .xterm {
     padding: 0.5rem;
     height: 100%;
+    background: transparent !important;
 }
 
 #xtermContainer .xterm-viewport {
     overflow-y: auto !important;
-    background-color: #000 !important;
+    background-color: transparent !important;
 }
 
 #xtermContainer .xterm-screen {
-    background-color: #000 !important;
+    background-color: transparent !important;
 }
 
 /* Ensure terminal container takes full available space */
