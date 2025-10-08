@@ -76,9 +76,11 @@ const Auth = {
     
     // Clear authentication
     logout() {
+        console.warn('[Auth] Logging out - clearing token and user data');
         localStorage.removeItem(this.TOKEN_KEY);
         localStorage.removeItem(this.USER_KEY);
-        window.location.reload();
+        // Don't reload immediately - let the caller decide
+        // window.location.reload();
     },
     
     // Get authorization headers
@@ -111,12 +113,20 @@ async function authFetch(url, options = {}) {
         };
     }
     
+    console.log('[authFetch] URL:', url);
+    console.log('[authFetch] Headers:', defaultOptions.headers);
+    console.log('[authFetch] Method:', options.method || 'GET');
+    
     try {
         const response = await fetch(url, defaultOptions);
         
+        console.log('[authFetch] Response status:', response.status);
+        
         // Handle 401 Unauthorized
         if (response.status === 401) {
-            console.warn('Authentication required - redirecting to login');
+            console.warn('[authFetch] 401 Unauthorized - redirecting to login');
+            const responseText = await response.text();
+            console.error('[authFetch] 401 Response body:', responseText);
             Auth.logout();
             showLoginModal();
             throw new Error('Authentication required');
@@ -128,7 +138,7 @@ async function authFetch(url, options = {}) {
         if (error.message === 'Authentication required') {
             throw error;
         }
-        console.error('Network error:', error);
+        console.error('[authFetch] Network error:', error);
         throw error;
     }
 }
@@ -2750,20 +2760,32 @@ async function executeTerminalCommand(command) {
     
     // Double-check authentication before executing
     if (!Auth.isAuthenticated()) {
+        console.error('[Terminal] Not authenticated - no token found');
         terminalInstance.writeln('\r\n\x1b[1;31mError: Not authenticated. Please login first.\x1b[0m\r\n');
         showAuthModal();
         return;
     }
     
+    console.log('[Terminal] Executing command:', command, 'for app:', currentAppId);
+    console.log('[Terminal] Token exists:', !!Auth.getToken());
+    
     try {
         const response = await authFetch(`${API_BASE}/apps/${currentAppId}/exec`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            // Don't override headers - authFetch will add Authorization + Content-Type
             body: JSON.stringify({ command })
         });
         
-        if (!response.ok) throw new Error('Command execution failed');
+        console.log('[Terminal] Response status:', response.status);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('[Terminal] Response not OK:', response.status, errorText);
+            throw new Error(`Command execution failed: ${response.status}`);
+        }
+        
         const data = await response.json();
+        console.log('[Terminal] Response data:', data);
         
         if (data.success && data.output) {
             // Write output line by line
@@ -2775,6 +2797,7 @@ async function executeTerminalCommand(command) {
             terminalInstance.writeln(`\x1b[1;31m${data.error}\x1b[0m`);
         }
     } catch (error) {
+        console.error('[Terminal] Execution error:', error);
         terminalInstance.writeln(`\x1b[1;31mError: ${error.message}\x1b[0m`);
     }
     
