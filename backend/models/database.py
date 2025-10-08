@@ -96,6 +96,7 @@ class App(Base):
     public_port = Column(Integer, nullable=True, unique=True, index=True)  # Unique port for public access
     internal_port = Column(Integer, nullable=True, unique=True, index=True)  # Unique port for iframe access
     lxc_id = Column(Integer, nullable=False, unique=True, index=True)
+    lxc_root_password = Column(String(500), nullable=True)  # Encrypted LXC root password
     node = Column(String(100), nullable=False, index=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

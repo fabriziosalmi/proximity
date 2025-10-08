@@ -17,6 +17,7 @@ from models.schemas import (
 )
 from services.proxmox_service import ProxmoxService, ProxmoxError
 from core.config import settings
+from core.security import encrypt_password
 from core.exceptions import (
     AppNotFoundError,
     AppAlreadyExistsError,
@@ -1037,6 +1038,10 @@ class AppService:
             
             create_result = await self.proxmox_service.create_lxc(target_node, vmid, lxc_config)
             
+            # Extract and encrypt root password
+            root_password = create_result.get("root_password")
+            encrypted_password = encrypt_password(root_password) if root_password else None
+            
             # Wait for container creation
             await self.proxmox_service.wait_for_task(target_node, create_result["task_id"])
             
@@ -1169,6 +1174,7 @@ class AppService:
                 environment=app.environment,
                 public_port=public_port,
                 internal_port=internal_port,
+                lxc_root_password=encrypted_password,  # Store encrypted password
                 created_at=datetime.now(UTC),
                 updated_at=datetime.now(UTC)
             )

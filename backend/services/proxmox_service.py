@@ -198,7 +198,13 @@ class ProxmoxService:
             logger.warning(f"Failed to get LXC {vmid} IP: {e}")
             return None
 
-    async def create_lxc(self, node: str, vmid: int, config: Dict[str, Any]) -> Dict[str, Any]:
+    async def create_lxc(
+        self, 
+        node: str, 
+        vmid: int, 
+        config: Dict[str, Any],
+        root_password: Optional[str] = None
+    ) -> Dict[str, Any]:
         """
         Create a new LXC container with automatic storage selection.
         
@@ -209,9 +215,11 @@ class ProxmoxService:
             node: Proxmox node name
             vmid: VM ID to assign
             config: Container configuration (hostname, storage, etc.)
+            root_password: Optional root password. If None, uses settings.LXC_ROOT_PASSWORD
+                          or generates random if settings.LXC_PASSWORD_RANDOM is True
             
         Returns:
-            Dict with task_id, vmid, node, hostname
+            Dict with task_id, vmid, node, hostname, root_password
         """
         try:
             client = await self._get_client()
@@ -246,12 +254,26 @@ class ProxmoxService:
             net_config = "name=eth0,bridge=vmbr0,ip=dhcp,firewall=1"
             logger.info(f"Container '{hostname}' will use vmbr0 with DHCP")
             
+            # Determine root password
+            if root_password is None:
+                if settings.LXC_PASSWORD_RANDOM:
+                    # Generate random password
+                    from core.security import generate_lxc_password
+                    root_password = generate_lxc_password(settings.LXC_PASSWORD_LENGTH)
+                    logger.info(f"Generated random root password for container '{hostname}'")
+                else:
+                    # Use configured default password
+                    root_password = settings.LXC_ROOT_PASSWORD
+                    logger.info(f"Using default root password for container '{hostname}'")
+            else:
+                logger.info(f"Using provided root password for container '{hostname}'")
+            
             # Merge with default configuration
             lxc_config = {
                 'vmid': vmid,
                 'ostemplate': template_to_use,
                 'hostname': hostname,  # Hostname for DNS resolution
-                'password': 'invaders',  # Default root password (TODO: make configurable)
+                'password': root_password,  # Root password (configured or random)
                 'cores': settings.LXC_CORES,
                 'memory': settings.LXC_MEMORY,
                 'net0': net_config,  # vmbr0 with DHCP
@@ -266,7 +288,13 @@ class ProxmoxService:
             )
             
             logger.info(f"LXC creation started: node={node}, vmid={vmid}, hostname={hostname}, network=vmbr0 (DHCP), task={task_id}")
-            return {"task_id": task_id, "vmid": vmid, "node": node, "hostname": hostname}
+            return {
+                "task_id": task_id, 
+                "vmid": vmid, 
+                "node": node, 
+                "hostname": hostname,
+                "root_password": root_password  # Include password for storage
+            }
             
         except Exception as e:
             if "already exists" in str(e).lower():

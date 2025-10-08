@@ -12,19 +12,17 @@
         "image": "nginx:latest",
         "network_mode": "host",
         "volumes": [
-          "nginx_data:/usr/share/nginx/html",
-          "nginx_config:/etc/nginx/conf.d"
+          "nginx_data:/usr/share/nginx/html"
         ],
         "restart": "always"
       }
     },
     "volumes": {
-      "nginx_data": {},
-      "nginx_config": {}
+      "nginx_data": {}
     }
   },
   "ports": [80, 443],
-  "volumes": ["nginx_data", "nginx_config"],
+  "volumes": ["nginx_data"],
   "environment": {},
   "min_memory": 256,
   "min_cpu": 1,

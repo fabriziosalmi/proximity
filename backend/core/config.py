@@ -38,6 +38,11 @@ class Settings(BaseSettings):
     LXC_CORES: int = 2
     LXC_DISK_SIZE: str = "8G"
     
+    # LXC Security Settings
+    LXC_ROOT_PASSWORD: str = "invaders"  # Default root password for containers
+    LXC_PASSWORD_RANDOM: bool = False  # If True, generate random password per container
+    LXC_PASSWORD_LENGTH: int = 16  # Length of random password if LXC_PASSWORD_RANDOM=True
+    
     # Network Settings
     LXC_BRIDGE: str = "vmbr0"
     LXC_NET_CONFIG: str = "name=eth0,bridge=vmbr0,ip=dhcp"
