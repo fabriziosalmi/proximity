@@ -1509,10 +1509,9 @@ async function deployApp(catalogId) {
         console.log('Waiting for proxy vhost propagation...');
         await new Promise(resolve => setTimeout(resolve, 2000)); // 2 second delay
         
-        // Reload apps and proxy status to get updated URLs
+        // Reload apps to get updated URLs
         await loadDeployedApps();
         await loadSystemInfo();
-        await loadProxyStatus();
         
         // Show deployed app - don't call updateUI() since showView('apps') will render everything fresh
         showView('apps');
@@ -1916,7 +1915,6 @@ async function deleteApp(appId, appName) {
         // Reload apps and update UI
         await loadDeployedApps();
         await loadSystemInfo();
-        await loadProxyStatus();
         
         // If we're on the apps view, refresh it (don't call updateUI() to avoid double-rendering)
         if (state.currentView === 'apps') {
@@ -3727,10 +3725,6 @@ async function initializeAuthenticatedSession() {
         console.log('   ⏳ Loading catalog...');
         await loadCatalog();
         console.log('   ✓ Catalog loaded');
-        
-        console.log('   ⏳ Loading proxy status...');
-        await loadProxyStatus();
-        console.log('   ✓ Proxy status loaded');
         
         // 5. Update the UI with loaded data
         console.log('5️⃣ Updating UI...');
