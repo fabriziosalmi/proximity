@@ -35,21 +35,20 @@
         ],
         "depends_on": [
           "ttrss-db"
-        ]
+        ],
+        "network_mode": "host"
       },
       "ttrss-web": {
         "image": "cthulhoo/ttrss-web:latest",
         "container_name": "ttrss-web",
         "restart": "unless-stopped",
-        "ports": [
-          "8280:80"
-        ],
         "volumes": [
           "ttrss_app:/var/www/html:ro"
         ],
         "depends_on": [
           "ttrss"
-        ]
+        ],
+        "network_mode": "host"
       },
       "ttrss-db": {
         "image": "postgres:15-alpine",
@@ -62,7 +61,8 @@
         },
         "volumes": [
           "ttrss_db:/var/lib/postgresql/data"
-        ]
+        ],
+        "network_mode": "host"
       }
     },
     "volumes": {

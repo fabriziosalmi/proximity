@@ -21,9 +21,6 @@
         "image": "roundcube/roundcubemail:latest",
         "container_name": "roundcube",
         "restart": "unless-stopped",
-        "ports": [
-          "8080:80"
-        ],
         "depends_on": [
           "roundcube-db"
         ],
@@ -40,7 +37,8 @@
         },
         "volumes": [
           "roundcube_www:/var/www/html"
-        ]
+        ],
+        "network_mode": "host"
       },
       "roundcube-db": {
         "image": "mariadb:10.11",
@@ -54,7 +52,8 @@
         },
         "volumes": [
           "roundcube_db:/var/lib/mysql"
-        ]
+        ],
+        "network_mode": "host"
       }
     },
     "volumes": {

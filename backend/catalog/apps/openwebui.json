@@ -10,24 +10,35 @@
     "services": {
       "openwebui": {
         "image": "ghcr.io/open-webui/open-webui:main",
-        "ports": ["3000:8080"],
         "environment": {
           "OLLAMA_API_BASE_URL": "http://host.docker.internal:11434"
         },
-        "volumes": ["openwebui_data:/app/backend/data"],
-        "restart": "always"
+        "volumes": [
+          "openwebui_data:/app/backend/data"
+        ],
+        "restart": "always",
+        "network_mode": "host"
       }
     },
     "volumes": {
       "openwebui_data": {}
     }
   },
-  "ports": [3000],
-  "volumes": ["openwebui_data"],
+  "ports": [
+    3000
+  ],
+  "volumes": [
+    "openwebui_data"
+  ],
   "environment": {},
   "min_memory": 1024,
   "min_cpu": 2,
-  "tags": ["ai", "llm", "chat", "interface"],
+  "tags": [
+    "ai",
+    "llm",
+    "chat",
+    "interface"
+  ],
   "author": "Open WebUI",
   "website": "https://openwebui.com"
 }

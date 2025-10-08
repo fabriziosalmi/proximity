@@ -10,27 +10,37 @@
     "services": {
       "linkding": {
         "image": "sissbruecker/linkding:latest",
-        "ports": ["9090:9090"],
-        "volumes": ["data:/etc/linkding/data"],
+        "volumes": [
+          "data:/etc/linkding/data"
+        ],
         "environment": {
           "LD_SUPERUSER_NAME": "admin",
           "LD_SUPERUSER_PASSWORD": "change_me_password"
-        }
+        },
+        "network_mode": "host"
       }
     },
     "volumes": {
       "data": {}
     }
   },
-  "ports": [9090],
-  "volumes": ["data"],
+  "ports": [
+    9090
+  ],
+  "volumes": [
+    "data"
+  ],
   "environment": {
     "LD_SUPERUSER_NAME": "admin",
     "LD_SUPERUSER_PASSWORD": "change_me_password"
   },
   "min_memory": 256,
   "min_cpu": 1,
-  "tags": ["bookmarks", "productivity", "organization"],
+  "tags": [
+    "bookmarks",
+    "productivity",
+    "organization"
+  ],
   "author": "sissbruecker",
   "website": "https://github.com/sissbruecker/linkding"
 }

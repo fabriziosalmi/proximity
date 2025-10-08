@@ -10,7 +10,6 @@
     "services": {
       "photoprism": {
         "image": "photoprism/photoprism:latest",
-        "ports": ["2342:2342"],
         "environment": {
           "PHOTOPRISM_ADMIN_PASSWORD": "admin",
           "PHOTOPRISM_DATABASE_DRIVER": "mysql",
@@ -23,8 +22,11 @@
           "photoprism_originals:/photoprism/originals",
           "photoprism_storage:/photoprism/storage"
         ],
-        "depends_on": ["db"],
-        "restart": "always"
+        "depends_on": [
+          "db"
+        ],
+        "restart": "always",
+        "network_mode": "host"
       },
       "db": {
         "image": "mariadb:11",
@@ -34,8 +36,11 @@
           "MYSQL_USER": "photoprism",
           "MYSQL_PASSWORD": "photoprism_password"
         },
-        "volumes": ["photoprism_db:/var/lib/mysql"],
-        "restart": "always"
+        "volumes": [
+          "photoprism_db:/var/lib/mysql"
+        ],
+        "restart": "always",
+        "network_mode": "host"
       }
     },
     "volumes": {
@@ -44,15 +49,26 @@
       "photoprism_db": {}
     }
   },
-  "ports": [2342],
-  "volumes": ["photoprism_originals", "photoprism_storage", "photoprism_db"],
+  "ports": [
+    2342
+  ],
+  "volumes": [
+    "photoprism_originals",
+    "photoprism_storage",
+    "photoprism_db"
+  ],
   "environment": {
     "PHOTOPRISM_ADMIN_PASSWORD": "admin",
     "MYSQL_PASSWORD": "photoprism_password"
   },
   "min_memory": 2048,
   "min_cpu": 2,
-  "tags": ["photos", "media", "ai", "gallery"],
+  "tags": [
+    "photos",
+    "media",
+    "ai",
+    "gallery"
+  ],
   "author": "PhotoPrism",
   "website": "https://photoprism.app"
 }

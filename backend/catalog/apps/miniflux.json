@@ -21,9 +21,6 @@
         "image": "miniflux/miniflux:latest",
         "container_name": "miniflux",
         "restart": "unless-stopped",
-        "ports": [
-          "8080:8080"
-        ],
         "depends_on": [
           "miniflux-db"
         ],
@@ -33,7 +30,8 @@
           "CREATE_ADMIN": "1",
           "ADMIN_USERNAME": "admin",
           "ADMIN_PASSWORD": "admin123"
-        }
+        },
+        "network_mode": "host"
       },
       "miniflux-db": {
         "image": "postgres:15-alpine",
@@ -46,7 +44,8 @@
         },
         "volumes": [
           "miniflux_db:/var/lib/postgresql/data"
-        ]
+        ],
+        "network_mode": "host"
       }
     },
     "volumes": {

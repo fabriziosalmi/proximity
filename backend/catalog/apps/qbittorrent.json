@@ -31,11 +31,7 @@
           "qbittorrent_config:/config",
           "qbittorrent_downloads:/downloads"
         ],
-        "ports": [
-          "8080:8080",
-          "6881:6881",
-          "6881:6881/udp"
-        ]
+        "network_mode": "host"
       }
     },
     "volumes": {

@@ -21,15 +21,13 @@
         "image": "lissy93/dashy:latest",
         "container_name": "dashy",
         "restart": "unless-stopped",
-        "ports": [
-          "4000:80"
-        ],
         "volumes": [
           "dashy_config:/app/public"
         ],
         "environment": {
           "NODE_ENV": "production"
-        }
+        },
+        "network_mode": "host"
       }
     },
     "volumes": {

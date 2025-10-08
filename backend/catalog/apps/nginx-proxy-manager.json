@@ -5,7 +5,13 @@
   "description": "Easy-to-use web interface for managing Nginx reverse proxy with SSL certificate automation",
   "category": "Web Server",
   "icon": "https://cdn.simpleicons.org/nginx/009639",
-  "tags": ["proxy", "reverse-proxy", "ssl", "nginx", "certificates"],
+  "tags": [
+    "proxy",
+    "reverse-proxy",
+    "ssl",
+    "nginx",
+    "certificates"
+  ],
   "min_memory": 512,
   "min_cpu": 1,
   "min_disk": 2,
@@ -16,11 +22,6 @@
         "image": "jc21/nginx-proxy-manager:latest",
         "container_name": "nginx-proxy-manager",
         "restart": "unless-stopped",
-        "ports": [
-          "80:80",
-          "443:443",
-          "81:81"
-        ],
         "environment": {
           "DB_MYSQL_HOST": "npm-db",
           "DB_MYSQL_PORT": "3306",
@@ -34,7 +35,8 @@
         ],
         "depends_on": [
           "npm-db"
-        ]
+        ],
+        "network_mode": "host"
       },
       "npm-db": {
         "image": "jc21/mariadb-aria:latest",
@@ -48,7 +50,8 @@
         },
         "volumes": [
           "npm_mysql:/var/lib/mysql"
-        ]
+        ],
+        "network_mode": "host"
       }
     },
     "volumes": {

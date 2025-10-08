@@ -10,7 +10,6 @@
     "services": {
       "wikijs": {
         "image": "ghcr.io/requarks/wiki:2",
-        "ports": ["3000:3000"],
         "environment": {
           "DB_TYPE": "postgres",
           "DB_HOST": "db",
@@ -19,8 +18,11 @@
           "DB_PASS": "wikijs_password",
           "DB_NAME": "wiki"
         },
-        "depends_on": ["db"],
-        "restart": "always"
+        "depends_on": [
+          "db"
+        ],
+        "restart": "always",
+        "network_mode": "host"
       },
       "db": {
         "image": "postgres:14",
@@ -29,23 +31,35 @@
           "POSTGRES_USER": "wikijs",
           "POSTGRES_PASSWORD": "wikijs_password"
         },
-        "volumes": ["postgres_data:/var/lib/postgresql/data"],
-        "restart": "always"
+        "volumes": [
+          "postgres_data:/var/lib/postgresql/data"
+        ],
+        "restart": "always",
+        "network_mode": "host"
       }
     },
     "volumes": {
       "postgres_data": {}
     }
   },
-  "ports": [3000],
-  "volumes": ["postgres_data"],
+  "ports": [
+    3000
+  ],
+  "volumes": [
+    "postgres_data"
+  ],
   "environment": {
     "DB_PASS": "wikijs_password",
     "POSTGRES_PASSWORD": "wikijs_password"
   },
   "min_memory": 1024,
   "min_cpu": 1,
-  "tags": ["wiki", "documentation", "knowledge-base", "cms"],
+  "tags": [
+    "wiki",
+    "documentation",
+    "knowledge-base",
+    "cms"
+  ],
   "author": "Requarks",
   "website": "https://js.wiki"
 }

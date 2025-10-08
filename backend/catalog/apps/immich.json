@@ -41,9 +41,7 @@
           "immich-redis",
           "immich-postgres"
         ],
-        "ports": [
-          "2283:3001"
-        ]
+        "network_mode": "host"
       },
       "immich-microservices": {
         "image": "ghcr.io/immich-app/immich-server:release",
@@ -67,7 +65,8 @@
         "depends_on": [
           "immich-redis",
           "immich-postgres"
-        ]
+        ],
+        "network_mode": "host"
       },
       "immich-machine-learning": {
         "image": "ghcr.io/immich-app/immich-machine-learning:release",
@@ -75,12 +74,14 @@
         "restart": "unless-stopped",
         "volumes": [
           "immich_model_cache:/cache"
-        ]
+        ],
+        "network_mode": "host"
       },
       "immich-redis": {
         "image": "redis:6.2-alpine",
         "container_name": "immich-redis",
-        "restart": "unless-stopped"
+        "restart": "unless-stopped",
+        "network_mode": "host"
       },
       "immich-postgres": {
         "image": "tensorchord/pgvecto-rs:pg14-v0.2.0",
@@ -93,7 +94,8 @@
         },
         "volumes": [
           "immich_pgdata:/var/lib/postgresql/data"
-        ]
+        ],
+        "network_mode": "host"
       }
     },
     "volumes": {

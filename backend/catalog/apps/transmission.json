@@ -31,11 +31,7 @@
           "transmission_downloads:/downloads",
           "transmission_watch:/watch"
         ],
-        "ports": [
-          "9091:9091",
-          "51413:51413",
-          "51413:51413/udp"
-        ]
+        "network_mode": "host"
       }
     },
     "volumes": {

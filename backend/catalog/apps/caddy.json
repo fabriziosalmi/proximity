@@ -10,12 +10,12 @@
     "services": {
       "caddy": {
         "image": "caddy:latest",
-        "ports": ["80:80", "443:443"],
         "volumes": [
           "caddy_data:/data",
           "caddy_config:/config"
         ],
-        "restart": "always"
+        "restart": "always",
+        "network_mode": "host"
       }
     },
     "volumes": {
@@ -23,12 +23,23 @@
       "caddy_config": {}
     }
   },
-  "ports": [80, 443],
-  "volumes": ["caddy_data", "caddy_config"],
+  "ports": [
+    80,
+    443
+  ],
+  "volumes": [
+    "caddy_data",
+    "caddy_config"
+  ],
   "environment": {},
   "min_memory": 256,
   "min_cpu": 1,
-  "tags": ["web-server", "https", "reverse-proxy", "ssl"],
+  "tags": [
+    "web-server",
+    "https",
+    "reverse-proxy",
+    "ssl"
+  ],
   "author": "Light Code Labs",
   "website": "https://caddyserver.com"
 }

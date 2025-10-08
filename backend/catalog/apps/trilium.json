@@ -21,15 +21,13 @@
         "image": "zadam/trilium:latest",
         "container_name": "trilium",
         "restart": "unless-stopped",
-        "ports": [
-          "8080:8080"
-        ],
         "volumes": [
           "trilium_data:/home/node/trilium-data"
         ],
         "environment": {
           "TRILIUM_DATA_DIR": "/home/node/trilium-data"
-        }
+        },
+        "network_mode": "host"
       }
     },
     "volumes": {

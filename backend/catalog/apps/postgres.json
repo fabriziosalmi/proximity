@@ -10,28 +10,39 @@
     "services": {
       "postgres": {
         "image": "postgres:latest",
-        "ports": ["5432:5432"],
         "environment": {
           "POSTGRES_USER": "postgres",
           "POSTGRES_PASSWORD": "postgres_password",
           "POSTGRES_DB": "postgres"
         },
-        "volumes": ["postgres_data:/var/lib/postgresql/data"],
-        "restart": "always"
+        "volumes": [
+          "postgres_data:/var/lib/postgresql/data"
+        ],
+        "restart": "always",
+        "network_mode": "host"
       }
     },
     "volumes": {
       "postgres_data": {}
     }
   },
-  "ports": [5432],
-  "volumes": ["postgres_data"],
+  "ports": [
+    5432
+  ],
+  "volumes": [
+    "postgres_data"
+  ],
   "environment": {
     "POSTGRES_PASSWORD": "postgres_password"
   },
   "min_memory": 512,
   "min_cpu": 1,
-  "tags": ["database", "sql", "postgresql", "relational"],
+  "tags": [
+    "database",
+    "sql",
+    "postgresql",
+    "relational"
+  ],
   "author": "PostgreSQL Global Development Group",
   "website": "https://www.postgresql.org"
 }

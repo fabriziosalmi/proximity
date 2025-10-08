@@ -24,7 +24,8 @@
         "restart": "unless-stopped",
         "volumes": [
           "paperless_redis:/data"
-        ]
+        ],
+        "network_mode": "host"
       },
       "paperless-db": {
         "image": "postgres:16",
@@ -37,7 +38,8 @@
           "POSTGRES_DB": "paperless",
           "POSTGRES_USER": "paperless",
           "POSTGRES_PASSWORD": "paperless"
-        }
+        },
+        "network_mode": "host"
       },
       "paperless-webserver": {
         "image": "ghcr.io/paperless-ngx/paperless-ngx:latest",
@@ -46,9 +48,6 @@
         "depends_on": [
           "paperless-db",
           "paperless-broker"
-        ],
-        "ports": [
-          "8000:8000"
         ],
         "healthcheck": {
           "test": [
@@ -80,7 +79,8 @@
           "PAPERLESS_URL": "http://localhost:8000",
           "PAPERLESS_TIME_ZONE": "UTC",
           "PAPERLESS_OCR_LANGUAGE": "eng"
-        }
+        },
+        "network_mode": "host"
       }
     },
     "volumes": {

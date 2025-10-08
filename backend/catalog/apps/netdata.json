@@ -21,9 +21,6 @@
         "image": "netdata/netdata:latest",
         "container_name": "netdata",
         "restart": "unless-stopped",
-        "ports": [
-          "19999:19999"
-        ],
         "cap_add": [
           "SYS_PTRACE",
           "SYS_ADMIN"
@@ -45,7 +42,8 @@
         "environment": {
           "NETDATA_CLAIM_TOKEN": "",
           "NETDATA_CLAIM_ROOMS": ""
-        }
+        },
+        "network_mode": "host"
       }
     },
     "volumes": {

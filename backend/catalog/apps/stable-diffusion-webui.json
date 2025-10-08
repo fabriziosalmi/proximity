@@ -10,24 +10,35 @@
     "services": {
       "stable-diffusion": {
         "image": "ghcr.io/abetlen/stable-diffusion-webui:latest",
-        "ports": ["7860:7860"],
-        "volumes": ["sd_data:/data"],
+        "volumes": [
+          "sd_data:/data"
+        ],
         "environment": {
           "CLI_ARGS": "--listen"
         },
-        "restart": "always"
+        "restart": "always",
+        "network_mode": "host"
       }
     },
     "volumes": {
       "sd_data": {}
     }
   },
-  "ports": [7860],
-  "volumes": ["sd_data"],
+  "ports": [
+    7860
+  ],
+  "volumes": [
+    "sd_data"
+  ],
   "environment": {},
   "min_memory": 8192,
   "min_cpu": 4,
-  "tags": ["ai", "image-generation", "stable-diffusion", "art"],
+  "tags": [
+    "ai",
+    "image-generation",
+    "stable-diffusion",
+    "art"
+  ],
   "author": "AUTOMATIC1111",
   "website": "https://github.com/AUTOMATIC1111/stable-diffusion-webui"
 }

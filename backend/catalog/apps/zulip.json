@@ -5,7 +5,13 @@
   "version": "latest",
   "category": "Communication",
   "icon": "https://cdn.simpleicons.org/zulip/52C2AF",
-  "tags": ["chat", "team-communication", "collaboration", "threads", "notifications"],
+  "tags": [
+    "chat",
+    "team-communication",
+    "collaboration",
+    "threads",
+    "notifications"
+  ],
   "min_memory": 4096,
   "min_cpu": 2,
   "min_disk": 10,
@@ -16,10 +22,6 @@
         "image": "zulip/docker-zulip:latest",
         "container_name": "zulip",
         "restart": "unless-stopped",
-        "ports": [
-          "8080:80",
-          "8443:443"
-        ],
         "volumes": [
           "zulip_data:/data"
         ],
@@ -44,7 +46,8 @@
           "zulip-memcached",
           "zulip-rabbitmq",
           "zulip-redis"
-        ]
+        ],
+        "network_mode": "host"
       },
       "zulip-database": {
         "image": "zulip/zulip-postgresql:latest",
@@ -57,7 +60,8 @@
         },
         "volumes": [
           "zulip_postgresql:/var/lib/postgresql/data"
-        ]
+        ],
+        "network_mode": "host"
       },
       "zulip-memcached": {
         "image": "memcached:alpine",
@@ -67,7 +71,8 @@
           "memcached",
           "-I",
           "128m"
-        ]
+        ],
+        "network_mode": "host"
       },
       "zulip-rabbitmq": {
         "image": "rabbitmq:3-management",
@@ -80,7 +85,8 @@
         },
         "volumes": [
           "zulip_rabbitmq:/var/lib/rabbitmq"
-        ]
+        ],
+        "network_mode": "host"
       },
       "zulip-redis": {
         "image": "redis:alpine",
@@ -93,7 +99,8 @@
         ],
         "volumes": [
           "zulip_redis:/data"
-        ]
+        ],
+        "network_mode": "host"
       }
     },
     "volumes": {

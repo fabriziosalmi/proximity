@@ -10,7 +10,6 @@
     "services": {
       "gitlab": {
         "image": "gitlab/gitlab-ce:latest",
-        "ports": ["80:80", "443:443", "22:22"],
         "environment": {
           "GITLAB_OMNIBUS_CONFIG": "external_url 'http://localhost'"
         },
@@ -19,7 +18,8 @@
           "gitlab_logs:/var/log/gitlab",
           "gitlab_data:/var/opt/gitlab"
         ],
-        "restart": "always"
+        "restart": "always",
+        "network_mode": "host"
       }
     },
     "volumes": {
@@ -28,12 +28,25 @@
       "gitlab_data": {}
     }
   },
-  "ports": [80, 443, 22],
-  "volumes": ["gitlab_config", "gitlab_logs", "gitlab_data"],
+  "ports": [
+    80,
+    443,
+    22
+  ],
+  "volumes": [
+    "gitlab_config",
+    "gitlab_logs",
+    "gitlab_data"
+  ],
   "environment": {},
   "min_memory": 4096,
   "min_cpu": 4,
-  "tags": ["git", "devops", "ci-cd", "repository"],
+  "tags": [
+    "git",
+    "devops",
+    "ci-cd",
+    "repository"
+  ],
   "author": "GitLab Inc",
   "website": "https://about.gitlab.com"
 }

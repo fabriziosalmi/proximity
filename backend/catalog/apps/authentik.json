@@ -24,10 +24,6 @@
         "container_name": "authentik-server",
         "restart": "unless-stopped",
         "command": "server",
-        "ports": [
-          "9000:9000",
-          "9443:9443"
-        ],
         "environment": {
           "AUTHENTIK_REDIS__HOST": "authentik-redis",
           "AUTHENTIK_POSTGRESQL__HOST": "authentik-postgresql",
@@ -44,7 +40,8 @@
         "depends_on": [
           "authentik-postgresql",
           "authentik-redis"
-        ]
+        ],
+        "network_mode": "host"
       },
       "authentik-worker": {
         "image": "ghcr.io/goauthentik/server:latest",
@@ -68,7 +65,8 @@
         "depends_on": [
           "authentik-postgresql",
           "authentik-redis"
-        ]
+        ],
+        "network_mode": "host"
       },
       "authentik-postgresql": {
         "image": "postgres:16-alpine",
@@ -91,7 +89,8 @@
           "POSTGRES_PASSWORD": "authentik_password",
           "POSTGRES_USER": "authentik",
           "POSTGRES_DB": "authentik"
-        }
+        },
+        "network_mode": "host"
       },
       "authentik-redis": {
         "image": "redis:alpine",
@@ -110,7 +109,8 @@
         },
         "volumes": [
           "authentik_redis:/data"
-        ]
+        ],
+        "network_mode": "host"
       }
     },
     "volumes": {

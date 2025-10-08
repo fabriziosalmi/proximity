@@ -10,26 +10,37 @@
     "services": {
       "apprise": {
         "image": "caronc/apprise:latest",
-        "ports": ["8000:8000"],
         "environment": {
           "APPRISE_STATELESS_URLS": "",
           "APPRISE_ATTACH_SIZE": "5242880"
         },
-        "volumes": ["config:/config"]
+        "volumes": [
+          "config:/config"
+        ],
+        "network_mode": "host"
       }
     },
     "volumes": {
       "config": {}
     }
   },
-  "ports": [8000],
-  "volumes": ["config"],
+  "ports": [
+    8000
+  ],
+  "volumes": [
+    "config"
+  ],
   "environment": {
     "APPRISE_ATTACH_SIZE": "5242880"
   },
   "min_memory": 256,
   "min_cpu": 1,
-  "tags": ["notifications", "api", "messaging", "alerts"],
+  "tags": [
+    "notifications",
+    "api",
+    "messaging",
+    "alerts"
+  ],
   "author": "Chris Caron",
   "website": "https://github.com/caronc/apprise-api"
 }

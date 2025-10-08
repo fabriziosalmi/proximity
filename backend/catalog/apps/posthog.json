@@ -13,9 +13,6 @@
         "image": "posthog/posthog:latest",
         "container_name": "posthog",
         "restart": "unless-stopped",
-        "ports": [
-          "8000:8000"
-        ],
         "environment": {
           "DATABASE_URL": "postgres://posthog:posthog@db:5432/posthog",
           "REDIS_URL": "redis://redis:6379/",
@@ -25,7 +22,8 @@
         "depends_on": [
           "db",
           "redis"
-        ]
+        ],
+        "network_mode": "host"
       },
       "db": {
         "image": "postgres:14-alpine",
@@ -38,12 +36,14 @@
         },
         "volumes": [
           "posthog_db:/var/lib/postgresql/data"
-        ]
+        ],
+        "network_mode": "host"
       },
       "redis": {
         "image": "redis:7-alpine",
         "container_name": "posthog_redis",
-        "restart": "unless-stopped"
+        "restart": "unless-stopped",
+        "network_mode": "host"
       }
     },
     "volumes": {

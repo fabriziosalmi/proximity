@@ -10,28 +10,40 @@
     "services": {
       "minio": {
         "image": "minio/minio:latest",
-        "ports": ["9000:9000", "9001:9001"],
         "environment": {
           "MINIO_ROOT_USER": "admin",
           "MINIO_ROOT_PASSWORD": "admin_password"
         },
         "command": "server /data --console-address ':9001'",
-        "volumes": ["minio_data:/data"],
-        "restart": "always"
+        "volumes": [
+          "minio_data:/data"
+        ],
+        "restart": "always",
+        "network_mode": "host"
       }
     },
     "volumes": {
       "minio_data": {}
     }
   },
-  "ports": [9000, 9001],
-  "volumes": ["minio_data"],
+  "ports": [
+    9000,
+    9001
+  ],
+  "volumes": [
+    "minio_data"
+  ],
   "environment": {
     "MINIO_ROOT_PASSWORD": "admin_password"
   },
   "min_memory": 512,
   "min_cpu": 1,
-  "tags": ["storage", "s3", "object-storage", "backup"],
+  "tags": [
+    "storage",
+    "s3",
+    "object-storage",
+    "backup"
+  ],
   "author": "MinIO Inc",
   "website": "https://min.io"
 }

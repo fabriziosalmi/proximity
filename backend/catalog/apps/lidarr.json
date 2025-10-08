@@ -31,9 +31,7 @@
           "lidarr_music:/music",
           "lidarr_downloads:/downloads"
         ],
-        "ports": [
-          "8686:8686"
-        ]
+        "network_mode": "host"
       }
     },
     "volumes": {

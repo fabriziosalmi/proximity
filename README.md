@@ -18,7 +18,7 @@ Proximity is a cloud-native application delivery platform that abstracts the com
 ### Core Platform
 - **One-Click App Deployment**: Deploy applications from a curated catalog with a single click
 - **Fully Automated Setup**: Docker installation and container configuration—all automatic
-- **Standard Proxmox Networking**: Uses vmbr0 with DHCP for simple, reliable connectivity
+- **Standard Proxmox Networking**: Uses vmbr0 with DHCP + Docker host networking for direct access
 - **Web-Based Management**: Modern, responsive UI with real-time status monitoring
 - **REST API**: Full API access for automation and integration
 - **Secure by Default**: Unprivileged containers, network isolation, JWT authentication

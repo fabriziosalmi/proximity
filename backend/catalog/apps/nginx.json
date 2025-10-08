@@ -10,7 +10,7 @@
     "services": {
       "nginx": {
         "image": "nginx:latest",
-        "ports": ["80:80", "443:443"],
+        "network_mode": "host",
         "volumes": [
           "nginx_data:/usr/share/nginx/html",
           "nginx_config:/etc/nginx/conf.d"

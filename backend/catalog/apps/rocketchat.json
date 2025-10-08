@@ -10,32 +10,46 @@
     "services": {
       "rocketchat": {
         "image": "rocket.chat:latest",
-        "ports": ["3000:3000"],
         "environment": {
           "MONGO_URL": "mongodb://mongo:27017/rocketchat",
           "MONGO_OPLOG_URL": "mongodb://mongo:27017/local",
           "ROOT_URL": "http://localhost:3000"
         },
-        "depends_on": ["mongo"],
-        "restart": "always"
+        "depends_on": [
+          "mongo"
+        ],
+        "restart": "always",
+        "network_mode": "host"
       },
       "mongo": {
         "image": "mongo:5.0",
         "command": "mongod --oplogSize 128 --replSet rs0",
-        "volumes": ["mongo_data:/data/db"],
-        "restart": "always"
+        "volumes": [
+          "mongo_data:/data/db"
+        ],
+        "restart": "always",
+        "network_mode": "host"
       }
     },
     "volumes": {
       "mongo_data": {}
     }
   },
-  "ports": [3000],
-  "volumes": ["mongo_data"],
+  "ports": [
+    3000
+  ],
+  "volumes": [
+    "mongo_data"
+  ],
   "environment": {},
   "min_memory": 2048,
   "min_cpu": 2,
-  "tags": ["chat", "messaging", "collaboration", "communication"],
+  "tags": [
+    "chat",
+    "messaging",
+    "collaboration",
+    "communication"
+  ],
   "author": "Rocket.Chat",
   "website": "https://rocket.chat"
 }

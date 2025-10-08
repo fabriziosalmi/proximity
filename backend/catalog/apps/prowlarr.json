@@ -13,9 +13,6 @@
         "image": "linuxserver/prowlarr:latest",
         "container_name": "prowlarr",
         "restart": "unless-stopped",
-        "ports": [
-          "9696:9696"
-        ],
         "environment": {
           "PUID": "1000",
           "PGID": "1000",
@@ -23,7 +20,8 @@
         },
         "volumes": [
           "prowlarr_config:/config"
-        ]
+        ],
+        "network_mode": "host"
       }
     },
     "volumes": {

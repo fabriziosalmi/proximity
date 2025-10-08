@@ -13,9 +13,6 @@
         "image": "ghcr.io/umami-software/umami:postgresql-latest",
         "container_name": "umami",
         "restart": "unless-stopped",
-        "ports": [
-          "3000:3000"
-        ],
         "environment": {
           "DATABASE_URL": "postgresql://umami:umami@db:5432/umami",
           "DATABASE_TYPE": "postgresql",
@@ -23,7 +20,8 @@
         },
         "depends_on": [
           "db"
-        ]
+        ],
+        "network_mode": "host"
       },
       "db": {
         "image": "postgres:15-alpine",
@@ -36,7 +34,8 @@
         },
         "volumes": [
           "umami_db:/var/lib/postgresql/data"
-        ]
+        ],
+        "network_mode": "host"
       }
     },
     "volumes": {

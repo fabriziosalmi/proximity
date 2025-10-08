@@ -22,11 +22,6 @@
         "image": "ghcr.io/oobabooga/text-generation-webui:main",
         "container_name": "text-generation-webui",
         "restart": "unless-stopped",
-        "ports": [
-          "7860:7860",
-          "5000:5000",
-          "5005:5005"
-        ],
         "volumes": [
           "textgen_models:/app/models",
           "textgen_characters:/app/characters",
@@ -36,7 +31,8 @@
         ],
         "environment": {
           "CLI_ARGS": "--listen --api"
-        }
+        },
+        "network_mode": "host"
       }
     },
     "volumes": {

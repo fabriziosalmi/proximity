@@ -10,27 +10,38 @@
     "services": {
       "grafana": {
         "image": "grafana/grafana:latest",
-        "ports": ["3000:3000"],
         "environment": {
           "GF_SECURITY_ADMIN_PASSWORD": "admin",
           "GF_INSTALL_PLUGINS": ""
         },
-        "volumes": ["grafana_data:/var/lib/grafana"],
-        "restart": "always"
+        "volumes": [
+          "grafana_data:/var/lib/grafana"
+        ],
+        "restart": "always",
+        "network_mode": "host"
       }
     },
     "volumes": {
       "grafana_data": {}
     }
   },
-  "ports": [3000],
-  "volumes": ["grafana_data"],
+  "ports": [
+    3000
+  ],
+  "volumes": [
+    "grafana_data"
+  ],
   "environment": {
     "GF_SECURITY_ADMIN_PASSWORD": "admin"
   },
   "min_memory": 512,
   "min_cpu": 1,
-  "tags": ["monitoring", "dashboard", "metrics", "visualization"],
+  "tags": [
+    "monitoring",
+    "dashboard",
+    "metrics",
+    "visualization"
+  ],
   "author": "Grafana Labs",
   "website": "https://grafana.com"
 }

@@ -21,9 +21,6 @@
         "image": "outlinewiki/outline:latest",
         "container_name": "outline",
         "restart": "unless-stopped",
-        "ports": [
-          "3000:3000"
-        ],
         "depends_on": [
           "outline-postgres",
           "outline-redis"
@@ -42,7 +39,8 @@
         },
         "volumes": [
           "outline_data:/var/lib/outline/data"
-        ]
+        ],
+        "network_mode": "host"
       },
       "outline-postgres": {
         "image": "postgres:15-alpine",
@@ -55,7 +53,8 @@
         },
         "volumes": [
           "outline_postgres:/var/lib/postgresql/data"
-        ]
+        ],
+        "network_mode": "host"
       },
       "outline-redis": {
         "image": "redis:7-alpine",
@@ -63,7 +62,8 @@
         "restart": "unless-stopped",
         "volumes": [
           "outline_redis:/data"
-        ]
+        ],
+        "network_mode": "host"
       }
     },
     "volumes": {

@@ -10,7 +10,6 @@
     "services": {
       "code-server": {
         "image": "codercom/code-server:latest",
-        "ports": ["8443:8080"],
         "environment": {
           "PASSWORD": "changeme",
           "SUDO_PASSWORD": "changeme"
@@ -19,7 +18,8 @@
           "codeserver_config:/home/coder/.config",
           "codeserver_data:/home/coder/project"
         ],
-        "restart": "always"
+        "restart": "always",
+        "network_mode": "host"
       }
     },
     "volumes": {
@@ -27,15 +27,25 @@
       "codeserver_data": {}
     }
   },
-  "ports": [8443],
-  "volumes": ["codeserver_config", "codeserver_data"],
+  "ports": [
+    8443
+  ],
+  "volumes": [
+    "codeserver_config",
+    "codeserver_data"
+  ],
   "environment": {
     "PASSWORD": "changeme",
     "SUDO_PASSWORD": "changeme"
   },
   "min_memory": 1024,
   "min_cpu": 2,
-  "tags": ["ide", "vscode", "development", "coding"],
+  "tags": [
+    "ide",
+    "vscode",
+    "development",
+    "coding"
+  ],
   "author": "Coder",
   "website": "https://coder.com"
 }

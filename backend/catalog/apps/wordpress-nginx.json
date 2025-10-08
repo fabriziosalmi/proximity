@@ -16,17 +16,24 @@
           "WORDPRESS_DB_PASSWORD": "wordpress_password",
           "WORDPRESS_DB_NAME": "wordpress"
         },
-        "volumes": ["wordpress_data:/var/www/html"],
-        "depends_on": ["db"]
+        "volumes": [
+          "wordpress_data:/var/www/html"
+        ],
+        "depends_on": [
+          "db"
+        ],
+        "network_mode": "host"
       },
       "nginx": {
         "image": "nginx:alpine",
-        "ports": ["80:80"],
         "volumes": [
           "wordpress_data:/var/www/html",
           "nginx_conf:/etc/nginx/conf.d"
         ],
-        "depends_on": ["wordpress"]
+        "depends_on": [
+          "wordpress"
+        ],
+        "network_mode": "host"
       },
       "db": {
         "image": "mysql:8.0",
@@ -36,7 +43,10 @@
           "MYSQL_PASSWORD": "wordpress_password",
           "MYSQL_ROOT_PASSWORD": "root_password"
         },
-        "volumes": ["db_data:/var/lib/mysql"]
+        "volumes": [
+          "db_data:/var/lib/mysql"
+        ],
+        "network_mode": "host"
       }
     },
     "volumes": {
@@ -45,15 +55,27 @@
       "db_data": {}
     }
   },
-  "ports": [80],
-  "volumes": ["wordpress_data", "nginx_conf", "db_data"],
+  "ports": [
+    80
+  ],
+  "volumes": [
+    "wordpress_data",
+    "nginx_conf",
+    "db_data"
+  ],
   "environment": {
     "WORDPRESS_DB_PASSWORD": "wordpress_password",
     "MYSQL_ROOT_PASSWORD": "root_password"
   },
   "min_memory": 1024,
   "min_cpu": 2,
-  "tags": ["cms", "blog", "php", "nginx", "mysql"],
+  "tags": [
+    "cms",
+    "blog",
+    "php",
+    "nginx",
+    "mysql"
+  ],
   "author": "WordPress.org",
   "website": "https://wordpress.org"
 }

@@ -31,9 +31,7 @@
           "calibre_config:/config",
           "calibre_books:/books"
         ],
-        "ports": [
-          "8083:8083"
-        ]
+        "network_mode": "host"
       }
     },
     "volumes": {

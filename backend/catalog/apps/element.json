@@ -22,15 +22,13 @@
         "image": "vectorim/element-web:latest",
         "container_name": "element",
         "restart": "unless-stopped",
-        "ports": [
-          "8080:80"
-        ],
         "volumes": [
           "element_config:/app/config"
         ],
         "environment": {
           "MATRIX_SERVER": "https://matrix.org"
-        }
+        },
+        "network_mode": "host"
       }
     },
     "volumes": {

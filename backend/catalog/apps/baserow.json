@@ -21,9 +21,6 @@
         "image": "baserow/baserow:latest",
         "container_name": "baserow",
         "restart": "unless-stopped",
-        "ports": [
-          "8000:80"
-        ],
         "environment": {
           "BASEROW_PUBLIC_URL": "http://localhost:8000",
           "DATABASE_HOST": "baserow-db",
@@ -40,7 +37,8 @@
         "depends_on": [
           "baserow-db",
           "baserow-redis"
-        ]
+        ],
+        "network_mode": "host"
       },
       "baserow-db": {
         "image": "postgres:14",
@@ -53,12 +51,14 @@
         },
         "volumes": [
           "baserow_postgres:/var/lib/postgresql/data"
-        ]
+        ],
+        "network_mode": "host"
       },
       "baserow-redis": {
         "image": "redis:7",
         "container_name": "baserow-redis",
-        "restart": "unless-stopped"
+        "restart": "unless-stopped",
+        "network_mode": "host"
       }
     },
     "volumes": {

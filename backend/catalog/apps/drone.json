@@ -10,14 +10,16 @@
     "services": {
       "drone": {
         "image": "drone/drone:2",
-        "ports": ["80:80"],
         "environment": {
           "DRONE_SERVER_HOST": "localhost",
           "DRONE_SERVER_PROTO": "http",
           "DRONE_RPC_SECRET": "change_me_secret",
           "DRONE_USER_CREATE": "username:admin,admin:true"
         },
-        "volumes": ["drone_data:/data"]
+        "volumes": [
+          "drone_data:/data"
+        ],
+        "network_mode": "host"
       },
       "drone-runner": {
         "image": "drone/drone-runner-docker:1",
@@ -28,23 +30,37 @@
           "DRONE_RUNNER_CAPACITY": "2",
           "DRONE_RUNNER_NAME": "runner-docker"
         },
-        "volumes": ["/var/run/docker.sock:/var/run/docker.sock"],
-        "depends_on": ["drone"]
+        "volumes": [
+          "/var/run/docker.sock:/var/run/docker.sock"
+        ],
+        "depends_on": [
+          "drone"
+        ],
+        "network_mode": "host"
       }
     },
     "volumes": {
       "drone_data": {}
     }
   },
-  "ports": [80],
-  "volumes": ["drone_data"],
+  "ports": [
+    80
+  ],
+  "volumes": [
+    "drone_data"
+  ],
   "environment": {
     "DRONE_RPC_SECRET": "change_me_secret",
     "DRONE_USER_CREATE": "username:admin,admin:true"
   },
   "min_memory": 512,
   "min_cpu": 1,
-  "tags": ["ci", "cd", "devops", "automation"],
+  "tags": [
+    "ci",
+    "cd",
+    "devops",
+    "automation"
+  ],
   "author": "Drone.io",
   "website": "https://www.drone.io"
 }

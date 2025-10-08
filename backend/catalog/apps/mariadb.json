@@ -10,30 +10,41 @@
     "services": {
       "mariadb": {
         "image": "mariadb:latest",
-        "ports": ["3306:3306"],
         "environment": {
           "MYSQL_ROOT_PASSWORD": "root_password",
           "MYSQL_DATABASE": "mariadb",
           "MYSQL_USER": "mariadb",
           "MYSQL_PASSWORD": "mariadb_password"
         },
-        "volumes": ["mariadb_data:/var/lib/mysql"],
-        "restart": "always"
+        "volumes": [
+          "mariadb_data:/var/lib/mysql"
+        ],
+        "restart": "always",
+        "network_mode": "host"
       }
     },
     "volumes": {
       "mariadb_data": {}
     }
   },
-  "ports": [3306],
-  "volumes": ["mariadb_data"],
+  "ports": [
+    3306
+  ],
+  "volumes": [
+    "mariadb_data"
+  ],
   "environment": {
     "MYSQL_ROOT_PASSWORD": "root_password",
     "MYSQL_PASSWORD": "mariadb_password"
   },
   "min_memory": 512,
   "min_cpu": 1,
-  "tags": ["database", "sql", "mysql", "mariadb"],
+  "tags": [
+    "database",
+    "sql",
+    "mysql",
+    "mariadb"
+  ],
   "author": "MariaDB Foundation",
   "website": "https://mariadb.org"
 }

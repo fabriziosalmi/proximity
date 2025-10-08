@@ -10,11 +10,12 @@
     "services": {
       "homeassistant": {
         "image": "homeassistant/home-assistant:latest",
-        "ports": ["8123:8123"],
         "environment": {
           "TZ": "UTC"
         },
-        "volumes": ["hass_config:/config"],
+        "volumes": [
+          "hass_config:/config"
+        ],
         "restart": "always",
         "network_mode": "host"
       }
@@ -23,12 +24,21 @@
       "hass_config": {}
     }
   },
-  "ports": [8123],
-  "volumes": ["hass_config"],
+  "ports": [
+    8123
+  ],
+  "volumes": [
+    "hass_config"
+  ],
   "environment": {},
   "min_memory": 1024,
   "min_cpu": 2,
-  "tags": ["home-automation", "iot", "smart-home", "automation"],
+  "tags": [
+    "home-automation",
+    "iot",
+    "smart-home",
+    "automation"
+  ],
   "author": "Home Assistant",
   "website": "https://www.home-assistant.io"
 }

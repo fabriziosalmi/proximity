@@ -13,9 +13,6 @@
         "image": "linuxserver/readarr:develop",
         "container_name": "readarr",
         "restart": "unless-stopped",
-        "ports": [
-          "8787:8787"
-        ],
         "environment": {
           "PUID": "1000",
           "PGID": "1000",
@@ -25,7 +22,8 @@
           "readarr_config:/config",
           "readarr_books:/books",
           "readarr_downloads:/downloads"
-        ]
+        ],
+        "network_mode": "host"
       }
     },
     "volumes": {

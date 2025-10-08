@@ -10,7 +10,6 @@
     "services": {
       "prometheus": {
         "image": "prom/prometheus:latest",
-        "ports": ["9090:9090"],
         "volumes": [
           "prometheus_data:/prometheus",
           "prometheus_config:/etc/prometheus"
@@ -19,7 +18,8 @@
           "--config.file=/etc/prometheus/prometheus.yml",
           "--storage.tsdb.path=/prometheus"
         ],
-        "restart": "always"
+        "restart": "always",
+        "network_mode": "host"
       }
     },
     "volumes": {
@@ -27,12 +27,22 @@
       "prometheus_config": {}
     }
   },
-  "ports": [9090],
-  "volumes": ["prometheus_data", "prometheus_config"],
+  "ports": [
+    9090
+  ],
+  "volumes": [
+    "prometheus_data",
+    "prometheus_config"
+  ],
   "environment": {},
   "min_memory": 512,
   "min_cpu": 1,
-  "tags": ["monitoring", "metrics", "alerting", "time-series"],
+  "tags": [
+    "monitoring",
+    "metrics",
+    "alerting",
+    "time-series"
+  ],
   "author": "Prometheus Authors",
   "website": "https://prometheus.io"
 }

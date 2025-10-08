@@ -10,7 +10,6 @@
     "services": {
       "traefik": {
         "image": "traefik:latest",
-        "ports": ["80:80", "443:443", "8080:8080"],
         "command": [
           "--api.dashboard=true",
           "--api.insecure=true",
@@ -22,19 +21,31 @@
           "/var/run/docker.sock:/var/run/docker.sock:ro",
           "traefik_data:/letsencrypt"
         ],
-        "restart": "always"
+        "restart": "always",
+        "network_mode": "host"
       }
     },
     "volumes": {
       "traefik_data": {}
     }
   },
-  "ports": [80, 443, 8080],
-  "volumes": ["traefik_data"],
+  "ports": [
+    80,
+    443,
+    8080
+  ],
+  "volumes": [
+    "traefik_data"
+  ],
   "environment": {},
   "min_memory": 256,
   "min_cpu": 1,
-  "tags": ["reverse-proxy", "load-balancer", "web-server", "routing"],
+  "tags": [
+    "reverse-proxy",
+    "load-balancer",
+    "web-server",
+    "routing"
+  ],
   "author": "Traefik Labs",
   "website": "https://traefik.io"
 }

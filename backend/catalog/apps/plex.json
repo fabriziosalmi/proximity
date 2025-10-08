@@ -10,7 +10,6 @@
     "services": {
       "plex": {
         "image": "plexinc/pms-docker:latest",
-        "ports": ["32400:32400"],
         "environment": {
           "TZ": "UTC",
           "PLEX_CLAIM": "claim-token-here"
@@ -19,7 +18,8 @@
           "plex_config:/config",
           "plex_transcode:/transcode"
         ],
-        "restart": "always"
+        "restart": "always",
+        "network_mode": "host"
       }
     },
     "volumes": {
@@ -27,14 +27,25 @@
       "plex_transcode": {}
     }
   },
-  "ports": [32400],
-  "volumes": ["plex_config", "plex_transcode"],
+  "ports": [
+    32400
+  ],
+  "volumes": [
+    "plex_config",
+    "plex_transcode"
+  ],
   "environment": {
     "TZ": "UTC"
   },
   "min_memory": 2048,
   "min_cpu": 2,
-  "tags": ["media", "streaming", "movies", "tv", "music"],
+  "tags": [
+    "media",
+    "streaming",
+    "movies",
+    "tv",
+    "music"
+  ],
   "author": "Plex Inc",
   "website": "https://www.plex.tv"
 }

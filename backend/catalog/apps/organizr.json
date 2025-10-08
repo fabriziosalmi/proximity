@@ -21,9 +21,6 @@
         "image": "organizr/organizr:latest",
         "container_name": "organizr",
         "restart": "unless-stopped",
-        "ports": [
-          "8080:80"
-        ],
         "volumes": [
           "organizr_config:/config"
         ],
@@ -31,7 +28,8 @@
           "PUID": "1000",
           "PGID": "1000",
           "TZ": "Etc/UTC"
-        }
+        },
+        "network_mode": "host"
       }
     },
     "volumes": {

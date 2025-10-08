@@ -21,13 +21,11 @@
         "image": "excalidraw/excalidraw:latest",
         "container_name": "excalidraw",
         "restart": "unless-stopped",
-        "ports": [
-          "3000:80"
-        ],
         "environment": {
           "VITE_APP_DISABLE_SENTRY": "true",
           "VITE_APP_DISABLE_TRACKING": "true"
-        }
+        },
+        "network_mode": "host"
       }
     }
   },

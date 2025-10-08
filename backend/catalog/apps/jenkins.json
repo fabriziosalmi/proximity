@@ -10,7 +10,6 @@
     "services": {
       "jenkins": {
         "image": "jenkins/jenkins:lts",
-        "ports": ["8080:8080", "50000:50000"],
         "environment": {
           "JAVA_OPTS": "-Djenkins.install.runSetupWizard=false"
         },
@@ -18,19 +17,30 @@
           "jenkins_home:/var/jenkins_home",
           "/var/run/docker.sock:/var/run/docker.sock"
         ],
-        "restart": "always"
+        "restart": "always",
+        "network_mode": "host"
       }
     },
     "volumes": {
       "jenkins_home": {}
     }
   },
-  "ports": [8080, 50000],
-  "volumes": ["jenkins_home"],
+  "ports": [
+    8080,
+    50000
+  ],
+  "volumes": [
+    "jenkins_home"
+  ],
   "environment": {},
   "min_memory": 2048,
   "min_cpu": 2,
-  "tags": ["ci-cd", "automation", "devops", "build"],
+  "tags": [
+    "ci-cd",
+    "automation",
+    "devops",
+    "build"
+  ],
   "author": "Jenkins Project",
   "website": "https://www.jenkins.io"
 }

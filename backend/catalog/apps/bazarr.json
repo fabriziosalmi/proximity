@@ -13,9 +13,6 @@
         "image": "linuxserver/bazarr:latest",
         "container_name": "bazarr",
         "restart": "unless-stopped",
-        "ports": [
-          "6767:6767"
-        ],
         "environment": {
           "PUID": "1000",
           "PGID": "1000",
@@ -25,7 +22,8 @@
           "bazarr_config:/config",
           "bazarr_movies:/movies",
           "bazarr_tv:/tv"
-        ]
+        ],
+        "network_mode": "host"
       }
     },
     "volumes": {

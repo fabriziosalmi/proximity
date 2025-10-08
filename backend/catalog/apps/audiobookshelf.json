@@ -10,7 +10,6 @@
     "services": {
       "audiobookshelf": {
         "image": "ghcr.io/advplyr/audiobookshelf:latest",
-        "ports": ["13378:80"],
         "environment": {
           "TZ": "UTC"
         },
@@ -19,7 +18,8 @@
           "podcasts:/podcasts",
           "config:/config",
           "metadata:/metadata"
-        ]
+        ],
+        "network_mode": "host"
       }
     },
     "volumes": {
@@ -29,14 +29,26 @@
       "metadata": {}
     }
   },
-  "ports": [13378],
-  "volumes": ["audiobooks", "podcasts", "config", "metadata"],
+  "ports": [
+    13378
+  ],
+  "volumes": [
+    "audiobooks",
+    "podcasts",
+    "config",
+    "metadata"
+  ],
   "environment": {
     "TZ": "UTC"
   },
   "min_memory": 512,
   "min_cpu": 1,
-  "tags": ["audiobook", "podcast", "media", "library"],
+  "tags": [
+    "audiobook",
+    "podcast",
+    "media",
+    "library"
+  ],
   "author": "advplyr",
   "website": "https://www.audiobookshelf.org"
 }

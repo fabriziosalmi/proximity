@@ -10,7 +10,6 @@
     "services": {
       "seafile": {
         "image": "seafileltd/seafile-mc:latest",
-        "ports": ["80:80", "443:443"],
         "environment": {
           "DB_HOST": "db",
           "DB_ROOT_PASSWD": "root_password",
@@ -18,17 +17,25 @@
           "SEAFILE_ADMIN_PASSWORD": "admin",
           "SEAFILE_SERVER_HOSTNAME": "localhost"
         },
-        "volumes": ["seafile_data:/shared"],
-        "depends_on": ["db"],
-        "restart": "always"
+        "volumes": [
+          "seafile_data:/shared"
+        ],
+        "depends_on": [
+          "db"
+        ],
+        "restart": "always",
+        "network_mode": "host"
       },
       "db": {
         "image": "mariadb:10.11",
         "environment": {
           "MYSQL_ROOT_PASSWORD": "root_password"
         },
-        "volumes": ["seafile_db:/var/lib/mysql"],
-        "restart": "always"
+        "volumes": [
+          "seafile_db:/var/lib/mysql"
+        ],
+        "restart": "always",
+        "network_mode": "host"
       }
     },
     "volumes": {
@@ -36,15 +43,26 @@
       "seafile_db": {}
     }
   },
-  "ports": [80, 443],
-  "volumes": ["seafile_data", "seafile_db"],
+  "ports": [
+    80,
+    443
+  ],
+  "volumes": [
+    "seafile_data",
+    "seafile_db"
+  ],
   "environment": {
     "SEAFILE_ADMIN_PASSWORD": "admin",
     "DB_ROOT_PASSWD": "root_password"
   },
   "min_memory": 2048,
   "min_cpu": 2,
-  "tags": ["storage", "sync", "collaboration", "cloud"],
+  "tags": [
+    "storage",
+    "sync",
+    "collaboration",
+    "cloud"
+  ],
   "author": "Seafile Ltd",
   "website": "https://www.seafile.com"
 }

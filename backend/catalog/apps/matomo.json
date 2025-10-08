@@ -13,9 +13,6 @@
         "image": "matomo:latest",
         "container_name": "matomo",
         "restart": "unless-stopped",
-        "ports": [
-          "8080:80"
-        ],
         "environment": {
           "MATOMO_DATABASE_HOST": "db",
           "MATOMO_DATABASE_ADAPTER": "mysql",
@@ -26,7 +23,8 @@
         },
         "volumes": [
           "matomo_data:/var/www/html"
-        ]
+        ],
+        "network_mode": "host"
       },
       "db": {
         "image": "mariadb:10",
@@ -40,7 +38,8 @@
         },
         "volumes": [
           "matomo_db:/var/lib/mysql"
-        ]
+        ],
+        "network_mode": "host"
       }
     },
     "volumes": {

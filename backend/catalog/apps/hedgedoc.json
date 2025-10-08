@@ -10,7 +10,6 @@
     "services": {
       "hedgedoc": {
         "image": "quay.io/hedgedoc/hedgedoc:latest",
-        "ports": ["3000:3000"],
         "environment": {
           "CMD_DB_URL": "postgres://hedgedoc:hedgedoc_password@db:5432/hedgedoc",
           "CMD_DOMAIN": "localhost",
@@ -20,8 +19,13 @@
           "CMD_ALLOW_ANONYMOUS_EDITS": "true",
           "CMD_EMAIL": "false"
         },
-        "volumes": ["uploads:/hedgedoc/public/uploads"],
-        "depends_on": ["db"]
+        "volumes": [
+          "uploads:/hedgedoc/public/uploads"
+        ],
+        "depends_on": [
+          "db"
+        ],
+        "network_mode": "host"
       },
       "db": {
         "image": "postgres:15-alpine",
@@ -30,7 +34,10 @@
           "POSTGRES_USER": "hedgedoc",
           "POSTGRES_PASSWORD": "hedgedoc_password"
         },
-        "volumes": ["db_data:/var/lib/postgresql/data"]
+        "volumes": [
+          "db_data:/var/lib/postgresql/data"
+        ],
+        "network_mode": "host"
       }
     },
     "volumes": {
@@ -38,15 +45,25 @@
       "db_data": {}
     }
   },
-  "ports": [3000],
-  "volumes": ["uploads", "db_data"],
+  "ports": [
+    3000
+  ],
+  "volumes": [
+    "uploads",
+    "db_data"
+  ],
   "environment": {
     "CMD_DB_URL": "postgres://hedgedoc:hedgedoc_password@db:5432/hedgedoc",
     "CMD_DOMAIN": "localhost"
   },
   "min_memory": 512,
   "min_cpu": 1,
-  "tags": ["markdown", "collaboration", "notes", "documentation"],
+  "tags": [
+    "markdown",
+    "collaboration",
+    "notes",
+    "documentation"
+  ],
   "author": "HedgeDoc",
   "website": "https://hedgedoc.org"
 }

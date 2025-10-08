@@ -5,7 +5,13 @@
   "description": "Secure file sharing and collaboration platform with desktop and mobile sync clients",
   "category": "Storage",
   "icon": "https://cdn.simpleicons.org/owncloud/1D2D44",
-  "tags": ["cloud", "file-sync", "collaboration", "sharing", "storage"],
+  "tags": [
+    "cloud",
+    "file-sync",
+    "collaboration",
+    "sharing",
+    "storage"
+  ],
   "min_memory": 512,
   "min_cpu": 1,
   "min_disk": 10,
@@ -16,9 +22,6 @@
         "image": "owncloud/server:latest",
         "container_name": "owncloud",
         "restart": "unless-stopped",
-        "ports": [
-          "8080:8080"
-        ],
         "depends_on": [
           "owncloud-mariadb",
           "owncloud-redis"
@@ -38,7 +41,8 @@
         },
         "volumes": [
           "owncloud_files:/mnt/data"
-        ]
+        ],
+        "network_mode": "host"
       },
       "owncloud-mariadb": {
         "image": "mariadb:10.11",
@@ -50,19 +54,27 @@
           "MYSQL_PASSWORD": "owncloud_password",
           "MYSQL_DATABASE": "owncloud"
         },
-        "command": ["--max-allowed-packet=128M", "--innodb-log-file-size=64M"],
+        "command": [
+          "--max-allowed-packet=128M",
+          "--innodb-log-file-size=64M"
+        ],
         "volumes": [
           "owncloud_mysql:/var/lib/mysql"
-        ]
+        ],
+        "network_mode": "host"
       },
       "owncloud-redis": {
         "image": "redis:7",
         "container_name": "owncloud-redis",
         "restart": "unless-stopped",
-        "command": ["--databases", "1"],
+        "command": [
+          "--databases",
+          "1"
+        ],
         "volumes": [
           "owncloud_redis:/data"
-        ]
+        ],
+        "network_mode": "host"
       }
     },
     "volumes": {

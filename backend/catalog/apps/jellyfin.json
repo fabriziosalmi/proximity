@@ -10,7 +10,6 @@
     "services": {
       "jellyfin": {
         "image": "jellyfin/jellyfin:latest",
-        "ports": ["8096:8096"],
         "environment": {
           "TZ": "UTC"
         },
@@ -18,7 +17,8 @@
           "jellyfin_config:/config",
           "jellyfin_cache:/cache"
         ],
-        "restart": "always"
+        "restart": "always",
+        "network_mode": "host"
       }
     },
     "volumes": {
@@ -26,14 +26,25 @@
       "jellyfin_cache": {}
     }
   },
-  "ports": [8096],
-  "volumes": ["jellyfin_config", "jellyfin_cache"],
+  "ports": [
+    8096
+  ],
+  "volumes": [
+    "jellyfin_config",
+    "jellyfin_cache"
+  ],
   "environment": {
     "TZ": "UTC"
   },
   "min_memory": 1024,
   "min_cpu": 2,
-  "tags": ["media", "streaming", "movies", "music", "tv"],
+  "tags": [
+    "media",
+    "streaming",
+    "movies",
+    "music",
+    "tv"
+  ],
   "author": "Jellyfin Project",
   "website": "https://jellyfin.org"
 }

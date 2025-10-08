@@ -10,7 +10,6 @@
     "services": {
       "invoiceninja": {
         "image": "invoiceninja/invoiceninja:5",
-        "ports": ["80:80"],
         "environment": {
           "APP_URL": "http://localhost",
           "APP_KEY": "base64:change_me_32_character_string_here=",
@@ -19,8 +18,14 @@
           "DB_USERNAME": "ninja",
           "DB_PASSWORD": "ninja_password"
         },
-        "volumes": ["public:/var/www/app/public", "storage:/var/www/app/storage"],
-        "depends_on": ["db"]
+        "volumes": [
+          "public:/var/www/app/public",
+          "storage:/var/www/app/storage"
+        ],
+        "depends_on": [
+          "db"
+        ],
+        "network_mode": "host"
       },
       "db": {
         "image": "mysql:8.0",
@@ -30,7 +35,10 @@
           "MYSQL_USER": "ninja",
           "MYSQL_PASSWORD": "ninja_password"
         },
-        "volumes": ["db_data:/var/lib/mysql"]
+        "volumes": [
+          "db_data:/var/lib/mysql"
+        ],
+        "network_mode": "host"
       }
     },
     "volumes": {
@@ -39,8 +47,14 @@
       "db_data": {}
     }
   },
-  "ports": [80],
-  "volumes": ["public", "storage", "db_data"],
+  "ports": [
+    80
+  ],
+  "volumes": [
+    "public",
+    "storage",
+    "db_data"
+  ],
   "environment": {
     "APP_KEY": "base64:change_me_32_character_string_here=",
     "DB_PASSWORD": "ninja_password",
@@ -48,7 +62,12 @@
   },
   "min_memory": 1024,
   "min_cpu": 1,
-  "tags": ["invoice", "billing", "business", "accounting"],
+  "tags": [
+    "invoice",
+    "billing",
+    "business",
+    "accounting"
+  ],
   "author": "Invoice Ninja",
   "website": "https://invoiceninja.com"
 }

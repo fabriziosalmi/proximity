@@ -21,9 +21,6 @@
         "image": "bitwarden/self-host:beta",
         "container_name": "bitwarden",
         "restart": "unless-stopped",
-        "ports": [
-          "8080:8080"
-        ],
         "volumes": [
           "bitwarden_data:/etc/bitwarden"
         ],
@@ -31,7 +28,8 @@
           "BW_DOMAIN": "localhost",
           "BW_INSTALLATION_ID": "REPLACE_WITH_INSTALLATION_ID",
           "BW_INSTALLATION_KEY": "REPLACE_WITH_INSTALLATION_KEY"
-        }
+        },
+        "network_mode": "host"
       }
     },
     "volumes": {

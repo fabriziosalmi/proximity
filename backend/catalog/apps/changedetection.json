@@ -10,12 +10,14 @@
     "services": {
       "changedetection": {
         "image": "ghcr.io/dgtlmoon/changedetection.io:latest",
-        "ports": ["5000:5000"],
         "environment": {
           "BASE_URL": "http://localhost:5000",
           "PLAYWRIGHT_DRIVER_URL": "ws://playwright:3000"
         },
-        "volumes": ["datastore:/datastore"]
+        "volumes": [
+          "datastore:/datastore"
+        ],
+        "network_mode": "host"
       },
       "playwright": {
         "image": "browserless/chrome:latest",
@@ -24,21 +26,31 @@
           "SCREEN_HEIGHT": "1024",
           "SCREEN_DEPTH": "16",
           "MAX_CONCURRENT_SESSIONS": "10"
-        }
+        },
+        "network_mode": "host"
       }
     },
     "volumes": {
       "datastore": {}
     }
   },
-  "ports": [5000],
-  "volumes": ["datastore"],
+  "ports": [
+    5000
+  ],
+  "volumes": [
+    "datastore"
+  ],
   "environment": {
     "BASE_URL": "http://localhost:5000"
   },
   "min_memory": 512,
   "min_cpu": 1,
-  "tags": ["monitoring", "notification", "web", "scraping"],
+  "tags": [
+    "monitoring",
+    "notification",
+    "web",
+    "scraping"
+  ],
   "author": "dgtlmoon",
   "website": "https://changedetection.io"
 }

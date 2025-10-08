@@ -10,24 +10,35 @@
     "services": {
       "jupyter": {
         "image": "jupyter/scipy-notebook:latest",
-        "ports": ["8888:8888"],
         "environment": {
           "JUPYTER_ENABLE_LAB": "yes"
         },
-        "volumes": ["jupyter_data:/home/jovyan/work"],
-        "restart": "always"
+        "volumes": [
+          "jupyter_data:/home/jovyan/work"
+        ],
+        "restart": "always",
+        "network_mode": "host"
       }
     },
     "volumes": {
       "jupyter_data": {}
     }
   },
-  "ports": [8888],
-  "volumes": ["jupyter_data"],
+  "ports": [
+    8888
+  ],
+  "volumes": [
+    "jupyter_data"
+  ],
   "environment": {},
   "min_memory": 2048,
   "min_cpu": 2,
-  "tags": ["ai", "data-science", "python", "notebooks"],
+  "tags": [
+    "ai",
+    "data-science",
+    "python",
+    "notebooks"
+  ],
   "author": "Project Jupyter",
   "website": "https://jupyter.org"
 }

@@ -10,21 +10,32 @@
     "services": {
       "uptime-kuma": {
         "image": "louislam/uptime-kuma:latest",
-        "ports": ["3001:3001"],
-        "volumes": ["uptime_data:/app/data"],
-        "restart": "always"
+        "volumes": [
+          "uptime_data:/app/data"
+        ],
+        "restart": "always",
+        "network_mode": "host"
       }
     },
     "volumes": {
       "uptime_data": {}
     }
   },
-  "ports": [3001],
-  "volumes": ["uptime_data"],
+  "ports": [
+    3001
+  ],
+  "volumes": [
+    "uptime_data"
+  ],
   "environment": {},
   "min_memory": 256,
   "min_cpu": 1,
-  "tags": ["monitoring", "uptime", "status-page", "notifications"],
+  "tags": [
+    "monitoring",
+    "uptime",
+    "status-page",
+    "notifications"
+  ],
   "author": "Louis Lam",
   "website": "https://uptime.kuma.pet"
 }

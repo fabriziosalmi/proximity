@@ -21,9 +21,6 @@
         "image": "lscr.io/linuxserver/bookstack:latest",
         "container_name": "bookstack",
         "restart": "unless-stopped",
-        "ports": [
-          "6875:80"
-        ],
         "environment": {
           "PUID": "1000",
           "PGID": "1000",
@@ -40,7 +37,8 @@
         ],
         "depends_on": [
           "bookstack-db"
-        ]
+        ],
+        "network_mode": "host"
       },
       "bookstack-db": {
         "image": "lscr.io/linuxserver/mariadb:latest",
@@ -57,7 +55,8 @@
         },
         "volumes": [
           "bookstack_db_config:/config"
-        ]
+        ],
+        "network_mode": "host"
       }
     },
     "volumes": {

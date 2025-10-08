@@ -22,9 +22,6 @@
         "image": "ghcr.io/danny-avila/librechat:latest",
         "container_name": "librechat",
         "restart": "unless-stopped",
-        "ports": [
-          "3080:3080"
-        ],
         "depends_on": [
           "librechat-mongodb"
         ],
@@ -37,7 +34,8 @@
         },
         "volumes": [
           "librechat_data:/app/client/public/images"
-        ]
+        ],
+        "network_mode": "host"
       },
       "librechat-mongodb": {
         "image": "mongo:latest",
@@ -45,7 +43,8 @@
         "restart": "unless-stopped",
         "volumes": [
           "librechat_mongodb:/data/db"
-        ]
+        ],
+        "network_mode": "host"
       }
     },
     "volumes": {

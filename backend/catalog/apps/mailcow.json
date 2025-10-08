@@ -10,7 +10,6 @@
     "services": {
       "mailcow": {
         "image": "mailcow/mailcow-dockerized:latest",
-        "ports": ["25:25", "143:143", "587:587", "993:993", "443:443", "80:80"],
         "environment": {
           "MAILCOW_HOSTNAME": "mail.example.com",
           "DBNAME": "mailcow",
@@ -21,7 +20,8 @@
           "mailcow_data:/var/vmail",
           "mailcow_mysql:/var/lib/mysql"
         ],
-        "restart": "always"
+        "restart": "always",
+        "network_mode": "host"
       }
     },
     "volumes": {
@@ -29,14 +29,29 @@
       "mailcow_mysql": {}
     }
   },
-  "ports": [25, 143, 587, 993, 443, 80],
-  "volumes": ["mailcow_data", "mailcow_mysql"],
+  "ports": [
+    25,
+    143,
+    587,
+    993,
+    443,
+    80
+  ],
+  "volumes": [
+    "mailcow_data",
+    "mailcow_mysql"
+  ],
   "environment": {
     "DBPASS": "mailcow_password"
   },
   "min_memory": 4096,
   "min_cpu": 4,
-  "tags": ["mail", "email", "smtp", "communication"],
+  "tags": [
+    "mail",
+    "email",
+    "smtp",
+    "communication"
+  ],
   "author": "Mailcow",
   "website": "https://mailcow.email"
 }

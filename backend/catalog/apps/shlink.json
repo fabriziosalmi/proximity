@@ -10,7 +10,6 @@
     "services": {
       "shlink": {
         "image": "shlinkio/shlink:stable",
-        "ports": ["8080:8080"],
         "environment": {
           "DEFAULT_DOMAIN": "localhost:8080",
           "IS_HTTPS_ENABLED": "false",
@@ -21,7 +20,10 @@
           "DB_PASSWORD": "shlink_password",
           "DB_HOST": "db"
         },
-        "depends_on": ["db"]
+        "depends_on": [
+          "db"
+        ],
+        "network_mode": "host"
       },
       "db": {
         "image": "postgres:15-alpine",
@@ -30,22 +32,33 @@
           "POSTGRES_USER": "shlink",
           "POSTGRES_PASSWORD": "shlink_password"
         },
-        "volumes": ["db_data:/var/lib/postgresql/data"]
+        "volumes": [
+          "db_data:/var/lib/postgresql/data"
+        ],
+        "network_mode": "host"
       }
     },
     "volumes": {
       "db_data": {}
     }
   },
-  "ports": [8080],
-  "volumes": ["db_data"],
+  "ports": [
+    8080
+  ],
+  "volumes": [
+    "db_data"
+  ],
   "environment": {
     "DEFAULT_DOMAIN": "localhost:8080",
     "DB_PASSWORD": "shlink_password"
   },
   "min_memory": 512,
   "min_cpu": 1,
-  "tags": ["url-shortener", "analytics", "utilities"],
+  "tags": [
+    "url-shortener",
+    "analytics",
+    "utilities"
+  ],
   "author": "Shlink",
   "website": "https://shlink.io"
 }

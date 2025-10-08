@@ -29,9 +29,7 @@
         "volumes": [
           "freshrss_config:/config"
         ],
-        "ports": [
-          "8080:80"
-        ]
+        "network_mode": "host"
       }
     },
     "volumes": {

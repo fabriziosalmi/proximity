@@ -10,7 +10,6 @@
     "services": {
       "gitea": {
         "image": "gitea/gitea:latest",
-        "ports": ["3000:3000", "22:22"],
         "environment": {
           "USER_UID": "1000",
           "USER_GID": "1000",
@@ -25,8 +24,11 @@
           "/etc/timezone:/etc/timezone:ro",
           "/etc/localtime:/etc/localtime:ro"
         ],
-        "depends_on": ["db"],
-        "restart": "always"
+        "depends_on": [
+          "db"
+        ],
+        "restart": "always",
+        "network_mode": "host"
       },
       "db": {
         "image": "postgres:14",
@@ -35,8 +37,11 @@
           "POSTGRES_USER": "gitea",
           "POSTGRES_PASSWORD": "gitea_password"
         },
-        "volumes": ["postgres_data:/var/lib/postgresql/data"],
-        "restart": "always"
+        "volumes": [
+          "postgres_data:/var/lib/postgresql/data"
+        ],
+        "restart": "always",
+        "network_mode": "host"
       }
     },
     "volumes": {
@@ -44,15 +49,26 @@
       "postgres_data": {}
     }
   },
-  "ports": [3000, 22],
-  "volumes": ["gitea_data", "postgres_data"],
+  "ports": [
+    3000,
+    22
+  ],
+  "volumes": [
+    "gitea_data",
+    "postgres_data"
+  ],
   "environment": {
     "GITEA__database__PASSWD": "gitea_password",
     "POSTGRES_PASSWORD": "gitea_password"
   },
   "min_memory": 1024,
   "min_cpu": 1,
-  "tags": ["git", "version-control", "devops", "code-hosting"],
+  "tags": [
+    "git",
+    "version-control",
+    "devops",
+    "code-hosting"
+  ],
   "author": "Gitea",
   "website": "https://gitea.io"
 }

@@ -29,10 +29,7 @@
         "volumes": [
           "dokuwiki_config:/config"
         ],
-        "ports": [
-          "8080:80",
-          "8443:443"
-        ]
+        "network_mode": "host"
       }
     },
     "volumes": {

@@ -13,9 +13,6 @@
         "image": "linuxserver/sonarr:latest",
         "container_name": "sonarr",
         "restart": "unless-stopped",
-        "ports": [
-          "8989:8989"
-        ],
         "environment": {
           "PUID": "1000",
           "PGID": "1000",
@@ -25,7 +22,8 @@
           "sonarr_config:/config",
           "sonarr_tv:/tv",
           "sonarr_downloads:/downloads"
-        ]
+        ],
+        "network_mode": "host"
       }
     },
     "volumes": {

@@ -10,7 +10,6 @@
     "services": {
       "n8n": {
         "image": "n8nio/n8n:latest",
-        "ports": ["5678:5678"],
         "environment": {
           "N8N_HOST": "0.0.0.0",
           "N8N_PORT": "5678",
@@ -19,23 +18,35 @@
           "WEBHOOK_URL": "http://localhost:5678/",
           "GENERIC_TIMEZONE": "UTC"
         },
-        "volumes": ["n8n_data:/home/node/.n8n"],
-        "restart": "always"
+        "volumes": [
+          "n8n_data:/home/node/.n8n"
+        ],
+        "restart": "always",
+        "network_mode": "host"
       }
     },
     "volumes": {
       "n8n_data": {}
     }
   },
-  "ports": [5678],
-  "volumes": ["n8n_data"],
+  "ports": [
+    5678
+  ],
+  "volumes": [
+    "n8n_data"
+  ],
   "environment": {
     "WEBHOOK_URL": "http://localhost:5678/",
     "GENERIC_TIMEZONE": "UTC"
   },
   "min_memory": 512,
   "min_cpu": 1,
-  "tags": ["automation", "workflow", "integration", "webhook"],
+  "tags": [
+    "automation",
+    "workflow",
+    "integration",
+    "webhook"
+  ],
   "author": "n8n.io",
   "website": "https://n8n.io"
 }

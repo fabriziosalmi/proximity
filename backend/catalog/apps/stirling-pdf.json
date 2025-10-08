@@ -23,9 +23,6 @@
         "image": "frooodle/s-pdf:latest",
         "container_name": "stirling-pdf",
         "restart": "unless-stopped",
-        "ports": [
-          "8080:8080"
-        ],
         "volumes": [
           "stirling_pdf_trainingData:/usr/share/tesseract-ocr/5/tessdata",
           "stirling_pdf_extraConfigs:/configs",
@@ -35,7 +32,8 @@
           "DOCKER_ENABLE_SECURITY": "false",
           "INSTALL_BOOK_AND_ADVANCED_HTML_OPS": "false",
           "LANGS": "en_US"
-        }
+        },
+        "network_mode": "host"
       }
     },
     "volumes": {

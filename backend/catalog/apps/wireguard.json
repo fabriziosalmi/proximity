@@ -10,7 +10,6 @@
     "services": {
       "wireguard": {
         "image": "linuxserver/wireguard:latest",
-        "ports": ["51820:51820/udp"],
         "environment": {
           "PUID": "1000",
           "PGID": "1000",
@@ -24,23 +23,36 @@
           "wireguard_config:/config",
           "/lib/modules:/lib/modules"
         ],
-        "cap_add": ["NET_ADMIN", "SYS_MODULE"],
+        "cap_add": [
+          "NET_ADMIN",
+          "SYS_MODULE"
+        ],
         "sysctls": {
           "net.ipv4.conf.all.src_valid_mark": "1"
         },
-        "restart": "always"
+        "restart": "always",
+        "network_mode": "host"
       }
     },
     "volumes": {
       "wireguard_config": {}
     }
   },
-  "ports": [51820],
-  "volumes": ["wireguard_config"],
+  "ports": [
+    51820
+  ],
+  "volumes": [
+    "wireguard_config"
+  ],
   "environment": {},
   "min_memory": 256,
   "min_cpu": 1,
-  "tags": ["vpn", "security", "network", "privacy"],
+  "tags": [
+    "vpn",
+    "security",
+    "network",
+    "privacy"
+  ],
   "author": "WireGuard",
   "website": "https://www.wireguard.com"
 }

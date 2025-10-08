@@ -33,16 +33,10 @@
           "GRAYLOG_MONGODB_URI": "mongodb://graylog-mongodb:27017/graylog",
           "GRAYLOG_ELASTICSEARCH_HOSTS": "http://graylog-opensearch:9200"
         },
-        "ports": [
-          "9000:9000",
-          "1514:1514",
-          "1514:1514/udp",
-          "12201:12201",
-          "12201:12201/udp"
-        ],
         "volumes": [
           "graylog_data:/usr/share/graylog/data"
-        ]
+        ],
+        "network_mode": "host"
       },
       "graylog-mongodb": {
         "image": "mongo:6",
@@ -50,7 +44,8 @@
         "restart": "unless-stopped",
         "volumes": [
           "graylog_mongo:/data/db"
-        ]
+        ],
+        "network_mode": "host"
       },
       "graylog-opensearch": {
         "image": "opensearchproject/opensearch:2",
@@ -65,7 +60,8 @@
         },
         "volumes": [
           "graylog_opensearch:/usr/share/opensearch/data"
-        ]
+        ],
+        "network_mode": "host"
       }
     },
     "volumes": {

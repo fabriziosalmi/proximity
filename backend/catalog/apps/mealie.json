@@ -10,7 +10,6 @@
     "services": {
       "mealie": {
         "image": "ghcr.io/mealie-recipes/mealie:latest",
-        "ports": ["9925:9000"],
         "environment": {
           "ALLOW_SIGNUP": "true",
           "PUID": "1000",
@@ -20,15 +19,22 @@
           "WEB_CONCURRENCY": "1",
           "BASE_URL": "http://localhost:9925"
         },
-        "volumes": ["data:/app/data"]
+        "volumes": [
+          "data:/app/data"
+        ],
+        "network_mode": "host"
       }
     },
     "volumes": {
       "data": {}
     }
   },
-  "ports": [9925],
-  "volumes": ["data"],
+  "ports": [
+    9925
+  ],
+  "volumes": [
+    "data"
+  ],
   "environment": {
     "ALLOW_SIGNUP": "true",
     "TZ": "UTC",
@@ -36,7 +42,12 @@
   },
   "min_memory": 512,
   "min_cpu": 1,
-  "tags": ["recipes", "cooking", "meal-planning", "lifestyle"],
+  "tags": [
+    "recipes",
+    "cooking",
+    "meal-planning",
+    "lifestyle"
+  ],
   "author": "Mealie Recipes",
   "website": "https://mealie.io"
 }
