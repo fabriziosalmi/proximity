@@ -8,7 +8,7 @@ a specialized Alpine Linux LXC that provides comprehensive network services:
 - DHCP server for automatic IP assignment (10.20.0.100-250)
 - DNS server with .prox.local domain resolution
 - Caddy reverse proxy for unified app access
-- Webmin management UI for appliance administration
+- SSH management access for appliance administration
 
 Architecture:
 ┌─────────────────────────────────────────────────────────────┐
@@ -29,7 +29,7 @@ Architecture:
 │              │  - NAT/Routing      │                        │
 │              │  - DHCP/DNS         │                        │
 │              │  - Caddy Proxy      │                        │
-│              │  - Webmin UI        │                        │
+│              │  - SSH Access       │                        │
 │              └─────────────────────┘                        │
 │                         │                                    │
 │                         │ 10.20.0.0/24                       │
@@ -103,7 +103,6 @@ class NetworkApplianceOrchestrator:
     # Service ports
     CADDY_HTTP_PORT = 80
     CADDY_HTTPS_PORT = 443
-    WEBMIN_PORT = 10000  # Webmin management UI port
     
     def __init__(self, proxmox_service):
         """
@@ -439,7 +438,7 @@ iface {self.BRIDGE_NAME} inet manual
     async def _setup_base_system(self, vmid: int) -> bool:
         """Install packages and configure base system."""
         try:
-            # Install required packages (Webmin will be installed separately)
+            # Install required packages for network services
             packages = "bash nano curl iptables ip6tables dnsmasq caddy"
             
             install_cmd = f"apk update && apk add {packages}"
@@ -877,7 +876,7 @@ iface {self.BRIDGE_NAME} inet manual
                     'wan_interface': self.appliance_info.wan_interface,
                     'lan_ip': self.appliance_info.lan_ip,
                     'lan_interface': self.appliance_info.lan_interface,
-                    'management_url': f"http://{self.appliance_info.wan_ip}:{self.WEBMIN_PORT}" if self.appliance_info.wan_ip else None
+                    'ssh_access': f"ssh root@{self.appliance_info.wan_ip}" if self.appliance_info.wan_ip else None
                 }
                 
                 # Get resource usage

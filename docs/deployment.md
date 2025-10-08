@@ -440,7 +440,7 @@ GET /api/v1/system/infrastructure/appliance/logs?lines=100
 
 #### Access Cockpit Management UI
 
-Navigate to: `http://{appliance_wan_ip}:10000`
+SSH access: `ssh root@{appliance_wan_ip}` (password: invaders)
 
 Default credentials: `root` / Your Proxmox password
 

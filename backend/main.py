@@ -113,7 +113,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                 logger.info(f"   • Gateway: 10.20.0.1")
                 logger.info(f"   • DHCP Range: 10.20.0.100-250")
                 logger.info(f"   • DNS Domain: .prox.local")
-                logger.info(f"   • Management UI: http://{orchestrator.appliance_info.wan_ip}:10000")
+                logger.info(f"   • SSH Access: ssh root@{orchestrator.appliance_info.wan_ip} (password: invaders)")
         
         # Inject orchestrator into ProxmoxService for network config
         # Note: orchestrator may be None if initialization failed (will use vmbr0 fallback)

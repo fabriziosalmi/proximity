@@ -119,7 +119,7 @@ The network appliance (VMID 9999) provides:
 - **dnsmasq**: DHCP (10.20.0.100-250) + DNS server
 - **Caddy**: Reverse proxy with automatic HTTPS
 - **iptables**: NAT for outbound traffic
-- **Management UI**: Webmin on port 10000
+- **Management**: SSH access (Alpine Linux with OpenRC)
 
 **Network Interfaces:**
 - `eth0` (WAN): Connected to `vmbr0`, DHCP-assigned public IP
@@ -321,11 +321,11 @@ When deploying an application:
 
 ### Management & Monitoring
 
-**Webmin Management UI** (Port 10000):
-- Real-time system metrics
-- Service status monitoring
-- Log viewing
-- Terminal access
+**SSH Access**:
+- Direct shell access via SSH (root@<appliance-ip>)
+- OpenRC service management (`rc-service <service> status|start|stop|restart`)
+- System monitoring via standard Linux tools
+- Log viewing via `/var/log/` and `rc-status`
 
 **API Endpoints:**
 - `GET /api/v1/system/infrastructure/status` - Network appliance status
