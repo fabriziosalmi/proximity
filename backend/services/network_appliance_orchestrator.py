@@ -1193,7 +1193,10 @@ iface {self.BRIDGE_NAME} inet manual
         try:
             node = await self._get_default_node()
             if not node:
+                logger.warning("Cannot find existing appliance: No Proxmox node available")
                 return None
+            
+            logger.debug(f"Searching for appliance VMID {self.APPLIANCE_VMID} on node '{node}'")
             
             # Use Proxmox API to check if container exists
             try:
@@ -1202,7 +1205,7 @@ iface {self.BRIDGE_NAME} inet manual
                     # LXC exists, get its details
                     wan_ip = await self._get_lxc_wan_ip(node, self.APPLIANCE_VMID)
                     
-                    logger.info(f"Found existing appliance VMID {self.APPLIANCE_VMID} with WAN IP: {wan_ip}")
+                    logger.info(f"✓ Found existing appliance VMID {self.APPLIANCE_VMID} on node '{node}' with WAN IP: {wan_ip}")
                     
                     return ApplianceInfo(
                         vmid=self.APPLIANCE_VMID,
@@ -1212,37 +1215,52 @@ iface {self.BRIDGE_NAME} inet manual
                         wan_ip=wan_ip,
                         lan_interface='eth1',
                         lan_ip=self.LAN_GATEWAY,
-                        status='running',
+                        status=container_info.status.value if hasattr(container_info, 'status') else 'running',
                         services={}
                     )
+                else:
+                    logger.debug(f"No container found at VMID {self.APPLIANCE_VMID}")
             except Exception as e:
                 # Container doesn't exist or API call failed
-                logger.debug(f"Container check failed: {e}")
-                pass
+                logger.info(f"Appliance not found at VMID {self.APPLIANCE_VMID}: {e}")
             
-            logger.info(f"No existing appliance found at VMID {self.APPLIANCE_VMID}, will create new one")
+            logger.debug(f"No existing appliance found, will create new one if needed")
             return None
             
         except Exception as e:
-            logger.debug(f"No existing appliance found: {e}")
+            logger.warning(f"Error searching for existing appliance: {e}", exc_info=True)
             return None
     
     async def _get_default_node(self) -> Optional[str]:
         """Get the default Proxmox node name."""
         try:
-            # Try to get from proxmox service
-            if hasattr(self.proxmox, 'node'):
+            # Try to get nodes from Proxmox API
+            try:
+                nodes = await self.proxmox.get_nodes()
+                if nodes and len(nodes) > 0:
+                    # Return first online node
+                    node_name = nodes[0].node
+                    logger.debug(f"Using Proxmox node: {node_name}")
+                    return node_name
+            except Exception as e:
+                logger.debug(f"Could not get nodes from Proxmox API: {e}")
+            
+            # Fallback: check if proxmox service has node attribute
+            if hasattr(self.proxmox, 'node') and self.proxmox.node:
                 return self.proxmox.node
             
-            # Fallback: try to detect from hostname
+            # Last resort: try to detect from hostname
             result = await self._exec_on_host("hostname")
             if result and result.get('exitcode') == 0:
-                return result.get('output', '').strip()
+                hostname = result.get('output', '').strip()
+                logger.debug(f"Using hostname as node: {hostname}")
+                return hostname
             
+            logger.warning("Could not determine Proxmox node name")
             return None
             
         except Exception as e:
-            logger.error(f"Could not determine node: {e}")
+            logger.error(f"Error determining node: {e}", exc_info=True)
             return None
     
     async def _get_lxc_wan_ip(self, node: str, vmid: int) -> Optional[str]:
