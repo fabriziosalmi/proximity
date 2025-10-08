@@ -2388,58 +2388,41 @@ function showAppLogs(appId, hostname) {
 }
 
 function showAppConsole(appId, hostname) {
+    // Check authentication first
+    if (!Auth.isAuthenticated()) {
+        console.warn('⚠️  User not authenticated - showing login modal');
+        showToast('Please login to access the console', 'warning');
+        showAuthModal();
+        return;
+    }
+    
     const modal = document.getElementById('deployModal');
     const modalTitle = document.getElementById('modalTitle');
     const modalBody = document.getElementById('modalBody');
     
-    modalTitle.textContent = `💻 Console - ${hostname}`;
+    // Hide the modal header for console view
+    const modalHeader = modal.querySelector('.modal-header');
+    if (modalHeader) {
+        modalHeader.style.display = 'none';
+    }
+    
+    // Remove all padding for console view
+    modalBody.style.padding = '0';
     
     modalBody.innerHTML = `
-        <div class="alert info" style="margin-bottom: 1rem;">
-            <span class="alert-icon">ℹ️</span>
-            <div class="alert-content">
-                <div class="alert-message">Execute commands inside the container. Use with caution!</div>
-            </div>
-        </div>
-        
-        <div style="background: #1a1a1a; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem; height: 350px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 0.875rem; color: #e0e0e0; margin-bottom: 1rem;">
-            <div id="consoleOutput">
-                <div style="color: #4ade80;">proximity@${hostname}:~$</div>
-            </div>
-        </div>
-        
-        <form onsubmit="event.preventDefault(); executeCommand('${appId}');" style="display: flex; gap: 0.5rem;">
-            <input 
-                type="text" 
-                id="consoleCommand" 
-                class="form-input" 
-                placeholder="Enter command (e.g., docker ps, ls -la)" 
-                style="flex: 1; font-family: 'Courier New', monospace;"
-                autocomplete="off"
-            >
-            <button type="submit" class="btn btn-primary">
-                Execute
-            </button>
-        </form>
-        
-        <div style="margin-top: 1rem;">
-            <details style="font-size: 0.75rem; color: var(--text-tertiary);">
-                <summary style="cursor: pointer; margin-bottom: 0.5rem;">Common Commands</summary>
-                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; margin-top: 0.5rem;">
-                    <code style="cursor: pointer; padding: 0.25rem 0.5rem; background: var(--bg-tertiary); border-radius: 4px;" onclick="setCommand('docker ps')">docker ps</code>
-                    <code style="cursor: pointer; padding: 0.25rem 0.5rem; background: var(--bg-tertiary); border-radius: 4px;" onclick="setCommand('docker compose logs')">docker compose logs</code>
-                    <code style="cursor: pointer; padding: 0.25rem 0.5rem; background: var(--bg-tertiary); border-radius: 4px;" onclick="setCommand('docker compose ps')">docker compose ps</code>
-                    <code style="cursor: pointer; padding: 0.25rem 0.5rem; background: var(--bg-tertiary); border-radius: 4px;" onclick="setCommand('free -h')">free -h</code>
-                    <code style="cursor: pointer; padding: 0.25rem 0.5rem; background: var(--bg-tertiary); border-radius: 4px;" onclick="setCommand('df -h')">df -h</code>
-                    <code style="cursor: pointer; padding: 0.25rem 0.5rem; background: var(--bg-tertiary); border-radius: 4px;" onclick="setCommand('top -bn1')">top -bn1</code>
-                </div>
-            </details>
+        <div id="xtermContainer" style="position: relative; background: #000; border: 2px solid var(--border-cyan); border-radius: var(--radius-md); height: 92vh; padding: 0.5rem;">
+            <button onclick="closeModal()" 
+                onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'; this.style.borderColor='#ef4444'; this.style.color='#ef4444';" 
+                onmouseout="this.style.background='rgba(0, 0, 0, 0.5)'; this.style.borderColor='var(--border-cyan)'; this.style.color='var(--text-secondary)';"
+                style="position: absolute; top: 0.75rem; right: 0.75rem; width: 36px; height: 36px; border-radius: var(--radius-md); background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(10px); border: 1px solid var(--border-cyan); color: var(--text-secondary); cursor: pointer; transition: var(--transition); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0; z-index: 1000; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);">✕</button>
         </div>
     `;
     
     modal.classList.add('show');
     openModal(); // Prevent body scrolling
-    setTimeout(() => document.getElementById('consoleCommand')?.focus(), 100);
+    
+    // Initialize xterm.js
+    setTimeout(() => initializeXterm(appId, hostname), 100);
 }
 
 let logsRefreshInterval = null;
@@ -2578,14 +2561,268 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+// XTerm.js Terminal Management
+let terminalInstance = null;
+let terminalFitAddon = null;
+let currentAppId = null;
+let currentHostname = null;
+let commandHistory = [];
+let historyIndex = -1;
+let currentCommand = '';
+
+function initializeXterm(appId, hostname) {
+    currentAppId = appId;
+    currentHostname = hostname;
+    
+    // Clean up existing terminal if any
+    if (terminalInstance) {
+        terminalInstance.dispose();
+        terminalInstance = null;
+    }
+    
+    const container = document.getElementById('xtermContainer');
+    if (!container) return;
+    
+    // Create terminal with custom theme
+    terminalInstance = new Terminal({
+        cursorBlink: true,
+        cursorStyle: 'block',
+        fontSize: 14,
+        fontFamily: '"Cascadia Code", "Courier New", monospace',
+        theme: {
+            background: '#000000',
+            foreground: '#e0e0e0',
+            cursor: '#4ade80',
+            black: '#000000',
+            red: '#ef4444',
+            green: '#4ade80',
+            yellow: '#fbbf24',
+            blue: '#3b82f6',
+            magenta: '#a855f7',
+            cyan: '#06b6d4',
+            white: '#e0e0e0',
+            brightBlack: '#666666',
+            brightRed: '#f87171',
+            brightGreen: '#86efac',
+            brightYellow: '#fcd34d',
+            brightBlue: '#60a5fa',
+            brightMagenta: '#c084fc',
+            brightCyan: '#22d3ee',
+            brightWhite: '#ffffff'
+        },
+        rows: 24,
+        cols: 80
+    });
+    
+    // Add fit addon
+    terminalFitAddon = new FitAddon.FitAddon();
+    terminalInstance.loadAddon(terminalFitAddon);
+    
+    // Open terminal in container
+    terminalInstance.open(container);
+    terminalFitAddon.fit();
+    
+    // Write welcome message
+    terminalInstance.writeln('\x1b[1;32mProximity Console\x1b[0m');
+    terminalInstance.writeln(`Connected to: \x1b[1;36m${hostname}\x1b[0m`);
+    terminalInstance.writeln('Type commands and press Enter to execute.');
+    terminalInstance.writeln('');
+    writePrompt();
+    
+    // Handle terminal input
+    terminalInstance.onData(data => handleTerminalInput(data));
+    
+    // Handle window resize
+    const resizeObserver = new ResizeObserver(() => {
+        if (terminalFitAddon && terminalInstance) {
+            try {
+                terminalFitAddon.fit();
+            } catch (e) {
+                // Ignore resize errors
+            }
+        }
+    });
+    resizeObserver.observe(container);
+    
+    // Store observer for cleanup
+    container._resizeObserver = resizeObserver;
+    
+    // Focus terminal
+    terminalInstance.focus();
+}
+
+function writePrompt() {
+    if (!terminalInstance) return;
+    terminalInstance.write(`\x1b[1;32mproximity@${currentHostname}\x1b[0m:\x1b[1;34m~\x1b[0m$ `);
+}
+
+function handleTerminalInput(data) {
+    if (!terminalInstance) return;
+    
+    const code = data.charCodeAt(0);
+    
+    // Handle Enter key
+    if (code === 13) {
+        terminalInstance.write('\r\n');
+        if (currentCommand.trim()) {
+            commandHistory.push(currentCommand);
+            historyIndex = commandHistory.length;
+            executeTerminalCommand(currentCommand.trim());
+        } else {
+            writePrompt();
+        }
+        currentCommand = '';
+        return;
+    }
+    
+    // Handle Backspace
+    if (code === 127) {
+        if (currentCommand.length > 0) {
+            currentCommand = currentCommand.slice(0, -1);
+            terminalInstance.write('\b \b');
+        }
+        return;
+    }
+    
+    // Handle Ctrl+C
+    if (code === 3) {
+        terminalInstance.write('^C\r\n');
+        currentCommand = '';
+        writePrompt();
+        return;
+    }
+    
+    // Handle Ctrl+L (clear)
+    if (code === 12) {
+        terminalInstance.clear();
+        currentCommand = '';
+        writePrompt();
+        return;
+    }
+    
+    // Handle Up Arrow (previous command)
+    if (data === '\x1b[A') {
+        if (historyIndex > 0) {
+            // Clear current line
+            terminalInstance.write('\r\x1b[K');
+            writePrompt();
+            
+            historyIndex--;
+            currentCommand = commandHistory[historyIndex];
+            terminalInstance.write(currentCommand);
+        }
+        return;
+    }
+    
+    // Handle Down Arrow (next command)
+    if (data === '\x1b[B') {
+        if (historyIndex < commandHistory.length - 1) {
+            // Clear current line
+            terminalInstance.write('\r\x1b[K');
+            writePrompt();
+            
+            historyIndex++;
+            currentCommand = commandHistory[historyIndex];
+            terminalInstance.write(currentCommand);
+        } else if (historyIndex === commandHistory.length - 1) {
+            // Clear current line
+            terminalInstance.write('\r\x1b[K');
+            writePrompt();
+            
+            historyIndex = commandHistory.length;
+            currentCommand = '';
+        }
+        return;
+    }
+    
+    // Ignore other control sequences
+    if (code === 27 || data.startsWith('\x1b')) {
+        return;
+    }
+    
+    // Add character to command
+    currentCommand += data;
+    terminalInstance.write(data);
+}
+
+async function executeTerminalCommand(command) {
+    if (!terminalInstance || !currentAppId) return;
+    
+    // Double-check authentication before executing
+    if (!Auth.isAuthenticated()) {
+        terminalInstance.writeln('\r\n\x1b[1;31mError: Not authenticated. Please login first.\x1b[0m\r\n');
+        showAuthModal();
+        return;
+    }
+    
+    try {
+        const response = await authFetch(`${API_BASE}/apps/${currentAppId}/exec`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ command })
+        });
+        
+        if (!response.ok) throw new Error('Command execution failed');
+        const data = await response.json();
+        
+        if (data.success && data.output) {
+            // Write output line by line
+            const lines = data.output.split('\n');
+            lines.forEach(line => {
+                terminalInstance.writeln(line);
+            });
+        } else if (data.error) {
+            terminalInstance.writeln(`\x1b[1;31m${data.error}\x1b[0m`);
+        }
+    } catch (error) {
+        terminalInstance.writeln(`\x1b[1;31mError: ${error.message}\x1b[0m`);
+    }
+    
+    writePrompt();
+}
+
+function cleanupTerminal() {
+    if (terminalInstance) {
+        terminalInstance.dispose();
+        terminalInstance = null;
+        terminalFitAddon = null;
+    }
+    
+    const container = document.getElementById('xtermContainer');
+    if (container && container._resizeObserver) {
+        container._resizeObserver.disconnect();
+        delete container._resizeObserver;
+    }
+    
+    currentAppId = null;
+    currentHostname = null;
+    currentCommand = '';
+}
+
 const originalCloseModal = window.closeModal;
 function closeModal() {
+    // Cleanup terminal if exists
+    cleanupTerminal();
+    
     if (logsRefreshInterval) {
         clearInterval(logsRefreshInterval);
         logsRefreshInterval = null;
     }
     
     const modal = document.getElementById('deployModal');
+    const modalBody = modal.querySelector('.modal-body');
+    
+    // Restore modal header visibility
+    const modalHeader = modal.querySelector('.modal-header');
+    if (modalHeader) {
+        modalHeader.style.display = '';
+    }
+    
+    // Restore modal body padding
+    if (modalBody) {
+        modalBody.style.padding = '';
+    }
+    
     modal.classList.remove('show');
     
     // Only remove modal-open if no other modals are open

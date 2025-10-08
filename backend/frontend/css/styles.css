@@ -1942,14 +1942,16 @@ body.modal-open .app-container {
     background: var(--bg-secondary);
     backdrop-filter: blur(20px);
     border-radius: var(--radius-xl);
-    border: 1px solid var(--border);
-    max-width: 600px;
-    width: 90%;
-    max-height: 85vh; /* Slightly reduce to ensure it fits */
+    border: 2px solid var(--border-cyan);
+    max-width: 95vw;
+    width: 95vw;
+    max-height: 92vh;
     margin: auto; /* Center in the modal overlay */
     display: flex;
     flex-direction: column;
-    box-shadow: var(--shadow-xl), 0 0 60px rgba(0, 0, 0, 0.5);
+    box-shadow: var(--shadow-xl), 
+                0 0 60px rgba(0, 0, 0, 0.5),
+                0 0 0 1px var(--cyan-bright);
     animation: slideUp 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     position: relative;
     z-index: 1001;
@@ -3895,4 +3897,75 @@ body.pro-mode .pro-feature.inline-flex {
     color: var(--success);
     font-weight: bold;
     margin-right: 0.5rem;
+}
+
+/* XTerm.js Terminal Styles */
+#xtermContainer {
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(34, 211, 238, 0.1);
+    transition: all 0.3s ease;
+}
+
+#xtermContainer:hover {
+    box-shadow: 0 8px 24px rgba(34, 211, 238, 0.2),
+                0 0 0 1px var(--cyan-bright),
+                inset 0 1px 0 rgba(34, 211, 238, 0.2);
+}
+
+/* Close button overlay on terminal */
+#xtermContainer button {
+    pointer-events: auto;
+}
+
+#xtermContainer .xterm {
+    padding: 0.5rem;
+    height: 100%;
+}
+
+#xtermContainer .xterm-viewport {
+    overflow-y: auto !important;
+    background-color: #000 !important;
+}
+
+#xtermContainer .xterm-screen {
+    background-color: #000 !important;
+}
+
+/* Ensure terminal container takes full available space */
+.modal-body #xtermContainer {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Override xterm default styles for better integration */
+#xtermContainer .xterm .xterm-helpers {
+    position: absolute;
+    top: 0;
+    z-index: 5;
+}
+
+#xtermContainer .xterm .xterm-helper-textarea {
+    position: absolute;
+    opacity: 0;
+    left: -9999em;
+}
+
+/* Custom scrollbar for terminal */
+#xtermContainer .xterm-viewport::-webkit-scrollbar {
+    width: 10px;
+}
+
+#xtermContainer .xterm-viewport::-webkit-scrollbar-track {
+    background: #000;
+}
+
+#xtermContainer .xterm-viewport::-webkit-scrollbar-thumb {
+    background: var(--border-light);
+    border-radius: 5px;
+}
+
+#xtermContainer .xterm-viewport::-webkit-scrollbar-thumb:hover {
+    background: var(--secondary);
 }

@@ -293,6 +293,64 @@ async def get_app_stats(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.post("/{app_id}/exec")
+async def execute_command(
+    app_id: str,
+    command_data: dict,
+    service: AppService = Depends(get_app_service),
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Execute arbitrary command inside the application container.
+    
+    WARNING: This endpoint allows execution of any command and should be used with caution.
+    It is intended for terminal/console functionality.
+    """
+    try:
+        # Get app info
+        app = await service.get_app(app_id)
+        
+        # Extract command from request
+        command = command_data.get("command", "").strip()
+        if not command:
+            raise HTTPException(status_code=400, detail="Command is required")
+        
+        # Import proxmox service
+        from services.proxmox_service import proxmox_service
+        
+        # Execute command in the container
+        # cd to /root where docker-compose.yml typically is
+        full_command = f"cd /root && {command}"
+        
+        try:
+            result = await proxmox_service.execute_in_container(
+                app.node, 
+                app.lxc_id, 
+                full_command,
+                timeout=30,
+                allow_nonzero_exit=True
+            )
+            
+            return {
+                "success": True,
+                "output": result
+            }
+        except Exception as cmd_error:
+            # Return error as output for display in terminal
+            return {
+                "success": False,
+                "output": str(cmd_error),
+                "error": str(cmd_error)
+            }
+        
+    except (AppServiceError, AppNotFoundError) as e:
+        logger.warning(f"App not found for exec: {app_id}")
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        logger.error(f"Unexpected error executing command in {app_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/{app_id}/command/{command_name}")
 async def execute_safe_command(
     app_id: str,
