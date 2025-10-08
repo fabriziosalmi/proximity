@@ -172,7 +172,6 @@ const state = {
     catalog: null,
     currentView: 'dashboard',
     deployedApps: [],
-    proxyStatus: null,
     proximityMode: 'AUTO' // AUTO or PRO mode
 };
 
@@ -198,8 +197,7 @@ async function init() {
             loadSystemInfo(),
             loadNodes(),
             loadDeployedApps(),
-            loadCatalog(),
-            loadProxyStatus()
+            loadCatalog()
         ]);
         
         updateUI();
@@ -223,7 +221,6 @@ async function init() {
     setInterval(async () => {
         await loadSystemInfo();
         await loadDeployedApps();
-        await loadProxyStatus();
         updateUI();
     }, 30000);
 }
@@ -311,19 +308,6 @@ function enrichDeployedAppsWithIcons() {
     });
 }
 
-async function loadProxyStatus() {
-    try {
-        const response = await authFetch(`${API_BASE}/system/proxy/status`);
-        if (!response.ok) throw new Error('Failed to load proxy status');
-        const result = await response.json();
-        state.proxyStatus = result.data;
-        console.log('Proxy status loaded:', state.proxyStatus);
-    } catch (error) {
-        console.error('Error loading proxy status:', error);
-        state.proxyStatus = null;
-    }
-}
-
 // UI Update Functions
 function updateUI() {
     updateStats();
@@ -350,43 +334,6 @@ function updateStats() {
             const percentage = totalMem > 0 ? Math.round((usedMem / totalMem) * 100) : 0;
             statResources.textContent = `${percentage}%`;
         }
-    }
-    
-    // Update proxy status (independent of systemInfo)
-    const proxyStatusEl = document.getElementById('statProxyStatus');
-    const proxyInfoEl = document.getElementById('statProxyInfo');
-    
-    // Safety check - elements might not exist in current view
-    if (!proxyStatusEl || !proxyInfoEl) {
-        console.log('Proxy status elements not found in current view - skipping update');
-        return;
-    }
-    
-    console.log('Updating proxy status UI, state.proxyStatus:', state.proxyStatus);
-    
-    if (state.proxyStatus && state.proxyStatus.deployed) {
-        const status = state.proxyStatus.status;
-        const appCount = state.proxyStatus.registered_apps || 0;
-        
-        proxyStatusEl.textContent = appCount;
-        
-        if (status === 'running') {
-            proxyInfoEl.innerHTML = `
-                <span>${state.proxyStatus.ip_address || 'Active'}</span>
-            `;
-            proxyInfoEl.className = 'stat-change positive';
-        } else {
-            proxyInfoEl.innerHTML = `
-                <span>Offline</span>
-            `;
-            proxyInfoEl.className = 'stat-change';
-        }
-    } else {
-        proxyStatusEl.textContent = '--';
-        proxyInfoEl.innerHTML = `
-            <span>Not deployed</span>
-        `;
-        proxyInfoEl.className = 'stat-change';
     }
 }
 

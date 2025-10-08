@@ -58,8 +58,8 @@ Proximity uses **standard Proxmox networking** for simplicity and reliability:
 **Benefits of Simple Architecture:**
 - ✅ Less complexity = fewer failure points
 - ✅ Standard networking tools work directly
-- ✅ No custom network appliance to maintain
-- ✅ Better performance with direct access
+- ✅ Direct container access without NAT overhead
+- ✅ Better performance with host networking
 - ✅ Easier troubleshooting and debugging
 
 **[Read more →](docs/architecture.md)** | **[Network Simplification Details →](docs/NETWORK_SIMPLIFICATION.md)**
@@ -74,7 +74,7 @@ Proximity uses **standard Proxmox networking** for simplicity and reliability:
 - **Modular Frontend**: ES6 modules with state management and component architecture
 
 **Network Simplification (October 2025):**  
-Proximity now uses standard Proxmox networking (vmbr0 + DHCP) instead of a complex custom network appliance. This significantly reduces complexity while maintaining full functionality. See [Network Simplification Documentation](docs/NETWORK_SIMPLIFICATION.md) for migration details.
+Proximity uses standard Proxmox networking (vmbr0 + DHCP) for simplicity and reliability. Containers use Docker's host networking mode for direct access without NAT complexity. This architectural choice significantly reduces infrastructure overhead while maintaining full functionality. See [Network Simplification Documentation](docs/NETWORK_SIMPLIFICATION.md) for details.
 
 ## 🚀 Quick Start
 
@@ -224,8 +224,8 @@ Access interactive API docs at:
 
 **System:**
 - `GET /api/v1/system/info` - System information
-- `GET /api/v1/system/nodes` - Proxmox nodes
-- `GET /api/v1/system/infrastructure/status` - Network appliance status
+- `GET /api/v1/system/nodes` - Proxmox nodes and host status
+- `GET /api/v1/system/infrastructure/status` - Infrastructure health check
 - `GET /api/v1/system/proxy/status` - Reverse proxy status
 
 **Authentication:**
@@ -236,11 +236,11 @@ Access interactive API docs at:
 
 ## 🛡️ Security
 
-- **Network Isolation**: All containers on isolated `proximity-lan` bridge
+- **Direct Network Access**: Standard vmbr0 networking with firewall enabled
 - **Unprivileged Containers**: LXC containers run unprivileged for security
 - **JWT Authentication**: Secure API access with token-based auth
 - **Role-Based Access**: Admin and user roles with different permissions
-- **NAT Protection**: Containers not directly accessible from external network
+- **Network Security**: Firewall rules and secure container isolation
 - **Audit Logging**: All user actions logged for compliance
 - **SSH Security**: Secure container management via SSH with key authentication
 
@@ -457,9 +457,8 @@ switchProximityMode('AUTO');
 - [x] Direct Proxmox API integration
 - [x] LXC container management
 - [x] Automated Docker installation via SSH
-- [x] Isolated network infrastructure (`proximity-lan`)
-- [x] Network appliance with DHCP/DNS/NAT
-- [x] Caddy reverse proxy integration
+- [x] Standard Proxmox networking (vmbr0 + DHCP)
+- [x] Docker host networking for direct access
 - [x] Modern web interface
 - [x] JWT authentication with RBAC
 - [x] Application catalog system
