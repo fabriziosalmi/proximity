@@ -689,8 +689,8 @@ async function renderNodesView() {
         <div class="page-header">
             <div class="page-title-row">
                 <div>
-                    <h1 class="page-title">Infrastructure</h1>
-                    <p class="page-subtitle">Network appliance and service health</p>
+                    <h1 class="page-title">Hosts</h1>
+                    <p class="page-subtitle">Proxmox infrastructure and compute nodes</p>
                 </div>
                 <button class="btn btn-secondary" onclick="refreshInfrastructure()">
                     <i data-lucide="refresh-cw"></i>
@@ -699,37 +699,12 @@ async function renderNodesView() {
             </div>
         </div>
 
-        <!-- Health Overview -->
-        <div class="alert ${health_status === 'healthy' ? 'success' : health_status === 'degraded' ? 'warning' : 'info'}">
-            <span class="alert-icon">${health_status === 'healthy' ? '✅' : health_status === 'degraded' ? '⚠️' : 'ℹ️'}</span>
-            <div class="alert-content">
-                <div class="alert-title">Infrastructure Status: ${health_status.charAt(0).toUpperCase() + health_status.slice(1)}</div>
-                <div class="alert-message">
-                    ${health_status === 'healthy' ? 'All services operational' :
-                      health_status === 'degraded' ? 'Some services may be experiencing issues' :
-                      'Infrastructure not initialized or unavailable'}
-                </div>
-            </div>
-        </div>
-
-        ${appliance ? `
-        <!-- Network Architecture Info -->
-        <div class="alert info" style="margin-top: 1rem;">
-            <span class="alert-icon">🔌</span>
-            <div class="alert-content">
-                <div class="alert-title">Network Architecture</div>
-                <div class="alert-message">
-                    <strong>WAN (eth0)</strong>: External network via vmbr0 - DHCP assigned IP for management and internet access<br>
-                    <strong>LAN (eth1)</strong>: Internal network via proximity-lan - Static IP 10.20.0.1/24 serving as gateway for all deployed applications
-                </div>
-            </div>
-        </div>
-        ` : ''}
-
         <!-- Network Appliance Card -->
         ${appliance ? `
-        <div class="infrastructure-section">
-            <h2 class="section-title">Network Appliance</h2>
+        <div class="apps-section">
+            <div class="section-header">
+                <h2 class="section-title">Infrastructure Host</h2>
+            </div>
             <div class="apps-grid deployed">
                 <div class="app-card deployed">
                     <!-- Header with icon, name, status and quick actions -->
@@ -801,23 +776,14 @@ async function renderNodesView() {
                 </div>
             </div>
         </div>
-        ` : `
-        <div class="infrastructure-section">
-            <h2 class="section-title">Network Appliance</h2>
-            <div class="alert warning">
-                <span class="alert-icon">⚠️</span>
-                <div class="alert-content">
-                    <div class="alert-title">Network Appliance Not Found</div>
-                    <div class="alert-message">The network appliance may not be deployed yet. It will be created automatically when you deploy your first app.</div>
-                </div>
-            </div>
-        </div>
-        `}
+        ` : ''}
 
         <!-- Services Health Grid -->
         ${Object.keys(services).length > 0 ? `
-        <div class="infrastructure-section">
-            <h2 class="section-title">Services Health</h2>
+        <div class="apps-section">
+            <div class="section-header">
+                <h2 class="section-title">Services Health</h2>
+            </div>
             <div class="services-grid">
                 ${Object.entries(services).map(([name, service]) => `
                     <div class="service-card ${service.healthy ? 'healthy' : 'unhealthy'}">
@@ -847,31 +813,35 @@ async function renderNodesView() {
 
         <!-- Network Configuration -->
         ${network.subnet ? `
-        <div class="infrastructure-section">
-            <h2 class="section-title">Network Configuration</h2>
-            <div class="app-card">
-                <div class="app-meta">
-                    <div class="app-meta-item">
-                        <span>🌐</span>
-                        <span>Bridge: ${network.bridge || 'proximity-lan'}</span>
+        <div class="apps-section">
+            <div class="section-header">
+                <h2 class="section-title">Network Configuration</h2>
+            </div>
+            <div class="apps-grid deployed">
+                <div class="app-card deployed">
+                    <div class="app-connection-info">
+                        <div class="connection-item">
+                            <i data-lucide="network" class="connection-icon"></i>
+                            <span class="connection-value">Bridge: ${network.bridge || 'proximity-lan'}</span>
+                        </div>
+                        <div class="connection-item">
+                            <i data-lucide="wifi" class="connection-icon"></i>
+                            <span class="connection-value">Subnet: ${network.subnet || 'N/A'}</span>
+                        </div>
+                        <div class="connection-item">
+                            <i data-lucide="door-open" class="connection-icon"></i>
+                            <span class="connection-value">Gateway: ${network.gateway || 'N/A'}</span>
+                        </div>
+                        <div class="connection-item">
+                            <i data-lucide="settings" class="connection-icon"></i>
+                            <span class="connection-value">DHCP: ${network.dhcp_range || 'N/A'}</span>
+                        </div>
                     </div>
-                    <div class="app-meta-item">
-                        <span>📡</span>
-                        <span>Subnet: ${network.subnet || 'N/A'}</span>
-                    </div>
-                    <div class="app-meta-item">
-                        <span>🚪</span>
-                        <span>Gateway: ${network.gateway || 'N/A'}</span>
-                    </div>
-                    <div class="app-meta-item">
-                        <span>🔧</span>
-                        <span>DHCP: ${network.dhcp_range || 'N/A'}</span>
-                    </div>
-                </div>
-                <div class="app-meta" style="margin-top: 0.75rem;">
-                    <div class="app-meta-item">
-                        <span>📛</span>
-                        <span>DNS Domain: ${network.dns_domain || 'prox.local'}</span>
+                    <div class="app-connection-info" style="margin-top: 0.5rem;">
+                        <div class="connection-item">
+                            <i data-lucide="globe" class="connection-icon"></i>
+                            <span class="connection-value">DNS: ${network.dns_domain || 'prox.local'}</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -880,8 +850,10 @@ async function renderNodesView() {
 
         <!-- Connected Apps -->
         ${connected_apps && connected_apps.length > 0 ? `
-        <div class="infrastructure-section">
-            <h2 class="section-title">Connected Applications (${connected_apps.length})</h2>
+        <div class="apps-section">
+            <div class="section-header">
+                <h2 class="section-title">Connected Applications (${connected_apps.length})</h2>
+            </div>
             <div class="connected-apps-table">
                 <table class="infrastructure-table">
                     <thead>
