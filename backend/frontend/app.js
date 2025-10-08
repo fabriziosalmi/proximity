@@ -502,7 +502,7 @@ function createAppCard(app, isDeployed = false) {
                     </div>
                     <div class="connection-item">
                         <i data-lucide="box" class="connection-icon"></i>
-                        <span class="connection-value">LXC ${app.lxc_id}</span>
+                        <span class="connection-value">${app.lxc_id}</span>
                     </div>
                     <div class="connection-item">
                         <i data-lucide="clock" class="connection-icon"></i>
@@ -3735,18 +3735,39 @@ async function performUpdate(appId, appName) {
             method: 'POST'
         });
 
-        // Simulate progress updates (in reality, we'd poll app status)
-        const progressInterval = setInterval(() => {
-            currentStep++;
-            if (currentStep < progressSteps.length) {
-                progressSteps[currentStep - 1].status = 'completed';
-                progressSteps[currentStep].status = 'in-progress';
-                showUpdateProgress(progressSteps, currentStep);
+        // Poll app status and update progress based on actual status
+        const progressInterval = setInterval(async () => {
+            try {
+                const app = await authFetch(`${API_BASE}/apps/${appId}`);
+                
+                // Update progress based on actual app status
+                if (app.status === 'updating') {
+                    // Still updating - cycle through steps based on elapsed time
+                    currentStep = Math.min(currentStep + 1, progressSteps.length - 1);
+                    if (currentStep > 0) {
+                        progressSteps[currentStep - 1].status = 'completed';
+                    }
+                    progressSteps[currentStep].status = 'in-progress';
+                    showUpdateProgress(progressSteps, currentStep);
+                } else if (app.status === 'running') {
+                    // Update completed successfully
+                    clearInterval(progressInterval);
+                } else if (app.status === 'update_failed') {
+                    // Update failed
+                    clearInterval(progressInterval);
+                }
+            } catch (pollError) {
+                console.warn('Status poll error:', pollError);
             }
-        }, 5000); // Update every 5 seconds
+        }, 5000); // Check every 5 seconds
 
         // Wait for update to complete (poll app status)
-        await pollAppStatus(appId, 'running', 120000); // 2 minute timeout
+        // Timeout increased to 7 minutes to accommodate:
+        // - Backup: up to 5 min
+        // - Image pull: 2-3 min
+        // - Service restart: 30s
+        // - Health check: 50s
+        await pollAppStatus(appId, 'running', 420000); // 7 minute timeout
 
         clearInterval(progressInterval);
 
@@ -3760,7 +3781,20 @@ async function performUpdate(appId, appName) {
         }, 1000);
 
     } catch (error) {
-        showNotification(`❌ Update failed: ${error.message || error}`, 'error');
+        // Provide more specific error messages
+        let errorMessage = 'Update failed';
+        
+        if (error.message.includes('timeout')) {
+            errorMessage = '⏱️ Update timeout - The update is taking longer than expected. Please check the app status in a few minutes or review the logs.';
+        } else if (error.message.includes('Health check failed')) {
+            errorMessage = '❌ Update failed: Application health check failed after restart. The app may need manual intervention.';
+        } else if (error.message.includes('backup')) {
+            errorMessage = '❌ Update aborted: Pre-update backup failed. Your app is safe and unchanged.';
+        } else if (error.message) {
+            errorMessage = `❌ Update failed: ${error.message}`;
+        }
+        
+        showNotification(errorMessage, 'error');
         console.error('Update error:', error);
 
         // Reload apps to show current state
@@ -3862,14 +3896,14 @@ async function pollAppStatus(appId, expectedStatus, timeout = 60000) {
             await new Promise(resolve => setTimeout(resolve, pollInterval));
         } catch (error) {
             if (Date.now() - startTime >= timeout) {
-                throw new Error('Update timeout - please check app status manually');
+                throw new Error('Update timeout - The operation is taking longer than expected. The update may still be in progress. Please refresh the page and check the app status.');
             }
             // Continue polling on errors
             await new Promise(resolve => setTimeout(resolve, pollInterval));
         }
     }
 
-    throw new Error('Update timeout');
+    throw new Error('Update timeout - The operation exceeded the maximum time limit. Please check the app status and logs.');
 }
 
 // ============================================================================

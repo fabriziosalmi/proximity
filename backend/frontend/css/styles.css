@@ -3204,6 +3204,21 @@ body.modal-open {
 .update-progress-notification {
     min-width: 400px;
     max-width: 500px;
+    background: var(--card-bg);
+    border: 2px solid var(--info);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
 }
 
 .notification-header {
