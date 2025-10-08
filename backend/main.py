@@ -182,7 +182,7 @@ def create_app() -> FastAPI:
         CORSMiddleware,
         allow_origins=["*"],  # In production, specify allowed origins
         allow_credentials=True,
-        allow_methods=["*"],
+        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],  # Explicit methods for CORS compliance
         allow_headers=["Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"],  # Explicit headers for CORS compliance
     )
     
@@ -236,8 +236,8 @@ def create_app() -> FastAPI:
                 status_code=200,
                 headers={
                     "Access-Control-Allow-Origin": "*",
-                    "Access-Control-Allow-Methods": "*",
-                    "Access-Control-Allow-Headers": "*",
+                    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, PATCH",
+                    "Access-Control-Allow-Headers": "Authorization, Content-Type, Accept, Origin, X-Requested-With",
                     "Access-Control-Allow-Credentials": "true",
                 }
             )

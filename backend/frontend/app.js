@@ -1883,9 +1883,7 @@ async function controlApp(appId, action) {
     try {
         const response = await authFetch(`${API_BASE}/apps/${appId}/actions`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            // Don't override headers - authFetch adds Authorization automatically
             body: JSON.stringify({ action: action })
         });
         
@@ -2532,7 +2530,7 @@ async function executeCommand(appId) {
     try {
         const response = await authFetch(`${API_BASE}/apps/${appId}/exec`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            // Don't override headers - authFetch adds Authorization automatically
             body: JSON.stringify({ command })
         });
         
