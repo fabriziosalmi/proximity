@@ -635,9 +635,9 @@ h3 { font-size: 1.5rem; font-weight: 600; }
 
 /* Stats Compact Card - Full Width Layout */
 .stats-compact-card {
-    background: linear-gradient(135deg, rgba(24, 24, 27, 0.8), rgba(39, 39, 42, 0.6));
+    background: linear-gradient(135deg, rgba(1, 1, 1, 0.8), rgba(10, 10, 11, 0.6));
     backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid var(--border-cyan);
+    border: 0px solid var(--border-cyan);
     border-radius: var(--radius-lg);
     padding: 1.5rem 2rem;
     margin-bottom: 2rem;
@@ -659,7 +659,6 @@ h3 { font-size: 1.5rem; font-weight: 600; }
     left: 0;
     right: 0;
     height: 2px;
-    background: linear-gradient(90deg, transparent, var(--cyan-bright), transparent);
     opacity: 0.6;
 }
 
@@ -3380,11 +3379,12 @@ body.modal-open {
 }
 
 .status-dot {
-    width: 8px;
-    height: 8px;
+    width: 1px;
+    height: 1px;
     border-radius: 50%;
     background: currentColor;
     animation: pulse 2s ease-in-out infinite;
+    visibility: hidden;
 }
 
 .monitoring-meta {
