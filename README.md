@@ -56,7 +56,7 @@ Proximity uses a **fully isolated network architecture** powered by a dedicated 
   - DNS server with `.prox.local` domain resolution
   - NAT gateway for internet access
   - Caddy reverse proxy for HTTP/HTTPS routing
-  - Management UI via Cockpit on port 9090
+  - Management UI via Webmin on port 10000
 
 **[Read more →](docs/architecture.md)**
 

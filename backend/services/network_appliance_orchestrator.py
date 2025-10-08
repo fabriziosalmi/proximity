@@ -103,6 +103,7 @@ class NetworkApplianceOrchestrator:
     # Service ports
     CADDY_HTTP_PORT = 80
     CADDY_HTTPS_PORT = 443
+    WEBMIN_PORT = 10000  # Webmin management UI port
     
     def __init__(self, proxmox_service):
         """

@@ -119,7 +119,7 @@ The network appliance (VMID 9999) provides:
 - **dnsmasq**: DHCP (10.20.0.100-250) + DNS server
 - **Caddy**: Reverse proxy with automatic HTTPS
 - **iptables**: NAT for outbound traffic
-- **Management UI**: Cockpit on port 9090
+- **Management UI**: Webmin on port 10000
 
 **Network Interfaces:**
 - `eth0` (WAN): Connected to `vmbr0`, DHCP-assigned public IP
@@ -321,7 +321,7 @@ When deploying an application:
 
 ### Management & Monitoring
 
-**Cockpit Management UI** (Port 9090):
+**Webmin Management UI** (Port 10000):
 - Real-time system metrics
 - Service status monitoring
 - Log viewing
