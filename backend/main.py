@@ -62,11 +62,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         logger.info("=" * 60)
         logger.info("STEP 2: Network Configuration")
         logger.info("=" * 60)
-        logger.info("🌐 Using simplified networking:")
-        logger.info("  • All containers use vmbr0 (default Proxmox bridge)")
-        logger.info("  • DHCP assigns IPs automatically")
-        logger.info("  • No complex network appliance needed")
-        logger.info("✓ Network configuration ready")
+        logger.info("✓ Using vmbr0 with DHCP (simple and reliable)")
         
         # Step 3: Initialize app service (loads catalog)
         logger.info("=" * 60)
@@ -85,17 +81,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         finally:
             db.close()
         
-        # Step 4: Reverse proxy - not needed with simple vmbr0 networking
+        # Step 4: Initialize Scheduler Service for AUTO mode
         logger.info("=" * 60)
-        logger.info("STEP 4: Reverse Proxy")
-        logger.info("=" * 60)
-        logger.info("ℹ️  Reverse proxy not available with simplified networking")
-        logger.info("  • Access apps directly via IP:port")
-        logger.info("  • Or configure Caddy/Nginx manually on Proxmox host if needed")
-
-        # Step 5: Initialize Scheduler Service for AUTO mode
-        logger.info("=" * 60)
-        logger.info("STEP 5: Initializing Scheduler Service (AUTO Mode)")
+        logger.info("STEP 4: Initializing Scheduler Service (AUTO Mode)")
         logger.info("=" * 60)
 
         try:

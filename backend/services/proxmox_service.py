@@ -251,6 +251,7 @@ class ProxmoxService:
                 'vmid': vmid,
                 'ostemplate': template_to_use,
                 'hostname': hostname,  # Hostname for DNS resolution
+                'password': 'invaders',  # Default root password (TODO: make configurable)
                 'cores': settings.LXC_CORES,
                 'memory': settings.LXC_MEMORY,
                 'net0': net_config,  # vmbr0 with DHCP

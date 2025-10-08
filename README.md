@@ -8,6 +8,7 @@ Proximity is a cloud-native application delivery platform that abstracts the com
 
 [![Tests](https://img.shields.io/badge/tests-250%2B%20passing-success)](tests/)
 [![E2E Tests](https://img.shields.io/badge/E2E-Playwright%20%2B%20Pytest-blue)](e2e_tests/)
+[![Network](https://img.shields.io/badge/network-simple%20vmbr0%2BDHCP-brightgreen)](#-architecture)
 [![Dual Mode](https://img.shields.io/badge/mode-AUTO%20%7C%20PRO-purple)](#-dual-mode-operation-new)
 [![Security](https://img.shields.io/badge/security-hardened-green)](#-security)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
@@ -16,9 +17,8 @@ Proximity is a cloud-native application delivery platform that abstracts the com
 
 ### Core Platform
 - **One-Click App Deployment**: Deploy applications from a curated catalog with a single click
-- **Fully Automated Setup**: Docker installation, networking, and proxy configuration—all automatic
-- **Isolated Network Architecture**: Dedicated `proximity-lan` network with automatic DHCP/DNS
-- **Reverse Proxy Integration**: Automatic Caddy vhost configuration for web applications
+- **Fully Automated Setup**: Docker installation and container configuration—all automatic
+- **Standard Proxmox Networking**: Uses vmbr0 with DHCP for simple, reliable connectivity
 - **Web-Based Management**: Modern, responsive UI with real-time status monitoring
 - **REST API**: Full API access for automation and integration
 - **Secure by Default**: Unprivileged containers, network isolation, JWT authentication
@@ -46,30 +46,35 @@ Full professional control for power users:
 
 ## 🏗️ Architecture
 
-### Platinum Edition Network
+### Simplified Network Architecture
 
-Proximity uses a **fully isolated network architecture** powered by a dedicated network appliance:
+Proximity uses **standard Proxmox networking** for simplicity and reliability:
 
-- **`proximity-lan` Bridge**: Isolated 10.20.0.0/24 network for all containers
-- **Network Appliance** (VMID 9999):
-  - DHCP server for automatic IP allocation (10.20.0.100-250)
-  - DNS server with `.prox.local` domain resolution
-  - NAT gateway for internet access
-  - Caddy reverse proxy for HTTP/HTTPS routing
-  - SSH management access (root/invaders)
+- **`vmbr0` Bridge**: All containers connect to the default Proxmox bridge
+- **DHCP Configuration**: Containers automatically receive IP addresses from your network's DHCP server
+- **Direct Network Access**: No NAT overhead, containers are directly accessible on your network
+- **Standard Proxmox Patterns**: Uses conventional Proxmox networking for easy troubleshooting
 
-**[Read more →](docs/architecture.md)**
+**Benefits of Simple Architecture:**
+- ✅ Less complexity = fewer failure points
+- ✅ Standard networking tools work directly
+- ✅ No custom network appliance to maintain
+- ✅ Better performance with direct access
+- ✅ Easier troubleshooting and debugging
+
+**[Read more →](docs/architecture.md)** | **[Network Simplification Details →](docs/NETWORK_SIMPLIFICATION.md)**
 
 ### Core Components
 
 - **FastAPI Backend**: High-performance async API built with Python 3.13+
 - **Proxmox Integration**: Direct API integration + SSH for container management
-- **Network Orchestrator**: Automated network infrastructure provisioning
 - **App Service**: Application lifecycle management with Docker Compose
-- **Reverse Proxy Manager**: Dynamic Caddy vhost configuration
 - **Authentication**: JWT-based with role-based access control
 - **Scheduler Service**: Automated backup and maintenance tasks (AUTO mode)
 - **Modular Frontend**: ES6 modules with state management and component architecture
+
+**Network Simplification (October 2025):**  
+Proximity now uses standard Proxmox networking (vmbr0 + DHCP) instead of a complex custom network appliance. This significantly reduces complexity while maintaining full functionality. See [Network Simplification Documentation](docs/NETWORK_SIMPLIFICATION.md) for migration details.
 
 ## 🚀 Quick Start
 
@@ -141,7 +146,7 @@ Proximity is built with security as a top priority:
 - ✅ **JWT Authentication**: Secure token-based authentication with role-based access control
 - ✅ **Safe Command System**: Predefined, read-only commands prevent arbitrary code execution
 - ✅ **Audit Logging**: All command executions and critical actions are logged
-- ✅ **Network Isolation**: Dedicated `proximity-lan` network separates containers
+- ✅ **Standard Networking**: Containers on vmbr0 with firewall enabled by default
 - ✅ **Unprivileged Containers**: All LXC containers run unprivileged by default
 - ✅ **Input Validation**: Comprehensive parameter validation using Pydantic
 - ✅ **No Command Injection**: All commands are hardcoded; user input never interpolated into shell commands

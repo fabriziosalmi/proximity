@@ -125,9 +125,12 @@ class TestProxmoxServiceNetwork:
 
     @pytest.mark.asyncio
     async def test_network_config_creation(self, mock_proxmox_service):
-        """Test network configuration for container."""
+        """Test network configuration for container with vmbr0 + DHCP."""
         config = {
-            "net0": "name=eth0,bridge=proximity-lan,ip=dhcp"
+            "hostname": "test-container",
+            "cores": 1,
+            "memory": 512,
+            "rootfs": "local-lvm:8"
         }
 
         result = await mock_proxmox_service.create_lxc(

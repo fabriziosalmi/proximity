@@ -1,12 +1,20 @@
 """
 E2E Tests for Infrastructure Monitoring.
 
-Tests infrastructure page functionality:
+⚠️  DEPRECATED: Network Appliance Removed ⚠️
+This test file was written for the complex network appliance architecture
+which has been removed in favor of simple vmbr0 + DHCP networking.
+
+These tests are no longer applicable and should be updated or removed.
+
+Original functionality tested:
 - Viewing Proxmox nodes
-- Network appliance status
-- Appliance logs viewing
-- Restart appliance functionality
-- NAT testing
+- Network appliance status (REMOVED)
+- Appliance logs viewing (REMOVED)
+- Restart appliance functionality (REMOVED)
+- NAT testing (REMOVED)
+
+TODO: Update tests for simplified vmbr0 + DHCP architecture
 """
 
 import pytest
