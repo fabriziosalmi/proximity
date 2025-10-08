@@ -1084,8 +1084,7 @@ iface {self.BRIDGE_NAME} inet manual
             services = {
                 'dnsmasq': {'name': 'DHCP/DNS Server', 'status': 'unknown'},
                 'iptables': {'name': 'NAT Firewall', 'status': 'unknown'},
-                'caddy': {'name': 'Reverse Proxy', 'status': 'unknown'},
-                'cockpit': {'name': 'Management UI', 'status': 'unknown'}
+                'caddy': {'name': 'Reverse Proxy', 'status': 'unknown'}
             }
             
             for service_name in services.keys():
@@ -1118,6 +1117,22 @@ iface {self.BRIDGE_NAME} inet manual
             if result.get('exitcode') != 0:
                 return []
             
+            # Get list of all deployed containers to correlate with leases
+            deployed_containers = {}
+            try:
+                containers = await self.proxmox.list_lxcs(self.appliance_info.node)
+                for ct in containers:
+                    # Skip the appliance itself
+                    if ct.vmid == self.appliance_info.vmid:
+                        continue
+                    deployed_containers[ct.name] = {
+                        'vmid': ct.vmid,
+                        'name': ct.name,
+                        'status': ct.status.value if hasattr(ct.status, 'value') else str(ct.status)
+                    }
+            except Exception as e:
+                logger.debug(f"Could not get deployed containers: {e}")
+            
             apps = []
             leases = result.get('output', '').strip().split('\n')
             
@@ -1128,13 +1143,23 @@ iface {self.BRIDGE_NAME} inet manual
                 # Parse lease: timestamp mac ip hostname client-id
                 parts = lease.split()
                 if len(parts) >= 4:
-                    apps.append({
+                    hostname = parts[3]
+                    
+                    # Try to match with deployed container
+                    container_info = deployed_containers.get(hostname, {})
+                    
+                    app_data = {
                         'ip': parts[2],
-                        'hostname': parts[3],
+                        'ip_address': parts[2],  # Alias for frontend compatibility
+                        'hostname': hostname,
+                        'name': container_info.get('name', hostname),
+                        'vmid': container_info.get('vmid', 'N/A'),
+                        'status': container_info.get('status', 'unknown'),
                         'mac': parts[1],
                         'lease_expires': parts[0],
-                        'dns_name': f"{parts[3]}.{self.DNS_DOMAIN}"
-                    })
+                        'dns_name': f"{hostname}.{self.DNS_DOMAIN}"
+                    }
+                    apps.append(app_data)
             
             return apps
             
@@ -1275,12 +1300,16 @@ iface {self.BRIDGE_NAME} inet manual
                     logger.info(f"✓ Appliance info created: {appliance_info}")
                     return appliance_info
                 else:
-                    logger.warning(f"❌ No container found at VMID {self.APPLIANCE_VMID} (container_info was None)")
+                    logger.warning(f"⚠️  No container found at VMID {self.APPLIANCE_VMID} (container_info was None)")
             except Exception as e:
-                # Container doesn't exist or API call failed
-                logger.error(f"❌ Exception when checking for appliance at VMID {self.APPLIANCE_VMID}: {e}", exc_info=True)
+                # Container doesn't exist or API call failed - this is normal if not deployed yet
+                error_msg = str(e)
+                if "does not exist" in error_msg or "Configuration file" in error_msg:
+                    logger.warning(f"⚠️  Appliance VMID {self.APPLIANCE_VMID} not found on node '{node}' (not yet deployed)")
+                else:
+                    logger.warning(f"⚠️  Could not check for appliance at VMID {self.APPLIANCE_VMID}: {error_msg}")
             
-            logger.info(f"❌ No existing appliance found, will create new one if needed")
+            logger.info(f"ℹ️  No existing appliance found, will create new one when first app is deployed")
             return None
             
         except Exception as e:

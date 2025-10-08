@@ -160,7 +160,6 @@ Proximity's network architecture has evolved through several iterations:
 - Integrated reverse proxy management
 - Automatic DNS with `.prox.local` domain
 - Seamless NAT and routing
-- Management UI via Cockpit
 
 **Key Improvements in Platinum:**
 1. **Zero-Touch Networking**: Containers automatically get IP, DNS, and internet access

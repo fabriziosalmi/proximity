@@ -35,8 +35,23 @@ const Auth = {
     TOKEN_KEY: 'proximity_token',
     USER_KEY: 'proximity_user',
     
+    // Migrate old token if exists
+    migrateOldToken() {
+        const oldToken = localStorage.getItem('authToken');
+        const newToken = localStorage.getItem(this.TOKEN_KEY);
+        
+        // If old token exists but new one doesn't, migrate it
+        if (oldToken && !newToken) {
+            console.log('🔄 Migrating auth token to new key...');
+            localStorage.setItem(this.TOKEN_KEY, oldToken);
+            localStorage.removeItem('authToken');
+        }
+    },
+    
     // Get stored token
     getToken() {
+        // Ensure migration has happened
+        this.migrateOldToken();
         return localStorage.getItem(this.TOKEN_KEY);
     },
     
@@ -669,7 +684,7 @@ async function renderNodesView() {
     let error = null;
 
     try {
-        const token = localStorage.getItem('authToken');
+        const token = Auth.getToken();
         if (token) {
             console.log('[Infrastructure] Fetching status...');
             const response = await authFetch(`${API_BASE}/system/infrastructure/status`, {
@@ -740,6 +755,20 @@ async function renderNodesView() {
             </div>
         </div>
 
+        ${appliance ? `
+        <!-- Network Architecture Info -->
+        <div class="alert info" style="margin-top: 1rem;">
+            <span class="alert-icon">🔌</span>
+            <div class="alert-content">
+                <div class="alert-title">Network Architecture</div>
+                <div class="alert-message">
+                    <strong>WAN (eth0)</strong>: External network via vmbr0 - DHCP assigned IP for management and internet access<br>
+                    <strong>LAN (eth1)</strong>: Internal network via proximity-lan - Static IP 10.20.0.1/24 serving as gateway for all deployed applications
+                </div>
+            </div>
+        </div>
+        ` : ''}
+
         <!-- Network Appliance Card -->
         ${appliance ? `
         <div class="infrastructure-section">
@@ -765,13 +794,13 @@ async function renderNodesView() {
                         <span>🖥️</span>
                         <span>Node: ${appliance.node || 'N/A'}</span>
                     </div>
-                    <div class="app-meta-item">
+                    <div class="app-meta-item" title="WAN interface (eth0) - DHCP from external network via vmbr0">
                         <span>🌍</span>
-                        <span>WAN IP: ${appliance.wan_ip || 'N/A'}</span>
+                        <span>WAN IP: ${appliance.wan_ip || 'N/A'} <small style="opacity: 0.6;">(DHCP)</small></span>
                     </div>
-                    <div class="app-meta-item">
+                    <div class="app-meta-item" title="LAN interface (eth1) - Gateway for applications on proximity-lan">
                         <span>🔌</span>
-                        <span>LAN IP: ${appliance.lan_ip || 'N/A'}</span>
+                        <span>LAN IP: ${appliance.lan_ip || 'N/A'} <small style="opacity: 0.6;">(Gateway)</small></span>
                     </div>
                 </div>
 
@@ -1056,7 +1085,7 @@ async function renderSettingsView() {
     let resourceSettings = { lxc_memory: 2048, lxc_cores: 2, lxc_disk: 8, lxc_storage: 'local-lvm' };
 
     try {
-        const token = localStorage.getItem('authToken');
+        const token = Auth.getToken();
         if (token) {
             // Load Proxmox settings
             try {
@@ -1552,9 +1581,8 @@ async function deployApp(catalogId) {
         await loadDeployedApps();
         await loadSystemInfo();
         await loadProxyStatus();
-        updateUI();
         
-        // Show deployed app
+        // Show deployed app - don't call updateUI() since showView('apps') will render everything fresh
         showView('apps');
         
     } catch (error) {
@@ -1820,6 +1848,23 @@ function hideDeploymentProgress() {
         clearInterval(deploymentProgressInterval);
         deploymentProgressInterval = null;
     }
+    
+    // Properly clean up modal state to re-enable page interaction
+    const anyModalOpen = Array.from(document.querySelectorAll('.modal.show')).length > 0;
+    if (!anyModalOpen) {
+        const scrollPosition = parseInt(document.body.style.top || '0') * -1;
+        document.body.classList.remove('modal-open');
+        document.body.style.top = '';
+        
+        // Re-enable pointer events on main content
+        const mainContent = document.querySelector('.app-container');
+        if (mainContent) {
+            mainContent.style.pointerEvents = '';
+        }
+        
+        // Restore scroll position
+        window.scrollTo(0, scrollPosition);
+    }
 }
 
 async function controlApp(appId, action) {
@@ -1942,11 +1987,13 @@ async function deleteApp(appId, appName) {
         await loadDeployedApps();
         await loadSystemInfo();
         await loadProxyStatus();
-        updateUI();
         
-        // If we're on the apps view, refresh it
+        // If we're on the apps view, refresh it (don't call updateUI() to avoid double-rendering)
         if (state.currentView === 'apps') {
             showView('apps');
+        } else {
+            // Only update UI if we're not on apps view (e.g., on dashboard)
+            updateUI();
         }
         
     } catch (error) {
@@ -2047,6 +2094,23 @@ function hideDeletionProgress() {
     const modal = document.getElementById('deployModal');
     modal.classList.remove('show');
     modal.style.pointerEvents = 'auto';
+    
+    // Properly clean up modal state to re-enable page interaction
+    const anyModalOpen = Array.from(document.querySelectorAll('.modal.show')).length > 0;
+    if (!anyModalOpen) {
+        const scrollPosition = parseInt(document.body.style.top || '0') * -1;
+        document.body.classList.remove('modal-open');
+        document.body.style.top = '';
+        
+        // Re-enable pointer events on main content
+        const mainContent = document.querySelector('.app-container');
+        if (mainContent) {
+            mainContent.style.pointerEvents = '';
+        }
+        
+        // Restore scroll position
+        window.scrollTo(0, scrollPosition);
+    }
 }
 
 // Utility Functions
@@ -2645,7 +2709,7 @@ function setupSettingsForms() {
 
 async function saveProxmoxSettings(formData) {
     const statusDiv = document.getElementById('proxmoxStatus');
-    const token = localStorage.getItem('authToken');
+    const token = Auth.getToken();
 
     if (!token) {
         statusDiv.innerHTML = `
@@ -2723,7 +2787,7 @@ async function saveProxmoxSettings(formData) {
 
 async function testProxmoxConnection() {
     const statusDiv = document.getElementById('proxmoxStatus');
-    const token = localStorage.getItem('authToken');
+    const token = Auth.getToken();
 
     if (!token) {
         statusDiv.innerHTML = `
@@ -2787,7 +2851,7 @@ async function testProxmoxConnection() {
 
 async function saveNetworkSettings(formData) {
     const statusDiv = document.getElementById('networkStatus');
-    const token = localStorage.getItem('authToken');
+    const token = Auth.getToken();
 
     if (!token) {
         statusDiv.innerHTML = `
@@ -2864,7 +2928,7 @@ async function saveNetworkSettings(formData) {
 
 async function saveResourceSettings(formData) {
     const statusDiv = document.getElementById('resourcesStatus');
-    const token = localStorage.getItem('authToken');
+    const token = Auth.getToken();
 
     if (!token) {
         statusDiv.innerHTML = `
@@ -2947,7 +3011,7 @@ async function refreshInfrastructure() {
 
 async function restartAppliance() {
     const statusDiv = document.getElementById('infrastructureStatus');
-    const token = localStorage.getItem('authToken');
+    const token = Auth.getToken();
 
     if (!token) {
         statusDiv.innerHTML = `
@@ -3020,7 +3084,7 @@ async function restartAppliance() {
 }
 
 async function viewApplianceLogs() {
-    const token = localStorage.getItem('authToken');
+    const token = Auth.getToken();
 
     if (!token) {
         showNotification('Not authenticated', 'error');
@@ -3086,7 +3150,7 @@ async function viewApplianceLogs() {
 
 async function testNAT() {
     const statusDiv = document.getElementById('infrastructureStatus');
-    const token = localStorage.getItem('authToken');
+    const token = Auth.getToken();
 
     if (!token) {
         statusDiv.innerHTML = `

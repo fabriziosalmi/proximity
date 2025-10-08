@@ -38,12 +38,15 @@ class AppServiceError(Exception):
 class AppService:
     """Business logic layer for application management"""
     
+    # Class-level deployment status storage (shared across all instances)
+    _deployment_status: Dict[str, DeploymentStatus] = {}
+    
     def __init__(self, proxmox_service: ProxmoxService, db: Session, proxy_manager=None, port_manager=None):
         self.proxmox_service = proxmox_service
         self.db = db
         self._proxy_manager = proxy_manager  # ReverseProxyManager for network appliance Caddy
         self._port_manager = port_manager  # PortManagerService for port allocation
-        self._deployment_status: Dict[str, DeploymentStatus] = {}
+        # Note: _deployment_status is now a class variable, not instance variable
         self._catalog_cache: Optional[CatalogResponse] = None
         self._caddy_service = None  # Legacy Caddy service (deprecated)
         self._catalog_loaded = False  # Track if catalog has been loaded

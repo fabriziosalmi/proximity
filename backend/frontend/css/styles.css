@@ -2894,7 +2894,8 @@ body.modal-open .app-container {
     border-radius: 4px;
     font-family: 'Monaco', 'Courier New', monospace;
     font-size: 0.875rem;
-    color: var(--primary);
+    color: var(--cyan-bright);
+    font-weight: 500;
 }
 
 /* Logs Viewer (Modal) */

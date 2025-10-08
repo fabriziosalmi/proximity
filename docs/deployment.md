@@ -421,7 +421,7 @@ GET /api/v1/system/infrastructure/status
   "services": {
     "dnsmasq": "started",
     "caddy": "started",
-    "cockpit": "started"
+    "iptables": "started"
   }
 }
 ```
@@ -438,7 +438,7 @@ POST /api/v1/system/infrastructure/appliance/restart
 GET /api/v1/system/infrastructure/appliance/logs?lines=100
 ```
 
-#### Access Cockpit Management UI
+#### Access Appliance via SSH
 
 SSH access: `ssh root@{appliance_wan_ip}` (password: invaders)
 

@@ -6,13 +6,14 @@
  */
 
 const API_BASE = 'http://localhost:8765/api/v1';
+const TOKEN_KEY = 'proximity_token';
 
 /**
  * Get authentication token from localStorage
  * @returns {string|null} JWT token
  */
 function getToken() {
-    return localStorage.getItem('authToken');
+    return localStorage.getItem(TOKEN_KEY);
 }
 
 /**
@@ -49,7 +50,7 @@ async function authFetch(url, options = {}) {
 
     // Handle unauthorized responses
     if (response.status === 401) {
-        localStorage.removeItem('authToken');
+        localStorage.removeItem(TOKEN_KEY);
         window.location.reload();
         throw new Error('Authentication expired');
     }
@@ -110,7 +111,7 @@ export async function login(username, password) {
  */
 export async function logout() {
     await authFetch(`${API_BASE}/auth/logout`, { method: 'POST' });
-    localStorage.removeItem('authToken');
+    localStorage.removeItem(TOKEN_KEY);
 }
 
 // ============================================================================

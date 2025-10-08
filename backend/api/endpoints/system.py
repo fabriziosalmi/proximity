@@ -363,205 +363,31 @@ async def get_network_status():
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/infrastructure/status")
-async def get_infrastructure_status():
-    """
-    Get comprehensive status of the Proximity Network Appliance infrastructure.
-    
-    Returns detailed information about:
-    - Network Appliance (prox-appliance) status and resources
-    - proximity-lan bridge configuration
-    - Network addressing and DHCP configuration
-    - All running services (DHCP, DNS, NAT, Reverse Proxy)
-    - Connected applications with IP addresses
-    - Network statistics and health metrics
-    
-    This endpoint provides all information needed for the Infrastructure page.
-    """
-    try:
-        logger.info("🔍 Infrastructure status endpoint called")
-        
-        # Try to get orchestrator from app state
-        from main import app
-        orchestrator = getattr(app.state, 'orchestrator', None)
-        
-        logger.info(f"📦 Orchestrator from app.state: {orchestrator is not None}")
-        if orchestrator:
-            logger.info(f"📦 Orchestrator appliance_info: {orchestrator.appliance_info}")
-        
-        if not orchestrator:
-            # Fallback: create new orchestrator instance
-            logger.info("Creating new orchestrator instance...")
-            from services.network_appliance_orchestrator import NetworkApplianceOrchestrator
-            from services.proxmox_service import proxmox_service
-            
-            orchestrator = NetworkApplianceOrchestrator(proxmox_service)
-            logger.info("✓ Orchestrator created")
-            
-            # Check if appliance exists
-            logger.info("Searching for existing appliance...")
-            appliance_info = await orchestrator._find_existing_appliance()
-            logger.info(f"📦 Found appliance: {appliance_info}")
-            
-            if appliance_info:
-                orchestrator.appliance_info = appliance_info
-                logger.info("✓ Appliance info set on orchestrator")
-            else:
-                logger.warning("❌ No appliance found")
-        
-        # Get comprehensive infrastructure status
-        logger.info("Getting infrastructure status from orchestrator...")
-        infrastructure = await orchestrator.get_infrastructure_status()
-        logger.info(f"📊 Infrastructure data: {infrastructure}")
-        
-        logger.info(f"Infrastructure appliance: {infrastructure.get('appliance') is not None}")
-        
-        # Determine overall health
-        is_healthy = False
-        if infrastructure.get('appliance'):
-            appliance_running = infrastructure['appliance'].get('status') == 'running'
-            services_ok = all(
-                service.get('healthy', False) 
-                for service in infrastructure.get('services', {}).values()
-            )
-            is_healthy = appliance_running and services_ok
-        
-        health_status = "healthy" if is_healthy else "degraded" if infrastructure.get('appliance') else "not_initialized"
-        logger.info(f"✓ Infrastructure health status: {health_status}")
-        
-        return APIResponse(
-            message=f"Infrastructure status: {health_status}",
-            data={
-                **infrastructure,
-                'health_status': health_status,
-                'timestamp': None  # Could add timestamp if needed
-            }
-        )
-        
-    except Exception as e:
-        logger.error(f"❌ Failed to get infrastructure status: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+# ============================================================================
+# INFRASTRUCTURE ENDPOINTS - DISABLED (network appliance removed)
+# ============================================================================
+# The following endpoints were part of the complex network appliance architecture
+# that has been removed in favor of simple vmbr0 + DHCP networking.
+# Keeping them commented for reference in case they're needed in the future.
+#
+# @router.get("/infrastructure/status")
+# @router.post("/infrastructure/appliance/restart")  
+# @router.get("/infrastructure/appliance/logs")
+# @router.post("/infrastructure/test-nat")
+# @router.post("/infrastructure/rebuild-bridge")
+# ============================================================================
 
 
-@router.post("/infrastructure/appliance/restart")
-async def restart_network_appliance():
-    """
-    Restart the Network Appliance container.
-
-    This will restart all services (dnsmasq, Caddy, NAT).
-    Use this to recover from service failures or apply configuration changes.
-    """
-    try:
-        from main import app
-        from services.proxmox_service import proxmox_service
-
-        orchestrator = getattr(app.state, 'orchestrator', None)
-
-        if not orchestrator or not orchestrator.appliance_info:
-            raise HTTPException(
-                status_code=404,
-                detail="Network appliance not found. Infrastructure may not be initialized."
-            )
-
-        vmid = orchestrator.appliance_info.vmid
-        node = orchestrator.appliance_info.node
-
-        logger.info(f"Restarting network appliance VMID {vmid} on node {node}")
-
-        # Stop the container
-        await proxmox_service.stop_container(node, vmid)
-
-        # Wait a moment for clean shutdown
-        import asyncio
-        await asyncio.sleep(2)
-
-        # Start the container
-        await proxmox_service.start_container(node, vmid)
-
-        # Wait for services to come up
-        await asyncio.sleep(3)
-
-        logger.info(f"Network appliance VMID {vmid} restarted successfully")
-
-        return APIResponse(
-            message="Network appliance restarted successfully",
-            data={
-                "vmid": vmid,
-                "node": node,
-                "hostname": orchestrator.appliance_info.hostname,
-                "status": "restarted",
-                "note": "Services should be available in a few seconds"
-            }
-        )
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Failed to restart network appliance: {e}")
-        raise HTTPException(status_code=500, detail=f"Restart failed: {str(e)}")
+@router.get("/templates/cache")
 
 
-@router.get("/infrastructure/appliance/logs")
-async def get_appliance_logs(lines: int = 100):
-    """
-    Get recent logs from the Network Appliance.
+# ============================================================================
+# INFRASTRUCTURE ENDPOINTS - DISABLED (network appliance removed)
+# ============================================================================
+# The following endpoints were part of the complex network appliance architecture
+# that has been removed in favor of simple vmbr0 + DHCP networking.
+# ============================================================================
 
-    Returns system logs, service status, and diagnostic information.
-    Query parameter 'lines' controls how many log lines to retrieve (default: 100).
-    """
-    try:
-        from main import app
-
-        orchestrator = getattr(app.state, 'orchestrator', None)
-
-        if not orchestrator or not orchestrator.appliance_info:
-            raise HTTPException(
-                status_code=404,
-                detail="Network appliance not found"
-            )
-
-        vmid = orchestrator.appliance_info.vmid
-        node = orchestrator.appliance_info.node
-
-        # Get logs via LXC exec
-        from services.proxmox_service import proxmox_service
-
-        # Get system logs
-        system_logs_cmd = f"tail -n {lines} /var/log/messages 2>/dev/null || dmesg | tail -n {lines}"
-        system_logs = await proxmox_service.exec_command(node, vmid, system_logs_cmd)
-
-        # Get dnsmasq status
-        dnsmasq_status_cmd = "rc-status | grep dnsmasq || echo 'dnsmasq status unknown'"
-        dnsmasq_status = await proxmox_service.exec_command(node, vmid, dnsmasq_status_cmd)
-
-        # Get network interface status
-        network_status_cmd = "ip addr show proximity-lan 2>/dev/null || echo 'Bridge not found'"
-        network_status = await proxmox_service.exec_command(node, vmid, network_status_cmd)
-
-        # Get NAT rules
-        nat_rules_cmd = "iptables -t nat -L POSTROUTING -n -v 2>/dev/null || echo 'Cannot read NAT rules'"
-        nat_rules = await proxmox_service.exec_command(node, vmid, nat_rules_cmd)
-
-        return APIResponse(
-            message="Appliance logs retrieved",
-            data={
-                "vmid": vmid,
-                "node": node,
-                "logs": {
-                    "system": system_logs.strip(),
-                    "dnsmasq_status": dnsmasq_status.strip(),
-                    "network_status": network_status.strip(),
-                    "nat_rules": nat_rules.strip()
-                },
-                "timestamp": None
-            }
-        )
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Failed to get appliance logs: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to retrieve logs: {str(e)}")
 
 
 @router.post("/infrastructure/test-nat")

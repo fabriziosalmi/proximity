@@ -58,76 +58,15 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         else:
             logger.warning("⚠ Proxmox connection failed - some features may not work")
         
-        # Step 2: Initialize Network Appliance (Platinum Edition with proximity-lan)
+        # Step 2: Simple networking with vmbr0 + DHCP
         logger.info("=" * 60)
-        logger.info("STEP 2: Initializing Network Appliance (Platinum Edition)")
+        logger.info("STEP 2: Network Configuration")
         logger.info("=" * 60)
-        logger.info("🌐 Deploying proximity-lan bridge and network appliance...")
-        
-        from services.network_appliance_orchestrator import NetworkApplianceOrchestrator
-        
-        orchestrator = NetworkApplianceOrchestrator(proxmox_service)
-        
-        # Try to initialize network appliance
-        network_init_success = await orchestrator.initialize()
-        
-        if not network_init_success:
-            logger.error("❌ Network appliance initialization failed")
-            logger.error("=" * 60)
-            logger.error("CRITICAL: Network Appliance Required")
-            logger.error("=" * 60)
-            logger.error("The Proximity platform requires a network appliance for:")
-            logger.error("  • Isolated application networking (proximity-lan)")
-            logger.error("  • DHCP/DNS services for containers")
-            logger.error("  • NAT gateway for internet access")
-            logger.error("  • Reverse proxy for unified app access")
-            logger.error("")
-            logger.error("Running comprehensive diagnostics to identify the issue...")
-            logger.error("")
-            
-            # Run detailed diagnostics to identify root cause
-            try:
-                diagnostics = await orchestrator.diagnose_initialization_failure()
-                # Diagnostic output is already logged by the function
-                
-            except Exception as diag_error:
-                logger.error(f"⚠️  Diagnostics failed: {diag_error}")
-            
-            logger.error("")
-            logger.error("FALLBACK MODE ACTIVE:")
-            logger.error("  ⚠️  Containers will use default Proxmox networking (vmbr0)")
-            logger.error("  ⚠️  Some features will be unavailable:")
-            logger.error("      - Network isolation")
-            logger.error("      - Automatic reverse proxy")
-            logger.error("      - Unified DNS (.prox.local domain)")
-            logger.error("")
-            logger.error("=" * 60)
-            
-            # Set orchestrator to None to use fallback networking
-            orchestrator = None
-        else:
-            logger.info("✅ Network Appliance ready:")
-            if orchestrator.appliance_info:
-                logger.info(f"   • Bridge: proximity-lan (10.20.0.0/24)")
-                logger.info(f"   • Appliance: {orchestrator.appliance_info.hostname} (VMID {orchestrator.appliance_info.vmid})")
-                logger.info(f"   • Gateway: 10.20.0.1")
-                logger.info(f"   • DHCP Range: 10.20.0.100-250")
-                logger.info(f"   • DNS Domain: .prox.local")
-                logger.info(f"   • SSH Access: ssh root@{orchestrator.appliance_info.wan_ip} (password: invaders)")
-        
-        # Inject orchestrator into ProxmoxService for network config
-        # Note: orchestrator may be None if initialization failed (will use vmbr0 fallback)
-        proxmox_service.network_manager = orchestrator
-        
-        if orchestrator:
-            logger.info("✓ Network orchestrator injected into ProxmoxService")
-            logger.info("  → New containers will use proximity-lan network")
-        else:
-            logger.warning("⚠ No network orchestrator available")
-            logger.info("  → New containers will use default vmbr0 network")
-        
-        # Store orchestrator in app state for API endpoints
-        app.state.orchestrator = orchestrator
+        logger.info("🌐 Using simplified networking:")
+        logger.info("  • All containers use vmbr0 (default Proxmox bridge)")
+        logger.info("  • DHCP assigns IPs automatically")
+        logger.info("  • No complex network appliance needed")
+        logger.info("✓ Network configuration ready")
         
         # Step 3: Initialize app service (loads catalog)
         logger.info("=" * 60)
@@ -146,36 +85,13 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         finally:
             db.close()
         
-        # Step 4: Initialize Reverse Proxy Manager (integrated with Network Appliance)
+        # Step 4: Reverse proxy - not needed with simple vmbr0 networking
         logger.info("=" * 60)
-        logger.info("STEP 4: Initializing Reverse Proxy Manager")
+        logger.info("STEP 4: Reverse Proxy")
         logger.info("=" * 60)
-        
-        if orchestrator and orchestrator.appliance_info:
-            try:
-                from services.reverse_proxy_manager import ReverseProxyManager
-                
-                proxy_manager = ReverseProxyManager(
-                    appliance_vmid=orchestrator.appliance_info.vmid
-                )
-                
-                # Store in app state (app_service instances will get their own db sessions via dependency injection)
-                app.state.proxy_manager = proxy_manager
-                
-                # Store in app state
-                app.state.proxy_manager = proxy_manager
-                
-                logger.info("✓ Reverse Proxy Manager initialized")
-                logger.info(f"   • Using Caddy on appliance VMID {orchestrator.appliance_info.vmid}")
-                logger.info(f"   • Vhosts will be created automatically for deployed apps")
-                
-            except Exception as e:
-                logger.error(f"Failed to initialize Reverse Proxy Manager: {e}")
-                logger.warning("⚠ Continuing without reverse proxy manager")
-                app.state.proxy_manager = None
-        else:
-            logger.warning("⚠ Network appliance not available - reverse proxy disabled")
-            app.state.proxy_manager = None
+        logger.info("ℹ️  Reverse proxy not available with simplified networking")
+        logger.info("  • Access apps directly via IP:port")
+        logger.info("  • Or configure Caddy/Nginx manually on Proxmox host if needed")
 
         # Step 5: Initialize Scheduler Service for AUTO mode
         logger.info("=" * 60)

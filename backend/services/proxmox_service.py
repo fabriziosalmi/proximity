@@ -2,6 +2,7 @@ import asyncio
 import logging
 from typing import List, Dict, Any, Optional, Union
 from proxmoxer import ProxmoxAPI
+from proxmoxer.core import ResourceException
 
 from core.config import settings
 from models.schemas import NodeInfo, LXCInfo, LXCStatus
@@ -17,10 +18,9 @@ class ProxmoxError(Exception):
 class ProxmoxService:
     """Async wrapper around Proxmox API for container and node management"""
     
-    def __init__(self, network_manager=None):
+    def __init__(self):
         self._proxmox: Optional[ProxmoxAPI] = None
         self._connect_lock = asyncio.Lock()
-        self.network_manager = network_manager  # Injected NetworkManager instance
     
     async def _get_client(self) -> ProxmoxAPI:
         """Get or create Proxmox API client with connection pooling"""
@@ -166,6 +166,15 @@ class ProxmoxService:
                 status=LXCStatus(status_str),
                 **container_data
             )
+        except ResourceException as e:
+            # Check if this is a "does not exist" error - this is not an error, just means container not created yet
+            error_msg = str(e)
+            if "does not exist" in error_msg or "Configuration file" in error_msg:
+                # Container doesn't exist - return None or raise a more specific exception
+                raise ProxmoxError(f"Container {vmid} does not exist on node {node}")
+            else:
+                # Some other Proxmox API error
+                raise ProxmoxError(f"Failed to get LXC {vmid} status: {e}")
         except Exception as e:
             raise ProxmoxError(f"Failed to get LXC {vmid} status: {e}")
 
@@ -189,18 +198,20 @@ class ProxmoxService:
             logger.warning(f"Failed to get LXC {vmid} IP: {e}")
             return None
 
-    async def create_lxc(self, node: str, vmid: int, config: Dict[str, Any], bypass_network_manager: bool = False) -> Dict[str, Any]:
+    async def create_lxc(self, node: str, vmid: int, config: Dict[str, Any]) -> Dict[str, Any]:
         """
         Create a new LXC container with automatic storage selection.
         
-        Containers are now provisioned exclusively on the prox-net isolated network
-        with DHCP-assigned IPs and DNS resolution via the managed dnsmasq service.
+        All containers are created on vmbr0 (default Proxmox bridge) with DHCP.
+        This provides simple, reliable networking without complex network appliance infrastructure.
         
         Args:
-            node: Target Proxmox node
-            vmid: Container VMID
-            config: LXC configuration dict
-            bypass_network_manager: If True, use net0/net1 from config directly (for appliance creation)
+            node: Proxmox node name
+            vmid: VM ID to assign
+            config: Container configuration (hostname, storage, etc.)
+            
+        Returns:
+            Dict with task_id, vmid, node, hostname
         """
         try:
             client = await self._get_client()
@@ -231,20 +242,9 @@ class ProxmoxService:
             # Get network configuration
             hostname = config.get('hostname', f"ct{vmid}")
             
-            # If bypass_network_manager is True, use net0/net1 from config directly
-            # This is used when creating the network appliance itself
-            if bypass_network_manager:
-                logger.info(f"Bypassing NetworkManager - using explicit network config from parameters")
-                net_config = config.get('net0', "name=eth0,bridge=vmbr0,ip=dhcp,firewall=1")
-            elif self.network_manager:
-                net_config = await self.network_manager.get_container_network_config(hostname, node)
-                logger.info(f"Using managed network config: {net_config}")
-            else:
-                # Fallback to default bridge (vmbr0) with DHCP when NetworkManager not available
-                # This happens in development environments (macOS, Windows) or if network init failed
-                net_config = "name=eth0,bridge=vmbr0,ip=dhcp,firewall=1"
-                logger.warning(f"NetworkManager not available - using default bridge (vmbr0) with DHCP")
-                logger.info(f"Container will use default Proxmox networking instead of isolated network")
+            # Always use vmbr0 (default Proxmox bridge) with DHCP - simple and reliable!
+            net_config = "name=eth0,bridge=vmbr0,ip=dhcp,firewall=1"
+            logger.info(f"Container '{hostname}' will use vmbr0 with DHCP")
             
             # Merge with default configuration
             lxc_config = {
@@ -253,23 +253,18 @@ class ProxmoxService:
                 'hostname': hostname,  # Hostname for DNS resolution
                 'cores': settings.LXC_CORES,
                 'memory': settings.LXC_MEMORY,
-                'net0': net_config,  # Managed network on prox-net
+                'net0': net_config,  # vmbr0 with DHCP
                 'features': 'nesting=1,keyctl=1',  # Required for Docker
                 'unprivileged': 1,
                 'onboot': 1,
                 **config
             }
             
-            # If bypassing network manager, preserve net1 (for dual-homed appliance)
-            if bypass_network_manager and 'net1' in config:
-                lxc_config['net1'] = config['net1']
-                logger.info(f"Appliance will use dual network interfaces: net0={config.get('net0')}, net1={config.get('net1')}")
-            
             task_id = await asyncio.to_thread(
                 client.nodes(node).lxc.create, **lxc_config
             )
             
-            logger.info(f"LXC creation started: node={node}, vmid={vmid}, hostname={hostname}, network=prox-net, task={task_id}")
+            logger.info(f"LXC creation started: node={node}, vmid={vmid}, hostname={hostname}, network=vmbr0 (DHCP), task={task_id}")
             return {"task_id": task_id, "vmid": vmid, "node": node, "hostname": hostname}
             
         except Exception as e:

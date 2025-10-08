@@ -4,12 +4,14 @@
  * Handles JWT token management and authenticated requests.
  */
 
+const TOKEN_KEY = 'proximity_token';
+
 /**
  * Get authentication token from localStorage
  * @returns {string|null} JWT token
  */
 export function getToken() {
-    return localStorage.getItem('authToken');
+    return localStorage.getItem(TOKEN_KEY);
 }
 
 /**
@@ -17,14 +19,14 @@ export function getToken() {
  * @param {string} token - JWT token
  */
 export function setToken(token) {
-    localStorage.setItem('authToken', token);
+    localStorage.setItem(TOKEN_KEY, token);
 }
 
 /**
  * Remove authentication token from localStorage
  */
 export function clearToken() {
-    localStorage.removeItem('authToken');
+    localStorage.removeItem(TOKEN_KEY);
 }
 
 /**
