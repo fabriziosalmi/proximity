@@ -4,7 +4,14 @@
   "description": "Gradio web UI for running Large Language Models like LLaMA, GPT-J, and more locally",
   "category": "AI",
   "icon": "https://cdn.simpleicons.org/python/3776AB",
-  "tags": ["llm", "ai", "text-generation", "local", "llama", "gpt"],
+  "tags": [
+    "llm",
+    "ai",
+    "text-generation",
+    "local",
+    "llama",
+    "gpt"
+  ],
   "min_memory": 8192,
   "min_cpu": 4,
   "min_disk": 20,
@@ -39,5 +46,6 @@
       "textgen_presets": {},
       "textgen_training": {}
     }
-  }
+  },
+  "version": "latest"
 }

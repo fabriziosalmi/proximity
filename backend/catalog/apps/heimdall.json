@@ -4,7 +4,13 @@
   "description": "Application dashboard and launcher with a clean, minimal interface for organizing your services",
   "category": "Automation",
   "icon": "https://cdn.simpleicons.org/homeassistant/18BCF2",
-  "tags": ["dashboard", "launcher", "homepage", "organization", "bookmarks"],
+  "tags": [
+    "dashboard",
+    "launcher",
+    "homepage",
+    "organization",
+    "bookmarks"
+  ],
   "min_memory": 128,
   "min_cpu": 1,
   "min_disk": 1,
@@ -32,5 +38,6 @@
     "volumes": {
       "heimdall_config": {}
     }
-  }
+  },
+  "version": "latest"
 }

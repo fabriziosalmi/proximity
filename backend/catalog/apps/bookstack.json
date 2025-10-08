@@ -4,7 +4,13 @@
   "description": "Simple, self-hosted wiki platform for organizing documentation with books, chapters, and pages",
   "category": "CMS",
   "icon": "https://cdn.simpleicons.org/bookstack/0288D1",
-  "tags": ["wiki", "documentation", "knowledge-base", "notes", "collaboration"],
+  "tags": [
+    "wiki",
+    "documentation",
+    "knowledge-base",
+    "notes",
+    "collaboration"
+  ],
   "min_memory": 512,
   "min_cpu": 1,
   "min_disk": 4,
@@ -58,5 +64,6 @@
       "bookstack_config": {},
       "bookstack_db_config": {}
     }
-  }
+  },
+  "version": "latest"
 }

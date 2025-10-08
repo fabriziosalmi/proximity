@@ -4,7 +4,13 @@
   "description": "Open-source alternative to Trello, Notion, and Asana - project management for technical teams",
   "category": "Automation",
   "icon": "https://cdn.simpleicons.org/mattermost/0058CC",
-  "tags": ["kanban", "project-management", "notion", "trello", "collaboration"],
+  "tags": [
+    "kanban",
+    "project-management",
+    "notion",
+    "trello",
+    "collaboration"
+  ],
   "min_memory": 512,
   "min_cpu": 1,
   "min_disk": 2,
@@ -29,5 +35,6 @@
     "volumes": {
       "focalboard_data": {}
     }
-  }
+  },
+  "version": "latest"
 }

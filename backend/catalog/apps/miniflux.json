@@ -4,7 +4,13 @@
   "description": "Minimalist and opinionated RSS feed reader with focus on simplicity and performance",
   "category": "Communication",
   "icon": "https://cdn.simpleicons.org/rss/FFA500",
-  "tags": ["rss", "feed", "reader", "minimalist", "news"],
+  "tags": [
+    "rss",
+    "feed",
+    "reader",
+    "minimalist",
+    "news"
+  ],
   "min_memory": 128,
   "min_cpu": 1,
   "min_disk": 1,
@@ -46,5 +52,6 @@
     "volumes": {
       "miniflux_db": {}
     }
-  }
+  },
+  "version": "latest"
 }

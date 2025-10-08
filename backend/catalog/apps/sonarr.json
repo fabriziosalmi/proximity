@@ -13,7 +13,9 @@
         "image": "linuxserver/sonarr:latest",
         "container_name": "sonarr",
         "restart": "unless-stopped",
-        "ports": ["8989:8989"],
+        "ports": [
+          "8989:8989"
+        ],
         "environment": {
           "PUID": "1000",
           "PGID": "1000",
@@ -32,11 +34,23 @@
       "sonarr_downloads": {}
     }
   },
-  "ports": [8989],
-  "volumes": ["sonarr_config", "sonarr_tv", "sonarr_downloads"],
+  "ports": [
+    8989
+  ],
+  "volumes": [
+    "sonarr_config",
+    "sonarr_tv",
+    "sonarr_downloads"
+  ],
   "environment": {
     "PUID": "1000",
     "PGID": "1000"
   },
-  "tags": ["media", "tv-shows", "automation", "download"]
+  "tags": [
+    "media",
+    "tv-shows",
+    "automation",
+    "download"
+  ],
+  "version": "latest"
 }

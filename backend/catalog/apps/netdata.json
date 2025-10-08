@@ -4,7 +4,13 @@
   "description": "Real-time performance monitoring with beautiful dashboards for servers, containers, and applications",
   "category": "Monitoring",
   "icon": "https://cdn.simpleicons.org/netdata/00AB44",
-  "tags": ["monitoring", "metrics", "performance", "realtime", "dashboard"],
+  "tags": [
+    "monitoring",
+    "metrics",
+    "performance",
+    "realtime",
+    "dashboard"
+  ],
   "min_memory": 256,
   "min_cpu": 1,
   "min_disk": 2,
@@ -47,5 +53,6 @@
       "netdata_lib": {},
       "netdata_cache": {}
     }
-  }
+  },
+  "version": "latest"
 }

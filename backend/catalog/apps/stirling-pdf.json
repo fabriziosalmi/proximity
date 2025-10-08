@@ -4,7 +4,15 @@
   "description": "Powerful PDF manipulation tool - merge, split, convert, OCR, compress, and edit PDFs locally",
   "category": "CMS",
   "icon": "https://cdn.simpleicons.org/adobeacrobatreader/EC1C24",
-  "tags": ["pdf", "converter", "ocr", "editor", "merge", "split", "compress"],
+  "tags": [
+    "pdf",
+    "converter",
+    "ocr",
+    "editor",
+    "merge",
+    "split",
+    "compress"
+  ],
   "min_memory": 512,
   "min_cpu": 1,
   "min_disk": 2,
@@ -35,5 +43,6 @@
       "stirling_pdf_extraConfigs": {},
       "stirling_pdf_logs": {}
     }
-  }
+  },
+  "version": "latest"
 }

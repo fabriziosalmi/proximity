@@ -4,7 +4,13 @@
   "description": "Free and reliable P2P BitTorrent client with integrated search engine and web interface",
   "category": "Media",
   "icon": "https://cdn.simpleicons.org/qbittorrent/2F67BA",
-  "tags": ["torrent", "p2p", "download", "bittorrent", "client"],
+  "tags": [
+    "torrent",
+    "p2p",
+    "download",
+    "bittorrent",
+    "client"
+  ],
   "min_memory": 256,
   "min_cpu": 1,
   "min_disk": 2,
@@ -36,5 +42,6 @@
       "qbittorrent_config": {},
       "qbittorrent_downloads": {}
     }
-  }
+  },
+  "version": "latest"
 }

@@ -4,7 +4,13 @@
   "description": "Centralized log management platform for collecting, indexing and analyzing log data",
   "category": "Monitoring",
   "icon": "https://cdn.simpleicons.org/grafana/FF6600",
-  "tags": ["logging", "log-management", "siem", "analytics", "monitoring"],
+  "tags": [
+    "logging",
+    "log-management",
+    "siem",
+    "analytics",
+    "monitoring"
+  ],
   "min_memory": 2048,
   "min_cpu": 2,
   "min_disk": 10,
@@ -67,5 +73,6 @@
       "graylog_mongo": {},
       "graylog_opensearch": {}
     }
-  }
+  },
+  "version": "latest"
 }

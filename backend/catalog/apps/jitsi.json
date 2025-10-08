@@ -4,7 +4,13 @@
   "description": "Open-source video conferencing platform with screen sharing, recording, and end-to-end encryption",
   "category": "Communication",
   "icon": "https://cdn.simpleicons.org/jitsi/1D76BA",
-  "tags": ["video-conference", "webrtc", "meetings", "collaboration", "streaming"],
+  "tags": [
+    "video-conference",
+    "webrtc",
+    "meetings",
+    "collaboration",
+    "streaming"
+  ],
   "min_memory": 4096,
   "min_cpu": 4,
   "min_disk": 8,
@@ -124,5 +130,6 @@
       "jitsi_jvb": {},
       "jitsi_transcripts": {}
     }
-  }
+  },
+  "version": "latest"
 }

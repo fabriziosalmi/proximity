@@ -4,7 +4,13 @@
   "description": "Official Bitwarden password manager - secure credential storage with sync across devices",
   "category": "Security",
   "icon": "https://cdn.simpleicons.org/bitwarden/175DDC",
-  "tags": ["password", "vault", "security", "2fa", "encryption"],
+  "tags": [
+    "password",
+    "vault",
+    "security",
+    "2fa",
+    "encryption"
+  ],
   "min_memory": 1024,
   "min_cpu": 1,
   "min_disk": 4,
@@ -31,5 +37,6 @@
     "volumes": {
       "bitwarden_data": {}
     }
-  }
+  },
+  "version": "latest"
 }

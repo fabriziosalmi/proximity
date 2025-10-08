@@ -4,7 +4,13 @@
   "description": "Web app for browsing, reading and downloading eBooks using an existing Calibre database",
   "category": "Media",
   "icon": "https://cdn.simpleicons.org/calibreweb/FF6600",
-  "tags": ["ebook", "library", "reading", "calibre", "epub"],
+  "tags": [
+    "ebook",
+    "library",
+    "reading",
+    "calibre",
+    "epub"
+  ],
   "min_memory": 256,
   "min_cpu": 1,
   "min_disk": 2,
@@ -34,5 +40,6 @@
       "calibre_config": {},
       "calibre_books": {}
     }
-  }
+  },
+  "version": "latest"
 }

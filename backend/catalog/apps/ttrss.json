@@ -4,7 +4,13 @@
   "description": "Web-based news feed (RSS/Atom) aggregator with powerful filtering and plugin system",
   "category": "Communication",
   "icon": "https://cdn.simpleicons.org/rss/FF6600",
-  "tags": ["rss", "atom", "feed", "news", "aggregator"],
+  "tags": [
+    "rss",
+    "atom",
+    "feed",
+    "news",
+    "aggregator"
+  ],
   "min_memory": 512,
   "min_cpu": 1,
   "min_disk": 2,
@@ -63,5 +69,6 @@
       "ttrss_app": {},
       "ttrss_db": {}
     }
-  }
+  },
+  "version": "latest"
 }

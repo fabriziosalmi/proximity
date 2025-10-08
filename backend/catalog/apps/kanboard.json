@@ -4,7 +4,13 @@
   "description": "Simple and flexible project management software focused on Kanban methodology",
   "category": "Automation",
   "icon": "https://cdn.simpleicons.org/trello/0052CC",
-  "tags": ["kanban", "project-management", "tasks", "agile", "workflow"],
+  "tags": [
+    "kanban",
+    "project-management",
+    "tasks",
+    "agile",
+    "workflow"
+  ],
   "min_memory": 256,
   "min_cpu": 1,
   "min_disk": 2,
@@ -31,5 +37,6 @@
       "kanboard_data": {},
       "kanboard_plugins": {}
     }
-  }
+  },
+  "version": "latest"
 }

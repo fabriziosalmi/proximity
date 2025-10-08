@@ -4,7 +4,13 @@
   "description": "Free, self-hostable RSS aggregator with multi-user support and mobile apps",
   "category": "Communication",
   "icon": "https://cdn.simpleicons.org/rss/FFA500",
-  "tags": ["rss", "feed", "news", "aggregator", "reader"],
+  "tags": [
+    "rss",
+    "feed",
+    "news",
+    "aggregator",
+    "reader"
+  ],
   "min_memory": 256,
   "min_cpu": 1,
   "min_disk": 2,
@@ -31,5 +37,6 @@
     "volumes": {
       "freshrss_config": {}
     }
-  }
+  },
+  "version": "latest"
 }

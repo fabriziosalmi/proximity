@@ -4,7 +4,13 @@
   "description": "Browser-based multilingual IMAP email client with modern interface and plugin support",
   "category": "Communication",
   "icon": "https://cdn.simpleicons.org/roundcube/37BEFF",
-  "tags": ["email", "webmail", "imap", "smtp", "client"],
+  "tags": [
+    "email",
+    "webmail",
+    "imap",
+    "smtp",
+    "client"
+  ],
   "min_memory": 256,
   "min_cpu": 1,
   "min_disk": 2,
@@ -55,5 +61,6 @@
       "roundcube_www": {},
       "roundcube_db": {}
     }
-  }
+  },
+  "version": "latest"
 }

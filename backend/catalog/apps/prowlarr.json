@@ -13,24 +13,38 @@
         "image": "linuxserver/prowlarr:latest",
         "container_name": "prowlarr",
         "restart": "unless-stopped",
-        "ports": ["9696:9696"],
+        "ports": [
+          "9696:9696"
+        ],
         "environment": {
           "PUID": "1000",
           "PGID": "1000",
           "TZ": "Etc/UTC"
         },
-        "volumes": ["prowlarr_config:/config"]
+        "volumes": [
+          "prowlarr_config:/config"
+        ]
       }
     },
     "volumes": {
       "prowlarr_config": {}
     }
   },
-  "ports": [9696],
-  "volumes": ["prowlarr_config"],
+  "ports": [
+    9696
+  ],
+  "volumes": [
+    "prowlarr_config"
+  ],
   "environment": {
     "PUID": "1000",
     "PGID": "1000"
   },
-  "tags": ["media", "indexer", "automation", "torrent"]
+  "tags": [
+    "media",
+    "indexer",
+    "automation",
+    "torrent"
+  ],
+  "version": "latest"
 }

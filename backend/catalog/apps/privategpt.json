@@ -4,7 +4,14 @@
   "description": "Interact with your documents using the power of LLMs with 100% privacy - no data leaves your device",
   "category": "AI",
   "icon": "https://cdn.simpleicons.org/openai/412991",
-  "tags": ["llm", "ai", "privacy", "rag", "documents", "local"],
+  "tags": [
+    "llm",
+    "ai",
+    "privacy",
+    "rag",
+    "documents",
+    "local"
+  ],
   "min_memory": 4096,
   "min_cpu": 4,
   "min_disk": 10,
@@ -32,5 +39,6 @@
       "privategpt_data": {},
       "privategpt_models": {}
     }
-  }
+  },
+  "version": "latest"
 }

@@ -4,7 +4,13 @@
   "description": "Hierarchical note taking application with focus on building personal knowledge base",
   "category": "CMS",
   "icon": "https://cdn.simpleicons.org/trello/0052CC",
-  "tags": ["notes", "wiki", "knowledge-base", "markdown", "organization"],
+  "tags": [
+    "notes",
+    "wiki",
+    "knowledge-base",
+    "markdown",
+    "organization"
+  ],
   "min_memory": 512,
   "min_cpu": 1,
   "min_disk": 2,
@@ -29,5 +35,6 @@
     "volumes": {
       "trilium_data": {}
     }
-  }
+  },
+  "version": "latest"
 }

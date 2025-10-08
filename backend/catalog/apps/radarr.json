@@ -13,7 +13,9 @@
         "image": "linuxserver/radarr:latest",
         "container_name": "radarr",
         "restart": "unless-stopped",
-        "ports": ["7878:7878"],
+        "ports": [
+          "7878:7878"
+        ],
         "environment": {
           "PUID": "1000",
           "PGID": "1000",
@@ -32,11 +34,23 @@
       "radarr_downloads": {}
     }
   },
-  "ports": [7878],
-  "volumes": ["radarr_config", "radarr_movies", "radarr_downloads"],
+  "ports": [
+    7878
+  ],
+  "volumes": [
+    "radarr_config",
+    "radarr_movies",
+    "radarr_downloads"
+  ],
   "environment": {
     "PUID": "1000",
     "PGID": "1000"
   },
-  "tags": ["media", "movies", "automation", "download"]
+  "tags": [
+    "media",
+    "movies",
+    "automation",
+    "download"
+  ],
+  "version": "latest"
 }

@@ -14,7 +14,9 @@
         "container_name": "plausible",
         "restart": "unless-stopped",
         "command": "sh -c 'sleep 10 && /entrypoint.sh db createdb && /entrypoint.sh db migrate && /entrypoint.sh run'",
-        "ports": ["8000:8000"],
+        "ports": [
+          "8000:8000"
+        ],
         "environment": {
           "BASE_URL": "http://localhost:8000",
           "SECRET_KEY_BASE": "change_me_please_use_openssl_rand_base64_64",
@@ -31,13 +33,17 @@
           "POSTGRES_PASSWORD": "plausible",
           "POSTGRES_DB": "plausible"
         },
-        "volumes": ["plausible_db:/var/lib/postgresql/data"]
+        "volumes": [
+          "plausible_db:/var/lib/postgresql/data"
+        ]
       },
       "clickhouse": {
         "image": "clickhouse/clickhouse-server:latest",
         "container_name": "plausible_clickhouse",
         "restart": "unless-stopped",
-        "volumes": ["plausible_event_data:/var/lib/clickhouse"]
+        "volumes": [
+          "plausible_event_data:/var/lib/clickhouse"
+        ]
       }
     },
     "volumes": {
@@ -45,11 +51,22 @@
       "plausible_event_data": {}
     }
   },
-  "ports": [8000],
-  "volumes": ["plausible_db", "plausible_event_data"],
+  "ports": [
+    8000
+  ],
+  "volumes": [
+    "plausible_db",
+    "plausible_event_data"
+  ],
   "environment": {
     "SECRET_KEY_BASE": "change_me_please",
     "POSTGRES_PASSWORD": "plausible"
   },
-  "tags": ["analytics", "privacy", "gdpr", "statistics"]
+  "tags": [
+    "analytics",
+    "privacy",
+    "gdpr",
+    "statistics"
+  ],
+  "version": "latest"
 }

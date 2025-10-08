@@ -4,7 +4,13 @@
   "description": "Fast, collaborative wiki and knowledge base for teams with beautiful modern interface",
   "category": "CMS",
   "icon": "https://cdn.simpleicons.org/outline/212121",
-  "tags": ["wiki", "knowledge-base", "documentation", "collaboration", "markdown"],
+  "tags": [
+    "wiki",
+    "knowledge-base",
+    "documentation",
+    "collaboration",
+    "markdown"
+  ],
   "min_memory": 1024,
   "min_cpu": 2,
   "min_disk": 4,
@@ -65,5 +71,6 @@
       "outline_postgres": {},
       "outline_redis": {}
     }
-  }
+  },
+  "version": "latest"
 }

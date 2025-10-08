@@ -4,7 +4,13 @@
   "description": "Dead simple static homepage for your server with live service status and search",
   "category": "Automation",
   "icon": "https://cdn.simpleicons.org/homeassistantcommunitystore/41BDF5",
-  "tags": ["dashboard", "homepage", "static", "services", "bookmarks"],
+  "tags": [
+    "dashboard",
+    "homepage",
+    "static",
+    "services",
+    "bookmarks"
+  ],
   "min_memory": 64,
   "min_cpu": 1,
   "min_disk": 1,
@@ -29,5 +35,6 @@
     "volumes": {
       "homer_assets": {}
     }
-  }
+  },
+  "version": "latest"
 }

@@ -67,6 +67,7 @@ class ApplianceInfo:
     """Network Appliance LXC information"""
     vmid: int
     hostname: str
+    node: str  # Proxmox node where appliance is deployed
     wan_interface: str  # eth0 on vmbr0
     wan_ip: Optional[str]  # DHCP assigned
     lan_interface: str  # eth1 on proximity-lan
@@ -366,6 +367,7 @@ iface {self.BRIDGE_NAME} inet manual
             appliance = ApplianceInfo(
                 vmid=self.APPLIANCE_VMID,
                 hostname=self.APPLIANCE_HOSTNAME,
+                node=node,
                 wan_interface='eth0',
                 wan_ip=wan_ip,
                 lan_interface='eth1',
@@ -1205,6 +1207,7 @@ iface {self.BRIDGE_NAME} inet manual
                     return ApplianceInfo(
                         vmid=self.APPLIANCE_VMID,
                         hostname=self.APPLIANCE_HOSTNAME,
+                        node=node,
                         wan_interface='eth0',
                         wan_ip=wan_ip,
                         lan_interface='eth1',

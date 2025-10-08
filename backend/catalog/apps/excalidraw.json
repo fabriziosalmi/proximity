@@ -4,7 +4,13 @@
   "description": "Virtual collaborative whiteboard for sketching hand-drawn like diagrams and wireframes",
   "category": "Automation",
   "icon": "https://cdn.simpleicons.org/excalidraw/6965DB",
-  "tags": ["whiteboard", "drawing", "diagrams", "collaboration", "sketch"],
+  "tags": [
+    "whiteboard",
+    "drawing",
+    "diagrams",
+    "collaboration",
+    "sketch"
+  ],
   "min_memory": 256,
   "min_cpu": 1,
   "min_disk": 1,
@@ -24,5 +30,6 @@
         }
       }
     }
-  }
+  },
+  "version": "latest"
 }

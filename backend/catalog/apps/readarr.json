@@ -13,7 +13,9 @@
         "image": "linuxserver/readarr:develop",
         "container_name": "readarr",
         "restart": "unless-stopped",
-        "ports": ["8787:8787"],
+        "ports": [
+          "8787:8787"
+        ],
         "environment": {
           "PUID": "1000",
           "PGID": "1000",
@@ -32,11 +34,23 @@
       "readarr_downloads": {}
     }
   },
-  "ports": [8787],
-  "volumes": ["readarr_config", "readarr_books", "readarr_downloads"],
+  "ports": [
+    8787
+  ],
+  "volumes": [
+    "readarr_config",
+    "readarr_books",
+    "readarr_downloads"
+  ],
   "environment": {
     "PUID": "1000",
     "PGID": "1000"
   },
-  "tags": ["media", "books", "audiobooks", "automation"]
+  "tags": [
+    "media",
+    "books",
+    "audiobooks",
+    "automation"
+  ],
+  "version": "latest"
 }

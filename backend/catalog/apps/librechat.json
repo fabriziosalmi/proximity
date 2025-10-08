@@ -4,7 +4,14 @@
   "description": "Enhanced ChatGPT clone with support for multiple AI providers (OpenAI, Anthropic, local LLMs)",
   "category": "AI",
   "icon": "https://cdn.simpleicons.org/openai/412991",
-  "tags": ["chatgpt", "ai", "llm", "ollama", "chat", "assistant"],
+  "tags": [
+    "chatgpt",
+    "ai",
+    "llm",
+    "ollama",
+    "chat",
+    "assistant"
+  ],
   "min_memory": 1024,
   "min_cpu": 2,
   "min_disk": 4,
@@ -45,5 +52,6 @@
       "librechat_data": {},
       "librechat_mongodb": {}
     }
-  }
+  },
+  "version": "latest"
 }

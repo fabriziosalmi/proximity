@@ -4,7 +4,14 @@
   "description": "Document management system with OCR, tagging, full-text search, and workflow automation",
   "category": "CMS",
   "icon": "https://cdn.simpleicons.org/files/4CAF50",
-  "tags": ["documents", "ocr", "scanning", "archive", "dms", "paperless"],
+  "tags": [
+    "documents",
+    "ocr",
+    "scanning",
+    "archive",
+    "dms",
+    "paperless"
+  ],
   "min_memory": 1024,
   "min_cpu": 2,
   "min_disk": 10,
@@ -44,7 +51,15 @@
           "8000:8000"
         ],
         "healthcheck": {
-          "test": ["CMD", "curl", "-fs", "-S", "--max-time", "2", "http://localhost:8000"],
+          "test": [
+            "CMD",
+            "curl",
+            "-fs",
+            "-S",
+            "--max-time",
+            "2",
+            "http://localhost:8000"
+          ],
           "interval": "30s",
           "timeout": "10s",
           "retries": 5
@@ -76,5 +91,6 @@
       "paperless_export": {},
       "paperless_consume": {}
     }
-  }
+  },
+  "version": "latest"
 }

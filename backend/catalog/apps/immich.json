@@ -4,7 +4,14 @@
   "description": "High-performance self-hosted photo and video backup solution with mobile apps and AI features",
   "category": "Media",
   "icon": "https://cdn.simpleicons.org/googlephotos/4285F4",
-  "tags": ["photos", "videos", "backup", "mobile", "ai", "ml"],
+  "tags": [
+    "photos",
+    "videos",
+    "backup",
+    "mobile",
+    "ai",
+    "ml"
+  ],
   "min_memory": 2048,
   "min_cpu": 2,
   "min_disk": 20,
@@ -15,7 +22,10 @@
         "image": "ghcr.io/immich-app/immich-server:release",
         "container_name": "immich-server",
         "restart": "unless-stopped",
-        "command": ["start.sh", "immich"],
+        "command": [
+          "start.sh",
+          "immich"
+        ],
         "volumes": [
           "immich_upload:/usr/src/app/upload",
           "/etc/localtime:/etc/localtime:ro"
@@ -39,7 +49,10 @@
         "image": "ghcr.io/immich-app/immich-server:release",
         "container_name": "immich-microservices",
         "restart": "unless-stopped",
-        "command": ["start.sh", "microservices"],
+        "command": [
+          "start.sh",
+          "microservices"
+        ],
         "volumes": [
           "immich_upload:/usr/src/app/upload",
           "/etc/localtime:/etc/localtime:ro"
@@ -88,5 +101,6 @@
       "immich_model_cache": {},
       "immich_upload": {}
     }
-  }
+  },
+  "version": "latest"
 }

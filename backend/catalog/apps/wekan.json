@@ -4,7 +4,13 @@
   "description": "Open-source Kanban board for project management with real-time collaboration",
   "category": "Automation",
   "icon": "https://cdn.simpleicons.org/trello/0079BF",
-  "tags": ["kanban", "project-management", "tasks", "collaboration", "board"],
+  "tags": [
+    "kanban",
+    "project-management",
+    "tasks",
+    "collaboration",
+    "board"
+  ],
   "min_memory": 512,
   "min_cpu": 1,
   "min_disk": 2,
@@ -43,5 +49,6 @@
       "wekan_db": {},
       "wekan_dump": {}
     }
-  }
+  },
+  "version": "latest"
 }

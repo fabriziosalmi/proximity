@@ -4,7 +4,14 @@
   "description": "Secure and decentralized collaboration with Matrix protocol - chat, voice, video, file sharing",
   "category": "Communication",
   "icon": "https://cdn.simpleicons.org/element/0DBD8B",
-  "tags": ["chat", "matrix", "messaging", "collaboration", "voice", "video"],
+  "tags": [
+    "chat",
+    "matrix",
+    "messaging",
+    "collaboration",
+    "voice",
+    "video"
+  ],
   "min_memory": 512,
   "min_cpu": 1,
   "min_disk": 2,
@@ -29,5 +36,6 @@
     "volumes": {
       "element_config": {}
     }
-  }
+  },
+  "version": "latest"
 }

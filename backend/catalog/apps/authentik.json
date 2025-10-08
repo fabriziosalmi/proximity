@@ -4,7 +4,15 @@
   "description": "Modern identity provider with SSO, LDAP, OAuth2, SAML, and enterprise authentication features",
   "category": "Security",
   "icon": "https://cdn.simpleicons.org/authentik/FD4B2D",
-  "tags": ["sso", "authentication", "identity", "oauth2", "saml", "ldap", "2fa"],
+  "tags": [
+    "sso",
+    "authentication",
+    "identity",
+    "oauth2",
+    "saml",
+    "ldap",
+    "2fa"
+  ],
   "min_memory": 2048,
   "min_cpu": 2,
   "min_disk": 4,
@@ -67,7 +75,10 @@
         "container_name": "authentik-postgresql",
         "restart": "unless-stopped",
         "healthcheck": {
-          "test": ["CMD-SHELL", "pg_isready -d authentik -U authentik"],
+          "test": [
+            "CMD-SHELL",
+            "pg_isready -d authentik -U authentik"
+          ],
           "start_period": "20s",
           "interval": "30s",
           "retries": 5,
@@ -88,7 +99,10 @@
         "restart": "unless-stopped",
         "command": "--save 60 1 --loglevel warning",
         "healthcheck": {
-          "test": ["CMD-SHELL", "redis-cli ping | grep PONG"],
+          "test": [
+            "CMD-SHELL",
+            "redis-cli ping | grep PONG"
+          ],
           "start_period": "20s",
           "interval": "30s",
           "retries": 5,
@@ -106,5 +120,6 @@
       "authentik_certs": {},
       "authentik_custom_templates": {}
     }
-  }
+  },
+  "version": "latest"
 }

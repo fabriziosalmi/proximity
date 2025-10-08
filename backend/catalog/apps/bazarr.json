@@ -13,7 +13,9 @@
         "image": "linuxserver/bazarr:latest",
         "container_name": "bazarr",
         "restart": "unless-stopped",
-        "ports": ["6767:6767"],
+        "ports": [
+          "6767:6767"
+        ],
         "environment": {
           "PUID": "1000",
           "PGID": "1000",
@@ -32,11 +34,23 @@
       "bazarr_tv": {}
     }
   },
-  "ports": [6767],
-  "volumes": ["bazarr_config", "bazarr_movies", "bazarr_tv"],
+  "ports": [
+    6767
+  ],
+  "volumes": [
+    "bazarr_config",
+    "bazarr_movies",
+    "bazarr_tv"
+  ],
   "environment": {
     "PUID": "1000",
     "PGID": "1000"
   },
-  "tags": ["media", "subtitles", "automation", "multilingual"]
+  "tags": [
+    "media",
+    "subtitles",
+    "automation",
+    "multilingual"
+  ],
+  "version": "latest"
 }
