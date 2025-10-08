@@ -673,20 +673,35 @@ async function renderNodesView() {
     // Load infrastructure status
     showLoading('Loading infrastructure status...');
     let infrastructure = null;
+    let error = null;
 
     try {
         const token = localStorage.getItem('auth_token');
         if (token) {
+            console.log('[Infrastructure] Fetching status...');
             const response = await authFetch(`${API_BASE}/system/infrastructure/status`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
+            console.log('[Infrastructure] Response status:', response.status);
+            
             if (response.ok) {
                 const result = await response.json();
+                console.log('[Infrastructure] Result:', result);
                 infrastructure = result.data;
+                console.log('[Infrastructure] Infrastructure data:', infrastructure);
+                console.log('[Infrastructure] Appliance:', infrastructure?.appliance);
+                console.log('[Infrastructure] Health status:', infrastructure?.health_status);
+            } else {
+                error = `Failed to load infrastructure status (${response.status})`;
+                console.error('[Infrastructure] Error:', error);
             }
+        } else {
+            error = 'Not authenticated';
+            console.error('[Infrastructure] No auth token');
         }
-    } catch (error) {
-        console.error('Error loading infrastructure:', error);
+    } catch (err) {
+        error = err.message || 'Failed to load infrastructure';
+        console.error('[Infrastructure] Exception:', err);
     }
     hideLoading();
 
@@ -694,8 +709,16 @@ async function renderNodesView() {
     const appliance = infrastructure?.appliance || null;
     const services = infrastructure?.services || {};
     const network = infrastructure?.network || {};
-    const connected_apps = infrastructure?.connected_apps || [];
+    const connected_apps = infrastructure?.applications || infrastructure?.connected_apps || [];
     const health_status = infrastructure?.health_status || 'unknown';
+    
+    console.log('[Infrastructure] Final state:', {
+        appliance: !!appliance,
+        services: Object.keys(services).length,
+        connected_apps: connected_apps.length,
+        health_status,
+        error
+    });
 
     const content = `
         <div class="page-header">
