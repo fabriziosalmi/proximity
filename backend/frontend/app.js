@@ -1444,10 +1444,44 @@ function showDeployModal(catalogId) {
     document.querySelector('.modal-content').appendChild(footerDiv);
     
     modal.classList.add('show');
+    openModal(); // Prevent body scrolling
+}
+
+function openModal() {
+    // Save current scroll position
+    const scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+    
+    // Add modal-open class and set top position to maintain scroll position visually
+    document.body.classList.add('modal-open');
+    document.body.style.top = `-${scrollPosition}px`;
+    
+    // Disable pointer events on main content to prevent interaction with background
+    const mainContent = document.querySelector('.app-container');
+    if (mainContent) {
+        mainContent.style.pointerEvents = 'none';
+    }
 }
 
 function closeModal() {
-    document.getElementById('deployModal').classList.remove('show');
+    const modal = document.getElementById('deployModal');
+    modal.classList.remove('show');
+    
+    // Only remove modal-open if no other modals are open
+    const anyModalOpen = Array.from(document.querySelectorAll('.modal.show')).length > 0;
+    if (!anyModalOpen) {
+        const scrollPosition = parseInt(document.body.style.top || '0') * -1;
+        document.body.classList.remove('modal-open');
+        document.body.style.top = '';
+        
+        // Re-enable pointer events on main content
+        const mainContent = document.querySelector('.app-container');
+        if (mainContent) {
+            mainContent.style.pointerEvents = '';
+        }
+        
+        // Restore scroll position
+        window.scrollTo(0, scrollPosition);
+    }
 }
 
 // App Actions
@@ -1584,6 +1618,7 @@ function showDeploymentProgress(catalogId, hostname) {
     
     modal.classList.add('show');
     modal.style.pointerEvents = 'none'; // Prevent closing during deployment
+    openModal(); // Prevent body scrolling
     
     // Start polling for real deployment status
     pollDeploymentStatus(`${catalogId}-${hostname}`);
@@ -1854,6 +1889,7 @@ function confirmDeleteApp(appId, appName) {
     document.querySelector('.modal-footer')?.remove();
     
     modal.classList.add('show');
+    openModal(); // Prevent body scrolling
 }
 
 async function deleteApp(appId, appName) {
@@ -1955,6 +1991,7 @@ function showDeletionProgress(appName) {
     
     modal.classList.add('show');
     modal.style.pointerEvents = 'none';
+    openModal(); // Prevent body scrolling
 }
 
 async function updateDeletionProgress(progress, message) {
@@ -2264,6 +2301,7 @@ function showAppLogs(appId, hostname) {
     `;
     
     modal.classList.add('show');
+    openModal(); // Prevent body scrolling
     loadAppLogs(appId);
 }
 
@@ -2318,6 +2356,7 @@ function showAppConsole(appId, hostname) {
     `;
     
     modal.classList.add('show');
+    openModal(); // Prevent body scrolling
     setTimeout(() => document.getElementById('consoleCommand')?.focus(), 100);
 }
 
@@ -2463,7 +2502,26 @@ function closeModal() {
         clearInterval(logsRefreshInterval);
         logsRefreshInterval = null;
     }
-    document.getElementById('deployModal').classList.remove('show');
+    
+    const modal = document.getElementById('deployModal');
+    modal.classList.remove('show');
+    
+    // Only remove modal-open if no other modals are open
+    const anyModalOpen = Array.from(document.querySelectorAll('.modal.show')).length > 0;
+    if (!anyModalOpen) {
+        const scrollPosition = parseInt(document.body.style.top || '0') * -1;
+        document.body.classList.remove('modal-open');
+        document.body.style.top = '';
+        
+        // Re-enable pointer events on main content
+        const mainContent = document.querySelector('.app-container');
+        if (mainContent) {
+            mainContent.style.pointerEvents = '';
+        }
+        
+        // Restore scroll position
+        window.scrollTo(0, scrollPosition);
+    }
 }
 
 // Settings Page Helpers

@@ -1463,7 +1463,7 @@ h3 { font-size: 1.5rem; font-weight: 600; }
 .action-icon i[data-lucide] {
     width: 16px;
     height: 16px;
-    stroke-width: 1;
+    stroke-width: 2.25;
 }
 
 .connection-value {
@@ -1872,6 +1872,9 @@ a.connection-value:hover::after {
     animation: fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     opacity: 0;
     transition: opacity 0.3s ease, display 0.3s ease allow-discrete;
+    overflow-y: auto; /* Allow modal itself to scroll */
+    overflow-x: hidden;
+    padding: 2rem 0; /* Add padding for spacing */
 }
 
 @keyframes fadeIn {
@@ -1897,14 +1900,21 @@ a.connection-value:hover::after {
 .modal.show {
     display: flex;
     opacity: 1;
+    pointer-events: auto; /* Ensure modal itself can receive events */
 }
 
-/* Prevent body scrolling when modal is open */
+/* Prevent body scrolling and interaction when modal is open */
 body.modal-open {
-    overflow: hidden;
-    position: fixed;
-    width: 100%;
-    height: 100%;
+    overflow: hidden !important;
+    position: fixed !important;
+    width: 100% !important;
+    height: 100% !important;
+    touch-action: none; /* Prevent touch scrolling */
+}
+
+/* Prevent interaction with content behind modal */
+body.modal-open .app-container {
+    pointer-events: none !important;
 }
 
 /* Modal Backdrop */
@@ -1935,7 +1945,8 @@ body.modal-open {
     border: 1px solid var(--border);
     max-width: 600px;
     width: 90%;
-    max-height: 90vh;
+    max-height: 85vh; /* Slightly reduce to ensure it fits */
+    margin: auto; /* Center in the modal overlay */
     display: flex;
     flex-direction: column;
     box-shadow: var(--shadow-xl), 0 0 60px rgba(0, 0, 0, 0.5);
@@ -1998,10 +2009,31 @@ body.modal-open {
     overflow-y: auto;
     overflow-x: hidden;
     flex: 1 1 auto;
-    max-height: calc(90vh - 150px); /* Account for header and footer */
+    min-height: 0; /* Important for flex scrolling */
     /* Ensure scrolling stays within modal */
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
+    /* Better scrollbar styling */
+    scrollbar-width: thin;
+    scrollbar-color: var(--text-tertiary) transparent;
+}
+
+/* Webkit scrollbar styling for modal body */
+.modal-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+    background: var(--text-tertiary);
+    border-radius: 4px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
 }
 
 .modal-footer {

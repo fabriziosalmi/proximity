@@ -621,7 +621,9 @@ function renderCatalogView() {
 }
 
 async function renderNodesView() {
+    console.log('[Infrastructure] 🚀 renderNodesView() called');
     const view = document.getElementById('nodesView');
+    console.log('[Infrastructure] nodesView element:', view);
 
     // Load infrastructure status
     showLoading('Loading infrastructure status...');
@@ -630,24 +632,33 @@ async function renderNodesView() {
     try {
         const token = localStorage.getItem('auth_token');
         if (token) {
+            console.log('[Infrastructure] Fetching infrastructure status...');
             const response = await fetch(`${API_BASE}/system/infrastructure/status`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
+            console.log('[Infrastructure] Response status:', response.status);
             if (response.ok) {
                 const result = await response.json();
+                console.log('[Infrastructure] Response data:', result);
                 infrastructure = result.data;
+                console.log('[Infrastructure] Appliance:', infrastructure?.appliance);
+            } else {
+                console.error('[Infrastructure] Failed to fetch:', response.statusText);
             }
+        } else {
+            console.error('[Infrastructure] No auth token found');
         }
     } catch (error) {
-        console.error('Error loading infrastructure:', error);
+        console.error('[Infrastructure] Error loading infrastructure:', error);
     }
     hideLoading();
 
     // Prepare appliance info
     const appliance = infrastructure?.appliance || null;
+    console.log('[Infrastructure] Final appliance object:', appliance);
     const services = infrastructure?.services || {};
     const network = infrastructure?.network || {};
-    const connected_apps = infrastructure?.connected_apps || [];
+    const connected_apps = infrastructure?.applications || [];  // Changed from connected_apps
     const health_status = infrastructure?.health_status || 'unknown';
 
     const content = `
@@ -2966,13 +2977,20 @@ async function testNAT() {
 
 // Event Listeners
 function setupEventListeners() {
+    console.log('🔧 setupEventListeners() called');
+    
     // Navigation
-    document.querySelectorAll('.nav-item').forEach(item => {
+    const navItems = document.querySelectorAll('.nav-item');
+    console.log(`📍 Found ${navItems.length} nav items`);
+    
+    navItems.forEach((item, index) => {
         item.addEventListener('click', (e) => {
+            console.log(`🖱️  Nav item clicked: ${item.dataset.view}`, index);
             e.preventDefault();
             const view = item.dataset.view;
             if (view) showView(view);
         });
+        console.log(`  ✓ Attached listener to nav item ${index}: ${item.dataset.view}`);
     });
 
     // Close modal on outside click
@@ -2981,6 +2999,64 @@ function setupEventListeners() {
             closeModal();
         }
     });
+    
+    // Prevent background scrolling when modal is open
+    let scrollPosition = 0;
+    
+    // Monitor all modals for show/hide to control body scrolling
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                    const hasShow = modal.classList.contains('show');
+                    if (hasShow) {
+                        // Save current scroll position
+                        scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+                        
+                        // Add modal-open class and set top position to maintain scroll position visually
+                        document.body.classList.add('modal-open');
+                        document.body.style.top = `-${scrollPosition}px`;
+                    } else {
+                        // Only remove if no other modals are open
+                        const anyModalOpen = Array.from(document.querySelectorAll('.modal.show')).length > 0;
+                        if (!anyModalOpen) {
+                            document.body.classList.remove('modal-open');
+                            document.body.style.top = '';
+                            
+                            // Restore scroll position
+                            window.scrollTo(0, scrollPosition);
+                        }
+                    }
+                }
+            });
+        });
+        
+        observer.observe(modal, { attributes: true, attributeFilter: ['class'] });
+    });
+    
+    // Prevent wheel/touch events from reaching the body when modal is open
+    document.addEventListener('wheel', (e) => {
+        if (document.body.classList.contains('modal-open')) {
+            // Check if the event originated from inside a modal
+            const modalBody = e.target.closest('.modal-body');
+            if (!modalBody) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        }
+    }, { passive: false });
+    
+    document.addEventListener('touchmove', (e) => {
+        if (document.body.classList.contains('modal-open')) {
+            // Check if the event originated from inside a modal
+            const modalBody = e.target.closest('.modal-body');
+            if (!modalBody) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        }
+    }, { passive: false });
 }
 
 // Initialize on load

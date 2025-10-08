@@ -383,6 +383,10 @@ async def get_infrastructure_status():
         from main import app
         orchestrator = getattr(app.state, 'orchestrator', None)
         
+        logger.info(f"Orchestrator from app.state: {orchestrator is not None}")
+        if orchestrator:
+            logger.info(f"Orchestrator appliance_info: {orchestrator.appliance_info is not None}")
+        
         if not orchestrator:
             # Fallback: create new orchestrator instance
             from services.network_appliance_orchestrator import NetworkApplianceOrchestrator
@@ -397,6 +401,8 @@ async def get_infrastructure_status():
         
         # Get comprehensive infrastructure status
         infrastructure = await orchestrator.get_infrastructure_status()
+        
+        logger.info(f"Infrastructure appliance: {infrastructure.get('appliance') is not None}")
         
         # Determine overall health
         is_healthy = False

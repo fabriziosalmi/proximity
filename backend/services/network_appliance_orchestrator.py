@@ -538,7 +538,7 @@ log-queries
         """Configure Caddy reverse proxy."""
         try:
             # Create Caddy directories
-            mkdir_cmd = "mkdir -p /etc/caddy/sites-enabled"
+            mkdir_cmd = "mkdir -p /etc/caddy/sites-enabled /var/log/caddy /var/lib/caddy"
             await self._exec_in_lxc(vmid, mkdir_cmd)
             
             # Create main Caddyfile
@@ -559,13 +559,53 @@ import /etc/caddy/sites-enabled/*
                 logger.error("Failed to write Caddyfile")
                 return False
             
+            # Create OpenRC init script for Caddy
+            init_script = """#!/sbin/openrc-run
+
+description="Caddy web server"
+command="/usr/sbin/caddy"
+command_args="run --config /etc/caddy/Caddyfile --adapter caddyfile"
+command_background="yes"
+pidfile="/run/caddy.pid"
+output_log="/var/log/caddy/caddy.log"
+error_log="/var/log/caddy/caddy.err"
+
+depend() {
+    need net
+    after firewall
+}
+
+start_pre() {
+    checkpath --directory --owner root:root --mode 0755 /var/log/caddy
+    checkpath --directory --owner root:root --mode 0755 /var/lib/caddy
+}
+"""
+            
+            init_script_cmd = f"cat > /etc/init.d/caddy << 'EOF'\n{init_script}\nEOF"
+            result = await self._exec_in_lxc(vmid, init_script_cmd)
+            
+            if result.get('exitcode') != 0:
+                logger.error("Failed to create Caddy init script")
+                return False
+            
+            # Make init script executable
+            chmod_cmd = "chmod +x /etc/init.d/caddy"
+            result = await self._exec_in_lxc(vmid, chmod_cmd)
+            
+            if result.get('exitcode') != 0:
+                logger.error("Failed to make Caddy init script executable")
+                return False
+            
             # Enable and start Caddy
             enable_cmd = "rc-update add caddy default && rc-service caddy start"
             result = await self._exec_in_lxc(vmid, enable_cmd)
             
             if result.get('exitcode') != 0:
-                logger.warning("Failed to start Caddy (may not have service script)")
-                # Caddy might need manual service setup in Alpine
+                logger.warning("Failed to start Caddy service")
+                # Try to get error details
+                status_cmd = "rc-service caddy status"
+                status_result = await self._exec_in_lxc(vmid, status_cmd)
+                logger.warning(f"Caddy status: {status_result}")
             
             logger.info("    ✓ Caddy reverse proxy configured")
             return True
@@ -872,6 +912,7 @@ iface {self.BRIDGE_NAME} inet manual
                     'vmid': self.appliance_info.vmid,
                     'hostname': self.appliance_info.hostname,
                     'status': self.appliance_info.status,
+                    'node': self.appliance_info.node,
                     'wan_ip': self.appliance_info.wan_ip,
                     'wan_interface': self.appliance_info.wan_interface,
                     'lan_ip': self.appliance_info.lan_ip,
@@ -879,9 +920,14 @@ iface {self.BRIDGE_NAME} inet manual
                     'ssh_access': f"ssh root@{self.appliance_info.wan_ip}" if self.appliance_info.wan_ip else None
                 }
                 
-                # Get resource usage
+                # Get resource usage and flatten into appliance object for frontend compatibility
                 usage = await self._get_appliance_resource_usage(self.appliance_info.vmid)
                 status['appliance']['resources'] = usage
+                # Add frontend-compatible fields
+                status['appliance']['memory'] = usage.get('memory_mb', 'N/A')
+                status['appliance']['cores'] = usage.get('cpu_cores', 'N/A')
+                status['appliance']['disk'] = usage.get('storage_gb', 'N/A')
+                status['appliance']['uptime'] = usage.get('uptime', 'N/A')
             
             # Bridge information
             bridge_info = await self._get_bridge_status()

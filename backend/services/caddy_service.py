@@ -274,22 +274,49 @@ class CaddyService:
             # Create directories
             "mkdir -p /etc/caddy /var/log/caddy /var/lib/caddy",
             
-            # Set permissions
-            "chown -R caddy:caddy /var/log/caddy /var/lib/caddy",
-            
-            # Enable Caddy service
-            "rc-update add caddy default",
-            
-            # Create initial Caddyfile
-            "echo ':2020 { respond /health 200 }' > /etc/caddy/Caddyfile",
-            
-            # Start Caddy
-            "rc-service caddy start"
+            # Set permissions (if caddy user exists, otherwise skip)
+            "id caddy && chown -R caddy:caddy /var/log/caddy /var/lib/caddy || true",
         ]
         
         for cmd in commands:
             result = await self.proxmox.execute_in_container(node, lxc_id, cmd)
             logger.debug(f"Caddy setup: {cmd} -> {result[:100] if result else 'OK'}")
+        
+        # Create OpenRC init script for Caddy
+        init_script = """#!/sbin/openrc-run
+
+description="Caddy web server"
+command="/usr/sbin/caddy"
+command_args="run --config /etc/caddy/Caddyfile --adapter caddyfile"
+command_background="yes"
+pidfile="/run/caddy.pid"
+output_log="/var/log/caddy/caddy.log"
+error_log="/var/log/caddy/caddy.err"
+
+depend() {
+    need net
+    after firewall
+}
+
+start_pre() {
+    checkpath --directory --owner root:root --mode 0755 /var/log/caddy
+    checkpath --directory --owner root:root --mode 0755 /var/lib/caddy
+}
+"""
+        
+        # Write init script
+        init_script_cmd = f"cat > /etc/init.d/caddy << 'EOFSCRIPT'\n{init_script}\nEOFSCRIPT"
+        await self.proxmox.execute_in_container(node, lxc_id, init_script_cmd)
+        
+        # Make init script executable
+        await self.proxmox.execute_in_container(node, lxc_id, "chmod +x /etc/init.d/caddy")
+        
+        # Create initial Caddyfile
+        await self.proxmox.execute_in_container(node, lxc_id, "echo ':2020 { respond /health 200 }' > /etc/caddy/Caddyfile")
+        
+        # Enable and start Caddy service
+        await self.proxmox.execute_in_container(node, lxc_id, "rc-update add caddy default")
+        await self.proxmox.execute_in_container(node, lxc_id, "rc-service caddy start")
     
     async def add_application(self, app_id: str, path_prefix: str, 
                              backend_ip: str, backend_port: int = 80):

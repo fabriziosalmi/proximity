@@ -14,7 +14,7 @@ PyYAML>=6.0.1
 paramiko>=3.3.1
 
 # Authentication & Security (Phase 1)
-python-jose[cryptography]==3.3.0
+python-jose[cryptography]==3.5.0
 passlib[bcrypt]==1.7.4
 email-validator==2.1.0
 
