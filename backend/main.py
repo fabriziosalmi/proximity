@@ -183,7 +183,7 @@ def create_app() -> FastAPI:
         allow_origins=["*"],  # In production, specify allowed origins
         allow_credentials=True,
         allow_methods=["*"],
-        allow_headers=["*", "Authorization", "Content-Type"],  # Explicitly list Authorization for new browser security policy
+        allow_headers=["Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"],  # Explicit headers for CORS compliance
     )
     
     # Trusted host middleware (security)
