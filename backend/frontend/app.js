@@ -704,23 +704,16 @@ function renderAppsView() {
     const view = document.getElementById('appsView');
     
     const content = `
-        <div class="page-header">
-            <div class="page-title-row">
-                <div>
-                    <h1 class="page-title">My Applications</h1>
-                    <p class="page-subtitle">Manage all your deployed applications</p>
-                </div>
-                <button class="btn btn-primary" onclick="showView('catalog')">
-                    <span>➕</span>
-                    <span>Deploy New App</span>
+        <div class="filter-tabs-container" style="margin-bottom: 2rem;">
+            <div class="filter-tabs">
+                <button class="filter-tab active" onclick="filterApps('all')">All Apps</button>
+                <button class="filter-tab" onclick="filterApps('running')">Running</button>
+                <button class="filter-tab" onclick="filterApps('stopped')">Stopped</button>
+                <button class="filter-tab deploy-new-app" onclick="showView('catalog')" style="margin-left: auto; background: var(--primary-gradient); border-color: var(--primary); color: white;">
+                    <i data-lucide="plus"></i>
+                    <span style="margin-left: 0.5rem;">Deploy New App</span>
                 </button>
             </div>
-        </div>
-        
-        <div class="filter-tabs">
-            <button class="filter-tab active" onclick="filterApps('all')">All Apps</button>
-            <button class="filter-tab" onclick="filterApps('running')">Running</button>
-            <button class="filter-tab" onclick="filterApps('stopped')">Stopped</button>
         </div>
         
         <div class="apps-grid deployed" id="allAppsGrid">
@@ -755,20 +748,13 @@ function renderCatalogView() {
     const categories = state.catalog.categories || [];
     
     const content = `
-        <div class="page-header">
-            <div class="page-title-row">
-                <div>
-                    <h1 class="page-title">App Store</h1>
-                    <p class="page-subtitle">Deploy popular applications with one click</p>
-                </div>
+        <div class="filter-tabs-container">
+            <div class="filter-tabs">
+                <button class="filter-tab active" onclick="filterCatalog('all')">All</button>
+                ${categories.map(cat => `
+                    <button class="filter-tab" onclick="filterCatalog('${cat}')">${cat}</button>
+                `).join('')}
             </div>
-        </div>
-        
-        <div class="filter-tabs">
-            <button class="filter-tab active" onclick="filterCatalog('all')">All</button>
-            ${categories.map(cat => `
-                <button class="filter-tab" onclick="filterCatalog('${cat}')">${cat}</button>
-            `).join('')}
         </div>
         
         <div class="apps-grid" id="catalogGrid">
@@ -833,37 +819,20 @@ async function renderNodesView() {
     });
 
     const content = `
-        <div class="page-header">
-            <div class="page-title-row">
-                <div>
-                    <h1 class="page-title">Hosts</h1>
-                    <p class="page-subtitle">Proxmox infrastructure and compute nodes</p>
-                </div>
-                <button class="btn btn-secondary" onclick="refreshInfrastructure()">
-                    <i data-lucide="refresh-cw"></i>
-                    <span>Refresh</span>
-                </button>
-            </div>
-        </div>
-
         <!-- Network Appliance Card -->
         ${appliance ? `
-        <div class="apps-section">
-            <div class="section-header">
-                <h2 class="section-title">Infrastructure Host</h2>
-            </div>
-            <div class="apps-grid deployed">
-                <div class="app-card deployed">
-                    <!-- Header with icon, name, status and quick actions -->
-                    <div class="app-card-header">
-                        <div class="app-icon-lg">🌐</div>
-                        <div class="app-info">
-                            <h3 class="app-name">${appliance.hostname || 'Network Appliance'}</h3>
-                            <span class="status-badge ${appliance.status === 'running' ? 'running' : 'stopped'}">
-                                <span class="status-dot"></span>
-                                ${appliance.status || 'unknown'}
-                            </span>
-                        </div>
+        <div class="apps-grid deployed" style="margin-bottom: 2rem;">
+            <div class="app-card deployed">
+                <!-- Header with icon, name, status and quick actions -->
+                <div class="app-card-header">
+                    <div class="app-icon-lg">🌐</div>
+                    <div class="app-info">
+                        <h3 class="app-name">${appliance.hostname || 'Network Appliance'}</h3>
+                        <span class="status-badge ${appliance.status === 'running' ? 'running' : 'stopped'}">
+                            <span class="status-dot"></span>
+                            ${appliance.status || 'unknown'}
+                        </span>
+                    </div>
                         
                         <!-- Quick Actions -->
                         <div class="app-quick-actions">
@@ -922,17 +891,12 @@ async function renderNodesView() {
                     <div id="infrastructureStatus" style="margin-top: 1rem;"></div>
                 </div>
             </div>
-        </div>
         ` : ''}
 
         <!-- Services Health Grid -->
         ${Object.keys(services).length > 0 ? `
-        <div class="apps-section">
-            <div class="section-header">
-                <h2 class="section-title">Services Health</h2>
-            </div>
-            <div class="services-grid">
-                ${Object.entries(services).map(([name, service]) => `
+        <div class="services-grid" style="margin-bottom: 2rem;">
+            ${Object.entries(services).map(([name, service]) => `
                     <div class="service-card ${service.healthy ? 'healthy' : 'unhealthy'}">
                         <div class="service-header">
                             <div class="service-icon">
@@ -955,18 +919,13 @@ async function renderNodesView() {
                     </div>
                 `).join('')}
             </div>
-        </div>
         ` : ''}
 
         <!-- Network Configuration -->
         ${network.subnet ? `
-        <div class="apps-section">
-            <div class="section-header">
-                <h2 class="section-title">Network Configuration</h2>
-            </div>
-            <div class="apps-grid deployed">
-                <div class="app-card deployed">
-                    <div class="app-connection-info">
+        <div class="apps-grid deployed" style="margin-bottom: 2rem;">
+            <div class="app-card deployed">
+                <div class="app-connection-info">
                         <div class="connection-item">
                             <i data-lucide="network" class="connection-icon"></i>
                             <span class="connection-value">Bridge: ${network.bridge || 'proximity-lan'}</span>
@@ -992,17 +951,12 @@ async function renderNodesView() {
                     </div>
                 </div>
             </div>
-        </div>
         ` : ''}
 
         <!-- Connected Apps -->
         ${connected_apps && connected_apps.length > 0 ? `
-        <div class="apps-section">
-            <div class="section-header">
-                <h2 class="section-title">Connected Applications (${connected_apps.length})</h2>
-            </div>
-            <div class="connected-apps-table">
-                <table class="infrastructure-table">
+        <div class="connected-apps-table">
+            <table class="infrastructure-table">
                     <thead>
                         <tr>
                             <th>App Name</th>
@@ -1030,14 +984,11 @@ async function renderNodesView() {
                     </tbody>
                 </table>
             </div>
-        </div>
         ` : ''}
 
         <!-- Proxmox Nodes -->
-        <div class="infrastructure-section">
-            <h2 class="section-title">Proxmox Nodes</h2>
-            <div class="apps-grid">
-                ${state.nodes.map(node => `
+        <div class="apps-grid">
+            ${state.nodes.map(node => `
                     <div class="app-card">
                         <div class="app-card-header">
                             <div class="app-icon-lg">🖥️</div>
@@ -1085,23 +1036,6 @@ function renderMonitoringView() {
     const view = document.getElementById('monitoringView');
     
     const content = `
-        <div class="page-header">
-            <div class="page-title-row">
-                <div>
-                    <h1 class="page-title">Monitoring</h1>
-                    <p class="page-subtitle">System and application metrics</p>
-                </div>
-            </div>
-        </div>
-        
-        <div class="alert info">
-            <span class="alert-icon">ℹ️</span>
-            <div class="alert-content">
-                <div class="alert-title">Monitoring Dashboard</div>
-                <div class="alert-message">Advanced monitoring features coming soon. Integration with Prometheus, Grafana, and custom metrics.</div>
-            </div>
-        </div>
-        
         <div class="stats-compact-card">
             <div class="stat-item">
                 <div class="stat-icon primary">
