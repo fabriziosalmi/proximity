@@ -242,8 +242,12 @@ const state = {
 
 // Initialize Application
 async function init() {
-    initSidebarToggle();
     console.log('🚀 Initializing Proximity UI...');
+    
+    // Initialize Top Navigation Rack (new horizontal nav)
+    if (typeof initTopNavRack !== 'undefined') {
+        initTopNavRack();
+    }
     
     // Check authentication first
     if (!Auth.isAuthenticated()) {
@@ -252,8 +256,12 @@ async function init() {
         return;
     }
     
-    // Update user info in sidebar
-    updateUserInfo();
+    // Update user info in navigation
+    if (typeof updateUserInfoNav !== 'undefined') {
+        updateUserInfoNav();
+    } else {
+        updateUserInfo(); // Fallback to old function
+    }
     
     showLoading('Connecting to Proximity API...');
     
@@ -404,9 +412,16 @@ function updateStats() {
 
 function updateAppsCount() {
     const count = state.deployedApps.length;
+    
+    // Update both old sidebar badge (if exists) and new nav rack badge
     const appsCountEl = document.getElementById('appsCount');
     if (appsCountEl) {
         appsCountEl.textContent = count;
+    }
+    
+    // Update new navigation badge
+    if (typeof updateAppsCountBadge !== 'undefined') {
+        updateAppsCountBadge(count);
     }
 }
 
@@ -4081,6 +4096,17 @@ async function deleteBackup(appId, backupId) {
         showNotification('Failed to delete backup', 'error');
         console.error('Error deleting backup:', error);
     }
+}
+
+/**
+ * Refresh backups list
+ */
+async function refreshBackups() {
+    if (!currentBackupAppId) return;
+    
+    showNotification('Refreshing backups...', 'info');
+    await loadBackups(currentBackupAppId);
+    showNotification('Backups refreshed', 'success');
 }
 
 /**

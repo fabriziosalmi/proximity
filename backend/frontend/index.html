@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/styles.css?v=20251009-13">
+    <link rel="stylesheet" href="/css/top-nav-rack.css?v=20251009-14">
     
     <!-- Xterm.js Terminal -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
@@ -17,97 +18,86 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     
+    <!-- Top Navigation Rack -->
+    <script src="/js/top-nav-rack.js?v=20251009-14"></script>
+    
     <!-- Load legacy app.js first (non-module) -->
-    <script src="app.js?v=20251009-11"></script>
+    <script src="app.js?v=20251009-14"></script>
 
     <!-- Then load modular system (ES6 modules) -->
     <script src="js/main.js?v=20251009-11" type="module"></script>
 </head>
 <body>
-    <!-- Mobile Sidebar Overlay -->
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
-    
     <div class="app-container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <div class="logo">
+        <!-- Top Navigation Rack -->
+        <nav class="top-nav-rack">
+            <div class="nav-rack-content">
+                <!-- Logo Section -->
+                <div class="nav-logo">
                     <div class="logo-icon">🚀</div>
                     <span class="logo-text">Proximity</span>
                 </div>
-                <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
-                    <i data-lucide="chevron-left"></i>
-                </button>
-            </div>
-            
-            <nav class="sidebar-nav">
-                <div class="nav-section">
-                    <div class="nav-section-title">Main</div>
-                    <a href="#" class="nav-item active" data-view="dashboard">
-                        <i data-lucide="layout-dashboard" class="nav-icon"></i>
+                
+                <!-- Main Navigation -->
+                <div class="nav-rack-items">
+                    <a href="#" class="nav-rack-item active" data-view="dashboard">
+                        <i data-lucide="layout-dashboard"></i>
                         <span>Dashboard</span>
                     </a>
-                    <a href="#" class="nav-item" data-view="apps">
-                        <i data-lucide="package" class="nav-icon"></i>
+                    <a href="#" class="nav-rack-item" data-view="apps">
+                        <i data-lucide="package"></i>
                         <span>My Apps</span>
                         <span class="nav-badge" id="appsCount">0</span>
                     </a>
-                    <a href="#" class="nav-item" data-view="catalog">
-                        <i data-lucide="store" class="nav-icon"></i>
+                    <a href="#" class="nav-rack-item" data-view="catalog">
+                        <i data-lucide="store"></i>
                         <span>App Store</span>
                     </a>
-                </div>
-                
-                <div class="nav-section">
-                    <div class="nav-section-title">System</div>
-                    <a href="#" class="nav-item" data-view="nodes">
-                        <i data-lucide="server" class="nav-icon"></i>
+                    <a href="#" class="nav-rack-item" data-view="nodes">
+                        <i data-lucide="server"></i>
                         <span>Hosts</span>
                     </a>
-                    <a href="#" class="nav-item" data-view="monitoring">
-                        <i data-lucide="activity" class="nav-icon"></i>
+                    <a href="#" class="nav-rack-item" data-view="monitoring">
+                        <i data-lucide="activity"></i>
                         <span>Monitoring</span>
                     </a>
-                    <a href="#" class="nav-item" data-view="settings">
-                        <i data-lucide="settings" class="nav-icon"></i>
-                        <span>Settings</span>
-                    </a>
-                </div>
-            </nav>
-            
-            <div class="sidebar-footer">
-                <div class="user-profile" id="userProfileBtn">
-                    <div class="user-avatar">PR</div>
-                    <div class="user-info">
-                        <div class="user-name">Proxmox Root</div>
-                        <div class="user-role">Administrator</div>
-                    </div>
-                    <i data-lucide="chevron-up" class="user-menu-icon"></i>
-                </div>
-                <div class="user-menu" id="userMenu">
-                    <a href="#" class="user-menu-item" onclick="showUserProfile(event)">
-                        <i data-lucide="user"></i>
-                        <span>Profile</span>
-                    </a>
-                    <a href="#" class="user-menu-item" onclick="showView('settings')">
+                    <a href="#" class="nav-rack-item" data-view="settings">
                         <i data-lucide="settings"></i>
                         <span>Settings</span>
                     </a>
-                    <hr class="user-menu-divider">
-                    <a href="#" class="user-menu-item logout" onclick="handleLogout(event)">
-                        <i data-lucide="log-out"></i>
-                        <span>Logout</span>
-                    </a>
+                </div>
+                
+                <!-- User Profile -->
+                <div class="nav-rack-user">
+                    <button class="user-profile-btn" id="userProfileBtn">
+                        <div class="user-avatar">PR</div>
+                        <div class="user-info">
+                            <span class="user-name">Proxmox Root</span>
+                            <span class="user-role">Admin</span>
+                        </div>
+                        <i data-lucide="chevron-down"></i>
+                    </button>
+                    <div class="user-menu" id="userMenu">
+                        <a href="#" class="user-menu-item" onclick="showUserProfile(event)">
+                            <i data-lucide="user"></i>
+                            <span>Profile</span>
+                        </a>
+                        <a href="#" class="user-menu-item" onclick="showView('settings')">
+                            <i data-lucide="settings"></i>
+                            <span>Settings</span>
+                        </a>
+                        <hr class="user-menu-divider">
+                        <a href="#" class="user-menu-item logout" onclick="handleLogout(event)">
+                            <i data-lucide="log-out"></i>
+                            <span>Logout</span>
+                        </a>
+                    </div>
                 </div>
             </div>
-        </aside>
+        </nav>
         
         <!-- Main Content -->
         <main class="main-content">
-            <!-- Mobile Menu Button -->
-            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu">
-                <i data-lucide="menu"></i>
-            </button>
             
             <!-- Content -->
             <div class="content">
@@ -232,15 +222,30 @@
                 <button class="modal-close" onclick="hideBackupModal()">✕</button>
             </div>
             <div class="modal-body">
+                <div class="backup-info-banner">
+                    <i data-lucide="info"></i>
+                    <div class="backup-info-text">
+                        <strong>Protect your data with backups</strong>
+                        <p>Create snapshots of your application to restore later if needed. Backups are stored on your Proxmox storage.</p>
+                    </div>
+                </div>
+                
                 <div class="backup-actions">
-                    <button class="btn btn-primary pro-feature" onclick="createBackup()">
+                    <button class="btn btn-primary" onclick="createBackup()">
                         <i data-lucide="plus"></i>
                         Create New Backup
+                    </button>
+                    <button class="btn btn-secondary" onclick="refreshBackups()">
+                        <i data-lucide="refresh-cw"></i>
+                        Refresh
                     </button>
                 </div>
 
                 <div id="backup-list" class="backup-list">
-                    <!-- Backups will be loaded here -->
+                    <div class="loading-state">
+                        <div class="loading-spinner"></div>
+                        <p>Loading backups...</p>
+                    </div>
                 </div>
             </div>
         </div>
