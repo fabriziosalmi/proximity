@@ -821,13 +821,12 @@ async function renderNodesView() {
     const content = `
         <!-- Network Appliance Card -->
         ${appliance ? `
-        <div class="apps-grid deployed" style="margin-bottom: 2rem;">
-            <div class="app-card deployed">
-                <!-- Header with icon, name, status and quick actions -->
-                <div class="app-card-header">
-                    <div class="app-icon-lg">🌐</div>
-                    <div class="app-info">
-                        <h3 class="app-name">${appliance.hostname || 'Network Appliance'}</h3>
+        <div class="app-card deployed" style="margin-bottom: 2rem;">
+            <!-- Header with icon, name, status and quick actions -->
+            <div class="app-card-header">
+                <div class="app-icon-lg">🌐</div>
+                <div class="app-info">
+                    <h3 class="app-name">${appliance.hostname || 'Network Appliance'}</h3>
                         <span class="status-badge ${appliance.status === 'running' ? 'running' : 'stopped'}">
                             <span class="status-dot"></span>
                             ${appliance.status || 'unknown'}
@@ -890,7 +889,6 @@ async function renderNodesView() {
 
                     <div id="infrastructureStatus" style="margin-top: 1rem;"></div>
                 </div>
-            </div>
         ` : ''}
 
         <!-- Services Health Grid -->
@@ -923,18 +921,17 @@ async function renderNodesView() {
 
         <!-- Network Configuration -->
         ${network.subnet ? `
-        <div class="apps-grid deployed" style="margin-bottom: 2rem;">
-            <div class="app-card deployed">
-                <div class="app-connection-info">
-                        <div class="connection-item">
-                            <i data-lucide="network" class="connection-icon"></i>
-                            <span class="connection-value">Bridge: ${network.bridge || 'proximity-lan'}</span>
-                        </div>
-                        <div class="connection-item">
-                            <i data-lucide="wifi" class="connection-icon"></i>
-                            <span class="connection-value">Subnet: ${network.subnet || 'N/A'}</span>
-                        </div>
-                        <div class="connection-item">
+        <div class="app-card deployed" style="margin-bottom: 2rem;">
+            <div class="app-connection-info">
+                    <div class="connection-item">
+                        <i data-lucide="network" class="connection-icon"></i>
+                        <span class="connection-value">Bridge: ${network.bridge || 'proximity-lan'}</span>
+                    </div>
+                    <div class="connection-item">
+                        <i data-lucide="wifi" class="connection-icon"></i>
+                        <span class="connection-value">Subnet: ${network.subnet || 'N/A'}</span>
+                    </div>
+                    <div class="connection-item">
                             <i data-lucide="door-open" class="connection-icon"></i>
                             <span class="connection-value">Gateway: ${network.gateway || 'N/A'}</span>
                         </div>
@@ -945,9 +942,8 @@ async function renderNodesView() {
                     </div>
                     <div class="app-connection-info" style="margin-top: 0.5rem;">
                         <div class="connection-item">
-                            <i data-lucide="globe" class="connection-icon"></i>
-                            <span class="connection-value">DNS: ${network.dns_domain || 'prox.local'}</span>
-                        </div>
+                        <i data-lucide="globe" class="connection-icon"></i>
+                        <span class="connection-value">DNS: ${network.dns_domain || 'prox.local'}</span>
                     </div>
                 </div>
             </div>
