@@ -12,6 +12,7 @@ import * as DOM from './utils/dom.js';
 import * as Notifications from './utils/notifications.js';
 import * as Auth from './utils/auth.js';
 import * as UI from './utils/ui.js';
+import { SoundService } from './services/soundService.js';
 
 // Make modules available globally for transition period
 // This allows the legacy code to work while we migrate
@@ -21,6 +22,10 @@ window.DOM = DOM;
 window.Notifications = Notifications;
 window.Auth = Auth;
 window.UI = UI;
+window.SoundService = SoundService;
+
+// Initialize sound system
+SoundService.init();
 
 console.log('✅ Proximity modular system loaded');
 console.log('📦 Available modules:', {

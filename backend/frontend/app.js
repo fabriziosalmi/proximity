@@ -1550,6 +1550,16 @@ async function deployApp(catalogId) {
     
     closeModal();
     
+    // Play deploy start sound
+    if (window.SoundService) {
+        window.SoundService.play('deploy_start');
+        
+        // Start ambient dub-techno loop after a short delay
+        setTimeout(() => {
+            window.SoundService.startLoop('deployment_loop', 2.0); // 2s fade in
+        }, 500); // Start loop 500ms after deploy_start
+    }
+    
     try {
         const payload = {
             catalog_id: catalogId,
@@ -1577,6 +1587,12 @@ async function deployApp(catalogId) {
         
         const result = await response.json();
         
+        // Stop deployment loop with fade out, then play explosion
+        if (window.SoundService) {
+            await window.SoundService.stopLoop(2.0); // 2s fade out
+            window.SoundService.play('explosion'); // Satisfying completion impact
+        }
+        
         hideDeploymentProgress();
         closeModal(); // Close the deployment modal
         showNotification(`Application deployed successfully!`, 'success');
@@ -1594,6 +1610,11 @@ async function deployApp(catalogId) {
         showView('apps');
         
     } catch (error) {
+        // Stop deployment loop immediately on error (no explosion)
+        if (window.SoundService) {
+            await window.SoundService.stopLoop(1.0); // Quick 1s fade out on error
+        }
+        
         hideDeploymentProgress();
         closeModal(); // Close the deployment modal on error
         showNotification('Deployment failed: ' + error.message, 'error');

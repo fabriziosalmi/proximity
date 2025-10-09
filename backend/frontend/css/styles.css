@@ -789,80 +789,99 @@ h3 { font-size: 1.5rem; font-weight: 600; }
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--bg-primary);
-    background: linear-gradient(135deg, rgba(203, 213, 225, 0.9), rgba(226, 232, 240, 0.95));
-    padding: 0.25rem 0.75rem;
+    
+    /* Dark background with white glowing text */
+    color: rgba(255, 255, 255, 0.95);
+    background: linear-gradient(
+        135deg, 
+        rgba(10, 10, 12, 0.95), 
+        rgba(18, 18, 20, 0.9)
+    );
+    text-shadow: 
+        0 0 10px rgba(255, 255, 255, 0.3),
+        0 0 20px rgba(255, 255, 255, 0.1);
+    
+    padding: 0.3rem 0.85rem;
     border-radius: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     display: inline-block;
     align-self: flex-start;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    
+    box-shadow: 
+        0 2px 6px rgba(0, 0, 0, 0.4),
+        0 0 15px rgba(255, 255, 255, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    
+    backdrop-filter: blur(10px);
 }
 
-/* Digital Display Style for Numbers */
+/* Modern Futuristic Display Style for Numbers */
 .stat-info .stat-value {
-    font-family: 'Courier New', monospace;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     font-size: 1.5rem;
     font-weight: 700;
     line-height: 1;
     
-    /* LCD/Digital display effect */
-    background: linear-gradient(180deg, 
-        rgba(0, 20, 0, 0.95), 
-        rgba(0, 40, 0, 0.85)
+    /* Modern card gradient like filter-tabs */
+    background: linear-gradient(
+        135deg,
+        rgba(24, 24, 27, 0.9),
+        rgba(39, 39, 42, 0.7)
     );
-    color: #00ff41;
+    color: var(--cyan-bright);
     text-shadow: 
-        0 0 5px rgba(0, 255, 65, 0.8),
-        0 0 10px rgba(0, 255, 65, 0.4);
+        0 0 10px rgba(0, 231, 255, 0.5),
+        0 0 20px rgba(0, 231, 255, 0.2);
     
     padding: 0.5rem 1rem;
-    border-radius: 6px;
-    border: 2px solid rgba(0, 255, 65, 0.2);
+    border-radius: 8px;
+    border: 1px solid rgba(6, 182, 212, 0.3);
     box-shadow: 
-        inset 0 0 10px rgba(0, 255, 65, 0.1),
-        0 2px 10px rgba(0, 0, 0, 0.5);
+        0 4px 12px rgba(0, 0, 0, 0.3),
+        0 0 15px rgba(6, 182, 212, 0.15),
+        inset 0 1px 0 rgba(6, 182, 212, 0.2);
     
     display: inline-block;
     min-width: 60px;
     text-align: center;
     
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
-    overflow: hidden;
+    backdrop-filter: blur(10px);
 }
 
-/* Scanline effect for digital display */
+/* Subtle top highlight */
 .stat-info .stat-value::before {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
-    height: 100%;
+    height: 2px;
     background: linear-gradient(
-        transparent 50%,
-        rgba(0, 255, 65, 0.05) 50%
+        90deg,
+        transparent,
+        rgba(6, 182, 212, 0.5),
+        transparent
     );
-    background-size: 100% 4px;
     pointer-events: none;
-    opacity: 0.3;
 }
 
-/* Hover effect */
+/* Hover effect - cyan glow intensification */
 .stats-compact-card:hover .stat-info .stat-value {
-    color: #00ff88;
+    color: var(--cyan-bright);
     text-shadow: 
-        0 0 8px rgba(0, 255, 136, 0.9),
-        0 0 15px rgba(0, 255, 136, 0.5);
-    border-color: rgba(0, 255, 136, 0.4);
+        0 0 15px rgba(0, 231, 255, 0.7),
+        0 0 30px rgba(0, 231, 255, 0.3);
+    border-color: rgba(6, 182, 212, 0.5);
     box-shadow: 
-        inset 0 0 15px rgba(0, 255, 136, 0.15),
-        0 2px 15px rgba(0, 0, 0, 0.6),
-        0 0 20px rgba(0, 255, 136, 0.2);
+        0 4px 16px rgba(0, 0, 0, 0.4),
+        0 0 25px rgba(6, 182, 212, 0.3),
+        0 0 40px rgba(6, 182, 212, 0.15),
+        inset 0 0 20px rgba(6, 182, 212, 0.1);
 }
 
 .stat-divider {

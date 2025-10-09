@@ -28,6 +28,22 @@ export function hideLoading() {
  * @param {string} type - Notification type (success, error, warning, info)
  */
 export function showNotification(message, type = 'info') {
+    // Play appropriate sound (if available)
+    if (window.SoundService) {
+        switch (type) {
+            case 'success':
+                window.SoundService.play('success');
+                break;
+            case 'error':
+                window.SoundService.play('error');
+                break;
+            case 'warning':
+            case 'info':
+                window.SoundService.play('notification');
+                break;
+        }
+    }
+    
     // Create notification element
     const notification = document.createElement('div');
     notification.className = `toast-notification toast-${type}`;

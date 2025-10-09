@@ -7,10 +7,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/styles.css?v=20251009-39">
-    <link rel="stylesheet" href="/css/top-nav-rack.css?v=20251009-39">
-    
-    <!-- Xterm.js Terminal -->
+        <link rel="stylesheet" href="/css/styles.css?v=20251009-41">
+        <link rel="stylesheet" href="/css/top-nav-rack.css?v=20251009-42">    <!-- Xterm.js Terminal -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
     <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
@@ -19,13 +17,13 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     
     <!-- Top Navigation Rack -->
-    <script src="/js/top-nav-rack.js?v=20251009-15"></script>
+    <script src="/js/top-nav-rack.js?v=20251009-16"></script>
     
     <!-- Load legacy app.js first (non-module) -->
-    <script src="app.js?v=20251009-36"></script>
+    <script src="app.js?v=20251009-38"></script>
 
     <!-- Then load modular system (ES6 modules) -->
-    <script src="js/main.js?v=20251009-15" type="module"></script>
+    <script src="js/main.js?v=20251009-17" type="module"></script>
 </head>
 <body>
     <div class="app-container">
@@ -59,6 +57,11 @@
                         <i data-lucide="settings"></i>
                     </a>
                 </div>
+                
+                <!-- Sound Control -->
+                <button class="sound-toggle-btn" id="soundToggleBtn" title="Toggle Sound">
+                    <i data-lucide="volume-2" id="soundIcon"></i>
+                </button>
                 
                 <!-- User Profile -->
                 <div class="nav-rack-user">
