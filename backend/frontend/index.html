@@ -7,8 +7,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/styles.css?v=20251009-24">
-    <link rel="stylesheet" href="/css/top-nav-rack.css?v=20251009-24">
+    <link rel="stylesheet" href="/css/styles.css?v=20251009-26">
+    <link rel="stylesheet" href="/css/top-nav-rack.css?v=20251009-26">
     
     <!-- Xterm.js Terminal -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
@@ -154,18 +154,15 @@
                         </div>
                     </div>
                     
-                    <!-- Apps Rack -->
-                    <div class="apps-rack">
-                        <div class="rack-label">APPS</div>
-                        <div class="apps-grid deployed" id="recentApps">
-                            <div class="empty-state">
-                                <div class="empty-icon">
-                                    <i data-lucide="package" style="width: 48px; height: 48px;"></i>
-                                </div>
-                                <h3 class="empty-title">No applications yet</h3>
-                                <p class="empty-message">Deploy your first application from the catalog to get started.</p>
-                                <button class="btn btn-primary" onclick="showView('catalog')">Browse Catalog</button>
+                    <!-- Apps Grid (no rack container) -->
+                    <div class="apps-grid deployed" id="recentApps" style="margin-top: 2rem;">
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <i data-lucide="package" style="width: 48px; height: 48px;"></i>
                             </div>
+                            <h3 class="empty-title">No applications yet</h3>
+                            <p class="empty-message">Deploy your first application from the catalog to get started.</p>
+                            <button class="btn btn-primary" onclick="showView('catalog')">Browse Catalog</button>
                         </div>
                     </div>
                 </div>
