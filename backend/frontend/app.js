@@ -2338,7 +2338,7 @@ function showAppConsole(appId, hostname) {
     modalBody.style.padding = '0';
     
     modalBody.innerHTML = `
-        <div id="xtermContainer" style="position: relative; background: #000; border: 2px solid var(--border-cyan); border-radius: var(--radius-md); height: 92vh; padding: 0.5rem;">
+        <div id="xtermContainer" style="position: relative; background: #000; border: 2px solid var(--border-cyan); border-radius: 15px; height: 92vh; padding: 0.5rem;">
             <button onclick="closeModal()" 
                 onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'; this.style.borderColor='#ef4444'; this.style.color='#ef4444';" 
                 onmouseout="this.style.background='rgba(0, 0, 0, 0.5)'; this.style.borderColor='var(--border-cyan)'; this.style.color='var(--text-secondary)';"
