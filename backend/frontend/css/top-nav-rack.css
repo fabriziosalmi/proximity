@@ -116,18 +116,20 @@
     transform: scale(1.05);
 }
 
-/* Active/Click: diventa cyan come UI */
+/* Active/Click: diventa cyan acceso */
 .nav-rack-item:active,
 .nav-rack-item.active {
-    background: rgba(6, 182, 212, 0.15);
+    background: rgba(6, 182, 212, 0.2);
     border-color: var(--border-cyan);
-    color: var(--primary);
-    box-shadow: 0 0 12px rgba(6, 182, 212, 0.3);
+    color: #00e7ff;
+    box-shadow: 0 0 16px rgba(6, 182, 212, 0.5);
 }
 
 .nav-rack-item:active i,
 .nav-rack-item.active i {
-    color: var(--primary);
+    color: #00e7ff !important; /* Cyan acceso forzato */
+    stroke: #00e7ff !important; /* Per Lucide SVG */
+    filter: brightness(1);
 }
 
 /* Badge - Bianco fisso, semplice */
