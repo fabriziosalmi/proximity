@@ -446,6 +446,9 @@ function updateRecentApps() {
     
     // Reinitialize Lucide icons
     initLucideIcons();
+    
+    // Add hover sounds to recent app cards
+    attachCardHoverSounds();
 }
 
 function createAppCard(app, isDeployed = false) {
@@ -732,6 +735,9 @@ function renderAppsView() {
     `;
     
     view.innerHTML = content;
+    
+    // Add hover sound effects to app cards
+    attachCardHoverSounds();
 }
 
 function renderCatalogView() {
@@ -763,6 +769,9 @@ function renderCatalogView() {
     `;
     
     view.innerHTML = content;
+    
+    // Add hover sound effects to app cards
+    attachCardHoverSounds();
 }
 
 async function renderNodesView() {
@@ -2316,6 +2325,45 @@ function showNotification(message, type = 'info') {
     }
 }
 
+/**
+ * Attach hover sound effects to app cards
+ * Creates a satisfying "tick" sound when hovering over cards
+ */
+function attachCardHoverSounds() {
+    // Use setTimeout to ensure DOM is fully updated
+    setTimeout(() => {
+        const appCards = document.querySelectorAll('.app-card');
+        
+        appCards.forEach(card => {
+            // Track if we've already played sound for this hover
+            let hasPlayedSound = false;
+            
+            card.addEventListener('mouseenter', async () => {
+                // Only play once per hover
+                if (hasPlayedSound) return;
+                hasPlayedSound = true;
+                
+                // Play click sound as a subtle tick
+                if (window.SoundService && window.SoundService.play) {
+                    try {
+                        await window.SoundService.play('click');
+                    } catch (err) {
+                        // Silently fail if sound can't play
+                        console.debug('Card hover sound failed:', err);
+                    }
+                }
+            });
+            
+            // Reset flag when mouse leaves
+            card.addEventListener('mouseleave', () => {
+                hasPlayedSound = false;
+            });
+        });
+        
+        console.log(`🎵 Attached hover sounds to ${appCards.length} app cards`);
+    }, 100);
+}
+
 function filterApps(filter) {
     // Update tab active state
     document.querySelectorAll('.filter-tab').forEach(tab => {
@@ -2342,6 +2390,8 @@ function filterApps(filter) {
         grid.innerHTML = filtered.map(app => createAppCard(app, true)).join('');
         // Reinitialize Lucide icons after updating the DOM
         initLucideIcons();
+        // Add hover sounds to filtered cards
+        attachCardHoverSounds();
     }
 }
 
@@ -2360,6 +2410,9 @@ function filterCatalog(category) {
     
     const grid = document.getElementById('catalogGrid');
     grid.innerHTML = filtered.map(app => createAppCard(app, false)).join('');
+    
+    // Add hover sounds to filtered catalog cards
+    attachCardHoverSounds();
 }
 
 // Console and Logs Modal Functions

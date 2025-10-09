@@ -653,7 +653,7 @@ h3 { font-size: 1.5rem; font-weight: 600; }
     /* Cyan border */
     border: 1px solid rgba(6, 182, 212, 0.3);
     border-radius: var(--radius-lg);
-    padding: 1.5rem 2rem;
+    padding: 1.25rem 2rem; /* Reduced top/bottom padding from 1.5rem to 1.25rem */
     margin-bottom: 2rem;
     display: flex;
     align-items: center;
@@ -707,7 +707,7 @@ h3 { font-size: 1.5rem; font-weight: 600; }
     flex: 1;
     min-width: 0;
     position: relative;
-    padding: 0.25rem 0; /* Add subtle vertical padding for better visual balance */
+    padding: 0; /* Remove vertical padding to reduce height */
 }
 
 /* LED Indicator */
@@ -821,12 +821,12 @@ h3 { font-size: 1.5rem; font-weight: 600; }
     backdrop-filter: blur(10px);
 }
 
-/* Modern Futuristic Display Style for Numbers */
+/* Modern Futuristic Display Style for Numbers - CIRCULAR CONTAINERS */
 .stat-info .stat-value {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     font-size: 1.5rem;
     font-weight: 700;
-    line-height: 1.2; /* Better line height for vertical centering */
+    line-height: 1; /* Reset for circular centering */
     
     /* Modern card gradient like filter-tabs */
     background: linear-gradient(
@@ -839,15 +839,28 @@ h3 { font-size: 1.5rem; font-weight: 600; }
         0 0 10px rgba(0, 231, 255, 0.5),
         0 0 20px rgba(0, 231, 255, 0.2);
     
-    padding: 0.4rem 1rem; /* Match label padding for alignment */
-    border-radius: 8px;
-    border: 1px solid rgba(6, 182, 212, 0.3);
+    /* Circular container styling - FIXED: min/max width to force perfect circle */
+    width: 64px;
+    height: 64px;
+    min-width: 64px;
+    min-height: 64px;
+    max-width: 64px;
+    max-height: 64px;
+    padding: 0; /* Remove padding for circular shape */
+    border-radius: 50%; /* Perfect circle */
+    border: 2px solid rgba(6, 182, 212, 0.4);
     box-shadow: 
         0 4px 12px rgba(0, 0, 0, 0.3),
         0 0 15px rgba(6, 182, 212, 0.15),
         inset 0 1px 0 rgba(6, 182, 212, 0.2);
     
-    display: inline-block;
+    /* Center content in circle */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0; /* Prevent value from shrinking */
+    overflow: hidden; /* Prevent overflow from breaking circle shape */
+    
     min-width: 70px; /* Increased minimum width for better appearance */
     text-align: center;
     flex-shrink: 0; /* Prevent value from shrinking */
@@ -953,9 +966,13 @@ h3 { font-size: 1.5rem; font-weight: 600; }
     }
     
     .stat-info .stat-value {
-        font-size: 1.25rem; /* Slightly smaller value on mobile */
-        min-width: 60px;
-        padding: 0.35rem 0.8rem;
+        font-size: 1.125rem; /* Slightly smaller value on mobile */
+        width: 52px; /* Smaller circle on mobile */
+        height: 52px;
+        min-width: 52px;
+        min-height: 52px;
+        max-width: 52px;
+        max-height: 52px;
     }
 }
 

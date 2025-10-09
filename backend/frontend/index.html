@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..900&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="/css/styles.css?v=20251009-51">
+        <link rel="stylesheet" href="/css/styles.css?v=20251009-54">
         <link rel="stylesheet" href="/css/top-nav-rack.css?v=20251009-42">    <!-- Xterm.js Terminal -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
     <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
@@ -20,7 +20,7 @@
     <script src="/js/top-nav-rack.js?v=20251009-16"></script>
     
     <!-- Load legacy app.js first (non-module) -->
-    <script src="app.js?v=20251009-50"></script>
+    <script src="app.js?v=20251009-52"></script>
 
     <!-- Then load modular system (ES6 modules) -->
     <script src="js/main.js?v=20251009-50" type="module"></script>
@@ -153,18 +153,6 @@
                             <div class="stat-info">
                                 <span class="stat-label">RESOURCES USED</span>
                                 <span class="stat-value" id="statResources">--</span>
-                            </div>
-                        </div>
-                        
-                        <div class="stat-divider"></div>
-                        
-                        <div class="stat-item deploy-button" onclick="deployNewAppClick(event)">
-                            <div class="stat-icon primary" style="background: var(--primary-gradient);">
-                                <i data-lucide="plus"></i>
-                            </div>
-                            <div class="stat-info">
-                                <span class="stat-label">DEPLOY NEW APP</span>
-                                <span class="stat-value" style="font-size: 0.9rem; color: var(--primary);">Click to deploy →</span>
                             </div>
                         </div>
                     </div>
