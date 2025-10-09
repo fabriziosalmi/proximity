@@ -3945,7 +3945,6 @@ body.modal-open .app-container {
     background: rgba(255, 255, 255, 0.1);
     border-color: rgba(255, 255, 255, 0.2);
     color: var(--text-primary);
-    transform: translateY(-1px);
 }
 
 .canvas-btn.canvas-close:hover {
