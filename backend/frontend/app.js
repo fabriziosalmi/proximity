@@ -9,20 +9,72 @@ function initLucideIcons() {
 function initSidebarToggle() {
     const sidebar = document.querySelector('.sidebar');
     const toggleButton = document.getElementById('sidebarToggle');
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const overlay = document.getElementById('sidebarOverlay');
     
-    if (toggleButton && sidebar) {
-        // Load saved state
+    if (sidebar) {
+        // Load saved state for desktop
         const savedState = localStorage.getItem('sidebarCollapsed');
         if (savedState === 'true') {
             sidebar.classList.add('collapsed');
         }
         
-        toggleButton.addEventListener('click', () => {
-            sidebar.classList.toggle('collapsed');
-            // Save state
-            localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
-            // Reinitialize icons after toggle animation
-            setTimeout(() => initLucideIcons(), 300);
+        // Desktop toggle button
+        if (toggleButton) {
+            toggleButton.addEventListener('click', () => {
+                const isMobile = window.innerWidth <= 1024;
+                
+                if (isMobile) {
+                    // On mobile: toggle 'active' class to show/hide sidebar
+                    sidebar.classList.toggle('active');
+                    if (overlay) {
+                        overlay.classList.toggle('active');
+                    }
+                } else {
+                    // On desktop: toggle 'collapsed' class to collapse/expand
+                    sidebar.classList.toggle('collapsed');
+                    // Save state
+                    localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+                }
+                
+                // Reinitialize icons after toggle animation
+                setTimeout(() => initLucideIcons(), 300);
+            });
+        }
+        
+        // Mobile menu button
+        if (mobileMenuBtn) {
+            mobileMenuBtn.addEventListener('click', () => {
+                sidebar.classList.add('active');
+                if (overlay) {
+                    overlay.classList.add('active');
+                }
+                // Reinitialize icons after toggle animation
+                setTimeout(() => initLucideIcons(), 300);
+            });
+        }
+        
+        // Close sidebar when clicking overlay (mobile)
+        if (overlay) {
+            overlay.addEventListener('click', () => {
+                sidebar.classList.remove('active');
+                overlay.classList.remove('active');
+            });
+        }
+        
+        // Handle window resize: reset classes appropriately
+        window.addEventListener('resize', () => {
+            const isMobile = window.innerWidth <= 1024;
+            if (!isMobile) {
+                // Desktop: remove mobile 'active' class
+                sidebar.classList.remove('active');
+                if (overlay) {
+                    overlay.classList.remove('active');
+                }
+            } else {
+                // Mobile: remove desktop 'collapsed' class
+                sidebar.classList.remove('collapsed');
+            }
         });
     }
 }
@@ -398,15 +450,11 @@ function createAppCard(app, isDeployed = false) {
         
         return `
             <div class="app-card deployed">
-                <!-- Line 1: Icon, Name, Status, Quick Actions -->
+                <!-- Line 1: Icon, Name, Quick Actions -->
                 <div class="app-card-header">
                     <div class="app-icon-lg">${icon}</div>
                     <div class="app-info">
                         <h3 class="app-name">${app.name}</h3>
-                        <span class="status-badge ${statusClass}">
-                            <span class="status-dot"></span>
-                            ${statusText}
-                        </span>
                     </div>
                     
                     <!-- Quick Actions in header -->
@@ -453,8 +501,14 @@ function createAppCard(app, isDeployed = false) {
                     </div>
                 </div>
                 
-                <!-- Line 2: Access URL, Container, Date -->
+                <!-- Line 2: Status, Access URL, Container, Date -->
                 <div class="app-connection-info">
+                    <div class="connection-item">
+                        <span class="status-badge-compact ${statusClass}">
+                            <span class="status-dot-small"></span>
+                            ${statusText}
+                        </span>
+                    </div>
                     <div class="connection-item">
                         <i data-lucide="link" class="connection-icon"></i>
                         ${appUrl ? `<a href="${appUrl}" target="_blank" class="connection-value connection-link" ${isRunning ? '' : 'style="opacity: 0.5; pointer-events: none;"'}>
@@ -550,6 +604,56 @@ function showView(viewName) {
         
         // Reinitialize Lucide icons after view change
         initLucideIcons();
+    }
+}
+
+// Deploy New App Button Click with Sound and Animation
+function deployNewAppClick(event) {
+    const button = event.currentTarget;
+    
+    // Add clicked class for animation
+    button.classList.add('clicked');
+    
+    // Play click sound
+    playClickSound();
+    
+    // Remove clicked class after animation
+    setTimeout(() => {
+        button.classList.remove('clicked');
+    }, 600);
+    
+    // Navigate to catalog after a brief delay for effect
+    setTimeout(() => {
+        showView('catalog');
+    }, 150);
+}
+
+// Play subtle click sound using Web Audio API
+function playClickSound() {
+    try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // Create oscillator for a subtle "click" sound
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        // Configure sound - high pitch, very short duration
+        oscillator.frequency.value = 800; // Hz
+        oscillator.type = 'sine';
+        
+        // Very subtle volume with quick fade
+        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.05);
+        
+        // Play for just 50ms
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.05);
+    } catch (e) {
+        // Silently fail if audio not supported
+        console.log('Audio not supported');
     }
 }
 

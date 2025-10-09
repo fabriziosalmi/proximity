@@ -634,10 +634,19 @@ h3 { font-size: 1.5rem; font-weight: 600; }
 }
 
 /* Stats Compact Card - Full Width Layout */
+/* Stats Compact Card - Glass Morphism Style */
 .stats-compact-card {
-    background: linear-gradient(135deg, rgba(1, 1, 1, 0.8), rgba(10, 10, 11, 0.6));
-    backdrop-filter: blur(20px) saturate(180%);
-    border: 0px solid var(--border-cyan);
+    /* Glass morphism background */
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.08),
+        rgba(255, 255, 255, 0.04)
+    );
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    
+    /* Glass border */
+    border: 1px solid rgba(255, 255, 255, 0.18);
     border-radius: var(--radius-lg);
     padding: 1.5rem 2rem;
     margin-bottom: 2rem;
@@ -645,8 +654,13 @@ h3 { font-size: 1.5rem; font-weight: 600; }
     align-items: center;
     justify-content: space-between;
     gap: 2rem;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), 
-                inset 0 1px 0 rgba(34, 211, 238, 0.1);
+    
+    /* Glass shadow */
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2),
+        0 0 0 1px rgba(255, 255, 255, 0.05);
+    
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
@@ -659,18 +673,32 @@ h3 { font-size: 1.5rem; font-weight: 600; }
     left: 0;
     right: 0;
     height: 2px;
-    opacity: 0.6;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.3),
+        transparent
+    );
+    opacity: 0.4;
 }
 
 .stats-compact-card:hover {
-    border-color: var(--cyan-bright);
-    box-shadow: 0 8px 32px rgba(34, 211, 238, 0.2),
-                0 0 0 1px var(--cyan-bright),
-                inset 0 1px 0 rgba(34, 211, 238, 0.25);
+    /* Enhanced glass effect on hover */
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.12),
+        rgba(255, 255, 255, 0.06)
+    );
+    border-color: rgba(255, 255, 255, 0.25);
+    box-shadow: 
+        0 12px 48px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(255, 255, 255, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        0 0 60px rgba(34, 211, 238, 0.15);
 }
 
 .stats-compact-card:hover::before {
-    opacity: 1;
+    opacity: 0.6;
 }
 
 .stat-item {
@@ -718,11 +746,20 @@ h3 { font-size: 1.5rem; font-weight: 600; }
 }
 
 .stat-info .stat-label {
-    font-size: 0.8125rem;
-    color: var(--text-tertiary);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--bg-primary);
+    background: linear-gradient(135deg, rgba(203, 213, 225, 0.9), rgba(226, 232, 240, 0.95));
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    display: inline-block;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .stat-info .stat-value {
@@ -785,6 +822,177 @@ h3 { font-size: 1.5rem; font-weight: 600; }
     .stat-item {
         flex: 1 1 100%;
     }
+}
+
+/* Deploy New App Button Interactive Effects */
+.stat-item.deploy-button {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    cursor: pointer;
+}
+
+/* Hover effects solo sull'icona - senza ingrandimento */
+.stat-item.deploy-button:hover .stat-icon {
+    background: var(--primary-gradient) !important;
+    box-shadow: 0 0 20px rgba(34, 211, 238, 0.4);
+}
+
+.stat-item.deploy-button:hover .stat-label {
+    color: var(--cyan-bright);
+}
+
+/* Click effect - simbolo azzurrino */
+.stat-item.deploy-button:active .stat-icon {
+    background: rgba(34, 211, 238, 0.9) !important;
+}
+
+.stat-item.deploy-button:active .stat-icon i {
+    color: var(--bg-primary);
+}
+
+/* Animazione pulse sul click */
+@keyframes pulse-deploy {
+    0% {
+        box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(34, 211, 238, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(34, 211, 238, 0);
+    }
+}
+
+.stat-item.deploy-button.clicked .stat-icon {
+    animation: pulse-deploy 0.6s ease-out;
+}
+
+/* Apps Rack - Server Rack Style with Rainbow Border */
+.apps-rack {
+    position: relative;
+    background: linear-gradient(135deg, rgba(1, 1, 1, 0.8), rgba(10, 10, 11, 0.6));
+    backdrop-filter: blur(20px) saturate(180%);
+    border: 3px solid transparent;
+    border-radius: var(--radius-lg);
+    padding: 3rem 2rem 2rem;
+    margin-top: 2rem;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), 
+                inset 0 1px 0 rgba(255, 255, 255, 0.05),
+                inset 0 0 60px rgba(255, 255, 255, 0.02);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background-clip: padding-box;
+}
+
+.apps-rack::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: var(--radius-lg);
+    padding: 3px;
+    background: linear-gradient(
+        90deg,
+        rgba(255, 0, 0, 0.3),
+        rgba(255, 127, 0, 0.3),
+        rgba(255, 255, 0, 0.3),
+        rgba(0, 255, 0, 0.3),
+        rgba(0, 255, 255, 0.3),
+        rgba(0, 0, 255, 0.3),
+        rgba(139, 0, 255, 0.3),
+        rgba(255, 0, 0, 0.3)
+    );
+    background-size: 200% 100%;
+    animation: rainbow-border 8s linear infinite;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    z-index: -1;
+}
+
+@keyframes rainbow-border {
+    0% {
+        background-position: 0% 0%;
+    }
+    100% {
+        background-position: 200% 0%;
+    }
+}
+
+.apps-rack::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    opacity: 0.6;
+}
+
+.rack-label {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
+    color: var(--cyan-bright);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    padding: 0.5rem 2rem;
+    border: 2px solid var(--border-cyan);
+    border-radius: var(--radius-md);
+    box-shadow: 0 0 20px rgba(34, 211, 238, 0.3),
+                inset 0 1px 0 rgba(34, 211, 238, 0.2);
+    text-shadow: 0 0 10px rgba(34, 211, 238, 0.5);
+    z-index: 10;
+}
+
+.rack-label::before,
+.rack-label::after {
+    content: '';
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: var(--cyan-bright);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--cyan-glow);
+    animation: rack-blink 2s ease-in-out infinite;
+}
+
+.rack-label::before {
+    left: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.rack-label::after {
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    animation-delay: 1s;
+}
+
+@keyframes rack-blink {
+    0%, 100% {
+        opacity: 1;
+        box-shadow: 0 0 10px var(--cyan-glow);
+    }
+    50% {
+        opacity: 0.3;
+        box-shadow: 0 0 5px var(--cyan-glow);
+    }
+}
+
+.apps-rack:hover {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4),
+                0 0 40px rgba(255, 255, 255, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15),
+                inset 0 0 80px rgba(255, 255, 255, 0.05);
+}
+
+.apps-rack:hover::before {
+    opacity: 0.5;
+    animation: rainbow-border 4s linear infinite;
 }
 
 @media (min-width: 1400px) {
@@ -1759,6 +1967,53 @@ a.connection-value:hover::after {
     color: var(--danger);
     border-color: rgba(239, 68, 68, 0.3);
     box-shadow: 0 0 12px rgba(239, 68, 68, 0.2);
+}
+
+/* Status Badge Compact - For metadata row */
+.status-badge-compact {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.625rem;
+    font-weight: 600;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border: 1px solid transparent;
+}
+
+.status-badge-compact.running {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--success);
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
+.status-badge-compact.stopped {
+    background: rgba(100, 116, 139, 0.1);
+    color: var(--text-tertiary);
+    border-color: rgba(100, 116, 139, 0.2);
+}
+
+.status-badge-compact.deploying {
+    background: rgba(34, 211, 238, 0.15);
+    color: var(--cyan-bright);
+    border-color: var(--border-cyan);
+}
+
+.status-badge-compact.error {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--danger);
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.status-dot-small {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: pulse 2s infinite;
+    box-shadow: 0 0 4px currentColor;
 }
 
 @keyframes pulse {
@@ -4017,4 +4272,97 @@ body.pro-mode .pro-feature.inline-flex {
 
 #xtermContainer .xterm-viewport::-webkit-scrollbar-thumb:hover {
     background: var(--secondary);
+}
+
+/* ============================================
+   RESPONSIVE: Mobile Sidebar Fix
+   ============================================ */
+
+/* Mobile menu button - hidden on desktop */
+.mobile-menu-btn {
+    display: none;
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 998;
+    width: 48px;
+    height: 48px;
+    border: none;
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+.mobile-menu-btn:hover {
+    background: var(--bg-tertiary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.mobile-menu-btn i {
+    color: var(--text-primary);
+}
+
+/* Show mobile menu button on tablet and below */
+@media (max-width: 1024px) {
+    .mobile-menu-btn {
+        display: flex;
+    }
+}
+
+/* Sidebar overlay for mobile */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 999;
+    opacity: 0;
+    transition: opacity 250ms ease;
+}
+
+.sidebar-overlay.active {
+    display: block;
+    opacity: 1;
+}
+
+/* Tablet and below: sidebar becomes overlay */
+@media (max-width: 1024px) {
+    .sidebar {
+        transform: translateX(-100%);
+        z-index: 1000;
+    }
+    
+    .sidebar.active {
+        transform: translateX(0);
+    }
+    
+    .sidebar.collapsed {
+        transform: translateX(-100%);
+    }
+    
+    .main-content,
+    .sidebar.collapsed ~ .main-content {
+        margin-left: 0;
+        width: 100%;
+    }
+}
+
+/* Mobile optimization */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 280px;
+    }
+    
+    .sidebar.collapsed {
+        width: 280px;
+        transform: translateX(-100%);
+    }
 }

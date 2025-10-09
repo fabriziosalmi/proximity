@@ -24,6 +24,9 @@
     <script src="js/main.js?v=20251009-11" type="module"></script>
 </head>
 <body>
+    <!-- Mobile Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    
     <div class="app-container">
         <!-- Sidebar -->
         <aside class="sidebar">
@@ -101,23 +104,15 @@
         
         <!-- Main Content -->
         <main class="main-content">
+            <!-- Mobile Menu Button -->
+            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu">
+                <i data-lucide="menu"></i>
+            </button>
+            
             <!-- Content -->
             <div class="content">
                 <!-- Dashboard View -->
                 <div id="dashboardView" class="view">
-                    <div class="page-header">
-                        <div class="page-title-row">
-                            <div>
-                                <h1 class="page-title">Dashboard</h1>
-                                <p class="page-subtitle">Welcome back! Here's what's happening with your applications.</p>
-                            </div>
-                            <button class="btn btn-primary" onclick="showView('catalog')">
-                                <span>➕</span>
-                                <span>Deploy New App</span>
-                            </button>
-                        </div>
-                    </div>
-                    
                     <!-- Stats Compact -->
                     <div class="stats-compact-card" id="statsGrid">
                         <div class="stat-item">
@@ -125,7 +120,7 @@
                                 <i data-lucide="package"></i>
                             </div>
                             <div class="stat-info">
-                                <span class="stat-label">Total Applications</span>
+                                <span class="stat-label">TOTAL APPLICATIONS</span>
                                 <span class="stat-value" id="statTotalApps">0</span>
                             </div>
                         </div>
@@ -137,7 +132,7 @@
                                 <i data-lucide="check-circle"></i>
                             </div>
                             <div class="stat-info">
-                                <span class="stat-label">Running</span>
+                                <span class="stat-label">RUNNING</span>
                                 <span class="stat-value" id="statRunningApps">0</span>
                             </div>
                         </div>
@@ -149,7 +144,7 @@
                                 <i data-lucide="server"></i>
                             </div>
                             <div class="stat-info">
-                                <span class="stat-label">Infrastructure Nodes</span>
+                                <span class="stat-label">INFRASTRUCTURE NODES</span>
                                 <span class="stat-value" id="statNodes">0</span>
                             </div>
                         </div>
@@ -161,18 +156,27 @@
                                 <i data-lucide="zap"></i>
                             </div>
                             <div class="stat-info">
-                                <span class="stat-label">Resources Used</span>
+                                <span class="stat-label">RESOURCES USED</span>
                                 <span class="stat-value" id="statResources">--</span>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-divider"></div>
+                        
+                        <div class="stat-item deploy-button" onclick="deployNewAppClick(event)">
+                            <div class="stat-icon primary" style="background: var(--primary-gradient);">
+                                <i data-lucide="plus"></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-label">DEPLOY NEW APP</span>
+                                <span class="stat-value" style="font-size: 0.9rem; color: var(--primary);">Click to deploy →</span>
                             </div>
                         </div>
                     </div>
                     
-                    <!-- Recent Apps -->
-                    <div class="apps-section">
-                        <div class="section-header">
-                            <h2 class="section-title">Recent Applications</h2>
-                            <button class="btn btn-ghost btn-sm" onclick="showView('apps')">View All →</button>
-                        </div>
+                    <!-- Apps Rack -->
+                    <div class="apps-rack">
+                        <div class="rack-label">APPS</div>
                         <div class="apps-grid deployed" id="recentApps">
                             <div class="empty-state">
                                 <div class="empty-icon">
