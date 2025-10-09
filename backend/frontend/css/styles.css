@@ -3929,11 +3929,17 @@ body.pro-mode .pro-feature.inline-flex {
 #xtermContainer {
     position: relative;
     overflow: hidden;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3),
-                inset 0 1px 0 rgba(34, 211, 238, 0.1);
-    background: rgba(0, 0, 0, 0.75);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    border-radius: 12px;
+    border: 1px solid rgba(34, 211, 238, 0.3);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(34, 211, 238, 0.15),
+                inset 0 0 60px rgba(34, 211, 238, 0.03);
+    background: linear-gradient(135deg, 
+                rgba(5, 15, 25, 0.95) 0%,
+                rgba(10, 20, 30, 0.95) 50%,
+                rgba(5, 15, 25, 0.95) 100%);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
 }
 
 /* Close button overlay on terminal */
@@ -3942,7 +3948,7 @@ body.pro-mode .pro-feature.inline-flex {
 }
 
 #xtermContainer .xterm {
-    padding: 0.5rem;
+    padding: 1rem;
     height: 100%;
     background: transparent !important;
 }
@@ -3950,6 +3956,26 @@ body.pro-mode .pro-feature.inline-flex {
 #xtermContainer .xterm-viewport {
     overflow-y: auto !important;
     background-color: transparent !important;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(34, 211, 238, 0.4) rgba(255, 255, 255, 0.05);
+}
+
+#xtermContainer .xterm-viewport::-webkit-scrollbar {
+    width: 8px;
+}
+
+#xtermContainer .xterm-viewport::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+#xtermContainer .xterm-viewport::-webkit-scrollbar-thumb {
+    background: rgba(34, 211, 238, 0.4);
+    border-radius: 4px;
+}
+
+#xtermContainer .xterm-viewport::-webkit-scrollbar-thumb:hover {
+    background: rgba(34, 211, 238, 0.6);
 }
 
 #xtermContainer .xterm-screen {
