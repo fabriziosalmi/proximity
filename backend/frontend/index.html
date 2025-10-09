@@ -7,8 +7,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/styles.css?v=20251009-13">
-    <link rel="stylesheet" href="/css/top-nav-rack.css?v=20251009-14">
+    <link rel="stylesheet" href="/css/styles.css?v=20251009-16">
+    <link rel="stylesheet" href="/css/top-nav-rack.css?v=20251009-16">
     
     <!-- Xterm.js Terminal -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
@@ -19,13 +19,13 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     
     <!-- Top Navigation Rack -->
-    <script src="/js/top-nav-rack.js?v=20251009-14"></script>
+    <script src="/js/top-nav-rack.js?v=20251009-15"></script>
     
     <!-- Load legacy app.js first (non-module) -->
-    <script src="app.js?v=20251009-14"></script>
+    <script src="app.js?v=20251009-15"></script>
 
     <!-- Then load modular system (ES6 modules) -->
-    <script src="js/main.js?v=20251009-11" type="module"></script>
+    <script src="js/main.js?v=20251009-15" type="module"></script>
 </head>
 <body>
     <div class="app-container">
@@ -40,41 +40,31 @@
                 
                 <!-- Main Navigation -->
                 <div class="nav-rack-items">
-                    <a href="#" class="nav-rack-item active" data-view="dashboard">
+                    <a href="#" class="nav-rack-item active" data-view="dashboard" title="Dashboard">
                         <i data-lucide="layout-dashboard"></i>
-                        <span>Dashboard</span>
                     </a>
-                    <a href="#" class="nav-rack-item" data-view="apps">
+                    <a href="#" class="nav-rack-item" data-view="apps" title="My Apps">
                         <i data-lucide="package"></i>
-                        <span>My Apps</span>
                         <span class="nav-badge" id="appsCount">0</span>
                     </a>
-                    <a href="#" class="nav-rack-item" data-view="catalog">
+                    <a href="#" class="nav-rack-item" data-view="catalog" title="App Store">
                         <i data-lucide="store"></i>
-                        <span>App Store</span>
                     </a>
-                    <a href="#" class="nav-rack-item" data-view="nodes">
+                    <a href="#" class="nav-rack-item" data-view="nodes" title="Hosts">
                         <i data-lucide="server"></i>
-                        <span>Hosts</span>
                     </a>
-                    <a href="#" class="nav-rack-item" data-view="monitoring">
+                    <a href="#" class="nav-rack-item" data-view="monitoring" title="Monitoring">
                         <i data-lucide="activity"></i>
-                        <span>Monitoring</span>
                     </a>
-                    <a href="#" class="nav-rack-item" data-view="settings">
+                    <a href="#" class="nav-rack-item" data-view="settings" title="Settings">
                         <i data-lucide="settings"></i>
-                        <span>Settings</span>
                     </a>
                 </div>
                 
                 <!-- User Profile -->
                 <div class="nav-rack-user">
-                    <button class="user-profile-btn" id="userProfileBtn">
+                    <button class="user-profile-btn" id="userProfileBtn" title="User Menu">
                         <div class="user-avatar">PR</div>
-                        <div class="user-info">
-                            <span class="user-name">Proxmox Root</span>
-                            <span class="user-role">Admin</span>
-                        </div>
                         <i data-lucide="chevron-down"></i>
                     </button>
                     <div class="user-menu" id="userMenu">
