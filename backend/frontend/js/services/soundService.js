@@ -19,7 +19,16 @@ export const SoundService = {
     sounds: {},
     isMuted: false,
     isInitialized: false,
-    
+    masterVolume: 0.7, // Master volume (0.0 - 1.0)
+
+    // Audio presets
+    presets: {
+        minimal: { volume: 0.3, name: 'Minimal' },
+        standard: { volume: 0.7, name: 'Standard' },
+        immersive: { volume: 1.0, name: 'Immersive' }
+    },
+    currentPreset: 'standard',
+
     // Available sound effects
     soundFiles: {
         success: '/assets/sounds/success.wav',       // Positive completion chime (800+1200+1600Hz, 0.35s)
@@ -45,27 +54,41 @@ export const SoundService = {
             console.warn('SoundService already initialized');
             return;
         }
-        
+
         console.log('🔊 SoundService: Initializing...');
-        
-        // Restore mute state from localStorage
+
+        // Restore settings from localStorage
         const savedMuteState = localStorage.getItem('proximity_sound_muted');
         this.isMuted = savedMuteState === 'true';
-        
+
+        const savedVolume = localStorage.getItem('proximity_sound_volume');
+        if (savedVolume) {
+            this.masterVolume = parseFloat(savedVolume);
+        }
+
+        const savedPreset = localStorage.getItem('proximity_sound_preset');
+        if (savedPreset && this.presets[savedPreset]) {
+            this.currentPreset = savedPreset;
+            this.masterVolume = this.presets[savedPreset].volume;
+        }
+
         // Preload all sound files
         for (const [name, path] of Object.entries(this.soundFiles)) {
             try {
                 const audio = new Audio(path);
                 audio.preload = 'auto';
-                audio.volume = 0.7; // 70% volume for non-intrusive feedback
+                audio.volume = this.masterVolume;
                 this.sounds[name] = audio;
             } catch (error) {
                 console.error(`SoundService: Failed to preload ${name}:`, error);
             }
         }
-        
+
         this.isInitialized = true;
-        console.log(`🔊 SoundService: Initialized (muted: ${this.isMuted})`);
+        console.log(`🔊 SoundService: Initialized`);
+        console.log(`   • Muted: ${this.isMuted}`);
+        console.log(`   • Volume: ${Math.round(this.masterVolume * 100)}%`);
+        console.log(`   • Preset: ${this.currentPreset}`);
         console.log(`   • Loaded ${Object.keys(this.sounds).length} sound effects`);
     },
     
@@ -138,6 +161,56 @@ export const SoundService = {
      */
     getMute() {
         return this.isMuted;
+    },
+
+    /**
+     * Set master volume
+     * @param {number} volume - Volume level (0.0 to 1.0)
+     */
+    setVolume(volume) {
+        this.masterVolume = Math.max(0, Math.min(1, volume));
+        localStorage.setItem('proximity_sound_volume', this.masterVolume.toString());
+
+        // Update all preloaded sounds
+        for (const audio of Object.values(this.sounds)) {
+            audio.volume = this.masterVolume;
+        }
+
+        console.log(`🔊 SoundService: Volume set to ${Math.round(this.masterVolume * 100)}%`);
+    },
+
+    /**
+     * Get current master volume
+     * @returns {number} Volume level (0.0 to 1.0)
+     */
+    getVolume() {
+        return this.masterVolume;
+    },
+
+    /**
+     * Apply audio preset
+     * @param {string} presetName - Preset name (minimal, standard, immersive)
+     */
+    applyPreset(presetName) {
+        const preset = this.presets[presetName];
+        if (!preset) {
+            console.warn(`SoundService: Preset "${presetName}" not found`);
+            return;
+        }
+
+        this.currentPreset = presetName;
+        this.setVolume(preset.volume);
+        localStorage.setItem('proximity_sound_preset', presetName);
+
+        console.log(`🔊 SoundService: Applied preset "${preset.name}" (${Math.round(preset.volume * 100)}%)`);
+    },
+
+    /**
+     * Get current preset
+     * @returns {string} Current preset name
+     */
+    getPreset() {
+        return this.currentPreset;
     },
     
     /**
