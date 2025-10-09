@@ -263,12 +263,15 @@
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
+    width: 100%;
+    padding-top: var(--nav-rack-height); /* Space for fixed top nav */
 }
 
 .content {
     padding: 2rem;
-    max-width: 1920px;
-    margin: 0 auto;
+    width: 100%; /* Full width */
+    max-width: none; /* No max-width limit */
+    margin: 0; /* No centering */
 }
 
 /* Animations */

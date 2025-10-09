@@ -94,7 +94,9 @@ h3 { font-size: 1.5rem; font-weight: 600; }
 /* Layout */
 .app-container {
     display: flex;
+    flex-direction: column; /* Stack top nav and content */
     min-height: 100vh;
+    width: 100%;
 }
 
 /* Sidebar */
@@ -496,14 +498,16 @@ h3 { font-size: 1.5rem; font-weight: 600; }
 /* Main Content */
 .main-content {
     flex: 1;
-    margin-left: 280px;
+    margin-left: 0; /* No sidebar anymore - full width */
     min-height: 100vh;
     background: var(--bg-primary);
-    transition: margin-left 250ms cubic-bezier(0.4, 0, 0.2, 1);
+    width: 100%;
+    /* Remove old sidebar transition */
 }
 
+/* Old sidebar rules - no longer needed */
 .sidebar.collapsed ~ .main-content {
-    margin-left: 80px;
+    margin-left: 0;
 }
 
 /* Header */
@@ -595,7 +599,8 @@ h3 { font-size: 1.5rem; font-weight: 600; }
 
 /* Content Container */
 .content {
-    padding: 2rem;
+    padding: 2rem; /* Keep some padding for mobile */
+    width: 100%;
 }
 
 .content-header,
