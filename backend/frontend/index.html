@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..900&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="/css/styles.css?v=20251009-41">
+        <link rel="stylesheet" href="/css/styles.css?v=20251009-51">
         <link rel="stylesheet" href="/css/top-nav-rack.css?v=20251009-42">    <!-- Xterm.js Terminal -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
     <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
@@ -20,12 +20,25 @@
     <script src="/js/top-nav-rack.js?v=20251009-16"></script>
     
     <!-- Load legacy app.js first (non-module) -->
-    <script src="app.js?v=20251009-38"></script>
+    <script src="app.js?v=20251009-50"></script>
 
     <!-- Then load modular system (ES6 modules) -->
-    <script src="js/main.js?v=20251009-17" type="module"></script>
+    <script src="js/main.js?v=20251009-50" type="module"></script>
 </head>
 <body>
+    <!-- Power On Screen (First Run Only) -->
+    <div id="power-on-screen" class="power-on-screen" style="display: none;">
+        <div class="power-on-content">
+            <div id="power-button" class="power-button" role="button" tabindex="0" aria-label="Initialize Proximity">
+                <svg class="power-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2v10"></path>
+                    <path d="M18.4 6.6a9 9 0 1 1-12.77.04"></path>
+                </svg>
+            </div>
+            <p class="power-on-text">Initialize Proximity</p>
+        </div>
+    </div>
+
     <div class="app-container">
         <!-- Top Navigation Rack -->
         <nav class="top-nav-rack">

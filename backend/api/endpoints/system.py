@@ -5,6 +5,8 @@ from models.schemas import SystemInfo, NodeInfo, APIResponse
 from services.proxmox_service import ProxmoxService, ProxmoxError, proxmox_service
 from services.app_service import AppService, get_app_service
 from core.config import settings
+from models.database import get_db, User
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -14,6 +16,25 @@ router = APIRouter()
 async def health_check():
     """Health check endpoint"""
     return APIResponse(message="Proximity API is healthy")
+
+
+@router.get("/status/initial")
+async def check_first_run(db: Session = Depends(get_db)):
+    """
+    Check if this is the first run of the application.
+    Returns is_first_run: True if no users exist in the database.
+    """
+    try:
+        # Check if any user exists
+        first_user = db.query(User).first()
+        is_first_run = first_user is None
+        
+        logger.info(f"First run check: {'First run detected' if is_first_run else 'Users exist'}")
+        
+        return {"is_first_run": is_first_run}
+    except Exception as e:
+        logger.error(f"Failed to check first run status: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/info", response_model=SystemInfo)

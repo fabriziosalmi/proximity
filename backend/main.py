@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 from pathlib import Path
 
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request, HTTPException, Depends, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse, FileResponse
@@ -264,8 +264,20 @@ def create_app() -> FastAPI:
         tags=["Authentication"]
     )
 
+    # System router - Public endpoints (UNPROTECTED)
+    # Only /health and /status/initial are public - the rest need auth
+    from api.endpoints.system import check_first_run, health_check
+    public_system = APIRouter()
+    public_system.add_api_route("/health", health_check, methods=["GET"])
+    public_system.add_api_route("/status/initial", check_first_run, methods=["GET"])
+    
+    app.include_router(
+        public_system,
+        prefix=f"/api/{config_settings.API_VERSION}/system",
+        tags=["System - Public"]
+    )
+
     # Apps router (PROTECTED - requires authentication)
-    from fastapi import Depends
     app.include_router(
         apps.router,
         prefix=f"/api/{config_settings.API_VERSION}/apps",

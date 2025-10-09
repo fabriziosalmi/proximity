@@ -3582,8 +3582,11 @@ function setupEventListeners() {
     });
 }
 
-// Initialize on load
-document.addEventListener('DOMContentLoaded', init);
+// Initialize on load - DISABLED: Now handled by main.js with onboarding
+// document.addEventListener('DOMContentLoaded', init);
+
+// Make init available globally so main.js can call it after onboarding
+window.init = init;
 
 // --- Auth Modal (Register/Login) Logic ---
 // Show Auth Modal (Register/Login)
