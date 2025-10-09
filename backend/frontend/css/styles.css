@@ -1348,6 +1348,15 @@ h3 { font-size: 1.5rem; font-weight: 600; }
                 inset 0 1px 0 rgba(34, 211, 238, 0.2);
 }
 
+/* Enhanced hover for deployed cards (clickable to open canvas) */
+.app-card.deployed:hover {
+    border-color: var(--cyan-bright);
+    box-shadow: 0 12px 40px rgba(34, 211, 238, 0.35),
+                0 0 0 2px var(--cyan-bright),
+                inset 0 1px 0 rgba(34, 211, 238, 0.25);
+    transform: translateY(-2px);
+}
+
 /* Enhanced hover for clickable catalog cards */
 .catalog-grid .app-card:hover {
     border-color: var(--cyan-bright);
@@ -3859,52 +3868,84 @@ body.modal-open .app-container {
 }
 
 .canvas-modal-header {
-    padding: 1rem 1.5rem;
-    border-bottom: 1px solid var(--border);
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: var(--bg-tertiary);
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(12px);
     border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    position: relative;
+    z-index: 10;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    min-height: 48px;
+    max-height: 48px;
+}
+
+/* Minimized state */
+.canvas-modal-header.minimized {
+    padding: 0.25rem 0.5rem;
+    min-height: 32px;
+    max-height: 32px;
+    background: rgba(15, 23, 42, 0.75);
+}
+
+.canvas-modal-header.minimized .canvas-modal-title span {
+    font-size: 0.75rem;
+}
+
+.canvas-modal-header.minimized .canvas-modal-title i,
+.canvas-modal-header.minimized .canvas-btn {
+    width: 24px;
+    height: 24px;
+}
+
+.canvas-modal-header.minimized .canvas-btn i {
+    width: 14px;
+    height: 14px;
 }
 
 .canvas-modal-title {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    font-size: 1.125rem;
+    gap: 0.5rem;
+    font-size: 0.875rem;
     font-weight: 600;
     color: var(--text-primary);
+    transition: all 0.3s ease;
 }
 
 .canvas-modal-title i {
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
+    transition: all 0.3s ease;
 }
 
 .canvas-modal-actions {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.25rem;
 }
 
 .canvas-btn {
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     border-radius: var(--radius-md);
-    background: var(--bg-secondary);
-    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     color: var(--text-secondary);
     cursor: pointer;
     transition: var(--transition);
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
 }
 
 .canvas-btn:hover {
-    background: var(--bg-elevated);
-    border-color: var(--border-light);
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
     color: var(--text-primary);
     transform: translateY(-1px);
 }
@@ -3916,8 +3957,9 @@ body.modal-open .app-container {
 }
 
 .canvas-btn i {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
+    transition: all 0.3s ease;
 }
 
 .canvas-modal-body {
@@ -3926,13 +3968,44 @@ body.modal-open .app-container {
     background: var(--bg-primary);
     overflow: hidden;
     border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+    
+    /* Ensure no transforms or filters affect iframe */
+    transform: none;
+    filter: none;
+    will-change: auto;
+    
+    /* Prevent any layout issues */
+    contain: layout style paint;
 }
 
 .canvas-iframe {
+    /* Full reset and isolation */
     width: 100%;
     height: 100%;
     border: none;
     border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+    
+    /* Reset CSS inheritance */
+    margin: 0;
+    padding: 0;
+    outline: none;
+    
+    /* Prevent parent styles from affecting iframe content */
+    box-sizing: border-box;
+    
+    /* Ensure proper rendering */
+    display: block;
+    background: #ffffff;
+    
+    /* Prevent any transforms or filters from parent */
+    transform: none;
+    filter: none;
+    
+    /* Ensure iframe takes full space */
+    overflow: hidden;
+    
+    /* Color scheme for iframe content (light mode default) */
+    color-scheme: light dark;
 }
 
 .canvas-iframe.hidden {

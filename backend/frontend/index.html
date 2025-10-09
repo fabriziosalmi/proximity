@@ -274,6 +274,9 @@
                         <span id="canvasAppName">Application</span>
                     </div>
                     <div class="canvas-modal-actions">
+                        <button class="canvas-btn" onclick="toggleCanvasHeader()" title="Minimize/Maximize header">
+                            <i data-lucide="minimize-2" id="canvasHeaderToggleIcon"></i>
+                        </button>
                         <button class="canvas-btn" onclick="openInNewTab()" title="Open in new tab">
                             <i data-lucide="external-link"></i>
                         </button>
@@ -303,8 +306,11 @@
                     <iframe 
                         id="canvasIframe" 
                         class="canvas-iframe hidden"
-                        sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals"
+                        sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals allow-popups-to-escape-sandbox allow-downloads allow-storage-access-by-user-activation"
                         referrerpolicy="no-referrer-when-downgrade"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                        loading="eager"
+                        importance="high"
                     ></iframe>
                 </div>
             </div>

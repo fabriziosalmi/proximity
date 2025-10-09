@@ -104,15 +104,20 @@ const Auth = {
     getToken() {
         // Ensure migration has happened
         this.migrateOldToken();
-        return localStorage.getItem(this.TOKEN_KEY);
+        const token = localStorage.getItem(this.TOKEN_KEY);
+        console.log('[Auth.getToken] Retrieved token:', token ? `${token.substring(0, 20)}... (${token.length} chars)` : 'NONE');
+        return token;
     },
     
     // Store token and user info
     setToken(token, user) {
+        console.log('[Auth.setToken] Storing token:', token ? `${token.substring(0, 20)}... (${token.length} chars)` : 'NONE');
+        console.log('[Auth.setToken] Storing user:', user ? user.username : 'NONE');
         localStorage.setItem(this.TOKEN_KEY, token);
         if (user) {
             localStorage.setItem(this.USER_KEY, JSON.stringify(user));
         }
+        console.log('[Auth.setToken] ✓ Token and user saved to localStorage');
     },
     
     // Get stored user info
@@ -152,6 +157,14 @@ const Auth = {
 
 // Enhanced fetch with authentication
 async function authFetch(url, options = {}) {
+    const token = Auth.getToken();
+    
+    console.log('[authFetch] Preparing request');
+    console.log('  • URL:', url);
+    console.log('  • Token present:', !!token);
+    console.log('  • Token (first 20 chars):', token ? token.substring(0, 20) + '...' : 'NONE');
+    console.log('  • Method:', options.method || 'GET');
+    
     const defaultOptions = {
         headers: Auth.getHeaders(),
         ...options
@@ -165,20 +178,19 @@ async function authFetch(url, options = {}) {
         };
     }
     
-    console.log('[authFetch] URL:', url);
-    console.log('[authFetch] Headers:', defaultOptions.headers);
-    console.log('[authFetch] Method:', options.method || 'GET');
-    
     try {
         const response = await fetch(url, defaultOptions);
         
-        console.log('[authFetch] Response status:', response.status);
+        console.log('[authFetch] Response received');
+        console.log('  • Status:', response.status);
+        console.log('  • OK:', response.ok);
         
         // Handle 401 Unauthorized
         if (response.status === 401) {
-            console.warn('[authFetch] 401 Unauthorized - redirecting to login');
+            console.error('[authFetch] ❌ 401 Unauthorized');
             const responseText = await response.text();
-            console.error('[authFetch] 401 Response body:', responseText);
+            console.error('  • Response body:', responseText);
+            console.warn('  • Logging out and showing login modal');
             Auth.logout();
             showLoginModal();
             throw new Error('Authentication required');
@@ -194,6 +206,7 @@ async function authFetch(url, options = {}) {
         throw error;
     }
 }
+
 
 // Update user info in sidebar
 function updateUserInfo() {
@@ -448,8 +461,23 @@ function createAppCard(app, isDeployed = false) {
         
         console.log('Rendering deployed app:', app.name, 'URL:', app.url, 'Parsed URL:', appUrl);
         
+        // Prepare app data for canvas click
+        const appDataForCanvas = JSON.stringify({
+            id: app.id,
+            name: app.name,
+            hostname: app.hostname,
+            iframe_url: appUrl || app.url,
+            url: appUrl || app.url,
+            status: app.status
+        }).replace(/"/g, '&quot;');
+        
+        // Canvas click handler - only if app is running and has URL
+        const canvasClickHandler = (isRunning && appUrl) 
+            ? `onclick="if(event.target.closest('.action-icon, .connection-link')) return; openCanvas(${appDataForCanvas})" style="cursor: pointer;" title="Click to open in canvas"`
+            : 'style="cursor: default;" title="App must be running to open in canvas"';
+        
         return `
-            <div class="app-card deployed">
+            <div class="app-card deployed" ${canvasClickHandler}>
                 <!-- Line 1: Icon, Name, Quick Actions -->
                 <div class="app-card-header">
                     <div class="app-icon-lg">${icon}</div>
@@ -459,43 +487,43 @@ function createAppCard(app, isDeployed = false) {
                     
                     <!-- Quick Actions in header -->
                     <div class="app-quick-actions">
-                        <button class="action-icon" title="${isRunning ? 'Stop' : 'Start'}" onclick="controlApp('${app.id}', '${isRunning ? 'stop' : 'start'}')">
+                        <button class="action-icon" title="${isRunning ? 'Stop' : 'Start'}" onclick="event.stopPropagation(); controlApp('${app.id}', '${isRunning ? 'stop' : 'start'}')">
                             <i data-lucide="${isRunning ? 'pause' : 'play'}"></i>
                         </button>
-                        <button class="action-icon" title="Open in new tab" ${isRunning && appUrl ? '' : 'disabled'} onclick="${appUrl ? `window.open('${appUrl}', '_blank')` : 'return false;'}">
+                        <button class="action-icon" title="Open in new tab" ${isRunning && appUrl ? '' : 'disabled'} onclick="event.stopPropagation(); ${appUrl ? `window.open('${appUrl}', '_blank')` : 'return false;'}">
                             <i data-lucide="external-link"></i>
                         </button>
-                        <button class="action-icon" title="View logs" onclick="showAppLogs('${app.id}', '${app.hostname}')">
+                        <button class="action-icon" title="View logs" onclick="event.stopPropagation(); showAppLogs('${app.id}', '${app.hostname}')">
                             <i data-lucide="file-text"></i>
                         </button>
-                        <button class="action-icon" title="Console" onclick="showAppConsole('${app.id}', '${app.hostname}')">
+                        <button class="action-icon" title="Console" onclick="event.stopPropagation(); showAppConsole('${app.id}', '${app.hostname}')">
                             <i data-lucide="terminal"></i>
                         </button>
-                        <button class="action-icon" title="Backups" onclick="showBackupModal('${app.id}')">
+                        <button class="action-icon" title="Backups" onclick="event.stopPropagation(); showBackupModal('${app.id}')">
                             <i data-lucide="database"></i>
                         </button>
-                        <button class="action-icon" title="Update Application" onclick="showUpdateModal('${app.id}')">
+                        <button class="action-icon" title="Update Application" onclick="event.stopPropagation(); showUpdateModal('${app.id}')">
                             <i data-lucide="arrow-up-circle"></i>
                         </button>
-                        <button class="action-icon" title="View Volumes" onclick="showAppVolumes('${app.id}')">
+                        <button class="action-icon" title="View Volumes" onclick="event.stopPropagation(); showAppVolumes('${app.id}')">
                             <i data-lucide="hard-drive"></i>
                         </button>
-                        <button class="action-icon" title="Monitoring" onclick="showMonitoringModal('${app.id}', '${app.name}')">
+                        <button class="action-icon" title="Monitoring" onclick="event.stopPropagation(); showMonitoringModal('${app.id}', '${app.name}')">
                             <i data-lucide="activity"></i>
                         </button>
-                        ${app.iframe_url ? `<button class="action-icon" title="Open in Canvas" onclick="event.stopPropagation(); openCanvas(${JSON.stringify(app).replace(/"/g, '&quot;')})">
+                        ${app.iframe_url ? `<button class="action-icon" title="Open in Canvas" onclick="event.stopPropagation(); openCanvas(${appDataForCanvas})">
                             <i data-lucide="monitor"></i>
                         </button>` : ''}
-                        <button class="action-icon" title="${isRunning ? 'Restart' : 'Start'}" onclick="controlApp('${app.id}', '${isRunning ? 'restart' : 'start'}')">
+                        <button class="action-icon" title="${isRunning ? 'Restart' : 'Start'}" onclick="event.stopPropagation(); controlApp('${app.id}', '${isRunning ? 'restart' : 'start'}')">
                             <i data-lucide="refresh-cw"></i>
                         </button>
-                        <button class="action-icon pro-feature" title="Clone App" onclick="showCloneModal('${app.id}', '${app.name}')">
+                        <button class="action-icon pro-feature" title="Clone App" onclick="event.stopPropagation(); showCloneModal('${app.id}', '${app.name}')">
                             <i data-lucide="copy"></i>
                         </button>
-                        <button class="action-icon pro-feature" title="Edit Resources" onclick="showEditConfigModal('${app.id}', '${app.name}')">
+                        <button class="action-icon pro-feature" title="Edit Resources" onclick="event.stopPropagation(); showEditConfigModal('${app.id}', '${app.name}')">
                             <i data-lucide="sliders"></i>
                         </button>
-                        <button class="action-icon danger" title="Delete" onclick="confirmDeleteApp('${app.id}', '${app.name}')">
+                        <button class="action-icon danger" title="Delete" onclick="event.stopPropagation(); confirmDeleteApp('${app.id}', '${app.name}')">
                             <i data-lucide="trash-2"></i>
                         </button>
                     </div>
@@ -511,7 +539,7 @@ function createAppCard(app, isDeployed = false) {
                     </div>
                     <div class="connection-item">
                         <i data-lucide="link" class="connection-icon"></i>
-                        ${appUrl ? `<a href="${appUrl}" target="_blank" class="connection-value connection-link" ${isRunning ? '' : 'style="opacity: 0.5; pointer-events: none;"'}>
+                        ${appUrl ? `<a href="${appUrl}" target="_blank" class="connection-value connection-link" onclick="event.stopPropagation();" ${isRunning ? '' : 'style="opacity: 0.5; pointer-events: none;"'}>
                             ${displayUrl}
                         </a>` : `<span class="connection-value" style="opacity: 0.5;">IP not available</span>`}
                     </div>
@@ -4709,17 +4737,51 @@ function openCanvas(app) {
     error.classList.add('hidden');
     loading.classList.remove('hidden');
     
-    // Show modal
-    modal.classList.add('show');
-    document.body.classList.add('modal-open');
+    // Reset iframe completely before loading new content
+    iframe.src = 'about:blank';
     
-    // Load iframe
-    iframe.src = app.iframe_url;
+    // Wait a moment then load the actual URL
+    setTimeout(() => {
+        // Show modal
+        modal.classList.add('show');
+        document.body.classList.add('modal-open');
+        
+        // Load iframe with the app URL
+        iframe.src = app.iframe_url;
+    }, 50);
     
     // Handle iframe load events
     const onLoad = () => {
         loading.classList.add('hidden');
         iframe.classList.remove('hidden');
+        
+        // Try to inject CSS reset if same-origin (will fail silently for cross-origin)
+        try {
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+            if (iframeDoc && iframeDoc.body) {
+                // Inject CSS reset into iframe to prevent parent styles from leaking
+                const style = iframeDoc.createElement('style');
+                style.textContent = `
+                    /* Reset any inherited styles from parent */
+                    html, body {
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        width: 100% !important;
+                        height: 100% !important;
+                        overflow: auto !important;
+                        box-sizing: border-box !important;
+                    }
+                    body {
+                        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+                    }
+                `;
+                iframeDoc.head.appendChild(style);
+            }
+        } catch (e) {
+            // Cross-origin - can't access iframe content, which is fine
+            console.log('[Canvas] Cross-origin iframe - CSS reset not applied (expected)');
+        }
+        
         iframe.removeEventListener('load', onLoad);
         iframe.removeEventListener('error', onError);
     };
@@ -4768,6 +4830,12 @@ function openCanvas(app) {
 function closeCanvas() {
     const modal = document.getElementById('canvasModal');
     const iframe = document.getElementById('canvasIframe');
+    const header = document.querySelector('.canvas-modal-header');
+    
+    // Reset header state
+    if (header) {
+        header.classList.remove('minimized');
+    }
     
     // Hide modal
     modal.classList.remove('show');
@@ -4778,6 +4846,28 @@ function closeCanvas() {
         iframe.src = '';
         currentCanvasApp = null;
     }, 300);
+}
+
+/**
+ * Toggle canvas header between minimized and normal state
+ */
+function toggleCanvasHeader() {
+    const header = document.querySelector('.canvas-modal-header');
+    const icon = document.getElementById('canvasHeaderToggleIcon');
+    
+    if (header && icon) {
+        const isMinimized = header.classList.toggle('minimized');
+        
+        // Update icon
+        if (isMinimized) {
+            icon.setAttribute('data-lucide', 'maximize-2');
+        } else {
+            icon.setAttribute('data-lucide', 'minimize-2');
+        }
+        
+        // Reinitialize icons
+        lucide.createIcons();
+    }
 }
 
 /**
