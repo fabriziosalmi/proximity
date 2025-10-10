@@ -389,17 +389,36 @@ function updateUI() {
 }
 
 function updateStats() {
-    // Update basic stats (only if systemInfo is available)
+    // Update hero stats
+    updateHeroStats();
+}
+
+function updateHeroStats() {
+    // Update hero section stats
+    const heroAppsCount = document.getElementById('heroAppsCount');
+    const heroNodesCount = document.getElementById('heroNodesCount');
+    const heroContainersCount = document.getElementById('heroContainersCount');
+
+    if (heroAppsCount) {
+        const totalApps = state.deployedApps.length;
+        heroAppsCount.textContent = totalApps;
+    }
+
+    if (heroNodesCount) {
+        const activeNodes = state.nodes.filter(n => n.status === 'online').length;
+        heroNodesCount.textContent = activeNodes;
+    }
+
+    if (heroContainersCount) {
+        const runningContainers = state.deployedApps.filter(a => a.status === 'running').length;
+        heroContainersCount.textContent = runningContainers;
+    }
+}
+
+
+function oldUpdateStats() {
+    // Legacy function - kept for compatibility
     if (state.systemInfo) {
-        const statTotalApps = document.getElementById('statTotalApps');
-        const statRunningApps = document.getElementById('statRunningApps');
-        const statNodes = document.getElementById('statNodes');
-        const statResources = document.getElementById('statResources');
-        
-        if (statTotalApps) statTotalApps.textContent = state.systemInfo.total_apps || 0;
-        if (statRunningApps) statRunningApps.textContent = state.systemInfo.running_apps || 0;
-        if (statNodes) statNodes.textContent = state.systemInfo.nodes?.length || 0;
-        
         // Calculate resource usage
         if (state.systemInfo.nodes && state.systemInfo.nodes.length > 0 && statResources) {
             const totalMem = state.systemInfo.nodes.reduce((sum, n) => sum + (n.maxmem || 0), 0);
@@ -426,29 +445,72 @@ function updateAppsCount() {
 }
 
 function updateRecentApps() {
-    const container = document.getElementById('recentApps');
-    
+    const container = document.getElementById('quickApps');
+
+    if (!container) return;
+
     if (state.deployedApps.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
-                <div class="empty-icon">📦</div>
+                <div class="empty-icon">
+                    <i data-lucide="package" style="width: 48px; height: 48px;"></i>
+                </div>
                 <h3 class="empty-title">No applications yet</h3>
                 <p class="empty-message">Deploy your first application from the catalog to get started.</p>
                 <button class="btn btn-primary" onclick="showView('catalog')">Browse Catalog</button>
             </div>
         `;
+        initLucideIcons();
         return;
     }
-    
-    // Show last 3 apps
-    const recentApps = state.deployedApps.slice(-3).reverse();
-    container.innerHTML = recentApps.map(app => createAppCard(app, true)).join('');
-    
+
+    // Show all apps as quick access icons
+    container.innerHTML = state.deployedApps.map(app => {
+        const isRunning = app.status === 'running';
+        const appUrl = (app.url && app.url !== 'None' && app.url !== 'null') ? app.url : null;
+
+        // Get icon
+        let icon = getAppIcon(app.name || app.id);
+        if (app.icon) {
+            const escapedFallback = typeof icon === 'string' ? icon.replace(/'/g, "&#39;").replace(/"/g, "&quot;") : icon;
+            icon = `<img
+                src="${app.icon}"
+                alt="${app.name}"
+                style="width: 100%; height: 100%; object-fit: contain;"
+                onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '${escapedFallback}');"
+            />`;
+        }
+
+        // Prepare app data for canvas click
+        const appDataForCanvas = JSON.stringify({
+            id: app.id,
+            name: app.name,
+            hostname: app.hostname,
+            iframe_url: appUrl || app.url,
+            url: appUrl || app.url,
+            status: app.status
+        }).replace(/"/g, '&quot;');
+
+        // Click handler
+        const clickHandler = (isRunning && appUrl)
+            ? `onclick="openCanvas(${appDataForCanvas})" style="cursor: pointer;"`
+            : `onclick="showView('apps')" style="cursor: pointer;"`;
+
+        return `
+            <div class="quick-app-item ${isRunning ? 'running' : 'stopped'}"
+                 ${clickHandler}
+                 title="${app.name || app.hostname} - ${isRunning ? 'Click to open' : 'Not running'}">
+                <div class="quick-app-icon">
+                    ${icon}
+                </div>
+                <div class="quick-app-status ${isRunning ? 'running' : 'stopped'}"></div>
+                <div class="quick-app-name">${app.name || app.hostname}</div>
+            </div>
+        `;
+    }).join('');
+
     // Reinitialize Lucide icons
     initLucideIcons();
-    
-    // Add hover sounds to recent app cards
-    attachCardHoverSounds();
 }
 
 function createAppCard(app, isDeployed = false) {
@@ -992,9 +1054,9 @@ async function renderNodesView() {
         ` : ''}
 
         <!-- Proxmox Nodes -->
-        <div class="apps-grid">
+        <div class="apps-grid deployed">
             ${state.nodes.map(node => `
-                    <div class="app-card">
+                    <div class="app-card deployed">
                         <div class="app-card-header">
                             <div class="app-icon-lg">🖥️</div>
                             <div class="app-info">
@@ -1005,24 +1067,24 @@ async function renderNodesView() {
                                 </span>
                             </div>
                         </div>
-                        <div class="app-meta">
-                            <div class="app-meta-item">
-                                <span>💾</span>
-                                <span>${formatBytes(node.mem || 0)} / ${formatBytes(node.maxmem || 0)}</span>
+
+                        <!-- Resource Usage -->
+                        <div class="app-connection-info">
+                            <div class="connection-item">
+                                <i data-lucide="cpu" class="connection-icon"></i>
+                                <span class="connection-value">${node.maxcpu || 0} vCPU (${node.maxcpu > 0 ? Math.round((node.cpu / node.maxcpu) * 100) : 0}% used)</span>
                             </div>
-                            <div class="app-meta-item">
-                                <span>⚡</span>
-                                <span>${node.maxcpu || 0} vCPU</span>
+                            <div class="connection-item">
+                                <i data-lucide="memory-stick" class="connection-icon"></i>
+                                <span class="connection-value">${formatBytes(node.mem || 0)} / ${formatBytes(node.maxmem || 0)} RAM</span>
                             </div>
-                        </div>
-                        <div class="app-meta">
-                            <div class="app-meta-item">
-                                <span>📊</span>
-                                <span>${node.maxcpu > 0 ? Math.round((node.cpu / node.maxcpu) * 100) : 0}% CPU</span>
+                            <div class="connection-item">
+                                <i data-lucide="hard-drive" class="connection-icon"></i>
+                                <span class="connection-value">${formatBytes(node.disk || 0)} / ${formatBytes(node.maxdisk || 0)} Disk</span>
                             </div>
-                            <div class="app-meta-item">
-                                <span>💿</span>
-                                <span>${formatBytes(node.disk || 0)} / ${formatBytes(node.maxdisk || 0)}</span>
+                            <div class="connection-item">
+                                <i data-lucide="activity" class="connection-icon"></i>
+                                <span class="connection-value">Uptime: ${node.uptime ? formatUptime(node.uptime) : 'N/A'}</span>
                             </div>
                         </div>
                     </div>
@@ -1039,58 +1101,165 @@ async function renderNodesView() {
 
 function renderMonitoringView() {
     const view = document.getElementById('monitoringView');
-    
+
+    // Calculate statistics for Applications Summary
+    const totalApps = state.deployedApps.length;
+
     const content = `
-        <div class="stats-compact-card">
-            <div class="stat-item">
-                <div class="stat-icon primary">
-                    <i data-lucide="package"></i>
+        <!-- Node-by-Node Breakdown -->
+        ${state.nodes.length > 0 ? `
+        <div class="monitor-section">
+            <h2 class="monitor-section-title">
+                <i data-lucide="server"></i>
+                Node Resource Breakdown
+            </h2>
+            ${state.nodes.map(node => {
+                const nodeCpuPercent = node.maxcpu > 0 ? Math.round((node.cpu / node.maxcpu) * 100) : 0;
+                const nodeRamPercent = node.maxmem > 0 ? Math.round((node.mem / node.maxmem) * 100) : 0;
+                const nodeDiskPercent = node.maxdisk > 0 ? Math.round((node.disk / node.maxdisk) * 100) : 0;
+
+                return `
+                <div class="node-monitor-card">
+                    <div class="node-monitor-header">
+                        <div class="node-monitor-title">
+                            <i data-lucide="server"></i>
+                            <h3>${node.node}</h3>
+                            <span class="status-badge ${node.status === 'online' ? 'running' : 'stopped'}">
+                                <span class="status-dot"></span>
+                                ${node.status}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="node-monitor-resources">
+                        <!-- CPU -->
+                        <div class="node-resource">
+                            <div class="node-resource-header">
+                                <span class="node-resource-label">
+                                    <i data-lucide="cpu"></i>
+                                    CPU
+                                </span>
+                                <span class="node-resource-value">${nodeCpuPercent}%</span>
+                            </div>
+                            <div class="monitor-bar-container">
+                                <div class="monitor-bar small">
+                                    <div class="monitor-bar-fill ${nodeCpuPercent >= 80 ? 'critical' : nodeCpuPercent >= 60 ? 'warning' : 'normal'}"
+                                         style="width: ${nodeCpuPercent}%"></div>
+                                </div>
+                            </div>
+                            <div class="node-resource-details">
+                                ${node.cpu?.toFixed(2) || 0} / ${node.maxcpu || 0} cores
+                            </div>
+                        </div>
+
+                        <!-- RAM -->
+                        <div class="node-resource">
+                            <div class="node-resource-header">
+                                <span class="node-resource-label">
+                                    <i data-lucide="memory-stick"></i>
+                                    RAM
+                                </span>
+                                <span class="node-resource-value">${nodeRamPercent}%</span>
+                            </div>
+                            <div class="monitor-bar-container">
+                                <div class="monitor-bar small">
+                                    <div class="monitor-bar-fill ${nodeRamPercent >= 80 ? 'critical' : nodeRamPercent >= 60 ? 'warning' : 'normal'}"
+                                         style="width: ${nodeRamPercent}%"></div>
+                                </div>
+                            </div>
+                            <div class="node-resource-details">
+                                ${formatBytes(node.mem || 0)} / ${formatBytes(node.maxmem || 0)}
+                            </div>
+                        </div>
+
+                        <!-- Disk -->
+                        <div class="node-resource">
+                            <div class="node-resource-header">
+                                <span class="node-resource-label">
+                                    <i data-lucide="hard-drive"></i>
+                                    Storage
+                                </span>
+                                <span class="node-resource-value">${nodeDiskPercent}%</span>
+                            </div>
+                            <div class="monitor-bar-container">
+                                <div class="monitor-bar small">
+                                    <div class="monitor-bar-fill ${nodeDiskPercent >= 80 ? 'critical' : nodeDiskPercent >= 60 ? 'warning' : 'normal'}"
+                                         style="width: ${nodeDiskPercent}%"></div>
+                                </div>
+                            </div>
+                            <div class="node-resource-details">
+                                ${formatBytes(node.disk || 0)} / ${formatBytes(node.maxdisk || 0)}
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="stat-info">
-                    <span class="stat-label">Total Applications</span>
-                    <span class="stat-value">${state.deployedApps.length}</span>
-                </div>
-            </div>
-            
-            <div class="stat-divider"></div>
-            
-            <div class="stat-item">
-                <div class="stat-icon success">
-                    <i data-lucide="check-circle"></i>
-                </div>
-                <div class="stat-info">
-                    <span class="stat-label">Running</span>
-                    <span class="stat-value">${state.deployedApps.filter(a => a.status === 'running').length}</span>
-                </div>
-            </div>
-            
-            <div class="stat-divider"></div>
-            
-            <div class="stat-item">
-                <div class="stat-icon warning">
-                    <i data-lucide="pause"></i>
-                </div>
-                <div class="stat-info">
-                    <span class="stat-label">Stopped</span>
-                    <span class="stat-value">${state.deployedApps.filter(a => a.status === 'stopped').length}</span>
-                </div>
-            </div>
-            
-            <div class="stat-divider"></div>
-            
-            <div class="stat-item">
-                <div class="stat-icon info">
-                    <i data-lucide="server"></i>
-                </div>
-                <div class="stat-info">
-                    <span class="stat-label">Containers</span>
-                    <span class="stat-value">${state.systemInfo?.total_lxc || 0}</span>
-                </div>
+                `;
+            }).join('')}
+        </div>
+        ` : ''}
+
+        <!-- Applications Summary Table -->
+        ${totalApps > 0 ? `
+        <div class="monitor-section">
+            <h2 class="monitor-section-title">
+                <i data-lucide="package"></i>
+                Application Resources
+            </h2>
+            <div class="monitor-table-container">
+                <table class="monitor-table">
+                    <thead>
+                        <tr>
+                            <th>Application</th>
+                            <th>Status</th>
+                            <th>Node</th>
+                            <th>CPU</th>
+                            <th>RAM</th>
+                            <th>Disk</th>
+                            <th>IP Address</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${state.deployedApps.map(app => `
+                            <tr>
+                                <td>
+                                    <div class="table-app-name">
+                                        <span class="table-app-icon">${app.icon || '📦'}</span>
+                                        <strong>${app.name || app.hostname}</strong>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status-badge ${app.status === 'running' ? 'running' : 'stopped'}">
+                                        <span class="status-dot"></span>
+                                        ${app.status || 'unknown'}
+                                    </span>
+                                </td>
+                                <td><code>${app.node || 'N/A'}</code></td>
+                                <td>${app.cores || app.cpu || 'N/A'}</td>
+                                <td>${app.memory ? (app.memory + ' MB') : 'N/A'}</td>
+                                <td>${app.disk || 'N/A'} GB</td>
+                                <td><code>${app.ip || 'N/A'}</code></td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
             </div>
         </div>
+        ` : `
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i data-lucide="activity" style="width: 48px; height: 48px;"></i>
+            </div>
+            <h3 class="empty-title">No applications to monitor</h3>
+            <p class="empty-message">Deploy applications to see monitoring data here.</p>
+            <button class="btn btn-primary" onclick="showView('catalog')">Browse Catalog</button>
+        </div>
+        `}
     `;
-    
+
     view.innerHTML = content;
+
+    // Initialize icons
+    initLucideIcons();
 }
 
 async function renderSettingsView() {
@@ -1181,6 +1350,10 @@ async function renderSettingsView() {
             <button class="settings-tab" data-tab="system">
                 <i data-lucide="settings"></i>
                 <span>System</span>
+            </button>
+            <button class="settings-tab" data-tab="audio">
+                <i data-lucide="volume-2"></i>
+                <span>Audio</span>
             </button>
         </div>
 
@@ -1423,6 +1596,117 @@ async function renderSettingsView() {
                         <div class="alert-content">
                             <div class="alert-title">Authentication Enabled</div>
                             <div class="alert-message">All API endpoints are protected with JWT authentication. Sensitive data is encrypted at rest.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Audio Settings -->
+            <div class="settings-panel" id="audio-panel">
+                <div class="app-card">
+                    <h3 class="app-name" style="margin-bottom: 1.5rem;">
+                        <i data-lucide="volume-2" style="width: 20px; height: 20px; margin-right: 0.5rem;"></i>
+                        Audio Settings
+                    </h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Configure sound effects and volume levels for the application</p>
+
+                    <form id="audioForm" class="settings-form">
+                        <!-- Master Volume Control -->
+                        <div class="form-group">
+                            <label class="form-label">Master Volume</label>
+                            <div class="volume-slider-wrapper" style="margin-top: 0.75rem;">
+                                <i data-lucide="volume-1" style="width: 18px; height: 18px; color: var(--text-secondary);"></i>
+                                <input type="range" min="0" max="100" value="${Math.round((window.SoundService?.getVolume() || 0.7) * 100)}"
+                                       class="volume-slider" id="settingsVolumeSlider" style="flex: 1;">
+                                <span class="volume-value" id="settingsVolumeValue">${Math.round((window.SoundService?.getVolume() || 0.7) * 100)}%</span>
+                            </div>
+                            <small class="form-help">Adjust the volume of all sound effects (0-100%)</small>
+                        </div>
+
+                        <!-- Mute Toggle -->
+                        <div class="form-group">
+                            <label class="form-checkbox">
+                                <input type="checkbox" id="settingsMuteToggle" ${window.SoundService?.getMute() ? 'checked' : ''}>
+                                <span>Mute All Sounds</span>
+                            </label>
+                            <small class="form-help">Disable all audio feedback throughout the application</small>
+                        </div>
+
+                        <!-- Audio Presets -->
+                        <div class="form-group">
+                            <label class="form-label">Audio Preset</label>
+                            <div class="preset-buttons" style="display: flex; gap: 0.75rem; margin-top: 0.75rem;">
+                                <button type="button" class="preset-btn ${(window.SoundService?.getPreset() || 'standard') === 'minimal' ? 'active' : ''}"
+                                        data-preset="minimal" style="flex: 1;">
+                                    <i data-lucide="volume-1" style="width: 16px; height: 16px;"></i>
+                                    <span>Minimal</span>
+                                    <small style="display: block; margin-top: 0.25rem; font-size: 0.7rem; opacity: 0.7;">30%</small>
+                                </button>
+                                <button type="button" class="preset-btn ${(window.SoundService?.getPreset() || 'standard') === 'standard' ? 'active' : ''}"
+                                        data-preset="standard" style="flex: 1;">
+                                    <i data-lucide="volume-2" style="width: 16px; height: 16px;"></i>
+                                    <span>Standard</span>
+                                    <small style="display: block; margin-top: 0.25rem; font-size: 0.7rem; opacity: 0.7;">70%</small>
+                                </button>
+                                <button type="button" class="preset-btn ${(window.SoundService?.getPreset() || 'standard') === 'immersive' ? 'active' : ''}"
+                                        data-preset="immersive" style="flex: 1;">
+                                    <i data-lucide="volume" style="width: 16px; height: 16px;"></i>
+                                    <span>Immersive</span>
+                                    <small style="display: block; margin-top: 0.25rem; font-size: 0.7rem; opacity: 0.7;">100%</small>
+                                </button>
+                            </div>
+                            <small class="form-help">Quick presets for different listening environments</small>
+                        </div>
+
+                        <!-- Test Sound Button -->
+                        <div class="form-group">
+                            <button type="button" class="btn btn-secondary" id="testSoundBtn" style="width: 100%;">
+                                <i data-lucide="play-circle"></i>
+                                <span>Test Sound</span>
+                            </button>
+                            <small class="form-help">Play a test sound to preview current volume settings</small>
+                        </div>
+
+                        <div class="alert info" style="margin-top: 1.5rem;">
+                            <span class="alert-icon">ℹ️</span>
+                            <div class="alert-content">
+                                <div class="alert-message">Audio settings are saved automatically and persist across sessions.</div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Sound Effects Info -->
+                <div class="app-card" style="margin-top: 1.5rem;">
+                    <h3 class="app-name" style="margin-bottom: 1.5rem;">Available Sound Effects</h3>
+                    <div class="app-meta">
+                        <div class="app-meta-item">
+                            <span>✅</span>
+                            <span>Success notifications</span>
+                        </div>
+                        <div class="app-meta-item">
+                            <span>❌</span>
+                            <span>Error alerts</span>
+                        </div>
+                    </div>
+                    <div class="app-meta" style="margin-top: 1rem;">
+                        <div class="app-meta-item">
+                            <span>🔔</span>
+                            <span>General notifications</span>
+                        </div>
+                        <div class="app-meta-item">
+                            <span>👆</span>
+                            <span>Click feedback</span>
+                        </div>
+                    </div>
+                    <div class="app-meta" style="margin-top: 1rem;">
+                        <div class="app-meta-item">
+                            <span>🚀</span>
+                            <span>Deployment events</span>
+                        </div>
+                        <div class="app-meta-item">
+                            <span>💥</span>
+                            <span>Completion sounds</span>
                         </div>
                     </div>
                 </div>
@@ -3032,6 +3316,92 @@ function setupSettingsForms() {
         resourcesForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             await saveResourceSettings(new FormData(resourcesForm));
+        });
+    }
+
+    // Audio settings
+    setupAudioSettings();
+}
+
+function setupAudioSettings() {
+    if (!window.SoundService) {
+        console.warn('SoundService not available');
+        return;
+    }
+
+    // Volume slider
+    const volumeSlider = document.getElementById('settingsVolumeSlider');
+    const volumeValue = document.getElementById('settingsVolumeValue');
+    if (volumeSlider && volumeValue) {
+        volumeSlider.addEventListener('input', (e) => {
+            const volume = parseInt(e.target.value) / 100;
+            window.SoundService.setVolume(volume);
+            volumeValue.textContent = `${e.target.value}%`;
+        });
+
+        // Test sound on release
+        volumeSlider.addEventListener('change', () => {
+            if (!window.SoundService.getMute()) {
+                window.SoundService.play('click');
+            }
+        });
+    }
+
+    // Mute toggle
+    const muteToggle = document.getElementById('settingsMuteToggle');
+    if (muteToggle) {
+        muteToggle.addEventListener('change', (e) => {
+            window.SoundService.setMute(e.target.checked);
+
+            // Update sound button in top nav
+            const soundBtn = document.getElementById('soundToggleBtn');
+            const soundIcon = document.getElementById('soundIcon');
+            if (soundBtn && soundIcon && window.updateSoundButton) {
+                window.updateSoundButton(soundBtn, soundIcon);
+            }
+        });
+    }
+
+    // Preset buttons
+    const presetButtons = document.querySelectorAll('#audio-panel .preset-btn');
+    presetButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const preset = btn.dataset.preset;
+            window.SoundService.applyPreset(preset);
+
+            // Update active state
+            presetButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // Update slider
+            if (volumeSlider && volumeValue) {
+                const newVolume = Math.round(window.SoundService.getVolume() * 100);
+                volumeSlider.value = newVolume;
+                volumeValue.textContent = `${newVolume}%`;
+            }
+
+            // Test sound
+            if (!window.SoundService.getMute()) {
+                window.SoundService.play('notification');
+            }
+        });
+    });
+
+    // Test sound button
+    const testSoundBtn = document.getElementById('testSoundBtn');
+    if (testSoundBtn) {
+        testSoundBtn.addEventListener('click', () => {
+            if (window.SoundService.getMute()) {
+                // Temporarily unmute for test
+                window.SoundService.setMute(false);
+                window.SoundService.play('success');
+                setTimeout(() => {
+                    window.SoundService.setMute(true);
+                    if (muteToggle) muteToggle.checked = true;
+                }, 1000);
+            } else {
+                window.SoundService.play('success');
+            }
         });
     }
 }
