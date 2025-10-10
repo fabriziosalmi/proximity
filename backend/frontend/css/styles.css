@@ -6270,3 +6270,366 @@ body.pro-mode .pro-feature.inline-flex {
         font-size: 0.8125rem;
     }
 }
+
+/* ============================================
+   TOAST NOTIFICATIONS SYSTEM
+   ============================================ */
+
+/* Toast Container - Fixed in top-right corner */
+.toast-container {
+    position: fixed;
+    top: 80px; /* Below top nav */
+    right: 1.5rem;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-width: 420px;
+    pointer-events: none; /* Allow clicks through container */
+}
+
+/* Individual Toast */
+.toast {
+    pointer-events: all; /* Re-enable clicks on toast itself */
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.95));
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    box-shadow:
+        0 20px 25px -5px rgba(0, 0, 0, 0.5),
+        0 10px 10px -5px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: flex-start;
+    gap: 0.875rem;
+    min-width: 320px;
+    max-width: 420px;
+    position: relative;
+    overflow: hidden;
+    transform-origin: right top;
+
+    /* Entry animation */
+    animation: toastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Exit animation */
+.toast.toast-exit {
+    animation: toastSlideOut 0.2s cubic-bezier(0.5, 0, 1, 1) forwards;
+}
+
+/* Toast Animations */
+@keyframes toastSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(100%) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+@keyframes toastSlideOut {
+    from {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(120%) scale(0.95);
+    }
+}
+
+/* Toast Icon */
+.toast-icon {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 1rem;
+}
+
+/* Toast Content */
+.toast-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding-right: 1.5rem; /* Space for close button */
+}
+
+.toast-title {
+    font-weight: 600;
+    font-size: 0.9375rem;
+    line-height: 1.3;
+    color: var(--text-primary);
+}
+
+.toast-message {
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--text-secondary);
+}
+
+/* Toast Close Button */
+.toast-close {
+    position: absolute;
+    top: 0.875rem;
+    right: 0.875rem;
+    background: transparent;
+    border: none;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    padding: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: var(--transition);
+    width: 20px;
+    height: 20px;
+    font-size: 1.125rem;
+    line-height: 1;
+}
+
+.toast-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+/* Toast Types */
+
+/* Success Toast */
+.toast-success {
+    border-left: 4px solid var(--success);
+}
+
+.toast-success .toast-icon {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--success);
+}
+
+.toast-success::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    background: linear-gradient(90deg, rgba(16, 185, 129, 0.1), transparent);
+    pointer-events: none;
+}
+
+/* Error Toast */
+.toast-error {
+    border-left: 4px solid var(--danger);
+}
+
+.toast-error .toast-icon {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--danger);
+}
+
+.toast-error::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    background: linear-gradient(90deg, rgba(239, 68, 68, 0.1), transparent);
+    pointer-events: none;
+}
+
+/* Warning Toast */
+.toast-warning {
+    border-left: 4px solid var(--warning);
+}
+
+.toast-warning .toast-icon {
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--warning);
+}
+
+.toast-warning::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    background: linear-gradient(90deg, rgba(245, 158, 11, 0.1), transparent);
+    pointer-events: none;
+}
+
+/* Info Toast */
+.toast-info {
+    border-left: 4px solid var(--cyan-primary);
+}
+
+.toast-info .toast-icon {
+    background: rgba(6, 182, 212, 0.15);
+    color: var(--cyan-primary);
+}
+
+.toast-info::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    background: linear-gradient(90deg, rgba(6, 182, 212, 0.1), transparent);
+    pointer-events: none;
+}
+
+/* Progress Bar (optional for auto-dismiss) */
+.toast-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 0 0 12px 12px;
+    transform-origin: left;
+}
+
+.toast-success .toast-progress {
+    background: var(--success);
+}
+
+.toast-error .toast-progress {
+    background: var(--danger);
+}
+
+.toast-warning .toast-progress {
+    background: var(--warning);
+}
+
+.toast-info .toast-progress {
+    background: var(--cyan-primary);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .toast-container {
+        top: 70px;
+        right: 1rem;
+        left: 1rem;
+        max-width: none;
+    }
+
+    .toast {
+        min-width: auto;
+        max-width: none;
+    }
+
+    @keyframes toastSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-100%) scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    @keyframes toastSlideOut {
+        from {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        to {
+            opacity: 0;
+            transform: translateY(-120%) scale(0.95);
+        }
+    }
+}
+
+
+/* ============================================
+   FORM VALIDATION STYLES
+   ============================================ */
+
+/* Form Input States */
+.form-input.error {
+    border-color: var(--danger);
+    background: rgba(239, 68, 68, 0.05);
+}
+
+.form-input.error:focus {
+    border-color: var(--danger);
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.form-input.success {
+    border-color: var(--success);
+    background: rgba(16, 185, 129, 0.05);
+}
+
+.form-input.success:focus {
+    border-color: var(--success);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+/* Error Message */
+.form-error {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    padding: 0.625rem 0.875rem;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    color: var(--danger);
+    animation: errorSlideIn 0.2s ease-out;
+}
+
+.form-error i {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+}
+
+.form-error span {
+    flex: 1;
+}
+
+@keyframes errorSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Success Checkmark (optional visual enhancement) */
+.form-input.success::after {
+    /* Could add checkmark icon via pseudo-element if desired */
+}
+
+/* Form Group with Error */
+.form-group:has(.form-input.error) .form-label {
+    color: var(--danger);
+}
+
+.form-group:has(.form-input.success) .form-label {
+    color: var(--success);
+}
+
+/* Disabled state shouldn't show validation */
+.form-input:disabled.error,
+.form-input:disabled.success {
+    border-color: var(--border);
+    background: var(--bg-tertiary);
+}
+

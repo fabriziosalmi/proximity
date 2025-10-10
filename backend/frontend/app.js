@@ -276,10 +276,13 @@ async function init() {
         updateUI();
         setupEventListeners();
         hideLoading();
-        
+
         // Initialize Lucide icons
         initLucideIcons();
-        
+
+        // Initialize card hover sounds (event delegation - once for all cards)
+        initCardHoverSounds();
+
         console.log('✓ Proximity UI initialized successfully');
     } catch (error) {
         hideLoading();
@@ -813,9 +816,8 @@ function renderAppsView() {
     `;
     
     view.innerHTML = content;
-    
-    // Add hover sound effects to app cards
-    attachCardHoverSounds();
+
+    // Hover sounds are handled automatically via event delegation (initCardHoverSounds)
 }
 
 function renderCatalogView() {
@@ -860,9 +862,8 @@ function renderCatalogView() {
     `;
     
     view.innerHTML = content;
-    
-    // Add hover sound effects to app cards
-    attachCardHoverSounds();
+
+    // Hover sounds are handled automatically via event delegation (initCardHoverSounds)
 }
 
 async function renderNodesView() {
@@ -2633,87 +2634,58 @@ function hideLoading() {
     document.getElementById('loadingOverlay').classList.remove('show');
 }
 
-function showNotification(message, type = 'info') {
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.className = `toast-notification toast-${type}`;
-    
-    const icons = {
-        success: '✅',
-        error: '❌',
-        warning: '⚠️',
-        info: 'ℹ️'
-    };
-    
-    notification.innerHTML = `
-        <div class="toast-icon">${icons[type] || icons.info}</div>
-        <div class="toast-content">
-            <div class="toast-message">${message}</div>
-        </div>
-        <button class="toast-close" onclick="this.parentElement.remove()">✕</button>
-    `;
-    
-    // Add to document
-    let container = document.getElementById('toastContainer');
-    if (!container) {
-        container = document.createElement('div');
-        container.id = 'toastContainer';
-        container.className = 'toast-container';
-        document.body.appendChild(container);
-    }
-    
-    container.appendChild(notification);
-    
-    // Auto remove after 5 seconds
-    setTimeout(() => {
-        notification.style.animation = 'toastSlideOut 0.3s ease';
-        setTimeout(() => notification.remove(), 300);
-    }, 5000);
-    
-    // Log to console
-    console.log(`[${type.toUpperCase()}] ${message}`);
-    if (type === 'error') {
-        console.error(message);
-    }
+// showNotification is now provided by /js/notifications-global.js
+// Supports: showNotification(message, type, duration, title)
+// Helper functions: showSuccess(), showError(), showWarning(), showInfo()
+// All toast notifications are managed globally with proper animations and icons
+
+/**
+ * Initialize hover sound effects using event delegation
+ * This approach is more efficient and survives innerHTML updates
+ */
+let cardHoverSoundsInitialized = false;
+
+function initCardHoverSounds() {
+    if (cardHoverSoundsInitialized) return;
+
+    // Use event delegation on document body - works for all cards forever
+    const hoveredCards = new WeakSet();
+
+    document.body.addEventListener('mouseenter', async (e) => {
+        const card = e.target.closest('.app-card');
+        if (!card || hoveredCards.has(card)) return;
+
+        hoveredCards.add(card);
+
+        // Play click sound as a subtle tick
+        if (window.SoundService && window.SoundService.play) {
+            try {
+                await window.SoundService.play('click');
+            } catch (err) {
+                // Silently fail if sound can't play
+                console.debug('Card hover sound failed:', err);
+            }
+        }
+    }, true); // Use capture phase
+
+    document.body.addEventListener('mouseleave', (e) => {
+        const card = e.target.closest('.app-card');
+        if (card) {
+            hoveredCards.delete(card);
+        }
+    }, true);
+
+    cardHoverSoundsInitialized = true;
+    console.log('🎵 Card hover sounds initialized with event delegation');
 }
 
 /**
- * Attach hover sound effects to app cards
- * Creates a satisfying "tick" sound when hovering over cards
+ * @deprecated Use initCardHoverSounds() once at app startup instead
+ * Kept for backward compatibility
  */
 function attachCardHoverSounds() {
-    // Use setTimeout to ensure DOM is fully updated
-    setTimeout(() => {
-        const appCards = document.querySelectorAll('.app-card');
-        
-        appCards.forEach(card => {
-            // Track if we've already played sound for this hover
-            let hasPlayedSound = false;
-            
-            card.addEventListener('mouseenter', async () => {
-                // Only play once per hover
-                if (hasPlayedSound) return;
-                hasPlayedSound = true;
-                
-                // Play click sound as a subtle tick
-                if (window.SoundService && window.SoundService.play) {
-                    try {
-                        await window.SoundService.play('click');
-                    } catch (err) {
-                        // Silently fail if sound can't play
-                        console.debug('Card hover sound failed:', err);
-                    }
-                }
-            });
-            
-            // Reset flag when mouse leaves
-            card.addEventListener('mouseleave', () => {
-                hasPlayedSound = false;
-            });
-        });
-        
-        console.log(`🎵 Attached hover sounds to ${appCards.length} app cards`);
-    }, 100);
+    // No-op: event delegation handles this automatically now
+    console.debug('attachCardHoverSounds() called but using event delegation instead');
 }
 
 function filterApps(filter) {
@@ -2742,8 +2714,7 @@ function filterApps(filter) {
         grid.innerHTML = filtered.map(app => createAppCard(app, true)).join('');
         // Reinitialize Lucide icons after updating the DOM
         initLucideIcons();
-        // Add hover sounds to filtered cards
-        attachCardHoverSounds();
+        // Hover sounds handled automatically via event delegation
     }
 }
 
@@ -2762,9 +2733,8 @@ function filterCatalog(category) {
     
     const grid = document.getElementById('catalogGrid');
     grid.innerHTML = filtered.map(app => createAppCard(app, false)).join('');
-    
-    // Add hover sounds to filtered catalog cards
-    attachCardHoverSounds();
+
+    // Hover sounds handled automatically via event delegation
 }
 
 // Console and Logs Modal Functions
@@ -3360,6 +3330,13 @@ function setupSettingsTabs() {
 }
 
 function setupSettingsForms() {
+    // Initialize validation for all settings forms
+    if (typeof initFormValidation === 'function') {
+        initFormValidation('proxmoxForm');
+        initFormValidation('networkForm');
+        initFormValidation('resourcesForm');
+    }
+
     // Proxmox form
     const proxmoxForm = document.getElementById('proxmoxForm');
     if (proxmoxForm) {

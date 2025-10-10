@@ -8,8 +8,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..900&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="/css/styles.css?v=20251010-75">
-        <link rel="stylesheet" href="/css/top-nav-rack.css?v=20251010-69">    <!-- Xterm.js Terminal -->
+        <link rel="stylesheet" href="/css/styles.css?v=20251010-77">
+        <link rel="stylesheet" href="/css/top-nav-rack.css?v=20251010-69">
+        <link rel="stylesheet" href="/css/tablet-responsive.css?v=20251010-01">
+    <!-- Xterm.js Terminal -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
     <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
@@ -20,8 +22,14 @@
     <!-- Top Navigation Rack -->
     <script src="/js/top-nav-rack.js?v=20251009-18"></script>
 
+    <!-- Toast Notifications System -->
+    <script src="/js/notifications-global.js?v=20251010-01"></script>
+
+    <!-- Form Validation System -->
+    <script src="/js/validation-global.js?v=20251010-01"></script>
+
     <!-- Load legacy app.js first (non-module) -->
-    <script src="app.js?v=20251010-75"></script>
+    <script src="app.js?v=20251010-77"></script>
 
     <!-- Then load modular system (ES6 modules) -->
     <script src="js/main.js?v=20251009-51" type="module"></script>
@@ -227,6 +235,9 @@
         <div class="loading-spinner"></div>
         <div class="loading-text" id="loadingText">Loading...</div>
     </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container"></div>
 
         <!-- Auth Modal (Register/Login) -->
         <div id="authModal" class="modal">

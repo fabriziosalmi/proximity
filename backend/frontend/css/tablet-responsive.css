@@ -1,0 +1,561 @@
+/**
+ * Tablet Responsive Optimization (768px - 1024px)
+ *
+ * Provides first-class tablet experience with touch-optimized UI
+ * Breakpoint strategy:
+ * - Mobile: 0-767px
+ * - Tablet: 768px-1024px (THIS FILE)
+ * - Desktop: 1025px+
+ */
+
+/* ============================================
+   TABLET BREAKPOINT (768px - 1024px)
+   ============================================ */
+
+@media (min-width: 768px) and (max-width: 1024px) {
+
+    /* ==========================================
+       LAYOUT & CONTAINERS
+       ========================================== */
+
+    .content {
+        padding: 1.5rem;
+        max-width: 100%;
+    }
+
+    .main-content {
+        padding: 0;
+    }
+
+    /* ==========================================
+       HERO SECTION
+       ========================================== */
+
+    .hero-section {
+        padding: 2rem;
+        min-height: 380px;
+        flex-direction: column;
+    }
+
+    .hero-title {
+        font-size: 2.75rem;
+    }
+
+    .hero-description {
+        font-size: 0.9375rem;
+        line-height: 1.6;
+    }
+
+    .hero-stats {
+        gap: 1.5rem;
+        margin: 1.5rem 0;
+    }
+
+    .hero-stat-value {
+        font-size: 2.25rem;
+    }
+
+    .hero-stat-label {
+        font-size: 0.875rem;
+    }
+
+    .hero-actions {
+        gap: 1rem;
+    }
+
+    .hero-actions .btn-lg {
+        padding: 0.875rem 1.5rem;
+        font-size: 0.9375rem;
+    }
+
+    /* ==========================================
+       CARDS & GRIDS
+       ========================================== */
+
+    /* Apps Grid - 2 columns for tablet */
+    .apps-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.25rem;
+    }
+
+    /* Quick Apps - 2 rows of 4 */
+    .quick-apps-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+    }
+
+    .quick-app-item {
+        width: 100%;
+        height: 90px;
+    }
+
+    /* App Cards */
+    .app-card {
+        padding: 1.25rem;
+    }
+
+    .app-card-header {
+        flex-wrap: nowrap;
+        gap: 1rem;
+    }
+
+    .app-icon-lg {
+        width: 56px;
+        height: 56px;
+        font-size: 1.75rem;
+    }
+
+    .app-name {
+        font-size: 1.125rem;
+    }
+
+    /* ==========================================
+       TOP NAVIGATION
+       ========================================== */
+
+    .nav-rack-item {
+        min-width: 52px;
+        min-height: 52px;
+        padding: 1rem;
+        /* Touch-friendly size (52px > 44px minimum) */
+    }
+
+    .nav-rack-item i {
+        width: 22px;
+        height: 22px;
+    }
+
+    .nav-badge {
+        min-width: 20px;
+        height: 20px;
+        font-size: 0.6875rem;
+    }
+
+    .nav-logo {
+        padding: 0 1.25rem;
+    }
+
+    .logo-text {
+        font-size: 1.25rem;
+    }
+
+    /* ==========================================
+       SUB-NAVIGATION
+       ========================================== */
+
+    .sub-nav-bar {
+        padding: 0 1.5rem;
+        height: 56px;
+    }
+
+    .sub-nav-item {
+        padding: 0.875rem 1.25rem;
+        font-size: 0.875rem;
+        min-height: 48px; /* Touch target */
+        white-space: nowrap;
+    }
+
+    .sub-nav-items {
+        gap: 0.5rem;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Hide scrollbar but keep functionality */
+    .sub-nav-items::-webkit-scrollbar {
+        height: 4px;
+    }
+
+    /* ==========================================
+       BUTTONS & INTERACTIVE ELEMENTS
+       ========================================== */
+
+    .btn {
+        min-height: 44px; /* iOS touch target guideline */
+        padding: 0.75rem 1.25rem;
+        font-size: 0.9375rem;
+    }
+
+    .btn-sm {
+        min-height: 40px;
+        padding: 0.625rem 1rem;
+    }
+
+    .btn-lg {
+        min-height: 52px;
+        padding: 1rem 1.75rem;
+    }
+
+    /* Action Icons - Touch optimized */
+    .action-icon {
+        width: 44px;
+        height: 44px;
+        padding: 0.75rem;
+    }
+
+    .action-icon i {
+        width: 20px;
+        height: 20px;
+    }
+
+    /* ==========================================
+       MODALS
+       ========================================== */
+
+    .modal-content {
+        max-width: 90%;
+        margin: 2rem auto;
+        max-height: calc(100vh - 4rem);
+    }
+
+    .modal-header {
+        padding: 1.25rem 1.5rem;
+    }
+
+    .modal-body {
+        padding: 1.5rem;
+        max-height: calc(100vh - 12rem);
+    }
+
+    .modal-close {
+        width: 44px;
+        height: 44px;
+        font-size: 1.5rem;
+    }
+
+    /* ==========================================
+       FORMS
+       ========================================== */
+
+    .form-input,
+    .form-select,
+    .form-textarea {
+        min-height: 48px; /* Touch-friendly */
+        padding: 0.75rem 1rem;
+        font-size: 1rem; /* Prevent zoom on iOS */
+    }
+
+    .form-label {
+        font-size: 0.9375rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    /* Form Row - Stack on tablet for better readability */
+    .form-row {
+        flex-direction: column;
+        gap: 1.25rem;
+    }
+
+    .form-row .form-group {
+        width: 100%;
+        margin-bottom: 0;
+    }
+
+    /* ==========================================
+       MONITORING VIEW
+       ========================================== */
+
+    .monitor-section {
+        margin-bottom: 2rem;
+    }
+
+    .node-monitor-card {
+        padding: 1.25rem;
+    }
+
+    .node-monitor-resources {
+        gap: 1.25rem;
+    }
+
+    /* Monitor Table - Horizontal scroll */
+    .monitor-table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .monitor-table {
+        min-width: 800px; /* Force scroll on small tablets */
+    }
+
+    /* ==========================================
+       SETTINGS VIEW
+       ========================================== */
+
+    .settings-content {
+        padding-top: 60px;
+    }
+
+    .app-card {
+        margin-bottom: 1.5rem;
+    }
+
+    .settings-card-header {
+        padding: 1.25rem 1.5rem;
+    }
+
+    .settings-form {
+        padding: 1.5rem;
+    }
+
+    /* ==========================================
+       TOAST NOTIFICATIONS
+       ========================================== */
+
+    .toast-container {
+        top: 75px;
+        right: 1.25rem;
+        left: 1.25rem;
+        max-width: none;
+    }
+
+    .toast {
+        min-width: auto;
+        max-width: none;
+    }
+
+    /* ==========================================
+       CATALOG VIEW
+       ========================================== */
+
+    .catalog-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.25rem;
+    }
+
+    /* ==========================================
+       EMPTY STATES
+       ========================================== */
+
+    .empty-state {
+        padding: 2.5rem 1.5rem;
+    }
+
+    .empty-icon {
+        width: 80px;
+        height: 80px;
+        font-size: 2.5rem;
+    }
+
+    .empty-title {
+        font-size: 1.375rem;
+    }
+
+    .empty-message {
+        font-size: 0.9375rem;
+    }
+
+    /* ==========================================
+       QUICK APPS VIEW ALL BUTTON
+       ========================================== */
+
+    .quick-apps-view-all {
+        width: 44px;
+        height: 44px;
+    }
+
+    /* ==========================================
+       BACKUP MODAL
+       ========================================== */
+
+    .backup-list {
+        gap: 1rem;
+    }
+
+    .backup-item {
+        padding: 1rem;
+    }
+
+    /* ==========================================
+       CANVAS MODAL (IN-APP VIEWER)
+       ========================================== */
+
+    .canvas-modal-header {
+        padding: 1rem 1.25rem;
+        min-height: 60px;
+    }
+
+    .canvas-btn {
+        width: 44px;
+        height: 44px;
+        padding: 0.75rem;
+    }
+
+    /* ==========================================
+       DEPLOYMENT PROGRESS MODAL
+       ========================================== */
+
+    .progress-step {
+        padding: 0.75rem 1rem;
+    }
+
+    .progress-step-icon {
+        font-size: 1.25rem;
+    }
+
+    .progress-step-text {
+        font-size: 0.9375rem;
+    }
+
+    /* ==========================================
+       STATS & METRICS
+       ========================================== */
+
+    .hero-stat {
+        min-width: 100px;
+    }
+
+    .status-badge {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.8125rem;
+    }
+
+    /* ==========================================
+       UTILITY CLASSES
+       ========================================== */
+
+    /* Touch-friendly spacing */
+    .tablet-stack {
+        flex-direction: column !important;
+    }
+
+    .tablet-full-width {
+        width: 100% !important;
+    }
+
+    .tablet-no-gap {
+        gap: 0 !important;
+    }
+
+    /* ==========================================
+       SCROLLBARS (TOUCH OPTIMIZED)
+       ========================================== */
+
+    ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        border-radius: 3px;
+    }
+
+    /* ==========================================
+       HOVER STATES (DISABLED FOR TOUCH)
+       ========================================== */
+
+    /* Remove hover effects on touch devices */
+    @media (hover: none) {
+        .app-card:hover,
+        .btn:hover,
+        .nav-rack-item:hover,
+        .sub-nav-item:hover {
+            transform: none;
+        }
+
+        /* Keep active/pressed states */
+        .app-card:active,
+        .btn:active {
+            transform: scale(0.98);
+        }
+    }
+
+    /* ==========================================
+       TEXT SELECTION
+       ========================================== */
+
+    /* Better text selection on touch */
+    input,
+    textarea {
+        -webkit-user-select: text;
+        user-select: text;
+    }
+
+    /* Prevent accidental text selection during scrolling */
+    .app-card,
+    .btn,
+    .nav-rack-item {
+        -webkit-user-select: none;
+        user-select: none;
+    }
+
+    /* ==========================================
+       LANDSCAPE ORIENTATION
+       ========================================== */
+
+    @media (orientation: landscape) {
+        .hero-section {
+            min-height: 320px;
+        }
+
+        .hero-title {
+            font-size: 2.5rem;
+        }
+
+        .modal-content {
+            max-height: calc(100vh - 2rem);
+        }
+
+        .modal-body {
+            max-height: calc(100vh - 8rem);
+        }
+    }
+}
+
+/* ============================================
+   TOUCH DEVICE SPECIFIC (ANY SIZE)
+   ============================================ */
+
+@media (hover: none) and (pointer: coarse) {
+    /* This targets touch devices specifically */
+
+    /* Larger tap targets globally */
+    button,
+    a,
+    input[type="checkbox"],
+    input[type="radio"] {
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    /* Better tap feedback */
+    button:active,
+    .btn:active {
+        opacity: 0.8;
+        transform: scale(0.97);
+        transition: transform 0.1s ease;
+    }
+
+    /* Remove hover-only tooltips */
+    [title]:hover::after {
+        display: none;
+    }
+
+    /* Smooth momentum scrolling */
+    * {
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* ============================================
+   HIGH DPI SCREENS (RETINA)
+   ============================================ */
+
+@media (-webkit-min-device-pixel-ratio: 2),
+       (min-resolution: 192dpi) {
+    /* Sharper borders for retina */
+    .app-card,
+    .btn,
+    .form-input {
+        border-width: 0.5px;
+    }
+
+    /* Better icon rendering */
+    i {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+}
