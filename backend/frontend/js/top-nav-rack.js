@@ -6,23 +6,9 @@
 // Initialize Top Navigation Rack
 function initTopNavRack() {
     console.log('🎯 Initializing Top Navigation Rack...');
-    
-    // Navigation items click handler
-    const navItems = document.querySelectorAll('.nav-rack-item');
-    navItems.forEach(item => {
-        item.addEventListener('click', (e) => {
-            e.preventDefault();
-            const view = item.dataset.view;
-            if (view) {
-                // Remove active class from all items
-                navItems.forEach(nav => nav.classList.remove('active'));
-                // Add active class to clicked item
-                item.classList.add('active');
-                // Show the view
-                showView(view);
-            }
-        });
-    });
+
+    // NOTE: Navigation items now use inline onclick handlers in HTML
+    // No need for addEventListener here to avoid duplicate handlers
     
     // Sound toggle button - Now opens advanced panel
     const soundToggleBtn = document.getElementById('soundToggleBtn');

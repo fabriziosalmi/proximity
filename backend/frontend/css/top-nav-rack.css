@@ -42,7 +42,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.75rem 1.5rem;
+    padding: 1rem 1.5rem; /* Increased vertical padding to prevent glow clipping */
     max-width: 100%;
     margin: 0 auto;
     gap: 1rem;
@@ -80,8 +80,9 @@
     flex: 1;
     justify-content: center;
     flex-wrap: wrap;
+    padding: 0.5rem 0; /* Vertical padding to prevent glow clipping */
     overflow-x: auto;
-    overflow-y: hidden;
+    overflow-y: visible; /* Allow vertical overflow for glow effect */
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none; /* IE/Edge */
 }
@@ -225,9 +226,31 @@
     box-shadow: 0 0 8px rgba(168, 85, 247, 0.3);
 }
 
-.nav-rack-item:hover .nav-badge.dev-badge {
+.nav-rack-item:hover .nav-badge.dev-badge,
+.nav-submenu-item:hover .nav-badge.dev-badge {
     background: linear-gradient(135deg, rgba(168, 85, 247, 0.4), rgba(147, 51, 234, 0.3));
     box-shadow: 0 0 12px rgba(168, 85, 247, 0.5);
+}
+
+/* Submenu Badge - smaller for submenu items */
+.nav-submenu-item .nav-badge {
+    min-width: 20px;
+    height: 20px;
+    padding: 0.125rem 0.3rem;
+    font-size: 0.7rem;
+}
+
+/* Submenu item icon-only (without label text) */
+.nav-submenu-item:not(:has(span:not([class]))) {
+    min-width: 42px;
+    width: 42px;
+    padding: 0.625rem;
+    justify-content: center;
+}
+
+/* Icon-only items with just icon */
+.nav-submenu-item > i:only-child {
+    margin: 0;
 }
 
 /* Sound Toggle Button */
@@ -821,7 +844,7 @@
     align-items: center;
     justify-content: center;
     gap: 0.625rem;
-    padding: 0 1.5rem;
+    padding: 0.5rem 1.5rem; /* Added vertical padding to prevent glow clipping */
     flex-wrap: wrap;
 }
 

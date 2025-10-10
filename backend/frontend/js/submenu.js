@@ -43,6 +43,7 @@ function showSubmenu(items) {
         if (item.onClick) {
             submenuItem.addEventListener('click', (e) => {
                 e.preventDefault();
+                e.stopPropagation(); // Prevent event from bubbling up
                 item.onClick(e);
             });
         }
@@ -104,39 +105,82 @@ function showSettingsSubmenu() {
         {
             icon: 'server',
             label: 'Proxmox',
-            action: 'proxmox-settings',
+            action: 'proxmox',
+            active: true,
             onClick: () => {
                 console.log('Proxmox settings clicked');
-                // Navigate to proxmox settings
+                showView('settings');
+                activateSettingsTab('proxmox');
             }
         },
         {
             icon: 'network',
             label: 'Network',
-            action: 'network-settings',
+            action: 'network',
             onClick: () => {
                 console.log('Network settings clicked');
+                showView('settings');
+                activateSettingsTab('network');
             }
         },
         {
-            icon: 'hard-drive',
+            icon: 'cpu',
             label: 'Resources',
-            action: 'resources-settings',
+            action: 'resources',
             onClick: () => {
                 console.log('Resources settings clicked');
+                showView('settings');
+                activateSettingsTab('resources');
             }
         },
         {
-            icon: 'shield',
-            label: 'Security',
-            action: 'security-settings',
+            icon: 'info',
+            label: 'System',
+            action: 'system',
             onClick: () => {
-                console.log('Security settings clicked');
+                console.log('System settings clicked');
+                showView('settings');
+                activateSettingsTab('system');
+            }
+        },
+        {
+            icon: 'volume-2',
+            label: 'Audio',
+            action: 'audio',
+            onClick: () => {
+                console.log('Audio settings clicked');
+                showView('settings');
+                activateSettingsTab('audio');
             }
         }
     ];
 
     showSubmenu(settingsItems);
+}
+
+// Helper function to activate a specific settings tab
+function activateSettingsTab(tabName) {
+    // Small delay to ensure view is rendered
+    setTimeout(() => {
+        const tabs = document.querySelectorAll('.sub-nav-item[data-tab]');
+        const panels = document.querySelectorAll('.settings-panel');
+
+        // Remove active from all
+        tabs.forEach(t => t.classList.remove('active'));
+        panels.forEach(p => p.classList.remove('active'));
+
+        // Activate the selected tab and panel
+        const selectedTab = document.querySelector(`.sub-nav-item[data-tab="${tabName}"]`);
+        const selectedPanel = document.getElementById(`${tabName}-panel`);
+
+        if (selectedTab) selectedTab.classList.add('active');
+        if (selectedPanel) selectedPanel.classList.add('active');
+
+        // Reinitialize icons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    }, 50);
 }
 
 // Example: Show Apps submenu with filters
@@ -148,22 +192,26 @@ function showAppsSubmenu() {
             active: true,
             onClick: () => {
                 console.log('All apps filter clicked');
+                showView('apps');
+                setTimeout(() => applyAppsFilter('all'), 100);
             }
         },
         {
             icon: 'play',
             label: 'Running',
-            badge: '5',
             onClick: () => {
                 console.log('Running apps filter clicked');
+                showView('apps');
+                setTimeout(() => applyAppsFilter('running'), 100);
             }
         },
         {
             icon: 'pause',
             label: 'Stopped',
-            badge: '2',
             onClick: () => {
                 console.log('Stopped apps filter clicked');
+                showView('apps');
+                setTimeout(() => applyAppsFilter('stopped'), 100);
             }
         },
         {
@@ -171,11 +219,232 @@ function showAppsSubmenu() {
             label: 'Issues',
             onClick: () => {
                 console.log('Apps with issues clicked');
+                showView('apps');
+                setTimeout(() => applyAppsFilter('issues'), 100);
+            }
+        },
+        {
+            icon: 'star',
+            label: 'Favorites',
+            onClick: () => {
+                console.log('Favorite apps clicked');
+                showView('apps');
+                setTimeout(() => applyAppsFilter('favorites'), 100);
             }
         }
     ];
 
     showSubmenu(appsItems);
+}
+
+// Apply filter to apps view
+function applyAppsFilter(filter) {
+    if (typeof state === 'undefined' || !state.deployedApps) {
+        console.warn('State or deployedApps not available');
+        return;
+    }
+
+    let filtered = state.deployedApps;
+
+    if (filter === 'running') {
+        filtered = state.deployedApps.filter(app => app.status === 'running');
+    } else if (filter === 'stopped') {
+        filtered = state.deployedApps.filter(app => app.status === 'stopped');
+    } else if (filter === 'issues') {
+        filtered = state.deployedApps.filter(app => app.status === 'error' || app.status === 'failed');
+    } else if (filter === 'favorites') {
+        // TODO: Implement favorites functionality
+        filtered = state.deployedApps.filter(app => app.favorite);
+    }
+
+    const grid = document.getElementById('allAppsGrid');
+    if (!grid) return;
+
+    if (filtered.length === 0) {
+        grid.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">🔍</div>
+                <h3 class="empty-title">No ${filter} applications</h3>
+                <p class="empty-message">No applications match the current filter.</p>
+            </div>
+        `;
+    } else {
+        grid.innerHTML = '';
+        for (const app of filtered) {
+            if (typeof renderAppCard === 'function') {
+                renderAppCard(app, grid, true);
+            }
+        }
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    }
+}
+
+// Show Store submenu with categories (icon-only with ALL label)
+function showStoreSubmenu() {
+    const storeItems = [
+        {
+            icon: 'layout-grid',
+            label: 'ALL',
+            active: true,
+            onClick: () => {
+                console.log('All categories clicked');
+                showView('catalog');
+                setTimeout(() => applyCatalogFilter('all'), 100);
+            }
+        },
+        {
+            icon: 'database',
+            onClick: () => {
+                console.log('Databases category clicked');
+                showView('catalog');
+                setTimeout(() => applyCatalogFilter('databases'), 100);
+            }
+        },
+        {
+            icon: 'globe',
+            onClick: () => {
+                console.log('Web servers category clicked');
+                showView('catalog');
+                setTimeout(() => applyCatalogFilter('web'), 100);
+            }
+        },
+        {
+            icon: 'code',
+            onClick: () => {
+                console.log('Development category clicked');
+                showView('catalog');
+                setTimeout(() => applyCatalogFilter('development'), 100);
+            }
+        },
+        {
+            icon: 'cloud',
+            onClick: () => {
+                console.log('Cloud tools category clicked');
+                showView('catalog');
+                setTimeout(() => applyCatalogFilter('cloud'), 100);
+            }
+        },
+        {
+            icon: 'shield',
+            onClick: () => {
+                console.log('Security category clicked');
+                showView('catalog');
+                setTimeout(() => applyCatalogFilter('security'), 100);
+            }
+        },
+        {
+            icon: 'monitor',
+            onClick: () => {
+                console.log('Monitoring category clicked');
+                showView('catalog');
+                setTimeout(() => applyCatalogFilter('monitoring'), 100);
+            }
+        },
+        {
+            icon: 'share-2',
+            onClick: () => {
+                console.log('Networking category clicked');
+                showView('catalog');
+                setTimeout(() => applyCatalogFilter('networking'), 100);
+            }
+        }
+    ];
+
+    showSubmenu(storeItems);
+}
+
+// Apply filter to catalog view
+function applyCatalogFilter(category) {
+    if (typeof state === 'undefined' || !state.catalog || !state.catalog.items) {
+        console.warn('State or catalog not available');
+        return;
+    }
+
+    let filtered = state.catalog.items;
+
+    if (category !== 'all') {
+        filtered = state.catalog.items.filter(app => app.category === category);
+    }
+
+    const grid = document.getElementById('catalogGrid');
+    if (!grid) return;
+
+    if (filtered.length === 0) {
+        grid.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">🔍</div>
+                <h3 class="empty-title">No ${category} applications</h3>
+                <p class="empty-message">No applications match the current category.</p>
+            </div>
+        `;
+    } else {
+        grid.innerHTML = '';
+        for (const app of filtered) {
+            if (typeof renderAppCard === 'function') {
+                renderAppCard(app, grid, false);
+            }
+        }
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    }
+}
+
+// Show UI Lab submenu with experimental features
+function showUILabSubmenu() {
+    const uilabItems = [
+        {
+            icon: 'palette',
+            label: 'Theme Editor',
+            onClick: () => {
+                console.log('Theme editor clicked');
+                showView('uilab');
+                // TODO: Navigate to theme section
+                // hideSubmenu is called automatically by showView()
+            }
+        },
+        {
+            icon: 'layout',
+            label: 'Component Library',
+            onClick: () => {
+                console.log('Component library clicked');
+                showView('uilab');
+                // hideSubmenu is called automatically by showView()
+            }
+        },
+        {
+            icon: 'grid',
+            label: 'Layout Tester',
+            onClick: () => {
+                console.log('Layout tester clicked');
+                showView('uilab');
+                // hideSubmenu is called automatically by showView()
+            }
+        },
+        {
+            icon: 'sparkles',
+            label: 'Animations',
+            onClick: () => {
+                console.log('Animations clicked');
+                showView('uilab');
+                // hideSubmenu is called automatically by showView()
+            }
+        },
+        {
+            icon: 'zap',
+            label: 'Experimental',
+            badge: 'NEW',
+            onClick: () => {
+                console.log('Experimental features clicked');
+                showView('uilab');
+                // hideSubmenu is called automatically by showView()
+            }
+        }
+    ];
+
+    showSubmenu(uilabItems);
 }
 
 // Auto-hide submenu when clicking outside
@@ -197,3 +466,8 @@ window.hideSubmenu = hideSubmenu;
 window.toggleSubmenu = toggleSubmenu;
 window.showSettingsSubmenu = showSettingsSubmenu;
 window.showAppsSubmenu = showAppsSubmenu;
+window.showStoreSubmenu = showStoreSubmenu;
+window.showUILabSubmenu = showUILabSubmenu;
+window.activateSettingsTab = activateSettingsTab;
+window.applyAppsFilter = applyAppsFilter;
+window.applyCatalogFilter = applyCatalogFilter;

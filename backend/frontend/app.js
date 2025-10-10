@@ -765,25 +765,30 @@ function renderAppCard(app, container, isDeployed = false) {
 // ============================================
 // View Management
 function showView(viewName) {
-    // Update navigation
-    document.querySelectorAll('.nav-item').forEach(item => {
+    // Hide submenu when changing views
+    if (typeof hideSubmenu === 'function') {
+        hideSubmenu();
+    }
+
+    // Update navigation - handle both .nav-item and .nav-rack-item
+    document.querySelectorAll('.nav-item, .nav-rack-item').forEach(item => {
         item.classList.remove('active');
         if (item.dataset.view === viewName) {
             item.classList.add('active');
         }
     });
-    
+
     // Hide all views
     document.querySelectorAll('.view').forEach(view => {
         view.classList.add('hidden');
     });
-    
+
     // Show requested view
     const viewElement = document.getElementById(`${viewName}View`);
     if (viewElement) {
         viewElement.classList.remove('hidden');
         state.currentView = viewName;
-        
+
         // Load view content
         switch(viewName) {
             case 'dashboard':
@@ -808,7 +813,7 @@ function showView(viewName) {
                 renderUiLabView();
                 break;
         }
-        
+
         // Reinitialize Lucide icons after view change
         initLucideIcons();
     }
@@ -866,36 +871,12 @@ function playClickSound() {
 
 function renderAppsView() {
     const view = document.getElementById('appsView');
-    view.classList.add('has-sub-nav');
+    view.classList.remove('has-sub-nav'); // Remove old sub-nav class
 
     const runningCount = state.deployedApps.filter(a => a.status === 'running').length;
     const stoppedCount = state.deployedApps.filter(a => a.status === 'stopped').length;
 
     const content = `
-        <div class="sub-nav-bar">
-            <div class="sub-nav-items">
-                <button class="sub-nav-item active" data-filter="all" onclick="filterApps('all')">
-                    <i data-lucide="package"></i>
-                    All Apps
-                    <span class="nav-badge">${state.deployedApps.length}</span>
-                </button>
-                <button class="sub-nav-item" data-filter="running" onclick="filterApps('running')">
-                    <i data-lucide="play-circle"></i>
-                    Running
-                    <span class="nav-badge">${runningCount}</span>
-                </button>
-                <button class="sub-nav-item" data-filter="stopped" onclick="filterApps('stopped')">
-                    <i data-lucide="pause-circle"></i>
-                    Stopped
-                    <span class="nav-badge">${stoppedCount}</span>
-                </button>
-                <button class="sub-nav-item" onclick="showView('catalog')">
-                    <i data-lucide="plus"></i>
-                    Deploy New App
-                </button>
-            </div>
-        </div>
-
         <div class="search-bar-container">
             <div class="search-bar">
                 <i data-lucide="search" class="search-icon"></i>
@@ -947,7 +928,7 @@ function renderAppsView() {
 function renderCatalogView() {
     console.log('🏪 renderCatalogView() called');
     const view = document.getElementById('catalogView');
-    view.classList.add('has-sub-nav');
+    view.classList.remove('has-sub-nav'); // Remove old sub-nav class
 
     if (!state.catalog || !state.catalog.items) {
         console.log('⚠️  Catalog data not loaded yet');
@@ -956,30 +937,7 @@ function renderCatalogView() {
     }
     console.log(`✓ Rendering ${state.catalog.items.length} catalog items`);
 
-    const categories = state.catalog.categories || [];
-
     const content = `
-        <div class="sub-nav-bar">
-            <div class="sub-nav-items">
-                <button class="sub-nav-item active" data-category="all" onclick="filterCatalog('all')">
-                    <i data-lucide="grid-3x3"></i>
-                    All
-                    <span class="nav-badge">${state.catalog.items.length}</span>
-                </button>
-                ${categories.map(cat => {
-                    const count = state.catalog.items.filter(item => item.category === cat).length;
-                    const icon = getCategoryIcon(cat);
-                    return `
-                        <button class="sub-nav-item" data-category="${cat}" onclick="filterCatalog('${cat}')">
-                            <i data-lucide="${icon}"></i>
-                            ${cat}
-                            <span class="nav-badge">${count}</span>
-                        </button>
-                    `;
-                }).join('')}
-            </div>
-        </div>
-
         <div class="search-bar-container">
             <div class="search-bar">
                 <i data-lucide="search" class="search-icon"></i>
@@ -1442,6 +1400,7 @@ function renderMonitoringView() {
 
 async function renderSettingsView() {
     const view = document.getElementById('settingsView');
+    view.classList.remove('has-sub-nav'); // Remove old sub-nav class
 
     // Load settings data
     showLoading('Loading settings...');
@@ -1503,31 +1462,6 @@ async function renderSettingsView() {
     }
 
     const content = `
-        <div class="sub-nav-bar">
-            <div class="sub-nav-items">
-                <button class="sub-nav-item active" data-tab="proxmox">
-                    <i data-lucide="server"></i>
-                    Proxmox
-                </button>
-                <button class="sub-nav-item" data-tab="network">
-                    <i data-lucide="network"></i>
-                    Network
-                </button>
-                <button class="sub-nav-item" data-tab="resources">
-                    <i data-lucide="cpu"></i>
-                    Resources
-                </button>
-                <button class="sub-nav-item" data-tab="system">
-                    <i data-lucide="info"></i>
-                    System
-                </button>
-                <button class="sub-nav-item" data-tab="audio">
-                    <i data-lucide="volume-2"></i>
-                    Audio
-                </button>
-            </div>
-        </div>
-
         <div class="settings-content">
             <!-- Proxmox Settings -->
             <div class="settings-panel active" id="proxmox-panel">
@@ -4270,29 +4204,9 @@ function handleModeToggle(checkbox) {
 }
 
 function setupSettingsTabs() {
-    const tabs = document.querySelectorAll('.sub-nav-item[data-tab]');
-    const panels = document.querySelectorAll('.settings-panel');
-
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            // Remove active class from all tabs and panels
-            tabs.forEach(t => t.classList.remove('active'));
-            panels.forEach(p => p.classList.remove('active'));
-
-            // Add active class to clicked tab
-            tab.classList.add('active');
-
-            // Show corresponding panel
-            const panelId = `${tab.dataset.tab}-panel`;
-            const panel = document.getElementById(panelId);
-            if (panel) {
-                panel.classList.add('active');
-            }
-
-            // Reinitialize icons
-            initLucideIcons();
-        });
-    });
+    // NOTE: Settings tabs are now managed by the top navigation submenu
+    // The activateSettingsTab() function in submenu.js handles tab switching
+    // No need to setup event listeners here anymore
 }
 
 function setupSettingsForms() {
