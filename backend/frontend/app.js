@@ -778,17 +778,17 @@ function renderAppsView() {
     const content = `
         <div class="sub-nav-bar">
             <div class="sub-nav-items">
-                <button class="sub-nav-item active" onclick="filterApps('all')">
+                <button class="sub-nav-item active" data-filter="all" onclick="filterApps('all')">
                     <i data-lucide="package"></i>
                     All Apps
                     <span class="nav-badge">${state.deployedApps.length}</span>
                 </button>
-                <button class="sub-nav-item" onclick="filterApps('running')">
+                <button class="sub-nav-item" data-filter="running" onclick="filterApps('running')">
                     <i data-lucide="play-circle"></i>
                     Running
                     <span class="nav-badge">${runningCount}</span>
                 </button>
-                <button class="sub-nav-item" onclick="filterApps('stopped')">
+                <button class="sub-nav-item" data-filter="stopped" onclick="filterApps('stopped')">
                     <i data-lucide="pause-circle"></i>
                     Stopped
                     <span class="nav-badge">${stoppedCount}</span>
@@ -800,8 +800,25 @@ function renderAppsView() {
             </div>
         </div>
 
+        <div class="search-bar-container">
+            <div class="search-bar">
+                <i data-lucide="search" class="search-icon"></i>
+                <input
+                    type="text"
+                    class="search-input"
+                    id="appsSearchInput"
+                    placeholder="Search applications by name..."
+                    oninput="searchApps(this.value)"
+                />
+                <button class="search-clear" id="appsClearSearch" onclick="clearAppsSearch()" style="display: none;">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="search-results-count" id="appsResultsCount" style="display: none;"></div>
+        </div>
+
         <div class="apps-grid deployed" id="allAppsGrid">
-            ${state.deployedApps.length > 0 
+            ${state.deployedApps.length > 0
                 ? state.deployedApps.map(app => createAppCard(app, true)).join('')
                 : `
                 <div class="empty-state">
@@ -814,8 +831,11 @@ function renderAppsView() {
             }
         </div>
     `;
-    
+
     view.innerHTML = content;
+
+    // Initialize Lucide icons for search
+    initLucideIcons();
 
     // Hover sounds are handled automatically via event delegation (initCardHoverSounds)
 }
@@ -837,7 +857,7 @@ function renderCatalogView() {
     const content = `
         <div class="sub-nav-bar">
             <div class="sub-nav-items">
-                <button class="sub-nav-item active" onclick="filterCatalog('all')">
+                <button class="sub-nav-item active" data-category="all" onclick="filterCatalog('all')">
                     <i data-lucide="grid-3x3"></i>
                     All
                     <span class="nav-badge">${state.catalog.items.length}</span>
@@ -846,7 +866,7 @@ function renderCatalogView() {
                     const count = state.catalog.items.filter(item => item.category === cat).length;
                     const icon = getCategoryIcon(cat);
                     return `
-                        <button class="sub-nav-item" onclick="filterCatalog('${cat}')">
+                        <button class="sub-nav-item" data-category="${cat}" onclick="filterCatalog('${cat}')">
                             <i data-lucide="${icon}"></i>
                             ${cat}
                             <span class="nav-badge">${count}</span>
@@ -854,6 +874,23 @@ function renderCatalogView() {
                     `;
                 }).join('')}
             </div>
+        </div>
+
+        <div class="search-bar-container">
+            <div class="search-bar">
+                <i data-lucide="search" class="search-icon"></i>
+                <input
+                    type="text"
+                    class="search-input"
+                    id="catalogSearchInput"
+                    placeholder="Search applications by name, description, or category..."
+                    oninput="searchCatalog(this.value)"
+                />
+                <button class="search-clear" id="catalogClearSearch" onclick="clearCatalogSearch()" style="display: none;">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="search-results-count" id="catalogResultsCount" style="display: none;"></div>
         </div>
 
         <div class="apps-grid" id="catalogGrid">
@@ -2720,21 +2757,196 @@ function filterApps(filter) {
 
 function filterCatalog(category) {
     // Update tab active state
-    document.querySelectorAll('.sub-nav-item').forEach(tab => {
+    document.querySelectorAll('.sub-nav-item[data-category]').forEach(tab => {
         tab.classList.remove('active');
     });
     event.target.classList.add('active');
-    
-    // Filter catalog
-    let filtered = state.catalog.items;
-    if (category !== 'all') {
-        filtered = state.catalog.items.filter(app => app.category === category);
-    }
-    
-    const grid = document.getElementById('catalogGrid');
-    grid.innerHTML = filtered.map(app => createAppCard(app, false)).join('');
 
-    // Hover sounds handled automatically via event delegation
+    // Get current search query
+    const searchInput = document.getElementById('catalogSearchInput');
+    const currentQuery = searchInput ? searchInput.value : '';
+
+    // Apply both filter and search via searchCatalog()
+    searchCatalog(currentQuery);
+}
+
+// Search functionality for Apps
+function searchApps(query) {
+    const searchInput = document.getElementById('appsSearchInput');
+    const clearBtn = document.getElementById('appsClearSearch');
+    const resultsCount = document.getElementById('appsResultsCount');
+    const grid = document.getElementById('allAppsGrid');
+
+    // Show/hide clear button
+    if (clearBtn) {
+        clearBtn.style.display = query ? 'flex' : 'none';
+    }
+
+    // Get current filter (all, running, stopped)
+    const activeFilter = document.querySelector('.sub-nav-item[data-filter].active');
+    const filter = activeFilter ? activeFilter.dataset.filter : 'all';
+
+    // Apply filter first
+    let filtered = state.deployedApps;
+    if (filter !== 'all') {
+        filtered = state.deployedApps.filter(app => app.status === filter);
+    }
+
+    // Then apply search
+    if (query && query.trim()) {
+        const searchTerm = query.toLowerCase().trim();
+        filtered = filtered.filter(app => {
+            const appName = (app.name || app.id || '').toLowerCase();
+            const appId = (app.id || '').toLowerCase();
+            const hostname = (app.hostname || '').toLowerCase();
+            return appName.includes(searchTerm) ||
+                   appId.includes(searchTerm) ||
+                   hostname.includes(searchTerm);
+        });
+
+        // Show results count
+        if (resultsCount) {
+            resultsCount.textContent = `${filtered.length} result${filtered.length !== 1 ? 's' : ''} found`;
+            resultsCount.style.display = 'block';
+        }
+    } else {
+        // Hide results count when no search
+        if (resultsCount) {
+            resultsCount.style.display = 'none';
+        }
+    }
+
+    // Render filtered results
+    if (filtered.length === 0) {
+        grid.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i data-lucide="search"></i>
+                </div>
+                <h3 class="empty-title">No matches found</h3>
+                <p class="empty-message">Try adjusting your search or filter</p>
+                <button class="btn btn-secondary" onclick="clearAppsSearch()">Clear Search</button>
+            </div>
+        `;
+    } else {
+        grid.innerHTML = filtered.map(app => createAppCard(app, true)).join('');
+    }
+
+    // Reinitialize Lucide icons
+    initLucideIcons();
+}
+
+function clearAppsSearch() {
+    const searchInput = document.getElementById('appsSearchInput');
+    const clearBtn = document.getElementById('appsClearSearch');
+    const resultsCount = document.getElementById('appsResultsCount');
+
+    if (searchInput) {
+        searchInput.value = '';
+        searchInput.focus();
+    }
+
+    if (clearBtn) {
+        clearBtn.style.display = 'none';
+    }
+
+    if (resultsCount) {
+        resultsCount.style.display = 'none';
+    }
+
+    // Trigger search with empty query to reset
+    searchApps('');
+}
+
+/**
+ * Search catalog items by name, description, or category
+ * Works in combination with category filters
+ */
+function searchCatalog(query) {
+    const clearBtn = document.getElementById('catalogClearSearch');
+    const resultsCount = document.getElementById('catalogResultsCount');
+    const grid = document.getElementById('catalogGrid');
+
+    // Show/hide clear button based on query
+    if (clearBtn) {
+        clearBtn.style.display = query ? 'flex' : 'none';
+    }
+
+    // Get active category filter
+    const activeCategory = document.querySelector('.sub-nav-item[data-category].active');
+    const category = activeCategory ? activeCategory.dataset.category : 'all';
+
+    // Apply category filter first
+    let filtered = state.catalog.items || [];
+    if (category !== 'all') {
+        filtered = filtered.filter(app => app.category === category);
+    }
+
+    // Then apply search query if present
+    if (query && query.trim()) {
+        const searchTerm = query.toLowerCase().trim();
+        filtered = filtered.filter(app => {
+            const appName = (app.name || '').toLowerCase();
+            const appDescription = (app.description || '').toLowerCase();
+            const appCategory = (app.category || '').toLowerCase();
+
+            return appName.includes(searchTerm) ||
+                   appDescription.includes(searchTerm) ||
+                   appCategory.includes(searchTerm);
+        });
+
+        // Show results count
+        if (resultsCount) {
+            resultsCount.textContent = `${filtered.length} result${filtered.length !== 1 ? 's' : ''} found`;
+            resultsCount.style.display = 'block';
+        }
+    } else {
+        // Hide results count when no search query
+        if (resultsCount) {
+            resultsCount.style.display = 'none';
+        }
+    }
+
+    // Render filtered results
+    if (filtered.length === 0) {
+        grid.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i data-lucide="search"></i>
+                </div>
+                <h3 class="empty-title">No matches found</h3>
+                <p class="empty-message">Try adjusting your search or category filter</p>
+                <button class="btn btn-secondary" onclick="clearCatalogSearch()">Clear Search</button>
+            </div>
+        `;
+    } else {
+        grid.innerHTML = filtered.map(app => createAppCard(app, false)).join('');
+    }
+
+    // Reinitialize Lucide icons
+    initLucideIcons();
+}
+
+function clearCatalogSearch() {
+    const searchInput = document.getElementById('catalogSearchInput');
+    const clearBtn = document.getElementById('catalogClearSearch');
+    const resultsCount = document.getElementById('catalogResultsCount');
+
+    if (searchInput) {
+        searchInput.value = '';
+        searchInput.focus();
+    }
+
+    if (clearBtn) {
+        clearBtn.style.display = 'none';
+    }
+
+    if (resultsCount) {
+        resultsCount.style.display = 'none';
+    }
+
+    // Trigger search with empty query to reset
+    searchCatalog('');
 }
 
 // Console and Logs Modal Functions
