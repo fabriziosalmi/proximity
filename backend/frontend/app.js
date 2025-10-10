@@ -516,160 +516,253 @@ function updateRecentApps() {
     initLucideIcons();
 }
 
-function createAppCard(app, isDeployed = false) {
-    // Get icon - prefer catalog icon, then auto-detect
-    let icon = getAppIcon(app.name || app.id);
-    let fallbackIcon = icon; // Store the fallback (emoji or SVG)
-    
-    // If app has custom icon URL from catalog (works for both deployed and catalog apps)
+// ============================================
+// APP CARD RENDERING (Template-based)
+// ============================================
+
+/**
+ * Render app icon with proper fallback handling
+ * @param {HTMLElement} iconContainer - The icon container element
+ * @param {Object} app - App data
+ */
+function renderAppIcon(iconContainer, app) {
+    // Clear existing content
+    iconContainer.innerHTML = '';
+
+    // Get fallback icon (emoji or SVG)
+    const fallbackIcon = getAppIcon(app.name || app.id);
+
+    // If app has custom icon URL from catalog
     if (app.icon) {
-        // Properly escape the fallback for use in HTML attribute
-        const escapedFallback = typeof fallbackIcon === 'string' ? fallbackIcon.replace(/'/g, "&#39;").replace(/"/g, "&quot;") : fallbackIcon;
-        icon = `<img 
-            src="${app.icon}" 
-            alt="${app.name}" 
-            style="width: 75%; height: 75%; object-fit: contain;"
-            onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '${escapedFallback}');"
-        />`;
+        const img = document.createElement('img');
+        img.src = app.icon;
+        img.alt = app.name || app.id;
+        img.style.width = '75%';
+        img.style.height = '75%';
+        img.style.objectFit = 'contain';
+
+        // Fallback to emoji/SVG on error
+        img.onerror = function() {
+            this.style.display = 'none';
+            if (typeof fallbackIcon === 'string') {
+                iconContainer.insertAdjacentHTML('beforeend', fallbackIcon);
+            }
+        };
+
+        iconContainer.appendChild(img);
+    } else {
+        // Use fallback icon directly
+        if (typeof fallbackIcon === 'string') {
+            iconContainer.innerHTML = fallbackIcon;
+        }
     }
-    
+}
+
+/**
+ * Populate deployed app card with data
+ * @param {DocumentFragment} cardElement - Cloned template
+ * @param {Object} app - App data
+ */
+function populateDeployedCard(cardElement, app) {
+    const isRunning = app.status === 'running';
+    const appUrl = (app.url && app.url !== 'None' && app.url !== 'null') ? app.url : null;
+    const displayUrl = appUrl || 'IP not available';
+
+    // Populate icon
+    const iconContainer = cardElement.querySelector('.app-icon-lg');
+    renderAppIcon(iconContainer, app);
+
+    // Populate text (safe textContent)
+    cardElement.querySelector('.app-name').textContent = app.name || app.id;
+    cardElement.querySelector('.status-text').textContent = app.status || 'Unknown';
+
+    // Add status class to badge
+    const statusBadge = cardElement.querySelector('.status-badge-compact');
     const statusClass = app.status ? app.status.toLowerCase() : 'stopped';
-    const statusText = app.status || 'Unknown';
-    
-    if (isDeployed) {
-        // Parse URL if available - handle null/None from backend
-        const appUrl = (app.url && app.url !== 'None' && app.url !== 'null') ? app.url : null;
-        const displayUrl = appUrl || 'IP not available';
-        const isRunning = statusText === 'running';
-        
-        console.log('Rendering deployed app:', app.name, 'URL:', app.url, 'Parsed URL:', appUrl);
-        
-        // Prepare app data for canvas click
-        const appDataForCanvas = JSON.stringify({
+    statusBadge.classList.add(statusClass);
+
+    // Populate URL
+    const urlLink = cardElement.querySelector('.connection-link');
+    if (appUrl) {
+        urlLink.href = appUrl;
+        urlLink.textContent = displayUrl;
+        if (!isRunning) {
+            urlLink.style.opacity = '0.5';
+            urlLink.style.pointerEvents = 'none';
+        }
+    } else {
+        urlLink.href = '#';
+        urlLink.textContent = 'IP not available';
+        urlLink.style.opacity = '0.5';
+        urlLink.style.pointerEvents = 'none';
+    }
+
+    // Populate node, LXC ID, date
+    cardElement.querySelector('.node-value').textContent = app.node || 'N/A';
+    cardElement.querySelector('.lxc-id-value').textContent = app.lxc_id || 'N/A';
+    cardElement.querySelector('.date-value').textContent = formatDate(app.created_at);
+
+    // Update action button states
+    const toggleBtn = cardElement.querySelector('[data-action="toggle-status"]');
+    const toggleIcon = toggleBtn.querySelector('i');
+    toggleBtn.title = isRunning ? 'Stop' : 'Start';
+    toggleIcon.setAttribute('data-lucide', isRunning ? 'pause' : 'play');
+
+    const restartBtn = cardElement.querySelector('[data-action="restart"]');
+    restartBtn.title = isRunning ? 'Restart' : 'Start';
+
+    const openExternalBtn = cardElement.querySelector('[data-action="open-external"]');
+    if (!isRunning || !appUrl) {
+        openExternalBtn.disabled = true;
+        openExternalBtn.style.opacity = '0.5';
+    }
+
+    // Show canvas button if iframe_url exists
+    const canvasBtn = cardElement.querySelector('[data-action="canvas"]');
+    if (app.iframe_url || appUrl) {
+        canvasBtn.style.display = 'flex';
+    }
+}
+
+/**
+ * Attach event listeners to deployed app card
+ * @param {DocumentFragment} cardElement - Cloned template
+ * @param {Object} app - App data
+ */
+function attachDeployedCardEvents(cardElement, app) {
+    const isRunning = app.status === 'running';
+    const appUrl = (app.url && app.url !== 'None' && app.url !== 'null') ? app.url : null;
+
+    // Action button handlers
+    const actions = {
+        'toggle-status': () => controlApp(app.id, isRunning ? 'stop' : 'start'),
+        'open-external': () => appUrl && window.open(appUrl, '_blank'),
+        'view-logs': () => showAppLogs(app.id, app.hostname),
+        'console': () => showAppConsole(app.id, app.hostname),
+        'backups': () => showBackupModal(app.id),
+        'update': () => showUpdateModal(app.id),
+        'volumes': () => showAppVolumes(app.id),
+        'monitoring': () => showMonitoringModal(app.id, app.name),
+        'canvas': () => openCanvas({
             id: app.id,
             name: app.name,
             hostname: app.hostname,
             iframe_url: appUrl || app.url,
             url: appUrl || app.url,
             status: app.status
-        }).replace(/"/g, '&quot;');
-        
-        // Canvas click handler - only if app is running and has URL
-        const canvasClickHandler = (isRunning && appUrl) 
-            ? `onclick="if(event.target.closest('.action-icon, .connection-link')) return; openCanvas(${appDataForCanvas})" style="cursor: pointer;" title="Click to open in canvas"`
-            : 'style="cursor: default;" title="App must be running to open in canvas"';
-        
-        return `
-            <div class="app-card deployed" ${canvasClickHandler}>
-                <!-- Line 1: Icon, Name, Quick Actions -->
-                <div class="app-card-header">
-                    <div class="app-icon-lg">${icon}</div>
-                    <div class="app-info">
-                        <h3 class="app-name">${app.name}</h3>
-                    </div>
-                    
-                    <!-- Quick Actions in header -->
-                    <div class="app-quick-actions">
-                        <button class="action-icon" title="${isRunning ? 'Stop' : 'Start'}" onclick="event.stopPropagation(); controlApp('${app.id}', '${isRunning ? 'stop' : 'start'}')">
-                            <i data-lucide="${isRunning ? 'pause' : 'play'}"></i>
-                        </button>
-                        <button class="action-icon" title="Open in new tab" ${isRunning && appUrl ? '' : 'disabled'} onclick="event.stopPropagation(); ${appUrl ? `window.open('${appUrl}', '_blank')` : 'return false;'}">
-                            <i data-lucide="external-link"></i>
-                        </button>
-                        <button class="action-icon" title="View logs" onclick="event.stopPropagation(); showAppLogs('${app.id}', '${app.hostname}')">
-                            <i data-lucide="file-text"></i>
-                        </button>
-                        <button class="action-icon" title="Console" onclick="event.stopPropagation(); showAppConsole('${app.id}', '${app.hostname}')">
-                            <i data-lucide="terminal"></i>
-                        </button>
-                        <button class="action-icon" title="Backups" onclick="event.stopPropagation(); showBackupModal('${app.id}')">
-                            <i data-lucide="database"></i>
-                        </button>
-                        <button class="action-icon" title="Update Application" onclick="event.stopPropagation(); showUpdateModal('${app.id}')">
-                            <i data-lucide="arrow-up-circle"></i>
-                        </button>
-                        <button class="action-icon" title="View Volumes" onclick="event.stopPropagation(); showAppVolumes('${app.id}')">
-                            <i data-lucide="hard-drive"></i>
-                        </button>
-                        <button class="action-icon" title="Monitoring" onclick="event.stopPropagation(); showMonitoringModal('${app.id}', '${app.name}')">
-                            <i data-lucide="activity"></i>
-                        </button>
-                        ${app.iframe_url ? `<button class="action-icon" title="Open in Canvas" onclick="event.stopPropagation(); openCanvas(${appDataForCanvas})">
-                            <i data-lucide="monitor"></i>
-                        </button>` : ''}
-                        <button class="action-icon" title="${isRunning ? 'Restart' : 'Start'}" onclick="event.stopPropagation(); controlApp('${app.id}', '${isRunning ? 'restart' : 'start'}')">
-                            <i data-lucide="refresh-cw"></i>
-                        </button>
-                        <button class="action-icon pro-feature" title="Clone App" onclick="event.stopPropagation(); showCloneModal('${app.id}', '${app.name}')">
-                            <i data-lucide="copy"></i>
-                        </button>
-                        <button class="action-icon pro-feature" title="Edit Resources" onclick="event.stopPropagation(); showEditConfigModal('${app.id}', '${app.name}')">
-                            <i data-lucide="sliders"></i>
-                        </button>
-                        <button class="action-icon danger" title="Delete" onclick="event.stopPropagation(); confirmDeleteApp('${app.id}', '${app.name}')">
-                            <i data-lucide="trash-2"></i>
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- Line 2: Status, Access URL, Container, Date -->
-                <div class="app-connection-info">
-                    <div class="connection-item">
-                        <span class="status-badge-compact ${statusClass}">
-                            <span class="status-dot-small"></span>
-                            ${statusText}
-                        </span>
-                    </div>
-                    <div class="connection-item">
-                        <i data-lucide="link" class="connection-icon"></i>
-                        ${appUrl ? `<a href="${appUrl}" target="_blank" class="connection-value connection-link" onclick="event.stopPropagation();" ${isRunning ? '' : 'style="opacity: 0.5; pointer-events: none;"'}>
-                            ${displayUrl}
-                        </a>` : `<span class="connection-value" style="opacity: 0.5;">IP not available</span>`}
-                    </div>
-                    <div class="connection-item">
-                        <i data-lucide="server" class="connection-icon"></i>
-                        <span class="connection-value">${app.node}</span>
-                    </div>
-                    <div class="connection-item">
-                        <i data-lucide="box" class="connection-icon"></i>
-                        <span class="connection-value">${app.lxc_id}</span>
-                    </div>
-                    <div class="connection-item">
-                        <i data-lucide="clock" class="connection-icon"></i>
-                        <span class="connection-value">${formatDate(app.created_at)}</span>
-                    </div>
-                </div>
-            </div>
-        `;
+        }),
+        'restart': () => controlApp(app.id, isRunning ? 'restart' : 'start'),
+        'clone': () => showCloneModal(app.id, app.name),
+        'edit-config': () => showEditConfigModal(app.id, app.name),
+        'delete': () => confirmDeleteApp(app.id, app.name)
+    };
+
+    // Attach event listeners to action buttons
+    cardElement.querySelectorAll('.action-icon').forEach(btn => {
+        const action = btn.dataset.action;
+        if (actions[action]) {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                actions[action]();
+            });
+        }
+    });
+
+    // Canvas click on whole card (if running and has URL)
+    const card = cardElement.querySelector('.app-card');
+    if (isRunning && appUrl) {
+        card.style.cursor = 'pointer';
+        card.title = 'Click to open in canvas';
+        card.addEventListener('click', (e) => {
+            // Don't trigger if clicking on action buttons or links
+            if (!e.target.closest('.action-icon, .connection-link')) {
+                openCanvas({
+                    id: app.id,
+                    name: app.name,
+                    hostname: app.hostname,
+                    iframe_url: appUrl,
+                    url: appUrl,
+                    status: app.status
+                });
+            }
+        });
+    } else {
+        card.style.cursor = 'default';
+        card.title = 'App must be running to open in canvas';
     }
-    
-    // Catalog app card - compact horizontal layout
-    return `
-        <div class="app-card catalog-card" onclick="showDeployModal('${app.id}')" style="cursor: pointer;">
-            <div class="catalog-card-content">
-                <div class="app-icon-md">${icon}</div>
-                <div class="catalog-info">
-                    <div class="catalog-header">
-                        <h3 class="app-name">${app.name}</h3>
-                        <span class="category-badge">${app.category}</span>
-                    </div>
-                    <p class="app-description-compact">${app.description}</p>
-                    <div class="catalog-meta">
-                        <span class="meta-badge">
-                            <i data-lucide="cpu"></i>
-                            ${app.min_cpu} vCPU
-                        </span>
-                        <span class="meta-badge">
-                            <i data-lucide="database"></i>
-                            ${app.min_memory}MB
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
+
+    // Prevent link propagation
+    const urlLink = cardElement.querySelector('.connection-link');
+    if (urlLink) {
+        urlLink.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+    }
 }
 
+/**
+ * Populate catalog app card with data
+ * @param {DocumentFragment} cardElement - Cloned template
+ * @param {Object} app - App data
+ */
+function populateCatalogCard(cardElement, app) {
+    // Populate icon
+    const iconContainer = cardElement.querySelector('.app-icon-md');
+    renderAppIcon(iconContainer, app);
+
+    // Populate text (safe textContent)
+    cardElement.querySelector('.app-name').textContent = app.name || 'Unknown';
+    cardElement.querySelector('.category-badge').textContent = app.category || 'Other';
+    cardElement.querySelector('.app-description-compact').textContent = app.description || 'No description available';
+    cardElement.querySelector('.cpu-value').textContent = `${app.min_cpu || 1} vCPU`;
+    cardElement.querySelector('.memory-value').textContent = `${app.min_memory || 512}MB`;
+}
+
+/**
+ * Attach event listeners to catalog app card
+ * @param {DocumentFragment} cardElement - Cloned template
+ * @param {Object} app - App data
+ */
+function attachCatalogCardEvents(cardElement, app) {
+    const card = cardElement.querySelector('.app-card');
+    card.style.cursor = 'pointer';
+    card.addEventListener('click', () => {
+        showDeployModal(app.id);
+    });
+}
+
+/**
+ * Render app card using template cloning (NEW PATTERN)
+ * @param {Object} app - App data
+ * @param {HTMLElement} container - Container to append card to
+ * @param {boolean} isDeployed - Whether this is a deployed app card
+ */
+function renderAppCard(app, container, isDeployed = false) {
+    const templateId = isDeployed ? 'deployed-app-card-template' : 'catalog-app-card-template';
+    const template = document.getElementById(templateId);
+
+    if (!template) {
+        console.error(`Template ${templateId} not found!`);
+        return;
+    }
+
+    // Clone template
+    const clone = template.content.cloneNode(true);
+
+    // Populate and attach events
+    if (isDeployed) {
+        populateDeployedCard(clone, app);
+        attachDeployedCardEvents(clone, app);
+    } else {
+        populateCatalogCard(clone, app);
+        attachCatalogCardEvents(clone, app);
+    }
+
+    // Append to container
+    container.appendChild(clone);
+}
+
+// ============================================
 // View Management
 function showView(viewName) {
     // Update navigation
@@ -710,6 +803,9 @@ function showView(viewName) {
                 break;
             case 'settings':
                 renderSettingsView();
+                break;
+            case 'uilab':
+                renderUiLabView();
                 break;
         }
         
@@ -817,24 +913,32 @@ function renderAppsView() {
             <div class="search-results-count" id="appsResultsCount" style="display: none;"></div>
         </div>
 
-        <div class="apps-grid deployed" id="allAppsGrid">
-            ${state.deployedApps.length > 0
-                ? state.deployedApps.map(app => createAppCard(app, true)).join('')
-                : `
-                <div class="empty-state">
-                    <div class="empty-icon">📦</div>
-                    <h3 class="empty-title">No applications deployed</h3>
-                    <p class="empty-message">Start by deploying an application from the catalog.</p>
-                    <button class="btn btn-primary" onclick="showView('catalog')">Browse Catalog</button>
-                </div>
-                `
-            }
-        </div>
+        <div class="apps-grid deployed" id="allAppsGrid"></div>
     `;
 
     view.innerHTML = content;
 
-    // Initialize Lucide icons for search
+    // Render app cards using template cloning (NEW PATTERN)
+    const grid = document.getElementById('allAppsGrid');
+
+    if (state.deployedApps.length === 0) {
+        // Show empty state
+        grid.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">📦</div>
+                <h3 class="empty-title">No applications deployed</h3>
+                <p class="empty-message">Start by deploying an application from the catalog.</p>
+                <button class="btn btn-primary" onclick="showView('catalog')">Browse Catalog</button>
+            </div>
+        `;
+    } else {
+        // Render each app card using template
+        for (const app of state.deployedApps) {
+            renderAppCard(app, grid, true);
+        }
+    }
+
+    // Initialize Lucide icons
     initLucideIcons();
 
     // Hover sounds are handled automatically via event delegation (initCardHoverSounds)
@@ -893,12 +997,19 @@ function renderCatalogView() {
             <div class="search-results-count" id="catalogResultsCount" style="display: none;"></div>
         </div>
 
-        <div class="apps-grid" id="catalogGrid">
-            ${state.catalog.items.map(app => createAppCard(app, false)).join('')}
-        </div>
+        <div class="apps-grid" id="catalogGrid"></div>
     `;
     
     view.innerHTML = content;
+
+    // Render catalog app cards using template cloning (NEW PATTERN)
+    const grid = document.getElementById('catalogGrid');
+    for (const app of state.catalog.items) {
+        renderAppCard(app, grid, false);
+    }
+
+    // Initialize Lucide icons
+    initLucideIcons();
 
     // Hover sounds are handled automatically via event delegation (initCardHoverSounds)
 }
@@ -1836,6 +1947,355 @@ async function renderSettingsView() {
     setupSettingsForms();
 }
 
+// ============================================
+// UI Lab View - Testing Ground for UI Components
+// ============================================
+async function renderUiLabView() {
+    const view = document.getElementById('uilabView');
+    
+    const content = `
+        <div class="sub-nav-bar">
+            <div class="sub-nav-items">
+                <button class="sub-nav-item active" data-tab="components">
+                    <i data-lucide="box"></i>
+                    Components
+                    <span class="nav-badge">8</span>
+                </button>
+                <button class="sub-nav-item" data-tab="layouts">
+                    <i data-lucide="layout"></i>
+                    Layouts
+                    <span class="nav-badge">3</span>
+                </button>
+                <button class="sub-nav-item" data-tab="cards">
+                    <i data-lucide="credit-card"></i>
+                    Cards
+                    <span class="nav-badge">5</span>
+                </button>
+                <button class="sub-nav-item" data-tab="forms">
+                    <i data-lucide="file-text"></i>
+                    Forms
+                </button>
+                <button class="sub-nav-item" data-tab="colors">
+                    <i data-lucide="palette"></i>
+                    Colors
+                </button>
+            </div>
+        </div>
+
+        <div class="uilab-content">
+            <!-- Components Panel -->
+            <div class="uilab-panel active" id="components-panel">
+                <div class="page-header">
+                    <div class="page-header-content">
+                        <h1 class="page-title">
+                            <i data-lucide="flask-conical"></i>
+                            UI Lab - Component Testing
+                        </h1>
+                        <p class="page-subtitle">Sandbox per testare nuovi componenti UI prima dell'implementazione</p>
+                    </div>
+                </div>
+
+                <!-- Rack Cards Section -->
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i data-lucide="credit-card"></i>
+                        Rack Cards (Horizontal Compact)
+                    </h2>
+                    <p class="section-description">Card compatte in stile rack server per dashboard e liste</p>
+                </div>
+
+                <div class="rack-cards-grid">
+                    <!-- Rack Card 1: Server Status -->
+                    <div class="rack-card">
+                        <div class="rack-card-indicator running"></div>
+                        <div class="rack-card-icon">
+                            <i data-lucide="server"></i>
+                        </div>
+                        <div class="rack-card-content">
+                            <div class="rack-card-header">
+                                <h3 class="rack-card-title">ProxmoxVE-01</h3>
+                                <span class="rack-card-badge success">Online</span>
+                            </div>
+                            <div class="rack-card-meta">
+                                <span class="meta-item">
+                                    <i data-lucide="cpu"></i>
+                                    <span>16 Cores</span>
+                                </span>
+                                <span class="meta-item">
+                                    <i data-lucide="memory-stick"></i>
+                                    <span>64 GB RAM</span>
+                                </span>
+                                <span class="meta-item">
+                                    <i data-lucide="hard-drive"></i>
+                                    <span>2 TB SSD</span>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="rack-card-actions">
+                            <button class="action-btn" title="Monitoring">
+                                <i data-lucide="activity"></i>
+                            </button>
+                            <button class="action-btn" title="Console">
+                                <i data-lucide="terminal"></i>
+                            </button>
+                            <button class="action-btn" title="Settings">
+                                <i data-lucide="settings"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Rack Card 2: Application -->
+                    <div class="rack-card">
+                        <div class="rack-card-indicator stopped"></div>
+                        <div class="rack-card-icon">
+                            <i data-lucide="package"></i>
+                        </div>
+                        <div class="rack-card-content">
+                            <div class="rack-card-header">
+                                <h3 class="rack-card-title">PostgreSQL Database</h3>
+                                <span class="rack-card-badge stopped">Stopped</span>
+                            </div>
+                            <div class="rack-card-meta">
+                                <span class="meta-item">
+                                    <i data-lucide="container"></i>
+                                    <span>LXC-105</span>
+                                </span>
+                                <span class="meta-item">
+                                    <i data-lucide="network"></i>
+                                    <span>10.20.0.105</span>
+                                </span>
+                                <span class="meta-item">
+                                    <i data-lucide="clock"></i>
+                                    <span>2h ago</span>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="rack-card-actions">
+                            <button class="action-btn success" title="Start">
+                                <i data-lucide="play"></i>
+                            </button>
+                            <button class="action-btn" title="Logs">
+                                <i data-lucide="file-text"></i>
+                            </button>
+                            <button class="action-btn danger" title="Delete">
+                                <i data-lucide="trash-2"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Rack Card 3: Deployment -->
+                    <div class="rack-card">
+                        <div class="rack-card-indicator deploying"></div>
+                        <div class="rack-card-icon">
+                            <i data-lucide="rocket"></i>
+                        </div>
+                        <div class="rack-card-content">
+                            <div class="rack-card-header">
+                                <h3 class="rack-card-title">Nextcloud Instance</h3>
+                                <span class="rack-card-badge deploying">Deploying</span>
+                            </div>
+                            <div class="rack-card-meta">
+                                <span class="meta-item">
+                                    <i data-lucide="loader"></i>
+                                    <span>Installing packages...</span>
+                                </span>
+                            </div>
+                            <div class="rack-card-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 65%;"></div>
+                                </div>
+                                <span class="progress-text">65%</span>
+                            </div>
+                        </div>
+                        <div class="rack-card-actions">
+                            <button class="action-btn" title="View Logs" disabled>
+                                <i data-lucide="file-text"></i>
+                            </button>
+                            <button class="action-btn danger" title="Cancel">
+                                <i data-lucide="x"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Rack Card 4: Warning State -->
+                    <div class="rack-card warning">
+                        <div class="rack-card-indicator warning"></div>
+                        <div class="rack-card-icon">
+                            <i data-lucide="alert-triangle"></i>
+                        </div>
+                        <div class="rack-card-content">
+                            <div class="rack-card-header">
+                                <h3 class="rack-card-title">MySQL Server</h3>
+                                <span class="rack-card-badge warning">High CPU</span>
+                            </div>
+                            <div class="rack-card-meta">
+                                <span class="meta-item warning">
+                                    <i data-lucide="cpu"></i>
+                                    <span>CPU: 95%</span>
+                                </span>
+                                <span class="meta-item">
+                                    <i data-lucide="memory-stick"></i>
+                                    <span>RAM: 4.2/8 GB</span>
+                                </span>
+                                <span class="meta-item warning">
+                                    <i data-lucide="thermometer"></i>
+                                    <span>Temp: 82°C</span>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="rack-card-actions">
+                            <button class="action-btn warning" title="Restart">
+                                <i data-lucide="refresh-cw"></i>
+                            </button>
+                            <button class="action-btn" title="Monitoring">
+                                <i data-lucide="bar-chart"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Rack Card 5: Success State -->
+                    <div class="rack-card success">
+                        <div class="rack-card-indicator running"></div>
+                        <div class="rack-card-icon">
+                            <i data-lucide="check-circle"></i>
+                        </div>
+                        <div class="rack-card-content">
+                            <div class="rack-card-header">
+                                <h3 class="rack-card-title">Backup Completed</h3>
+                                <span class="rack-card-badge success">Healthy</span>
+                            </div>
+                            <div class="rack-card-meta">
+                                <span class="meta-item">
+                                    <i data-lucide="database"></i>
+                                    <span>Size: 2.4 GB</span>
+                                </span>
+                                <span class="meta-item">
+                                    <i data-lucide="calendar"></i>
+                                    <span>Today 03:00</span>
+                                </span>
+                                <span class="meta-item success">
+                                    <i data-lucide="check"></i>
+                                    <span>Verified</span>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="rack-card-actions">
+                            <button class="action-btn" title="Restore">
+                                <i data-lucide="upload"></i>
+                            </button>
+                            <button class="action-btn" title="Download">
+                                <i data-lucide="download"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Rack Card 6: Error State -->
+                    <div class="rack-card error">
+                        <div class="rack-card-indicator stopped"></div>
+                        <div class="rack-card-icon">
+                            <i data-lucide="x-circle"></i>
+                        </div>
+                        <div class="rack-card-content">
+                            <div class="rack-card-header">
+                                <h3 class="rack-card-title">Redis Cache</h3>
+                                <span class="rack-card-badge danger">Connection Failed</span>
+                            </div>
+                            <div class="rack-card-meta">
+                                <span class="meta-item danger">
+                                    <i data-lucide="wifi-off"></i>
+                                    <span>Network unreachable</span>
+                                </span>
+                                <span class="meta-item">
+                                    <i data-lucide="clock"></i>
+                                    <span>Failed 5m ago</span>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="rack-card-actions">
+                            <button class="action-btn warning" title="Retry">
+                                <i data-lucide="rotate-cw"></i>
+                            </button>
+                            <button class="action-btn" title="Logs">
+                                <i data-lucide="file-text"></i>
+                            </button>
+                            <button class="action-btn danger" title="Delete">
+                                <i data-lucide="trash-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Info Card -->
+                <div class="alert info" style="margin-top: 2rem;">
+                    <span class="alert-icon">ℹ️</span>
+                    <div class="alert-content">
+                        <div class="alert-title">UI Lab Environment</div>
+                        <div class="alert-message">Questo è un ambiente di test per sperimentare con nuovi componenti UI. Le modifiche qui non influenzano le pagine di produzione.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Other panels placeholder -->
+            <div class="uilab-panel" id="layouts-panel">
+                <h2>Layouts Panel</h2>
+                <p>Coming soon...</p>
+            </div>
+
+            <div class="uilab-panel" id="cards-panel">
+                <h2>Cards Panel</h2>
+                <p>Coming soon...</p>
+            </div>
+
+            <div class="uilab-panel" id="forms-panel">
+                <h2>Forms Panel</h2>
+                <p>Coming soon...</p>
+            </div>
+
+            <div class="uilab-panel" id="colors-panel">
+                <h2>Colors Panel</h2>
+                <p>Coming soon...</p>
+            </div>
+        </div>
+    `;
+    
+    view.innerHTML = content;
+    
+    // Setup tab switching
+    setupUiLabTabs();
+    
+    // Initialize icons
+    initLucideIcons();
+}
+
+function setupUiLabTabs() {
+    const tabs = document.querySelectorAll('.uilab-content .sub-nav-item');
+    
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            // Remove active from all tabs
+            tabs.forEach(t => t.classList.remove('active'));
+            
+            // Add active to clicked tab
+            tab.classList.add('active');
+            
+            // Hide all panels
+            document.querySelectorAll('.uilab-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+            
+            // Show corresponding panel
+            const panelId = `${tab.dataset.tab}-panel`;
+            const panel = document.getElementById(panelId);
+            if (panel) {
+                panel.classList.add('active');
+            }
+            
+            // Reinitialize icons
+            initLucideIcons();
+        });
+    });
+}
+
 // Modal Functions
 function showDeployModal(catalogId) {
     const app = state.catalog.items.find(a => a.id === catalogId);
@@ -2748,7 +3208,11 @@ function filterApps(filter) {
             </div>
         `;
     } else {
-        grid.innerHTML = filtered.map(app => createAppCard(app, true)).join('');
+        // Clear grid and render using template cloning
+        grid.innerHTML = '';
+        for (const app of filtered) {
+            renderAppCard(app, grid, true);
+        }
         // Reinitialize Lucide icons after updating the DOM
         initLucideIcons();
         // Hover sounds handled automatically via event delegation
@@ -2829,7 +3293,11 @@ function searchApps(query) {
             </div>
         `;
     } else {
-        grid.innerHTML = filtered.map(app => createAppCard(app, true)).join('');
+        // Clear grid and render using template cloning
+        grid.innerHTML = '';
+        for (const app of filtered) {
+            renderAppCard(app, grid, true);
+        }
     }
 
     // Reinitialize Lucide icons
@@ -2920,7 +3388,11 @@ function searchCatalog(query) {
             </div>
         `;
     } else {
-        grid.innerHTML = filtered.map(app => createAppCard(app, false)).join('');
+        // Clear grid and render using template cloning
+        grid.innerHTML = '';
+        for (const app of filtered) {
+            renderAppCard(app, grid, false);
+        }
     }
 
     // Reinitialize Lucide icons
@@ -3549,21 +4021,179 @@ function setupSettingsForms() {
         initFormValidation('resourcesForm');
     }
 
+    // Advanced Network Validation - DHCP Range & Subnet Checking
+    const networkForm = document.getElementById('networkForm');
+    if (networkForm) {
+        const subnetInput = networkForm.querySelector('[name="lan_subnet"]');
+        const gatewayInput = networkForm.querySelector('[name="lan_gateway"]');
+        const dhcpStartInput = networkForm.querySelector('[name="dhcp_start"]');
+        const dhcpEndInput = networkForm.querySelector('[name="dhcp_end"]');
+
+        // Helper: Convert IP to number for comparison
+        const ipToNumber = (ip) => {
+            const parts = ip.split('.');
+            return (parseInt(parts[0]) << 24) + (parseInt(parts[1]) << 16) + 
+                   (parseInt(parts[2]) << 8) + parseInt(parts[3]);
+        };
+
+        // Helper: Check if IP is in subnet
+        const isIpInSubnet = (ip, cidr) => {
+            const [subnet, maskBits] = cidr.split('/');
+            const mask = parseInt(maskBits);
+            const maskNum = (0xFFFFFFFF << (32 - mask)) >>> 0;
+            const ipNum = ipToNumber(ip);
+            const subnetNum = ipToNumber(subnet);
+            return (ipNum & maskNum) === (subnetNum & maskNum);
+        };
+
+        // Validate gateway is in subnet
+        if (gatewayInput && subnetInput) {
+            const validateGateway = () => {
+                const gateway = gatewayInput.value.trim();
+                const subnet = subnetInput.value.trim();
+                
+                if (!gateway || !subnet) return;
+                
+                // First check if both are valid formats
+                const ipPattern = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+                const cidrPattern = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\/([0-9]|[1-2][0-9]|3[0-2])$/;
+                
+                if (!ipPattern.test(gateway) || !cidrPattern.test(subnet)) return;
+                
+                if (!isIpInSubnet(gateway, subnet)) {
+                    if (typeof showFieldError === 'function') {
+                        showFieldError(gatewayInput, `Gateway IP must be within subnet ${subnet}`);
+                    }
+                } else if (gatewayInput.classList.contains('error')) {
+                    if (typeof showFieldSuccess === 'function') {
+                        showFieldSuccess(gatewayInput);
+                    }
+                }
+            };
+
+            gatewayInput.addEventListener('blur', validateGateway);
+            subnetInput.addEventListener('blur', validateGateway);
+        }
+
+        // Validate DHCP range
+        if (dhcpStartInput && dhcpEndInput && subnetInput) {
+            const validateDhcpRange = () => {
+                const start = dhcpStartInput.value.trim();
+                const end = dhcpEndInput.value.trim();
+                const subnet = subnetInput.value.trim();
+                
+                if (!start || !end || !subnet) return;
+                
+                // Check format validity first
+                const ipPattern = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+                const cidrPattern = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\/([0-9]|[1-2][0-9]|3[0-2])$/;
+                
+                if (!ipPattern.test(start) || !ipPattern.test(end) || !cidrPattern.test(subnet)) return;
+                
+                // Check if start < end
+                const startNum = ipToNumber(start);
+                const endNum = ipToNumber(end);
+                
+                if (startNum >= endNum) {
+                    if (typeof showFieldError === 'function') {
+                        showFieldError(dhcpEndInput, 'DHCP end must be greater than DHCP start');
+                    }
+                    return;
+                }
+                
+                // Check if both are in subnet
+                if (!isIpInSubnet(start, subnet)) {
+                    if (typeof showFieldError === 'function') {
+                        showFieldError(dhcpStartInput, `DHCP start must be within subnet ${subnet}`);
+                    }
+                } else if (dhcpStartInput.classList.contains('error')) {
+                    if (typeof showFieldSuccess === 'function') {
+                        showFieldSuccess(dhcpStartInput);
+                    }
+                }
+                
+                if (!isIpInSubnet(end, subnet)) {
+                    if (typeof showFieldError === 'function') {
+                        showFieldError(dhcpEndInput, `DHCP end must be within subnet ${subnet}`);
+                    }
+                } else if (dhcpEndInput.classList.contains('error')) {
+                    if (typeof showFieldSuccess === 'function') {
+                        showFieldSuccess(dhcpEndInput);
+                    }
+                }
+            };
+
+            dhcpStartInput.addEventListener('blur', validateDhcpRange);
+            dhcpEndInput.addEventListener('blur', validateDhcpRange);
+            subnetInput.addEventListener('blur', validateDhcpRange);
+        }
+
+        // Form submission with advanced validation
+        networkForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Run all advanced validations before submit
+            const subnet = subnetInput?.value.trim();
+            const gateway = gatewayInput?.value.trim();
+            const dhcpStart = dhcpStartInput?.value.trim();
+            const dhcpEnd = dhcpEndInput?.value.trim();
+            
+            let hasErrors = false;
+            
+            // Validate gateway in subnet
+            if (gateway && subnet && !isIpInSubnet(gateway, subnet)) {
+                if (typeof showFieldError === 'function') {
+                    showFieldError(gatewayInput, `Gateway IP must be within subnet ${subnet}`);
+                }
+                hasErrors = true;
+            }
+            
+            // Validate DHCP range
+            if (dhcpStart && dhcpEnd) {
+                const startNum = ipToNumber(dhcpStart);
+                const endNum = ipToNumber(dhcpEnd);
+                
+                if (startNum >= endNum) {
+                    if (typeof showFieldError === 'function') {
+                        showFieldError(dhcpEndInput, 'DHCP end must be greater than DHCP start');
+                    }
+                    hasErrors = true;
+                }
+                
+                if (subnet) {
+                    if (!isIpInSubnet(dhcpStart, subnet)) {
+                        if (typeof showFieldError === 'function') {
+                            showFieldError(dhcpStartInput, `DHCP start must be within subnet ${subnet}`);
+                        }
+                        hasErrors = true;
+                    }
+                    
+                    if (!isIpInSubnet(dhcpEnd, subnet)) {
+                        if (typeof showFieldError === 'function') {
+                            showFieldError(dhcpEndInput, `DHCP end must be within subnet ${subnet}`);
+                        }
+                        hasErrors = true;
+                    }
+                }
+            }
+            
+            if (hasErrors) {
+                if (window.showWarning) {
+                    showWarning('Please fix network configuration errors before saving');
+                }
+                return;
+            }
+            
+            await saveNetworkSettings(new FormData(networkForm));
+        });
+    }
+
     // Proxmox form
     const proxmoxForm = document.getElementById('proxmoxForm');
     if (proxmoxForm) {
         proxmoxForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             await saveProxmoxSettings(new FormData(proxmoxForm));
-        });
-    }
-
-    // Network form
-    const networkForm = document.getElementById('networkForm');
-    if (networkForm) {
-        networkForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            await saveNetworkSettings(new FormData(networkForm));
         });
     }
 

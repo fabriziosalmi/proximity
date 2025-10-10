@@ -29,7 +29,7 @@
     <script src="/js/validation-global.js?v=20251010-01"></script>
 
     <!-- Load legacy app.js first (non-module) -->
-    <script src="app.js?v=20251010-79"></script>
+    <script src="app.js?v=20251010-81"></script>
 
     <!-- Then load modular system (ES6 modules) -->
     <script src="js/main.js?v=20251009-51" type="module"></script>
@@ -77,6 +77,10 @@
                     </a>
                     <a href="#" class="nav-rack-item" data-view="settings" title="Settings">
                         <i data-lucide="settings"></i>
+                    </a>
+                    <a href="#" class="nav-rack-item" data-view="uilab" title="UI Lab">
+                        <i data-lucide="flask-conical"></i>
+                        <span class="nav-badge dev-badge">DEV</span>
                     </a>
 
                     <!-- Divider -->
@@ -173,6 +177,9 @@
                 
                 <!-- Settings View (Hidden by default) -->
                 <div id="settingsView" class="view hidden"></div>
+                
+                <!-- UI Lab View (Hidden by default) -->
+                <div id="uilabView" class="view hidden"></div>
             </div>
         </main>
     </div>
@@ -238,6 +245,118 @@
 
     <!-- Toast Notification Container -->
     <div id="toast-container" class="toast-container"></div>
+
+    <!-- ========================================
+         APP CARD TEMPLATES
+         ======================================== -->
+
+    <!-- Deployed App Card Template -->
+    <template id="deployed-app-card-template">
+        <div class="app-card deployed">
+            <!-- Header: Icon, Name, Quick Actions -->
+            <div class="app-card-header">
+                <div class="app-icon-lg"></div>
+                <div class="app-info">
+                    <h3 class="app-name"></h3>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="app-quick-actions">
+                    <button class="action-icon" data-action="toggle-status" title="">
+                        <i data-lucide="play"></i>
+                    </button>
+                    <button class="action-icon" data-action="open-external" title="Open in new tab">
+                        <i data-lucide="external-link"></i>
+                    </button>
+                    <button class="action-icon" data-action="view-logs" title="View logs">
+                        <i data-lucide="file-text"></i>
+                    </button>
+                    <button class="action-icon" data-action="console" title="Console">
+                        <i data-lucide="terminal"></i>
+                    </button>
+                    <button class="action-icon" data-action="backups" title="Backups">
+                        <i data-lucide="database"></i>
+                    </button>
+                    <button class="action-icon" data-action="update" title="Update Application">
+                        <i data-lucide="arrow-up-circle"></i>
+                    </button>
+                    <button class="action-icon" data-action="volumes" title="View Volumes">
+                        <i data-lucide="hard-drive"></i>
+                    </button>
+                    <button class="action-icon" data-action="monitoring" title="Monitoring">
+                        <i data-lucide="activity"></i>
+                    </button>
+                    <button class="action-icon" data-action="canvas" title="Open in Canvas" style="display: none;">
+                        <i data-lucide="monitor"></i>
+                    </button>
+                    <button class="action-icon" data-action="restart" title="Restart">
+                        <i data-lucide="refresh-cw"></i>
+                    </button>
+                    <button class="action-icon pro-feature" data-action="clone" title="Clone App">
+                        <i data-lucide="copy"></i>
+                    </button>
+                    <button class="action-icon pro-feature" data-action="edit-config" title="Edit Resources">
+                        <i data-lucide="sliders"></i>
+                    </button>
+                    <button class="action-icon danger" data-action="delete" title="Delete">
+                        <i data-lucide="trash-2"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Connection Info: Status, URL, Node, Container, Date -->
+            <div class="app-connection-info">
+                <div class="connection-item">
+                    <span class="status-badge-compact">
+                        <span class="status-dot-small"></span>
+                        <span class="status-text"></span>
+                    </span>
+                </div>
+                <div class="connection-item">
+                    <i data-lucide="link" class="connection-icon"></i>
+                    <a href="#" target="_blank" class="connection-value connection-link"></a>
+                </div>
+                <div class="connection-item">
+                    <i data-lucide="server" class="connection-icon"></i>
+                    <span class="connection-value node-value"></span>
+                </div>
+                <div class="connection-item">
+                    <i data-lucide="box" class="connection-icon"></i>
+                    <span class="connection-value lxc-id-value"></span>
+                </div>
+                <div class="connection-item">
+                    <i data-lucide="clock" class="connection-icon"></i>
+                    <span class="connection-value date-value"></span>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Catalog App Card Template -->
+    <template id="catalog-app-card-template">
+        <div class="app-card catalog-card">
+            <div class="catalog-card-content">
+                <div class="app-icon-md"></div>
+                <div class="catalog-info">
+                    <div class="catalog-header">
+                        <h3 class="app-name"></h3>
+                        <span class="category-badge"></span>
+                    </div>
+                    <p class="app-description-compact"></p>
+                    <div class="catalog-meta">
+                        <span class="meta-badge">
+                            <i data-lucide="cpu"></i>
+                            <span class="cpu-value"></span>
+                        </span>
+                        <span class="meta-badge">
+                            <i data-lucide="database"></i>
+                            <span class="memory-value"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
 
         <!-- Auth Modal (Register/Login) -->
         <div id="authModal" class="modal">
