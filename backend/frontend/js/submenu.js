@@ -297,17 +297,17 @@ function showStoreSubmenu() {
         {
             icon: 'database',
             onClick: () => {
-                console.log('Databases category clicked');
+                console.log('Database category clicked');
                 showView('catalog');
-                setTimeout(() => applyCatalogFilter('databases'), 100);
+                setTimeout(() => applyCatalogFilter('Database'), 100);
             }
         },
         {
             icon: 'globe',
             onClick: () => {
-                console.log('Web servers category clicked');
+                console.log('Web Server category clicked');
                 showView('catalog');
-                setTimeout(() => applyCatalogFilter('web'), 100);
+                setTimeout(() => applyCatalogFilter('Web Server'), 100);
             }
         },
         {
@@ -315,15 +315,15 @@ function showStoreSubmenu() {
             onClick: () => {
                 console.log('Development category clicked');
                 showView('catalog');
-                setTimeout(() => applyCatalogFilter('development'), 100);
+                setTimeout(() => applyCatalogFilter('Development'), 100);
             }
         },
         {
-            icon: 'cloud',
+            icon: 'file-text',
             onClick: () => {
-                console.log('Cloud tools category clicked');
+                console.log('CMS category clicked');
                 showView('catalog');
-                setTimeout(() => applyCatalogFilter('cloud'), 100);
+                setTimeout(() => applyCatalogFilter('CMS'), 100);
             }
         },
         {
@@ -331,23 +331,23 @@ function showStoreSubmenu() {
             onClick: () => {
                 console.log('Security category clicked');
                 showView('catalog');
-                setTimeout(() => applyCatalogFilter('security'), 100);
+                setTimeout(() => applyCatalogFilter('Security'), 100);
             }
         },
         {
-            icon: 'monitor',
+            icon: 'activity',
             onClick: () => {
                 console.log('Monitoring category clicked');
                 showView('catalog');
-                setTimeout(() => applyCatalogFilter('monitoring'), 100);
+                setTimeout(() => applyCatalogFilter('Monitoring'), 100);
             }
         },
         {
-            icon: 'share-2',
+            icon: 'network',
             onClick: () => {
                 console.log('Networking category clicked');
                 showView('catalog');
-                setTimeout(() => applyCatalogFilter('networking'), 100);
+                setTimeout(() => applyCatalogFilter('Networking'), 100);
             }
         }
     ];

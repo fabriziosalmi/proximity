@@ -18,7 +18,7 @@
 /* Top Navigation Rack - Card-Based Layout Revolution */
 .top-nav-rack {
     width: 100%;
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.98) 100%);
+    /* background: linear-gradient(135deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.98) 100%); */
     backdrop-filter: blur(20px);
     z-index: 1000;
     position: sticky;
@@ -819,7 +819,7 @@
 
 .nav-submenu {
     width: 100%;
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.98) 100%);
+    /* background: linear-gradient(135deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.98) 100%); */
     backdrop-filter: blur(20px);
     border-bottom: 2px solid var(--border-cyan);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6),
