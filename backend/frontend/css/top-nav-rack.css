@@ -666,3 +666,23 @@
 .nav-rack-items .sound-toggle-btn.muted:hover {
     border-color: rgba(239, 68, 68, 0.5);
 }
+
+/* Logout Button */
+.nav-rack-items .logout-btn {
+    width: 48px;
+    height: 48px;
+    padding: 0.75rem;
+    min-width: 48px;
+    min-height: 48px;
+    background: rgba(30, 41, 59, 0.3);
+    border: 1px solid var(--border);
+}
+
+.nav-rack-items .logout-btn:hover {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.5);
+}
+
+.nav-rack-items .logout-btn:hover i {
+    color: #ef4444;
+}

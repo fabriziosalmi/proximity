@@ -767,20 +767,36 @@ function playClickSound() {
 
 function renderAppsView() {
     const view = document.getElementById('appsView');
-    
+    view.classList.add('has-sub-nav');
+
+    const runningCount = state.deployedApps.filter(a => a.status === 'running').length;
+    const stoppedCount = state.deployedApps.filter(a => a.status === 'stopped').length;
+
     const content = `
-        <div class="filter-tabs-container" style="margin-bottom: 2rem;">
-            <div class="filter-tabs">
-                <button class="filter-tab active" onclick="filterApps('all')">All Apps</button>
-                <button class="filter-tab" onclick="filterApps('running')">Running</button>
-                <button class="filter-tab" onclick="filterApps('stopped')">Stopped</button>
-                <button class="filter-tab deploy-new-app" onclick="showView('catalog')" style="margin-left: auto; background: var(--primary-gradient); border-color: var(--primary); color: white;">
+        <div class="sub-nav-bar">
+            <div class="sub-nav-items">
+                <button class="sub-nav-item active" onclick="filterApps('all')">
+                    <i data-lucide="package"></i>
+                    All Apps
+                    <span class="nav-badge">${state.deployedApps.length}</span>
+                </button>
+                <button class="sub-nav-item" onclick="filterApps('running')">
+                    <i data-lucide="play-circle"></i>
+                    Running
+                    <span class="nav-badge">${runningCount}</span>
+                </button>
+                <button class="sub-nav-item" onclick="filterApps('stopped')">
+                    <i data-lucide="pause-circle"></i>
+                    Stopped
+                    <span class="nav-badge">${stoppedCount}</span>
+                </button>
+                <button class="sub-nav-item" onclick="showView('catalog')" style="margin-left: auto;">
                     <i data-lucide="plus"></i>
-                    <span style="margin-left: 0.5rem;">Deploy New App</span>
+                    Deploy New App
                 </button>
             </div>
         </div>
-        
+
         <div class="apps-grid deployed" id="allAppsGrid">
             ${state.deployedApps.length > 0 
                 ? state.deployedApps.map(app => createAppCard(app, true)).join('')
@@ -805,6 +821,7 @@ function renderAppsView() {
 function renderCatalogView() {
     console.log('🏪 renderCatalogView() called');
     const view = document.getElementById('catalogView');
+    view.classList.add('has-sub-nav');
 
     if (!state.catalog || !state.catalog.items) {
         console.log('⚠️  Catalog data not loaded yet');
@@ -812,19 +829,31 @@ function renderCatalogView() {
         return;
     }
     console.log(`✓ Rendering ${state.catalog.items.length} catalog items`);
-    
+
     const categories = state.catalog.categories || [];
-    
+
     const content = `
-        <div class="filter-tabs-container">
-            <div class="filter-tabs">
-                <button class="filter-tab active" onclick="filterCatalog('all')">All</button>
-                ${categories.map(cat => `
-                    <button class="filter-tab" onclick="filterCatalog('${cat}')">${cat}</button>
-                `).join('')}
+        <div class="sub-nav-bar">
+            <div class="sub-nav-items">
+                <button class="sub-nav-item active" onclick="filterCatalog('all')">
+                    <i data-lucide="grid-3x3"></i>
+                    All
+                    <span class="nav-badge">${state.catalog.items.length}</span>
+                </button>
+                ${categories.map(cat => {
+                    const count = state.catalog.items.filter(item => item.category === cat).length;
+                    const icon = getCategoryIcon(cat);
+                    return `
+                        <button class="sub-nav-item" onclick="filterCatalog('${cat}')">
+                            <i data-lucide="${icon}"></i>
+                            ${cat}
+                            <span class="nav-badge">${count}</span>
+                        </button>
+                    `;
+                }).join('')}
             </div>
         </div>
-        
+
         <div class="apps-grid" id="catalogGrid">
             ${state.catalog.items.map(app => createAppCard(app, false)).join('')}
         </div>
@@ -1325,44 +1354,44 @@ async function renderSettingsView() {
     }
 
     const content = `
-        <div class="page-header">
-            <div class="page-title-row">
-                <div>
-                    <h1 class="page-title">Settings</h1>
-                    <p class="page-subtitle">Configure Proximity platform settings</p>
-                </div>
+        <div class="sub-nav-bar">
+            <div class="sub-nav-items">
+                <button class="sub-nav-item active" data-tab="proxmox">
+                    <i data-lucide="server"></i>
+                    Proxmox
+                </button>
+                <button class="sub-nav-item" data-tab="network">
+                    <i data-lucide="network"></i>
+                    Network
+                </button>
+                <button class="sub-nav-item" data-tab="resources">
+                    <i data-lucide="cpu"></i>
+                    Resources
+                </button>
+                <button class="sub-nav-item" data-tab="system">
+                    <i data-lucide="info"></i>
+                    System
+                </button>
+                <button class="sub-nav-item" data-tab="audio">
+                    <i data-lucide="volume-2"></i>
+                    Audio
+                </button>
             </div>
-        </div>
-
-        <div class="settings-tabs">
-            <button class="settings-tab active" data-tab="proxmox">
-                <i data-lucide="server"></i>
-                <span>Proxmox</span>
-            </button>
-            <button class="settings-tab" data-tab="network">
-                <i data-lucide="network"></i>
-                <span>Network</span>
-            </button>
-            <button class="settings-tab" data-tab="resources">
-                <i data-lucide="cpu"></i>
-                <span>Resources</span>
-            </button>
-            <button class="settings-tab" data-tab="system">
-                <i data-lucide="settings"></i>
-                <span>System</span>
-            </button>
-            <button class="settings-tab" data-tab="audio">
-                <i data-lucide="volume-2"></i>
-                <span>Audio</span>
-            </button>
         </div>
 
         <div class="settings-content">
             <!-- Proxmox Settings -->
             <div class="settings-panel active" id="proxmox-panel">
                 <div class="app-card">
-                    <h3 class="app-name" style="margin-bottom: 1.5rem;">Proxmox Connection</h3>
-                    <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Configure connection to your Proxmox VE server</p>
+                    <div class="settings-card-header">
+                        <div class="settings-card-icon">
+                            <i data-lucide="server"></i>
+                        </div>
+                        <div class="settings-card-title">
+                            <h3>Proxmox Connection</h3>
+                            <p>Configure connection to your Proxmox VE server</p>
+                        </div>
+                    </div>
 
                     <form id="proxmoxForm" class="settings-form">
                         <div class="form-group">
@@ -1416,8 +1445,15 @@ async function renderSettingsView() {
             <!-- Network Settings -->
             <div class="settings-panel" id="network-panel">
                 <div class="app-card">
-                    <h3 class="app-name" style="margin-bottom: 1.5rem;">Network Configuration</h3>
-                    <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Configure network settings for deployed applications</p>
+                    <div class="settings-card-header">
+                        <div class="settings-card-icon">
+                            <i data-lucide="network"></i>
+                        </div>
+                        <div class="settings-card-title">
+                            <h3>Network Configuration</h3>
+                            <p>Configure network settings for deployed applications</p>
+                        </div>
+                    </div>
 
                     <form id="networkForm" class="settings-form">
                         <div class="form-group">
@@ -1472,8 +1508,15 @@ async function renderSettingsView() {
             <!-- Resource Settings -->
             <div class="settings-panel" id="resources-panel">
                 <div class="app-card">
-                    <h3 class="app-name" style="margin-bottom: 1.5rem;">Default Resources</h3>
-                    <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Set default resource allocations for new LXC containers</p>
+                    <div class="settings-card-header">
+                        <div class="settings-card-icon">
+                            <i data-lucide="cpu"></i>
+                        </div>
+                        <div class="settings-card-title">
+                            <h3>Default Resources</h3>
+                            <p>Set default resource allocations for new LXC containers</p>
+                        </div>
+                    </div>
 
                     <form id="resourcesForm" class="settings-form">
                         <div class="form-group">
@@ -1515,7 +1558,15 @@ async function renderSettingsView() {
             <!-- System Settings -->
             <div class="settings-panel" id="system-panel">
                 <div class="app-card">
-                    <h3 class="app-name" style="margin-bottom: 1.5rem;">System Information</h3>
+                    <div class="settings-card-header">
+                        <div class="settings-card-icon">
+                            <i data-lucide="info"></i>
+                        </div>
+                        <div class="settings-card-title">
+                            <h3>System Information</h3>
+                            <p>Platform status and configuration details</p>
+                        </div>
+                    </div>
                     <div class="app-meta">
                         <div class="app-meta-item">
                             <span>📌</span>
@@ -1540,10 +1591,15 @@ async function renderSettingsView() {
 
                 <!-- Proximity Mode Toggle -->
                 <div class="app-card" style="margin-top: 1.5rem;">
-                    <h3 class="app-name" style="margin-bottom: 1.5rem;">
-                        <i data-lucide="zap" style="width: 20px; height: 20px; margin-right: 0.5rem;"></i>
-                        Proximity Mode
-                    </h3>
+                    <div class="settings-card-header">
+                        <div class="settings-card-icon">
+                            <i data-lucide="zap"></i>
+                        </div>
+                        <div class="settings-card-title">
+                            <h3>Proximity Mode</h3>
+                            <p>Choose between automated or professional control</p>
+                        </div>
+                    </div>
 
                     <div class="mode-toggle">
                         <div class="mode-toggle-label">
@@ -1588,8 +1644,15 @@ async function renderSettingsView() {
                 </div>
 
                 <div class="app-card" style="margin-top: 1.5rem;">
-                    <h3 class="app-name" style="margin-bottom: 1.5rem;">Security</h3>
-                    <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Manage authentication and access control</p>
+                    <div class="settings-card-header">
+                        <div class="settings-card-icon">
+                            <i data-lucide="shield"></i>
+                        </div>
+                        <div class="settings-card-title">
+                            <h3>Security</h3>
+                            <p>Authentication and access control settings</p>
+                        </div>
+                    </div>
 
                     <div class="alert info">
                         <span class="alert-icon">🔐</span>
@@ -1604,11 +1667,15 @@ async function renderSettingsView() {
             <!-- Audio Settings -->
             <div class="settings-panel" id="audio-panel">
                 <div class="app-card">
-                    <h3 class="app-name" style="margin-bottom: 1.5rem;">
-                        <i data-lucide="volume-2" style="width: 20px; height: 20px; margin-right: 0.5rem;"></i>
-                        Audio Settings
-                    </h3>
-                    <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Configure sound effects and volume levels for the application</p>
+                    <div class="settings-card-header">
+                        <div class="settings-card-icon">
+                            <i data-lucide="volume-2"></i>
+                        </div>
+                        <div class="settings-card-title">
+                            <h3>Audio Settings</h3>
+                            <p>Configure sound effects and volume levels</p>
+                        </div>
+                    </div>
 
                     <form id="audioForm" class="settings-form">
                         <!-- Master Volume Control -->
@@ -1715,7 +1782,8 @@ async function renderSettingsView() {
     `;
 
     view.innerHTML = content;
-    
+    view.classList.add('has-sub-nav');
+
     // Show the view
     view.classList.remove('hidden');
     view.style.display = 'block';
@@ -2650,7 +2718,7 @@ function attachCardHoverSounds() {
 
 function filterApps(filter) {
     // Update tab active state
-    document.querySelectorAll('.filter-tab').forEach(tab => {
+    document.querySelectorAll('.sub-nav-item').forEach(tab => {
         tab.classList.remove('active');
     });
     event.target.classList.add('active');
@@ -2681,7 +2749,7 @@ function filterApps(filter) {
 
 function filterCatalog(category) {
     // Update tab active state
-    document.querySelectorAll('.filter-tab').forEach(tab => {
+    document.querySelectorAll('.sub-nav-item').forEach(tab => {
         tab.classList.remove('active');
     });
     event.target.classList.add('active');
@@ -3266,7 +3334,7 @@ function handleModeToggle(checkbox) {
 }
 
 function setupSettingsTabs() {
-    const tabs = document.querySelectorAll('.settings-tab');
+    const tabs = document.querySelectorAll('.sub-nav-item[data-tab]');
     const panels = document.querySelectorAll('.settings-panel');
 
     tabs.forEach(tab => {
@@ -5533,3 +5601,22 @@ document.addEventListener('keydown', (e) => {
         closeCanvas();
     }
 });
+
+// Helper function to get icon for category
+function getCategoryIcon(category) {
+    const icons = {
+        'Development': 'code',
+        'Database': 'database',
+        'Web Server': 'globe',
+        'Monitoring': 'activity',
+        'CMS': 'file-text',
+        'E-Commerce': 'shopping-cart',
+        'Communication': 'message-circle',
+        'Media': 'play-circle',
+        'Storage': 'hard-drive',
+        'Security': 'shield',
+        'Networking': 'network',
+        'Automation': 'zap'
+    };
+    return icons[category] || 'box';
+}

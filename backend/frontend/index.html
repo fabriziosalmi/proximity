@@ -8,8 +8,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..900&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="/css/styles.css?v=20251010-64">
-        <link rel="stylesheet" href="/css/top-nav-rack.css?v=20251010-63">    <!-- Xterm.js Terminal -->
+        <link rel="stylesheet" href="/css/styles.css?v=20251010-70">
+        <link rel="stylesheet" href="/css/top-nav-rack.css?v=20251010-69">    <!-- Xterm.js Terminal -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
     <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
@@ -21,7 +21,7 @@
     <script src="/js/top-nav-rack.js?v=20251009-18"></script>
 
     <!-- Load legacy app.js first (non-module) -->
-    <script src="app.js?v=20251010-66"></script>
+    <script src="app.js?v=20251010-72"></script>
 
     <!-- Then load modular system (ES6 modules) -->
     <script src="js/main.js?v=20251009-51" type="module"></script>
@@ -78,29 +78,11 @@
                     <button class="nav-rack-item sound-toggle-btn" id="soundToggleBtn" title="Audio Settings">
                         <i data-lucide="volume-2" id="soundIcon"></i>
                     </button>
-                </div>
 
-                <!-- User Profile -->
-                <div class="nav-rack-user">
-                    <button class="user-profile-btn" id="userProfileBtn" title="User Menu">
-                        <div class="user-avatar">PR</div>
-                        <i data-lucide="chevron-down"></i>
+                    <!-- Logout -->
+                    <button class="nav-rack-item logout-btn" onclick="handleLogout(event)" title="Logout">
+                        <i data-lucide="log-out"></i>
                     </button>
-                    <div class="user-menu" id="userMenu">
-                        <a href="#" class="user-menu-item" onclick="showUserProfile(event)">
-                            <i data-lucide="user"></i>
-                            <span>Profile</span>
-                        </a>
-                        <a href="#" class="user-menu-item" onclick="showView('settings')">
-                            <i data-lucide="settings"></i>
-                            <span>Settings</span>
-                        </a>
-                        <hr class="user-menu-divider">
-                        <a href="#" class="user-menu-item logout" onclick="handleLogout(event)">
-                            <i data-lucide="log-out"></i>
-                            <span>Logout</span>
-                        </a>
-                    </div>
                 </div>
             </div>
         </nav>
@@ -155,55 +137,16 @@
                         </div>
                     </div>
 
-                    <!-- Quick Apps Access -->
-                    <div class="dashboard-section">
-                        <div class="quick-apps-container">
-                            <button class="quick-apps-view-all" onclick="showView('apps')" title="View All Applications">
-                                <i data-lucide="arrow-right"></i>
-                            </button>
-                            <div id="quickApps" class="quick-apps-grid">
-                                <div class="empty-state">
-                                    <div class="empty-icon">
-                                        <i data-lucide="package" style="width: 48px; height: 48px;"></i>
-                                    </div>
-                                    <h3 class="empty-title">No applications yet</h3>
-                                    <p class="empty-message">Deploy your first application from the catalog to get started.</p>
-                                    <button class="btn btn-primary" onclick="showView('catalog')">Browse Catalog</button>
-                                </div>
+                    <!-- Quick Apps Grid -->
+                    <div class="quick-apps-container">
+                        <button class="quick-apps-view-all" onclick="showView('apps')" title="View All Applications">
+                            <i data-lucide="arrow-right"></i>
+                        </button>
+                        <div id="quickApps" class="quick-apps-grid">
+                            <div class="empty-state-compact">
+                                <i data-lucide="package"></i>
+                                <span>No applications deployed yet</span>
                             </div>
-                        </div>
-                    </div>
-
-                    <!-- Quick Actions -->
-                    <div class="dashboard-section">
-                        <div class="dashboard-actions-grid">
-                            <button class="dashboard-action-card" onclick="showView('catalog')">
-                                <div class="dashboard-action-icon">
-                                    <i data-lucide="plus-circle"></i>
-                                </div>
-                                <div class="dashboard-action-content">
-                                    <h3>Deploy Application</h3>
-                                    <p>Browse catalog and deploy new apps</p>
-                                </div>
-                            </button>
-                            <button class="dashboard-action-card" onclick="showView('nodes')">
-                                <div class="dashboard-action-icon">
-                                    <i data-lucide="server"></i>
-                                </div>
-                                <div class="dashboard-action-content">
-                                    <h3>View Infrastructure</h3>
-                                    <p>Check nodes and network status</p>
-                                </div>
-                            </button>
-                            <button class="dashboard-action-card" onclick="showView('monitoring')">
-                                <div class="dashboard-action-icon">
-                                    <i data-lucide="activity"></i>
-                                </div>
-                                <div class="dashboard-action-content">
-                                    <h3>Monitor Resources</h3>
-                                    <p>View detailed resource metrics</p>
-                                </div>
-                            </button>
                         </div>
                     </div>
                 </div>
