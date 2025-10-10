@@ -1956,52 +1956,42 @@ async function renderUiLabView() {
     const content = `
         <div class="sub-nav-bar">
             <div class="sub-nav-items">
-                <button class="sub-nav-item active" data-tab="components">
+                <button class="sub-nav-item active" data-tab="rackcards">
+                    <i data-lucide="credit-card"></i>
+                    Rack Cards
+                    <span class="nav-badge">6</span>
+                </button>
+                <button class="sub-nav-item" data-tab="components">
                     <i data-lucide="box"></i>
                     Components
-                    <span class="nav-badge">8</span>
+                    <span class="nav-badge">12</span>
                 </button>
-                <button class="sub-nav-item" data-tab="layouts">
-                    <i data-lucide="layout"></i>
-                    Layouts
-                    <span class="nav-badge">3</span>
-                </button>
-                <button class="sub-nav-item" data-tab="cards">
-                    <i data-lucide="credit-card"></i>
-                    Cards
-                    <span class="nav-badge">5</span>
-                </button>
-                <button class="sub-nav-item" data-tab="forms">
-                    <i data-lucide="file-text"></i>
-                    Forms
-                </button>
-                <button class="sub-nav-item" data-tab="colors">
+                <button class="sub-nav-item" data-tab="theme">
                     <i data-lucide="palette"></i>
-                    Colors
+                    Theme System
                 </button>
             </div>
         </div>
 
         <div class="uilab-content">
-            <!-- Components Panel -->
-            <div class="uilab-panel active" id="components-panel">
+            <!-- Rack Cards Panel -->
+            <div class="uilab-panel active" id="rackcards-panel">
                 <div class="page-header">
                     <div class="page-header-content">
                         <h1 class="page-title">
-                            <i data-lucide="flask-conical"></i>
-                            UI Lab - Component Testing
+                            <i data-lucide="credit-card"></i>
+                            Rack Cards - Horizontal Compact Layout
                         </h1>
-                        <p class="page-subtitle">Sandbox per testare nuovi componenti UI prima dell'implementazione</p>
+                        <p class="page-subtitle">Card compatte in stile rack server per dashboard e liste applicazioni</p>
                     </div>
                 </div>
 
-                <!-- Rack Cards Section -->
                 <div class="section-header">
                     <h2 class="section-title">
-                        <i data-lucide="credit-card"></i>
-                        Rack Cards (Horizontal Compact)
+                        <i data-lucide="server"></i>
+                        Server & Application States
                     </h2>
-                    <p class="section-description">Card compatte in stile rack server per dashboard e liste</p>
+                    <p class="section-description">Esempi di rack cards con diversi stati operativi</p>
                 </div>
 
                 <div class="rack-cards-grid">
@@ -2224,36 +2214,326 @@ async function renderUiLabView() {
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Info Card -->
-                <div class="alert info" style="margin-top: 2rem;">
-                    <span class="alert-icon">ℹ️</span>
-                    <div class="alert-content">
-                        <div class="alert-title">UI Lab Environment</div>
-                        <div class="alert-message">Questo è un ambiente di test per sperimentare con nuovi componenti UI. Le modifiche qui non influenzano le pagine di produzione.</div>
+            <!-- Components Panel -->
+            <div class="uilab-panel" id="components-panel">
+                <div class="page-header">
+                    <div class="page-header-content">
+                        <h1 class="page-title">
+                            <i data-lucide="box"></i>
+                            UI Components Library
+                        </h1>
+                        <p class="page-subtitle">Libreria completa dei componenti UI utilizzati in Proximity</p>
+                    </div>
+                </div>
+
+                <!-- Buttons Section -->
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i data-lucide="mouse-pointer"></i>
+                        Buttons
+                    </h2>
+                    <p class="section-description">Stili dei pulsanti con varianti e stati</p>
+                </div>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 3rem;">
+                    <button class="btn btn-primary">
+                        <i data-lucide="check"></i>
+                        <span>Primary Button</span>
+                    </button>
+                    <button class="btn btn-secondary">
+                        <i data-lucide="settings"></i>
+                        <span>Secondary</span>
+                    </button>
+                    <button class="btn btn-success">
+                        <i data-lucide="play"></i>
+                        <span>Success</span>
+                    </button>
+                    <button class="btn btn-danger">
+                        <i data-lucide="trash-2"></i>
+                        <span>Danger</span>
+                    </button>
+                    <button class="btn btn-primary" disabled>
+                        <span>Disabled</span>
+                    </button>
+                </div>
+
+                <!-- Alerts Section -->
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i data-lucide="bell"></i>
+                        Alerts & Notifications
+                    </h2>
+                    <p class="section-description">Alert box per messaggi informativi, warning e errori</p>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 3rem;">
+                    <div class="alert info">
+                        <span class="alert-icon">ℹ️</span>
+                        <div class="alert-content">
+                            <div class="alert-title">Info Alert</div>
+                            <div class="alert-message">Questo è un messaggio informativo con titolo e descrizione dettagliata.</div>
+                        </div>
+                    </div>
+                    <div class="alert success">
+                        <span class="alert-icon">✓</span>
+                        <div class="alert-content">
+                            <div class="alert-title">Success Alert</div>
+                            <div class="alert-message">Operazione completata con successo!</div>
+                        </div>
+                    </div>
+                    <div class="alert warning">
+                        <span class="alert-icon">⚠️</span>
+                        <div class="alert-content">
+                            <div class="alert-title">Warning Alert</div>
+                            <div class="alert-message">Attenzione: questa azione richiede conferma.</div>
+                        </div>
+                    </div>
+                    <div class="alert error">
+                        <span class="alert-icon">✕</span>
+                        <div class="alert-content">
+                            <div class="alert-title">Error Alert</div>
+                            <div class="alert-message">Si è verificato un errore durante l'operazione.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Badges Section -->
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i data-lucide="tag"></i>
+                        Badges & Labels
+                    </h2>
+                    <p class="section-description">Badge per status e categorizzazione</p>
+                </div>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; margin-bottom: 3rem;">
+                    <span class="nav-badge">24</span>
+                    <span class="nav-badge dev-badge">DEV</span>
+                    <span class="rack-card-badge success">Running</span>
+                    <span class="rack-card-badge stopped">Stopped</span>
+                    <span class="rack-card-badge deploying">Deploying</span>
+                    <span class="rack-card-badge warning">Warning</span>
+                    <span class="rack-card-badge danger">Error</span>
+                </div>
+
+                <!-- Form Elements Section -->
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i data-lucide="file-text"></i>
+                        Form Elements
+                    </h2>
+                    <p class="section-description">Input fields con validazione e stati</p>
+                </div>
+                <div style="max-width: 600px; margin-bottom: 3rem;">
+                    <div class="form-group">
+                        <label class="form-label">Text Input <span class="required">*</span></label>
+                        <input type="text" class="form-input" placeholder="Enter text here" value="Sample value">
+                        <p class="form-help">Helper text for this input field</p>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Select Dropdown</label>
+                        <select class="form-input">
+                            <option>Option 1</option>
+                            <option selected>Option 2</option>
+                            <option>Option 3</option>
+                        </select>
+                    </div>
+                    <div class="form-group success">
+                        <label class="form-label">Valid Input</label>
+                        <input type="text" class="form-input valid" value="192.168.1.1">
+                        <p class="form-help success">✓ Valid IP address</p>
+                    </div>
+                    <div class="form-group error">
+                        <label class="form-label">Invalid Input</label>
+                        <input type="text" class="form-input invalid" value="invalid-value">
+                        <p class="form-help error">✕ This field contains an error</p>
+                    </div>
+                </div>
+
+                <!-- Loading States Section -->
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i data-lucide="loader"></i>
+                        Loading States
+                    </h2>
+                    <p class="section-description">Spinner e indicatori di caricamento</p>
+                </div>
+                <div style="display: flex; gap: 2rem; align-items: center; margin-bottom: 3rem;">
+                    <div class="loading-spinner"></div>
+                    <div style="flex: 1; max-width: 300px;">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 45%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Icons Section -->
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i data-lucide="smile"></i>
+                        Icon System
+                    </h2>
+                    <p class="section-description">Lucide Icons integration</p>
+                </div>
+                <div style="display: flex; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 3rem;">
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                        <i data-lucide="server" style="width: 32px; height: 32px; color: var(--primary);"></i>
+                        <span style="font-size: 0.75rem; color: var(--text-secondary);">server</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                        <i data-lucide="database" style="width: 32px; height: 32px; color: var(--success);"></i>
+                        <span style="font-size: 0.75rem; color: var(--text-secondary);">database</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                        <i data-lucide="cloud" style="width: 32px; height: 32px; color: #3b82f6;"></i>
+                        <span style="font-size: 0.75rem; color: var(--text-secondary);">cloud</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                        <i data-lucide="shield" style="width: 32px; height: 32px; color: #f59e0b;"></i>
+                        <span style="font-size: 0.75rem; color: var(--text-secondary);">shield</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                        <i data-lucide="zap" style="width: 32px; height: 32px; color: var(--secondary);"></i>
+                        <span style="font-size: 0.75rem; color: var(--text-secondary);">zap</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                        <i data-lucide="terminal" style="width: 32px; height: 32px; color: var(--text-primary);"></i>
+                        <span style="font-size: 0.75rem; color: var(--text-secondary);">terminal</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Other panels placeholder -->
-            <div class="uilab-panel" id="layouts-panel">
-                <h2>Layouts Panel</h2>
-                <p>Coming soon...</p>
-            </div>
+            <!-- Theme System Panel -->
+            <div class="uilab-panel" id="theme-panel">
+                <div class="page-header">
+                    <div class="page-header-content">
+                        <h1 class="page-title">
+                            <i data-lucide="palette"></i>
+                            Theme System & Design Tokens
+                        </h1>
+                        <p class="page-subtitle">Sistema di colori e variabili CSS utilizzate nel tema</p>
+                    </div>
+                </div>
 
-            <div class="uilab-panel" id="cards-panel">
-                <h2>Cards Panel</h2>
-                <p>Coming soon...</p>
-            </div>
+                <!-- Color Palette Section -->
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i data-lucide="droplet"></i>
+                        Color Palette
+                    </h2>
+                    <p class="section-description">Palette di colori primari e semantici</p>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 3rem;">
+                    <div style="padding: 1.5rem; background: var(--primary); border-radius: var(--radius-lg); color: white;">
+                        <div style="font-weight: 600; margin-bottom: 0.5rem;">Primary</div>
+                        <div style="font-size: 0.875rem; opacity: 0.9;">--primary</div>
+                    </div>
+                    <div style="padding: 1.5rem; background: var(--secondary); border-radius: var(--radius-lg); color: white;">
+                        <div style="font-weight: 600; margin-bottom: 0.5rem;">Secondary</div>
+                        <div style="font-size: 0.875rem; opacity: 0.9;">--secondary</div>
+                    </div>
+                    <div style="padding: 1.5rem; background: var(--success); border-radius: var(--radius-lg); color: white;">
+                        <div style="font-weight: 600; margin-bottom: 0.5rem;">Success</div>
+                        <div style="font-size: 0.875rem; opacity: 0.9;">--success</div>
+                    </div>
+                    <div style="padding: 1.5rem; background: var(--danger); border-radius: var(--radius-lg); color: white;">
+                        <div style="font-weight: 600; margin-bottom: 0.5rem;">Danger</div>
+                        <div style="font-size: 0.875rem; opacity: 0.9;">--danger</div>
+                    </div>
+                    <div style="padding: 1.5rem; background: #f59e0b; border-radius: var(--radius-lg); color: white;">
+                        <div style="font-weight: 600; margin-bottom: 0.5rem;">Warning</div>
+                        <div style="font-size: 0.875rem; opacity: 0.9;">#f59e0b</div>
+                    </div>
+                    <div style="padding: 1.5rem; background: #3b82f6; border-radius: var(--radius-lg); color: white;">
+                        <div style="font-weight: 600; margin-bottom: 0.5rem;">Info</div>
+                        <div style="font-size: 0.875rem; opacity: 0.9;">#3b82f6</div>
+                    </div>
+                </div>
 
-            <div class="uilab-panel" id="forms-panel">
-                <h2>Forms Panel</h2>
-                <p>Coming soon...</p>
-            </div>
+                <!-- Background Colors Section -->
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i data-lucide="layers"></i>
+                        Background Layers
+                    </h2>
+                    <p class="section-description">Livelli di background per profondità visiva</p>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 3rem;">
+                    <div style="padding: 1.5rem; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-lg);">
+                        <div style="font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary);">BG Primary</div>
+                        <div style="font-size: 0.875rem; color: var(--text-secondary);">--bg-primary</div>
+                    </div>
+                    <div style="padding: 1.5rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-lg);">
+                        <div style="font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary);">BG Secondary</div>
+                        <div style="font-size: 0.875rem; color: var(--text-secondary);">--bg-secondary</div>
+                    </div>
+                    <div style="padding: 1.5rem; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-lg);">
+                        <div style="font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary);">BG Tertiary</div>
+                        <div style="font-size: 0.875rem; color: var(--text-secondary);">--bg-tertiary</div>
+                    </div>
+                    <div style="padding: 1.5rem; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--radius-lg);">
+                        <div style="font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary);">Card BG</div>
+                        <div style="font-size: 0.875rem; color: var(--text-secondary);">--card-bg</div>
+                    </div>
+                </div>
 
-            <div class="uilab-panel" id="colors-panel">
-                <h2>Colors Panel</h2>
-                <p>Coming soon...</p>
+                <!-- Text Colors Section -->
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i data-lucide="type"></i>
+                        Text Hierarchy
+                    </h2>
+                    <p class="section-description">Livelli di testo per gerarchia visiva</p>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 3rem;">
+                    <div style="padding: 1rem; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--radius-lg);">
+                        <div style="color: var(--text-primary); font-size: 1.25rem; font-weight: 600;">Primary Text</div>
+                        <div style="color: var(--text-secondary); font-size: 0.875rem; margin-top: 0.25rem;">--text-primary (Headings, important content)</div>
+                    </div>
+                    <div style="padding: 1rem; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--radius-lg);">
+                        <div style="color: var(--text-secondary); font-size: 1rem;">Secondary Text</div>
+                        <div style="color: var(--text-tertiary); font-size: 0.875rem; margin-top: 0.25rem;">--text-secondary (Body text, descriptions)</div>
+                    </div>
+                    <div style="padding: 1rem; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--radius-lg);">
+                        <div style="color: var(--text-tertiary); font-size: 0.875rem;">Tertiary Text</div>
+                        <div style="color: var(--text-tertiary); font-size: 0.75rem; margin-top: 0.25rem;">--text-tertiary (Meta info, timestamps)</div>
+                    </div>
+                </div>
+
+                <!-- Spacing & Radius Section -->
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i data-lucide="maximize"></i>
+                        Spacing & Border Radius
+                    </h2>
+                    <p class="section-description">Token per spacing e border radius consistenti</p>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 3rem;">
+                    <div style="text-align: center;">
+                        <div style="width: 100%; height: 80px; background: var(--primary-opacity-10); border-radius: var(--radius-sm); margin-bottom: 0.5rem;"></div>
+                        <div style="font-size: 0.875rem; color: var(--text-secondary);">radius-sm (4px)</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="width: 100%; height: 80px; background: var(--primary-opacity-10); border-radius: var(--radius-md); margin-bottom: 0.5rem;"></div>
+                        <div style="font-size: 0.875rem; color: var(--text-secondary);">radius-md (8px)</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="width: 100%; height: 80px; background: var(--primary-opacity-10); border-radius: var(--radius-lg); margin-bottom: 0.5rem;"></div>
+                        <div style="font-size: 0.875rem; color: var(--text-secondary);">radius-lg (12px)</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="width: 100%; height: 80px; background: var(--primary-opacity-10); border-radius: var(--radius-xl); margin-bottom: 0.5rem;"></div>
+                        <div style="font-size: 0.875rem; color: var(--text-secondary);">radius-xl (16px)</div>
+                    </div>
+                </div>
+
+                <!-- Info Card -->
+                <div class="alert info">
+                    <span class="alert-icon">💡</span>
+                    <div class="alert-content">
+                        <div class="alert-title">Design System Usage</div>
+                        <div class="alert-message">Usa sempre le variabili CSS per mantenere la coerenza del design. Le variabili si trovano nel file <code>:root</code> in <code>styles.css</code>.</div>
+                    </div>
+                </div>
             </div>
         </div>
     `;
@@ -2295,6 +2575,7 @@ function setupUiLabTabs() {
         });
     });
 }
+
 
 // Modal Functions
 function showDeployModal(catalogId) {

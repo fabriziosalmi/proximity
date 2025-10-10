@@ -6746,3 +6746,449 @@ body.pro-mode .pro-feature.inline-flex {
     }
 }
 
+/* ============================================
+   UI Lab Styles
+   ============================================ */
+
+.uilab-content {
+    padding: 0;
+}
+
+.uilab-panel {
+    display: none;
+    padding: 2rem;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.uilab-panel.active {
+    display: block;
+}
+
+.page-header {
+    margin-bottom: 2rem;
+}
+
+.page-header-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.page-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.page-title i {
+    width: 32px;
+    height: 32px;
+    color: var(--primary);
+}
+
+.page-subtitle {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.section-header {
+    margin: 2rem 0 1.5rem 0;
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 0.5rem 0;
+}
+
+.section-title i {
+    width: 20px;
+    height: 20px;
+}
+
+.section-description {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* DEV Badge in navbar */
+.nav-badge.dev-badge {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-size: 0.625rem;
+    padding: 0.125rem 0.375rem;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+}
+
+/* ============================================
+   Rack Cards - Horizontal Compact Layout
+   ============================================ */
+
+.rack-cards-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.rack-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.rack-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    border-color: var(--primary-opacity-30);
+}
+
+/* Status Indicator (left edge stripe) */
+.rack-card-indicator {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--text-tertiary);
+    transition: all 0.3s ease;
+}
+
+.rack-card-indicator.running {
+    background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+}
+
+.rack-card-indicator.stopped {
+    background: var(--text-tertiary);
+}
+
+.rack-card-indicator.deploying {
+    background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.rack-card-indicator.warning {
+    background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+        box-shadow: 0 0 12px currentColor;
+    }
+    50% {
+        opacity: 0.7;
+        box-shadow: 0 0 20px currentColor;
+    }
+}
+
+/* Icon */
+.rack-card-icon {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--primary-opacity-10);
+    border-radius: var(--radius-md);
+    color: var(--primary);
+}
+
+.rack-card-icon i {
+    width: 24px;
+    height: 24px;
+}
+
+.rack-card.warning .rack-card-icon {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.rack-card.error .rack-card-icon {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+}
+
+.rack-card.success .rack-card-icon {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success);
+}
+
+/* Content */
+.rack-card-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.rack-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.rack-card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.rack-card-badge {
+    padding: 0.25rem 0.625rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.rack-card-badge.success {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success);
+}
+
+.rack-card-badge.stopped {
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+}
+
+.rack-card-badge.deploying {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+.rack-card-badge.warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.rack-card-badge.danger {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+}
+
+/* Meta Information */
+.rack-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.meta-item i {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+}
+
+.meta-item.success {
+    color: var(--success);
+}
+
+.meta-item.warning {
+    color: #f59e0b;
+}
+
+.meta-item.danger {
+    color: var(--danger);
+}
+
+/* Progress Bar */
+.rack-card-progress {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 0.25rem;
+}
+
+.progress-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--bg-tertiary);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary) 0%, #667eea 100%);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+    animation: progressShimmer 2s ease-in-out infinite;
+}
+
+@keyframes progressShimmer {
+    0% {
+        background-position: -100% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+.progress-text {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    min-width: 3ch;
+}
+
+/* Actions */
+.rack-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: auto;
+}
+
+.action-btn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.action-btn:hover:not(:disabled) {
+    background: var(--bg-secondary);
+    border-color: var(--primary);
+    color: var(--primary);
+    transform: translateY(-1px);
+}
+
+.action-btn i {
+    width: 16px;
+    height: 16px;
+}
+
+.action-btn.success {
+    border-color: var(--success);
+    color: var(--success);
+}
+
+.action-btn.success:hover:not(:disabled) {
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.action-btn.warning {
+    border-color: #f59e0b;
+    color: #f59e0b;
+}
+
+.action-btn.warning:hover:not(:disabled) {
+    background: rgba(245, 158, 11, 0.1);
+}
+
+.action-btn.danger {
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+.action-btn.danger:hover:not(:disabled) {
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.action-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Rack Card States */
+.rack-card.warning {
+    border-color: rgba(245, 158, 11, 0.3);
+    background: linear-gradient(135deg, 
+        var(--card-bg) 0%, 
+        rgba(245, 158, 11, 0.02) 100%
+    );
+}
+
+.rack-card.error {
+    border-color: rgba(239, 68, 68, 0.3);
+    background: linear-gradient(135deg, 
+        var(--card-bg) 0%, 
+        rgba(239, 68, 68, 0.02) 100%
+    );
+}
+
+.rack-card.success {
+    border-color: rgba(16, 185, 129, 0.3);
+    background: linear-gradient(135deg, 
+        var(--card-bg) 0%, 
+        rgba(16, 185, 129, 0.02) 100%
+    );
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .rack-card {
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .rack-card-content {
+        width: 100%;
+    }
+
+    .rack-card-actions {
+        width: 100%;
+        margin-left: 0;
+        justify-content: flex-end;
+    }
+
+    .rack-card-meta {
+        gap: 0.75rem;
+    }
+}
+
+/* ============================================
+   Code & Inline Elements
+   ============================================ */
+
+code {
+    display: inline-block;
+    padding: 0.125rem 0.375rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.875em;
+    color: var(--primary);
+}
+
