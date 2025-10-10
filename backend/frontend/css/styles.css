@@ -6131,14 +6131,17 @@ body.pro-mode .pro-feature.inline-flex {
    ==================================== */
 
 .sub-nav-bar {
-    position: sticky;
+    position: fixed;
     top: 64px; /* Height of top nav */
+    left: 0;
+    right: 0;
     z-index: 100;
     background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.85));
     border-bottom: 1px solid rgba(6, 182, 212, 0.2);
     backdrop-filter: blur(10px);
     padding: 0 2rem;
-    margin: 0 -2rem 2rem -2rem;
+    display: flex;
+    justify-content: center;
 }
 
 .sub-nav-items {
@@ -6146,6 +6149,10 @@ body.pro-mode .pro-feature.inline-flex {
     gap: 0.25rem;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    max-width: 1400px; /* Max width for centering */
+    width: 100%;
+    justify-content: center;
+    flex-wrap: nowrap;
 }
 
 .sub-nav-item {
@@ -6220,7 +6227,7 @@ body.pro-mode .pro-feature.inline-flex {
 
 /* Adjust content spacing when sub-nav is present */
 .view.has-sub-nav {
-    margin-top: 0;
+    padding-top: 60px; /* Height of sub-nav bar */
 }
 
 /* Remove page headers when using sub-nav */
@@ -6228,11 +6235,34 @@ body.pro-mode .pro-feature.inline-flex {
     display: none;
 }
 
+/* Add spacing between sub-nav and content */
+.view.has-sub-nav > *:first-child:not(.sub-nav-bar) {
+    margin-top: 2rem;
+}
+
+/* Desktop - center items when they fit, scroll if they don't */
+@media (min-width: 769px) {
+    .sub-nav-items {
+        flex-wrap: nowrap;
+        justify-content: center;
+        overflow-x: auto;
+    }
+
+    /* If content overflows, align to start for better scrolling */
+    .sub-nav-items::-webkit-scrollbar {
+        display: block;
+    }
+}
+
 /* Mobile responsive */
 @media (max-width: 768px) {
     .sub-nav-bar {
         padding: 0 1rem;
-        margin: 0 -1rem 1.5rem -1rem;
+    }
+
+    .sub-nav-items {
+        flex-wrap: wrap;
+        justify-content: center;
     }
 
     .sub-nav-item {

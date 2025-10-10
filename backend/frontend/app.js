@@ -790,7 +790,7 @@ function renderAppsView() {
                     Stopped
                     <span class="nav-badge">${stoppedCount}</span>
                 </button>
-                <button class="sub-nav-item" onclick="showView('catalog')" style="margin-left: auto;">
+                <button class="sub-nav-item" onclick="showView('catalog')">
                     <i data-lucide="plus"></i>
                     Deploy New App
                 </button>
