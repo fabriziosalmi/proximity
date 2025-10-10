@@ -2548,7 +2548,8 @@ async function renderUiLabView() {
 }
 
 function setupUiLabTabs() {
-    const tabs = document.querySelectorAll('.uilab-content .sub-nav-item');
+    // Fix: sub-nav-bar is outside .uilab-content, so we need a more specific selector
+    const tabs = document.querySelectorAll('#uilabView .sub-nav-item');
     
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
