@@ -5271,7 +5271,7 @@ function renderRegisterForm() {
           <label class="form-label">Email</label>
           <input type="email" class="form-input" id="registerEmail" required autocomplete="email" placeholder="your@email.com">
         </div>
-        <div id="registerError" class="form-error" style="margin-bottom: 1rem;"></div>
+        <div id="registerError" class="form-error"></div>
         <button type="submit" class="btn btn-primary" style="width:100%;">Register</button>
       </form>
     `;
@@ -5290,7 +5290,7 @@ function renderLoginForm(prefill = {}) {
           <label class="form-label">Password</label>
           <input type="password" class="form-input" id="loginPassword" required autocomplete="current-password" value="${prefill.password || ''}" placeholder="Enter password">
         </div>
-        <div id="loginError" class="form-error" style="margin-bottom: 1rem;"></div>
+        <div id="loginError" class="form-error"></div>
         <button type="submit" class="btn btn-primary" style="width:100%;">Login</button>
       </form>
     `;

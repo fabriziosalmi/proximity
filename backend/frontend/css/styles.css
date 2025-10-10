@@ -5225,16 +5225,12 @@ body.pro-mode .pro-feature.inline-flex {
     height: 16px;
 }
 
-/* Quick Apps Grid */
+/* Quick Apps Grid - Legacy compatibility, now inherits from hero-apps-grid */
 .quick-apps-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-    gap: 1.5rem;
-    padding: 1rem;
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.6), rgba(30, 41, 59, 0.4));
-    border: 1px solid rgba(6, 182, 212, 0.2);
-    border-radius: 12px;
-    backdrop-filter: blur(10px);
+    gap: 1rem;
+    /* Styles removed - now handled by parent .hero-apps-container */
 }
 
 .quick-app-item {
@@ -5407,11 +5403,13 @@ body.pro-mode .pro-feature.inline-flex {
 }
 
 /* Quick Apps Container with Overlay Button */
+/* Legacy styles - kept for compatibility but now handled by hero-apps-* classes */
 .quick-apps-container {
     position: relative;
 }
 
-.quick-apps-view-all {
+/* Deprecated - now using .hero-apps-view-all */
+/* .quick-apps-view-all {
     position: absolute;
     top: 1rem;
     right: 1rem;
@@ -5427,27 +5425,7 @@ body.pro-mode .pro-feature.inline-flex {
     cursor: pointer;
     transition: all 0.3s ease;
     backdrop-filter: blur(10px);
-}
-
-.quick-apps-view-all i {
-    width: 20px;
-    height: 20px;
-    color: #06b6d4;
-    transition: all 0.3s ease;
-}
-
-.quick-apps-view-all:hover {
-    background: rgba(6, 182, 212, 0.25);
-    border-color: rgba(6, 182, 212, 0.6);
-    box-shadow:
-        0 0 15px rgba(6, 182, 212, 0.4),
-        0 0 30px rgba(6, 182, 212, 0.2);
-}
-
-.quick-apps-view-all:hover i {
-    transform: translateX(2px);
-    color: #14b8a6;
-}
+} */
 
 /* ====================================
    HERO SECTION
@@ -5512,35 +5490,100 @@ body.pro-mode .pro-feature.inline-flex {
     max-width: 700px;
 }
 
-.hero-stats {
+/* Hero Stats Inline - Compact display for hosts and apps count */
+.hero-stats-inline {
     display: flex;
-    gap: 3rem;
-    margin-bottom: 2.5rem;
-    padding: 1.5rem 0;
-    border-top: 1px solid rgba(6, 182, 212, 0.2);
-    border-bottom: 1px solid rgba(6, 182, 212, 0.2);
+    gap: 2rem;
+    margin-bottom: 1.5rem;
+    padding: 0.75rem 0;
 }
 
-.hero-stat {
+.hero-stat-compact {
     display: flex;
-    flex-direction: column;
+    align-items: center;
     gap: 0.5rem;
 }
 
-.hero-stat-value {
-    font-size: 2.5rem;
-    font-weight: 900;
-    font-family: 'Orbitron', monospace;
+.hero-stat-compact i {
+    width: 1.25rem;
+    height: 1.25rem;
     color: var(--primary);
-    text-shadow: 0 0 20px rgba(6, 182, 212, 0.5);
 }
 
-.hero-stat-label {
+.hero-stat-value-inline {
+    font-size: 1.25rem;
+    font-weight: 700;
+    font-family: 'Orbitron', monospace;
+    color: var(--primary);
+}
+
+.hero-stat-label-inline {
     font-size: 0.875rem;
-    font-weight: 600;
+    font-weight: 500;
     color: rgba(255, 255, 255, 0.6);
+}
+
+/* Hero Apps Container - Integrated apps grid */
+.hero-apps-container {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.6), rgba(30, 41, 59, 0.4));
+    border: 1px solid rgba(6, 182, 212, 0.2);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+}
+
+.hero-apps-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.hero-apps-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
+}
+
+.hero-apps-view-all {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(6, 182, 212, 0.15);
+    border: 1px solid rgba(6, 182, 212, 0.3);
+    border-radius: 8px;
+    color: #06b6d4;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.hero-apps-view-all i {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.3s ease;
+}
+
+.hero-apps-view-all:hover {
+    background: rgba(6, 182, 212, 0.25);
+    border-color: rgba(6, 182, 212, 0.6);
+    box-shadow: 0 0 15px rgba(6, 182, 212, 0.4);
+}
+
+.hero-apps-view-all:hover i {
+    transform: translateX(2px);
+}
+
+.hero-apps-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 1rem;
+    min-height: 120px;
 }
 
 .hero-actions {
@@ -5624,12 +5667,22 @@ body.pro-mode .pro-feature.inline-flex {
         font-size: 1rem;
     }
 
-    .hero-stats {
-        gap: 1.5rem;
+    .hero-stats-inline {
+        gap: 1rem;
+        flex-wrap: wrap;
     }
 
-    .hero-stat-value {
-        font-size: 2rem;
+    .hero-stat-value-inline {
+        font-size: 1rem;
+    }
+
+    .hero-apps-container {
+        padding: 1rem;
+    }
+
+    .hero-apps-grid {
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+        gap: 0.75rem;
     }
 
     .hero-visual {
@@ -6026,18 +6079,27 @@ body.pro-mode .pro-feature.inline-flex {
         font-size: 0.8125rem;
     }
 
-    .hero-stats {
-        gap: 2rem;
+    .hero-stats-inline {
+        gap: 1.5rem;
+    }
+
+    .hero-stat-value-inline {
+        font-size: 1.125rem;
+    }
+
+    .hero-apps-container {
+        padding: 1.25rem;
         margin-bottom: 1.5rem;
-        padding: 1rem 0;
     }
 
-    .hero-stat-value {
-        font-size: 2rem;
+    .hero-apps-title {
+        font-size: 0.9375rem;
     }
 
-    .hero-stat-label {
-        font-size: 0.8125rem;
+    .hero-apps-grid {
+        padding: 0;
+        gap: 1rem;
+        grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
     }
 
     .hero-actions {
@@ -6047,22 +6109,6 @@ body.pro-mode .pro-feature.inline-flex {
     .btn-lg {
         padding: 0.75rem 1.5rem;
         font-size: 0.9375rem;
-    }
-
-    /* Compact Quick Apps */
-    .quick-apps-container {
-        position: relative;
-        flex: 1;
-        min-height: 0;
-        overflow: hidden;
-    }
-
-    .quick-apps-grid {
-        padding: 0.75rem;
-        gap: 1rem;
-        grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-        max-height: calc(100vh - 600px); /* Dynamic based on hero */
-        overflow-y: auto;
     }
 
     .quick-app-item {
