@@ -873,27 +873,8 @@ function renderAppsView() {
     const view = document.getElementById('appsView');
     view.classList.remove('has-sub-nav'); // Remove old sub-nav class
 
-    const runningCount = state.deployedApps.filter(a => a.status === 'running').length;
-    const stoppedCount = state.deployedApps.filter(a => a.status === 'stopped').length;
-
+    // Search bar is now in the submenu - no need for it here anymore
     const content = `
-        <div class="search-bar-container">
-            <div class="search-bar">
-                <i data-lucide="search" class="search-icon"></i>
-                <input
-                    type="text"
-                    class="search-input"
-                    id="appsSearchInput"
-                    placeholder="Search applications by name..."
-                    oninput="searchApps(this.value)"
-                />
-                <button class="search-clear" id="appsClearSearch" onclick="clearAppsSearch()" style="display: none;">
-                    <i data-lucide="x"></i>
-                </button>
-            </div>
-            <div class="search-results-count" id="appsResultsCount" style="display: none;"></div>
-        </div>
-
         <div class="apps-grid deployed" id="allAppsGrid"></div>
     `;
 

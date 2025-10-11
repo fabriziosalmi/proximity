@@ -18,7 +18,7 @@
 /* Top Navigation Rack - Card-Based Layout Revolution */
 .top-nav-rack {
     width: 100%;
-    /* background: linear-gradient(135deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.98) 100%); */
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.98) 100%);
     backdrop-filter: blur(20px);
     z-index: 1000;
     position: sticky;
@@ -819,7 +819,7 @@
 
 .nav-submenu {
     width: 100%;
-    /* background: linear-gradient(135deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.98) 100%); */
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.98) 100%);
     backdrop-filter: blur(20px);
     border-bottom: 2px solid var(--border-cyan);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6),
@@ -972,4 +972,128 @@
 .nav-rack-items .logout-btn:hover i {
     color: #ef4444;
     filter: brightness(1.2);
+}
+
+/* ============================================================================
+   SUBMENU SEARCH BAR
+   ============================================================================ */
+
+.nav-submenu-search {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.875rem;
+    min-height: 40px;
+    border-radius: 10px;
+    
+    /* App card glassmorphism style */
+    background: linear-gradient(135deg, rgba(24, 24, 27, 0.8), rgba(39, 39, 42, 0.6));
+    backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid var(--border-cyan);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(34, 211, 238, 0.05);
+    
+    flex-shrink: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    min-width: 220px;
+}
+
+.nav-submenu-search:focus-within {
+    border-color: var(--cyan-bright);
+    box-shadow: 0 12px 40px rgba(34, 211, 238, 0.35),
+                0 0 0 2px var(--cyan-bright),
+                inset 0 1px 0 rgba(34, 211, 238, 0.25);
+}
+
+.nav-submenu-search i {
+    width: 16px;
+    height: 16px;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+    transition: color 0.2s ease;
+}
+
+.nav-submenu-search:focus-within i {
+    color: var(--cyan-bright);
+}
+
+.nav-submenu-search-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 0;
+    min-width: 0;
+}
+
+.nav-submenu-search-input::placeholder {
+    color: var(--text-tertiary);
+}
+
+.nav-submenu-search-clear {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    background: rgba(239, 68, 68, 0.2);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.nav-submenu-search-clear:hover {
+    background: rgba(239, 68, 68, 0.3);
+    border-color: rgba(239, 68, 68, 0.5);
+}
+
+.nav-submenu-search-clear i {
+    width: 12px;
+    height: 12px;
+    color: #ef4444;
+}
+
+/* ============================================================================
+   KEYBOARD NAVIGATION & ACCESSIBILITY
+   ============================================================================ */
+
+/* Focus visible states for keyboard navigation */
+.nav-rack-item:focus-visible,
+.nav-submenu-item:focus-visible {
+    outline: 3px solid var(--cyan-bright);
+    outline-offset: 2px;
+    border-color: var(--cyan-bright);
+    box-shadow: 0 12px 40px rgba(34, 211, 238, 0.5),
+                0 0 0 2px var(--cyan-bright),
+                inset 0 1px 0 rgba(34, 211, 238, 0.3);
+}
+
+.sound-toggle-btn:focus-visible,
+.logout-btn:focus-visible {
+    outline: 3px solid var(--cyan-bright);
+    outline-offset: 2px;
+}
+
+.nav-submenu-search-input:focus-visible {
+    outline: none; /* Parent handles focus state */
+}
+
+button:focus-visible,
+a:focus-visible {
+    outline: 2px solid var(--cyan-bright);
+    outline-offset: 2px;
+}
+
+/* Remove default focus outline but keep for :focus-visible */
+.nav-rack-item:focus,
+.nav-submenu-item:focus,
+button:focus,
+a:focus {
+    outline: none;
 }

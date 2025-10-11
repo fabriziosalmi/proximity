@@ -16,10 +16,32 @@ function showSubmenu(items) {
 
     // Add new items
     items.forEach(item => {
+        // Check if item has custom HTML
+        if (item.customHTML) {
+            const customElement = document.createElement('div');
+            customElement.className = 'nav-submenu-custom';
+            customElement.innerHTML = item.customHTML;
+
+            // Setup custom event handlers if provided
+            if (item.setupHandlers) {
+                submenuContent.appendChild(customElement);
+                item.setupHandlers(customElement);
+            } else {
+                submenuContent.appendChild(customElement);
+            }
+            return;
+        }
+
+        // Regular submenu item
         const submenuItem = document.createElement('a');
         submenuItem.href = item.href || '#';
         submenuItem.className = `nav-submenu-item ${item.active ? 'active' : ''}`;
         submenuItem.setAttribute('data-action', item.action || '');
+
+        // Add title attribute for tooltip
+        if (item.title) {
+            submenuItem.setAttribute('title', item.title);
+        }
 
         if (item.icon) {
             const icon = document.createElement('i');
@@ -186,6 +208,51 @@ function activateSettingsTab(tabName) {
 // Example: Show Apps submenu with filters
 function showAppsSubmenu() {
     const appsItems = [
+        // Search bar as first element
+        {
+            customHTML: `
+                <div class="nav-submenu-search">
+                    <i data-lucide="search"></i>
+                    <input type="text"
+                           id="appsSubmenuSearch"
+                           placeholder="Search apps..."
+                           class="nav-submenu-search-input">
+                    <button class="nav-submenu-search-clear" id="appsSubmenuSearchClear" style="display: none;">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+            `,
+            setupHandlers: (element) => {
+                const input = element.querySelector('#appsSubmenuSearch');
+                const clearBtn = element.querySelector('#appsSubmenuSearchClear');
+
+                if (input) {
+                    input.addEventListener('input', (e) => {
+                        const value = e.target.value.trim();
+
+                        // Show/hide clear button
+                        if (clearBtn) {
+                            clearBtn.style.display = value ? 'flex' : 'none';
+                        }
+
+                        // Apply search filter
+                        if (typeof searchAppsInSubmenu === 'function') {
+                            searchAppsInSubmenu(value);
+                        }
+                    });
+                }
+
+                if (clearBtn) {
+                    clearBtn.addEventListener('click', () => {
+                        if (input) {
+                            input.value = '';
+                            input.dispatchEvent(new Event('input'));
+                            input.focus();
+                        }
+                    });
+                }
+            }
+        },
         {
             icon: 'layout-grid',
             label: 'All Apps',
@@ -237,12 +304,63 @@ function showAppsSubmenu() {
     showSubmenu(appsItems);
 }
 
+// Search apps from submenu
+function searchAppsInSubmenu(query) {
+    if (typeof state === 'undefined' || !state.deployedApps) {
+        console.warn('State or deployedApps not available');
+        return;
+    }
+
+    const grid = document.getElementById('allAppsGrid');
+    if (!grid) return;
+
+    let filtered = state.deployedApps;
+
+    if (query) {
+        const lowerQuery = query.toLowerCase();
+        filtered = state.deployedApps.filter(app =>
+            app.name.toLowerCase().includes(lowerQuery) ||
+            (app.description && app.description.toLowerCase().includes(lowerQuery))
+        );
+    }
+
+    if (filtered.length === 0) {
+        grid.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">🔍</div>
+                <h3 class="empty-title">No applications found</h3>
+                <p class="empty-message">No applications match "${query}".</p>
+            </div>
+        `;
+    } else {
+        grid.innerHTML = '';
+        for (const app of filtered) {
+            if (typeof renderAppCard === 'function') {
+                renderAppCard(app, grid, true);
+            }
+        }
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    }
+}
+
 // Apply filter to apps view
 function applyAppsFilter(filter) {
     if (typeof state === 'undefined' || !state.deployedApps) {
         console.warn('State or deployedApps not available');
         return;
     }
+
+    // Update active state in submenu
+    const submenuItems = document.querySelectorAll('.nav-submenu-item');
+    submenuItems.forEach(item => {
+        item.classList.remove('active');
+        const action = item.getAttribute('data-action');
+        if ((filter === 'all' && action === '') || action === filter) {
+            item.classList.add('active');
+        }
+    });
 
     let filtered = state.deployedApps;
 
@@ -284,9 +402,55 @@ function applyAppsFilter(filter) {
 // Show Store submenu with categories (icon-only with ALL label)
 function showStoreSubmenu() {
     const storeItems = [
+        // Search bar as first element
+        {
+            customHTML: `
+                <div class="nav-submenu-search">
+                    <i data-lucide="search"></i>
+                    <input type="text"
+                           id="catalogSubmenuSearch"
+                           placeholder="Search catalog..."
+                           class="nav-submenu-search-input">
+                    <button class="nav-submenu-search-clear" id="catalogSubmenuSearchClear" style="display: none;">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+            `,
+            setupHandlers: (element) => {
+                const input = element.querySelector('#catalogSubmenuSearch');
+                const clearBtn = element.querySelector('#catalogSubmenuSearchClear');
+
+                if (input) {
+                    input.addEventListener('input', (e) => {
+                        const value = e.target.value.trim();
+
+                        // Show/hide clear button
+                        if (clearBtn) {
+                            clearBtn.style.display = value ? 'flex' : 'none';
+                        }
+
+                        // Apply search filter
+                        if (typeof searchCatalogInSubmenu === 'function') {
+                            searchCatalogInSubmenu(value);
+                        }
+                    });
+                }
+
+                if (clearBtn) {
+                    clearBtn.addEventListener('click', () => {
+                        if (input) {
+                            input.value = '';
+                            input.dispatchEvent(new Event('input'));
+                            input.focus();
+                        }
+                    });
+                }
+            }
+        },
         {
             icon: 'layout-grid',
             label: 'ALL',
+            title: 'All Categories',
             active: true,
             onClick: () => {
                 console.log('All categories clicked');
@@ -296,6 +460,7 @@ function showStoreSubmenu() {
         },
         {
             icon: 'database',
+            title: 'Database',
             onClick: () => {
                 console.log('Database category clicked');
                 showView('catalog');
@@ -304,6 +469,7 @@ function showStoreSubmenu() {
         },
         {
             icon: 'globe',
+            title: 'Web Server',
             onClick: () => {
                 console.log('Web Server category clicked');
                 showView('catalog');
@@ -312,6 +478,7 @@ function showStoreSubmenu() {
         },
         {
             icon: 'code',
+            title: 'Development',
             onClick: () => {
                 console.log('Development category clicked');
                 showView('catalog');
@@ -320,6 +487,7 @@ function showStoreSubmenu() {
         },
         {
             icon: 'file-text',
+            title: 'CMS',
             onClick: () => {
                 console.log('CMS category clicked');
                 showView('catalog');
@@ -328,6 +496,7 @@ function showStoreSubmenu() {
         },
         {
             icon: 'shield',
+            title: 'Security',
             onClick: () => {
                 console.log('Security category clicked');
                 showView('catalog');
@@ -336,6 +505,7 @@ function showStoreSubmenu() {
         },
         {
             icon: 'activity',
+            title: 'Monitoring',
             onClick: () => {
                 console.log('Monitoring category clicked');
                 showView('catalog');
@@ -344,6 +514,7 @@ function showStoreSubmenu() {
         },
         {
             icon: 'network',
+            title: 'Networking',
             onClick: () => {
                 console.log('Networking category clicked');
                 showView('catalog');
@@ -362,6 +533,16 @@ function applyCatalogFilter(category) {
         return;
     }
 
+    // Update active state in submenu
+    const submenuItems = document.querySelectorAll('.nav-submenu-item');
+    submenuItems.forEach(item => {
+        item.classList.remove('active');
+        const title = item.getAttribute('title');
+        if ((category === 'all' && title === 'All Categories') || title === category) {
+            item.classList.add('active');
+        }
+    });
+
     let filtered = state.catalog.items;
 
     if (category !== 'all') {
@@ -377,6 +558,48 @@ function applyCatalogFilter(category) {
                 <div class="empty-icon">🔍</div>
                 <h3 class="empty-title">No ${category} applications</h3>
                 <p class="empty-message">No applications match the current category.</p>
+            </div>
+        `;
+    } else {
+        grid.innerHTML = '';
+        for (const app of filtered) {
+            if (typeof renderAppCard === 'function') {
+                renderAppCard(app, grid, false);
+            }
+        }
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    }
+}
+
+// Search catalog from submenu
+function searchCatalogInSubmenu(query) {
+    if (typeof state === 'undefined' || !state.catalog || !state.catalog.items) {
+        console.warn('State or catalog not available');
+        return;
+    }
+
+    const grid = document.getElementById('catalogGrid');
+    if (!grid) return;
+
+    let filtered = state.catalog.items;
+
+    if (query) {
+        const lowerQuery = query.toLowerCase();
+        filtered = state.catalog.items.filter(app =>
+            app.name.toLowerCase().includes(lowerQuery) ||
+            (app.description && app.description.toLowerCase().includes(lowerQuery)) ||
+            (app.category && app.category.toLowerCase().includes(lowerQuery))
+        );
+    }
+
+    if (filtered.length === 0) {
+        grid.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">🔍</div>
+                <h3 class="empty-title">No applications found</h3>
+                <p class="empty-message">No applications match "${query}".</p>
             </div>
         `;
     } else {
@@ -471,3 +694,5 @@ window.showUILabSubmenu = showUILabSubmenu;
 window.activateSettingsTab = activateSettingsTab;
 window.applyAppsFilter = applyAppsFilter;
 window.applyCatalogFilter = applyCatalogFilter;
+window.searchAppsInSubmenu = searchAppsInSubmenu;
+window.searchCatalogInSubmenu = searchCatalogInSubmenu;
