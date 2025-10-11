@@ -123,7 +123,7 @@ def test_complete_click_and_use_flow(authenticated_page: Page, base_url: str):
         print("   [1/3] Verify iframe is interactive...")
         iframe = page.locator("#canvasIframe")
         expect(iframe).to_be_visible()
-        expect(iframe).not_to_have_class(/hidden/)
+        expect(iframe).not_to_have_class("hidden")
         print("   ✓ Iframe is visible and active")
         
         print("   [2/3] Test canvas controls...")
@@ -139,7 +139,7 @@ def test_complete_click_and_use_flow(authenticated_page: Page, base_url: str):
         
         print("   [3/3] Verify no error messages...")
         error_div = page.locator("#canvasError")
-        expect(error_div).to_have_class(/hidden/)
+        expect(error_div).to_have_class("hidden")
         print("   ✓ No errors - app is working!")
         
         # ==============================================================================

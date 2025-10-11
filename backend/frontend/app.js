@@ -1824,6 +1824,26 @@ async function renderSettingsView() {
     }
 
     const content = `
+        <!-- Settings Sub-Navigation -->
+        <div class="sub-nav">
+            <button class="settings-tab sub-nav-item active" data-tab="proxmox">
+                <i data-lucide="server"></i>
+                <span>Proxmox</span>
+            </button>
+            <button class="settings-tab sub-nav-item" data-tab="network">
+                <i data-lucide="network"></i>
+                <span>Network</span>
+            </button>
+            <button class="settings-tab sub-nav-item" data-tab="resources">
+                <i data-lucide="cpu"></i>
+                <span>Resources</span>
+            </button>
+            <button class="settings-tab sub-nav-item" data-tab="system">
+                <i data-lucide="info"></i>
+                <span>System</span>
+            </button>
+        </div>
+
         <div class="settings-content">
             <!-- Proxmox Settings -->
             <div class="settings-panel active" id="proxmox-panel">
@@ -4574,9 +4594,18 @@ function handleModeToggle(checkbox) {
 }
 
 function setupSettingsTabs() {
-    // NOTE: Settings tabs are now managed by the top navigation submenu
-    // The activateSettingsTab() function in submenu.js handles tab switching
-    // No need to setup event listeners here anymore
+    // Add click event listeners to all settings tabs
+    const tabs = document.querySelectorAll('.settings-tab[data-tab]');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', (e) => {
+            e.preventDefault();
+            const tabName = tab.getAttribute('data-tab');
+            // Use the activateSettingsTab function from submenu.js
+            if (typeof activateSettingsTab === 'function') {
+                activateSettingsTab(tabName);
+            }
+        });
+    });
 }
 
 function setupSettingsForms() {

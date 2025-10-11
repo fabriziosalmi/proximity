@@ -1,0 +1,16 @@
+[1m============================= test session starts ==============================[0m
+platform darwin -- Python 3.13.7, pytest-8.3.4, pluggy-1.5.0 -- /opt/homebrew/opt/python@3.13/bin/python3.13
+cachedir: .pytest_cache
+rootdir: /Users/fab/GitHub/proximity/e2e_tests
+configfile: pytest.ini
+plugins: flask-1.3.0, xdist-3.8.0, timeout-2.4.0, anyio-4.8.0, cov-6.2.1, mock-3.14.1, rerunfailures-16.0.1, base-url-2.1.0, playwright-0.7.1, asyncio-1.0.0, Faker-33.3.1, requests-mock-1.12.1
+timeout: 300.0s
+timeout method: signal
+timeout func_only: False
+asyncio: mode=Mode.STRICT, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+[1mcollecting ... [0mcollected 117 items / 1 error
+
+[36m[1m=========================== short test summary info ============================[0m
+[31mERROR[0m e2e_tests/test_complete_core_flow.py - Failed: 'extended' not found in `markers` configuration option
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+[31m========================= [33m3 warnings[0m, [31m[1m1 error[0m[31m in 0.09s[0m[31m =========================[0m

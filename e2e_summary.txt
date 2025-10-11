@@ -1,0 +1,64 @@
+[1m============================= test session starts ==============================[0m
+platform darwin -- Python 3.13.7, pytest-8.3.4, pluggy-1.5.0
+rootdir: /Users/fab/GitHub/proximity/e2e_tests
+configfile: pytest.ini
+plugins: flask-1.3.0, xdist-3.8.0, timeout-2.4.0, anyio-4.8.0, cov-6.2.1, mock-3.14.1, rerunfailures-16.0.1, base-url-2.1.0, playwright-0.7.1, asyncio-1.0.0, Faker-33.3.1, requests-mock-1.12.1
+timeout: 300.0s
+timeout method: signal
+timeout func_only: False
+asyncio: mode=Mode.STRICT, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+collected 119 items
+
+e2e_tests/test_app_canvas.py::test_open_and_close_canvas_with_button[chromium] 
+================================================================================
+Starting test: test_open_and_close_canvas_with_button[chromium]
+================================================================================
+
+================================================================================
+🔐 [authenticated_page] Starting INDESTRUCTIBLE authentication setup
+================================================================================
+
+👤 STEP 1: Creating test user via API
+   Creating user: testuser_20251011_120810_jf82
+   ✅ User created successfully via API (status: 201)
+
+🧹 STEP 2: Clean Slate - Clearing all storage
+   ✓ localStorage cleared
+   ✓ sessionStorage cleared
+   ✓ Page reloaded with clean state
+
+🔑 STEP 3: UI Login - Using LoginPage object
+   Logging in as: testuser_20251011_120810_jf82
+
+[1m-------------------------------- live log setup --------------------------------[0m
+2025-10-11 12:08:11 [[32m    INFO[0m] Logging in as: testuser_20251011_120810_jf82
+2025-10-11 12:08:11 [[32m    INFO[0m] Switching to login mode
+2025-10-11 12:08:11 [[32m    INFO[0m] Clicking: #loginTab
+2025-10-11 12:08:11 [[32m    INFO[0m] Waiting for #loginUsername to be visible
+2025-10-11 12:08:11 [[32m    INFO[0m] Filling username: testuser_20251011_120810_jf82
+2025-10-11 12:08:11 [[32m    INFO[0m] Filling #loginUsername with: testuser_20251011_12...
+2025-10-11 12:08:11 [[32m    INFO[0m] Filling password
+2025-10-11 12:08:11 [[32m    INFO[0m] Filling #loginPassword with: Test2dii0m5g7ief!...
+2025-10-11 12:08:11 [[32m    INFO[0m] Clicking Login submit button
+2025-10-11 12:08:11 [[32m    INFO[0m] Clicking: #loginForm button[type='submit']
+2025-10-11 12:08:11 [[32m    INFO[0m] Waiting for auth modal to close
+2025-10-11 12:08:11 [[32m    INFO[0m] Waiting for #authModal to be hidden
+2025-10-11 12:08:12 [[32m    INFO[0m] Login successful - modal closed
+   ✓ Login form submitted
+
+✅ STEP 4: Smart Wait - Waiting for authentication to complete
+   ⚠️  User display not found, trying dashboard container: Locator expected to be visible
+Actual value: <element(s) not found> 
+Call log:
+  - LocatorAssertions.to_be_visible with timeout 15000ms
+  -   - waiting for locator(".user-info")
+
+   ✅ Dashboard container visible - authentication confirmed
+   ✅ Auth modal hidden - login complete
+
+================================================================================
+🎉 AUTHENTICATION COMPLETE - Page ready for testing
+================================================================================
+
+2025-10-11 12:08:27 [[32m    INFO[0m] Navigating to App Store
+2025-10-11 12:08:27 [[32m    INFO[0m] Clicking: [data-view='catalog']

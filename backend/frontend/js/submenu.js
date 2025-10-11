@@ -121,6 +121,20 @@ function toggleSubmenu(items) {
     }
 }
 
+// Navigate directly to Settings view (bypassing submenu)
+function navigateToSettings(tabName = 'proxmox') {
+    console.log(`🔧 Navigating to Settings view with tab: ${tabName}`);
+    
+    // Hide submenu if it's open
+    hideSubmenu();
+    
+    // Navigate to settings view
+    showView('settings');
+    
+    // Activate the specified tab
+    activateSettingsTab(tabName);
+}
+
 // Example: Show Settings submenu
 function showSettingsSubmenu() {
     const settingsItems = [
