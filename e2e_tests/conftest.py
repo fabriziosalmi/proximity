@@ -216,203 +216,109 @@ def page(context: BrowserContext, base_url: str) -> Generator[Page, None, None]:
 @pytest.fixture(scope="function")
 def authenticated_page(page: Page, base_url: str) -> Generator[Page, None, None]:
     """
-    Provides a page with an authenticated user session - BULLETPROOF VERSION.
+    Provides a page with an authenticated user session - INDESTRUCTIBLE VERSION.
     
-    This fixture is INDESTRUCTIBLE:
-    1. ✅ Clears ALL storage (localStorage + sessionStorage) BEFORE starting
-    2. ✅ Creates user via API (not UI) - eliminates registration flakiness
-    3. ✅ Logs in via API to get token - eliminates login UI flakiness
-    4. ✅ Injects token directly into localStorage - no waiting for UI
-    5. ✅ Navigates to dashboard and waits for VISIBLE elements
-    6. ✅ Verifies authentication with multiple checks
-    7. ✅ Cleans up perfectly at the end
+    This fixture implements the exact pattern specified for maximum stability:
+    1. ✅ Setup via API: Create unique user using API client (fast & reliable)
+    2. ✅ Clean Slate: Clear all storage and reload page
+    3. ✅ UI Login: Use LoginPage object to login with created credentials
+    4. ✅ Smart Wait: Wait for dashboard element to be visible before yielding
+    5. ✅ Teardown: Clear storage after test completes
+    
+    This approach eliminates race conditions by:
+    - Using API for user creation (no UI flakiness)
+    - Clearing all state before login (guaranteed clean slate)
+    - Using UI login flow (tests actual user experience)
+    - Waiting for visible elements (confirms async operations completed)
     
     Use this when tests require a logged-in user.
-    
-    WHY THIS IS BETTER:
-    - No UI interaction for auth = no race conditions
-    - API calls are deterministic and fast
-    - Direct token injection = guaranteed auth state
-    - Multiple verification checks = catches issues early
     """
     import requests
     from utils.test_data import generate_test_user
+    from pages.login_page import LoginPage
+    from pages.dashboard_page import DashboardPage
     from playwright.sync_api import expect
-    import time
     
     print("\n" + "="*80)
-    print("🔐 [authenticated_page] Starting BULLETPROOF authentication")
+    print("🔐 [authenticated_page] Starting INDESTRUCTIBLE authentication setup")
     print("="*80)
     
     # ========================================================================
-    # STEP 1: CLEAR ALL STORAGE - ABSOLUTE CLEAN SLATE
+    # STEP 1: SETUP VIA API - Create user using API
     # ========================================================================
-    print("\n🧹 STEP 1: Clearing all storage for clean slate")
-    page.goto(base_url, wait_until="domcontentloaded")
-    page.evaluate("window.localStorage.clear(); window.sessionStorage.clear();")
-    page.evaluate("document.cookie.split(';').forEach(c => document.cookie = c.split('=')[0] + '=;expires=' + new Date().toUTCString());")
-    print("   ✓ localStorage cleared")
-    print("   ✓ sessionStorage cleared")
-    print("   ✓ cookies cleared")
-    
-    # ========================================================================
-    # STEP 2: CREATE USER VIA API (NOT UI!)
-    # ========================================================================
-    print("\n👤 STEP 2: Creating test user via API")
-    test_user = generate_test_user()
+    print("\n👤 STEP 1: Creating test user via API")
+    user_credentials = generate_test_user()
     api_base = base_url.replace(":8765", ":8765/api/v1")
     
     register_data = {
-        "username": test_user["username"],
-        "email": test_user.get("email", f"{test_user['username']}@test.com"),
-        "password": test_user["password"],
+        "username": user_credentials["username"],
+        "email": user_credentials.get("email", f"{user_credentials['username']}@test.com"),
+        "password": user_credentials["password"],
         "role": "user"
     }
     
     print(f"   Creating user: {register_data['username']}")
     
     try:
-        register_response = requests.post(
+        response = requests.post(
             f"{api_base}/auth/register",
             json=register_data,
             timeout=10
         )
         
-        if register_response.status_code in [200, 201]:
-            print(f"   ✅ User created successfully (status: {register_response.status_code})")
-            register_json = register_response.json()
-            token = register_json.get("access_token")
-            
-            if token:
-                print("   ✅ Token received from registration")
-            else:
-                # User created but no token - need to login
-                print("   ⚠️  No token from registration, will login separately")
-                token = None
+        if response.status_code in [200, 201]:
+            print(f"   ✅ User created successfully via API (status: {response.status_code})")
         else:
-            print(f"   ⚠️  Registration returned {register_response.status_code}")
-            print(f"   Response: {register_response.text[:200]}")
-            token = None
+            print(f"   ⚠️  API registration returned {response.status_code}: {response.text[:200]}")
+            # Continue anyway - user might already exist or we can still try to login
     except Exception as e:
-        print(f"   ❌ Registration failed: {e}")
-        token = None
+        print(f"   ⚠️  API registration error: {e}")
+        # Continue anyway - we'll try to login via UI
     
     # ========================================================================
-    # STEP 3: GET TOKEN VIA LOGIN API IF NEEDED
+    # STEP 2: CLEAN SLATE - Clear all storage
     # ========================================================================
-    if not token:
-        print("\n🔑 STEP 3: Getting token via login API")
-        
-        try:
-            login_response = requests.post(
-                f"{api_base}/auth/login",
-                json={
-                    "username": register_data["username"],
-                    "password": register_data["password"]
-                },
-                timeout=10
-            )
-            
-            if login_response.status_code == 200:
-                login_json = login_response.json()
-                token = login_json.get("access_token")
-                
-                if token:
-                    print("   ✅ Token obtained via login")
-                else:
-                    raise Exception("Login succeeded but no token in response")
-            else:
-                raise Exception(f"Login failed with status {login_response.status_code}: {login_response.text[:200]}")
-        
-        except Exception as e:
-            print(f"   ❌ Login failed: {e}")
-            raise Exception(f"AUTHENTICATION FAILED: Could not get token. Registration status: {register_response.status_code if 'register_response' in locals() else 'N/A'}. Error: {e}")
-    
-    # ========================================================================
-    # STEP 4: INJECT TOKEN INTO LOCALSTORAGE
-    # ========================================================================
-    print("\n� STEP 4: Injecting token into localStorage")
-    
-    if not token:
-        raise Exception("CRITICAL ERROR: No token available to inject!")
-    
-    # Navigate to base URL first (localStorage needs a context)
+    print("\n🧹 STEP 2: Clean Slate - Clearing all storage")
     page.goto(base_url, wait_until="domcontentloaded")
-    
-    # Inject token
-    page.evaluate(f"window.localStorage.setItem('proximity_token', '{token}');")
-    
-    # Verify token was saved
-    saved_token = page.evaluate("window.localStorage.getItem('proximity_token')")
-    
-    if saved_token == token:
-        print(f"   ✅ Token injected successfully (length: {len(token)} chars)")
-    else:
-        raise Exception("Token injection failed - localStorage.getItem returned different value!")
-    
-    # ========================================================================
-    # STEP 5: NAVIGATE TO DASHBOARD
-    # ========================================================================
-    print("\n🏠 STEP 5: Navigating to dashboard")
-    
-    # Reload page to trigger app initialization with token
+    page.evaluate("window.localStorage.clear(); window.sessionStorage.clear();")
     page.reload(wait_until="domcontentloaded")
-    page.wait_for_load_state("networkidle")
-    
-    # Wait for app initialization
-    time.sleep(1)
-    
-    # Verify we're on dashboard view
-    print("   ✓ Page reloaded with token")
+    print("   ✓ localStorage cleared")
+    print("   ✓ sessionStorage cleared")
+    print("   ✓ Page reloaded with clean state")
     
     # ========================================================================
-    # STEP 6: VERIFY AUTHENTICATION - MULTIPLE CHECKS
+    # STEP 3: UI LOGIN - Use LoginPage object to perform login
     # ========================================================================
-    print("\n✅ STEP 6: Verifying authentication state")
+    print("\n🔑 STEP 3: UI Login - Using LoginPage object")
+    login_page = LoginPage(page)
+    dashboard_page = DashboardPage(page)
     
-    # Check 1: Dashboard container must be visible
+    print(f"   Logging in as: {user_credentials['username']}")
+    login_page.login(user_credentials['username'], user_credentials['password'])
+    print("   ✓ Login form submitted")
+    
+    # ========================================================================
+    # STEP 4: SMART WAIT - Wait for dashboard element to be visible
+    # ========================================================================
+    print("\n✅ STEP 4: Smart Wait - Waiting for authentication to complete")
+    
+    # CRITICAL: Wait for the user display locator to become visible
+    # This confirms that the async login completed and the UI has fully updated
     try:
-        dashboard = page.locator('[data-view="dashboard"]')
-        expect(dashboard).to_be_visible(timeout=15000)
-        print("   ✅ Check 1/4: Dashboard container visible")
+        expect(dashboard_page.get_user_display_locator).to_be_visible(timeout=15000)
+        print("   ✅ User display visible - authentication confirmed")
     except Exception as e:
-        raise Exception(f"VERIFICATION FAILED: Dashboard not visible. Error: {e}")
+        print(f"   ⚠️  User display not found, trying dashboard container: {e}")
+        # Fallback: check if dashboard container is visible
+        expect(dashboard_page.dashboard_container).to_be_visible(timeout=15000)
+        print("   ✅ Dashboard container visible - authentication confirmed")
     
-    # Check 2: User display must be visible (proves we're logged in)
+    # Verify auth modal is hidden
     try:
-        user_display = page.locator('.user-display, .user-info, [data-user-display]')
-        expect(user_display.first).to_be_visible(timeout=10000)
-        print("   ✅ Check 2/4: User display visible")
+        expect(login_page.modal).not_to_be_visible(timeout=5000)
+        print("   ✅ Auth modal hidden - login complete")
     except Exception as e:
-        print(f"   ⚠️  Check 2/4: User display not found (might be acceptable): {e}")
-    
-    # Check 3: Auth modal must NOT be visible
-    try:
-        auth_modal = page.locator('#authModal')
-        expect(auth_modal).not_to_be_visible(timeout=5000)
-        print("   ✅ Check 3/4: Auth modal is hidden")
-    except Exception as e:
-        print(f"   ⚠️  Check 3/4: Auth modal check inconclusive: {e}")
-    
-    # Check 4: Token still in localStorage
-    final_token = page.evaluate("window.localStorage.getItem('proximity_token')")
-    if final_token == token:
-        print("   ✅ Check 4/4: Token persisted in localStorage")
-    else:
-        raise Exception("VERIFICATION FAILED: Token was cleared from localStorage!")
-    
-    # Force close any modals that might be open
-    page.evaluate("""
-        // Force close any modal
-        const modals = document.querySelectorAll('.modal.show');
-        modals.forEach(modal => {
-            modal.classList.remove('show');
-            modal.style.display = 'none';
-        });
-        document.body.classList.remove('modal-open');
-        document.body.style.overflow = '';
-        document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
-    """)
+        print(f"   ⚠️  Auth modal check inconclusive: {e}")
     
     print("\n" + "="*80)
     print("🎉 AUTHENTICATION COMPLETE - Page ready for testing")
@@ -421,9 +327,9 @@ def authenticated_page(page: Page, base_url: str) -> Generator[Page, None, None]
     yield page
     
     # ========================================================================
-    # CLEANUP: CLEAR SESSION
+    # STEP 5: TEARDOWN - Clear storage after test
     # ========================================================================
-    print("\n🧹 [authenticated_page] Cleaning up session")
+    print("\n🧹 [authenticated_page] STEP 5: Teardown - Cleaning up session")
     try:
         if not page.is_closed():
             page.evaluate("window.localStorage.clear(); window.sessionStorage.clear();")
