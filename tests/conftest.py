@@ -4,11 +4,33 @@ Pytest configuration and fixtures for Proximity tests.
 
 import pytest
 import sys
+import warnings
 from pathlib import Path
 from unittest.mock import Mock, AsyncMock
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import StaticPool
+
+# Suppress external library deprecation warnings
+# These warnings come from third-party libraries (SQLAlchemy, jose-jwt, httpx)
+# and are beyond our control. They're being tracked by those library maintainers.
+warnings.filterwarnings("ignore", category=DeprecationWarning, message=".*datetime.datetime.utcnow.*")
+warnings.filterwarnings("ignore", category=DeprecationWarning, message=".*Use 'content=<...>' to upload.*")
+
+# Suppress InsecureRequestWarning from proxmoxer/urllib3
+# This is expected in homelab/dev environments where SSL verification is disabled
+try:
+    import urllib3
+    warnings.filterwarnings("ignore", category=urllib3.exceptions.InsecureRequestWarning)
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+except (ImportError, AttributeError):
+    pass
+
+# Suppress RuntimeWarning from async mock garbage collection
+# This is a known issue with unittest.mock.AsyncMock and pytest's garbage collection
+warnings.filterwarnings("ignore", category=RuntimeWarning, message=".*coroutine.*was never awaited.*")
+warnings.filterwarnings("ignore", category=RuntimeWarning, message=".*Enable tracemalloc.*")
+warnings.filterwarnings("ignore", category=ResourceWarning)
 
 # Add backend to path
 backend_path = Path(__file__).parent.parent / "backend"

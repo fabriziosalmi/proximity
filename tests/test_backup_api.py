@@ -10,9 +10,6 @@ from models.database import Backup, App, User
 import sys
 from pathlib import Path
 
-# Disable pytest-flask auto-use fixtures for this file
-pytestmark = pytest.mark.usefixtures()
-
 # Add backend to path
 backend_path = Path(__file__).parent.parent / "backend"
 sys.path.insert(0, str(backend_path))
