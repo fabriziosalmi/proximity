@@ -31,11 +31,14 @@
     <!-- Form Validation System -->
     <script src="/js/validation-global.js?v=20251010-01"></script>
 
-    <!-- Load legacy app.js first (non-module) -->
-    <script src="app.js?v=20251010-96"></script>
+    <!-- Debounce Utility -->
+    <script src="/js/utils/debounce.js?v=20251010-01" type="module"></script>
 
-    <!-- Then load modular system (ES6 modules) -->
-    <script src="js/main.js?v=20251010-52" type="module"></script>
+    <!-- Load legacy app.js first (non-module) -->
+    <script src="app.js?v=20251010-100"></script>
+
+    <!-- Then load modular system (ES6 modules) with lifecycle management -->
+    <script src="js/main.js?v=20251010-63" type="module"></script>
 </head>
 <body>
     <!-- Power On Screen (First Run Only) -->

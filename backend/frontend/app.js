@@ -336,35 +336,41 @@ async function loadNodes() {
 }
 
 async function loadDeployedApps() {
+    console.log('🚀 Loading deployed apps...');
     try {
         const response = await authFetch(`${API_BASE}/apps`);
-        if (!response.ok) throw new Error('Failed to load apps');
+        if (!response.ok) {
+            console.error(`❌ Failed to load apps: ${response.status} ${response.statusText}`);
+            throw new Error('Failed to load apps');
+        }
         state.deployedApps = await response.json();
         
-        console.log('Deployed apps loaded:', state.deployedApps);
+        console.log(`✅ Deployed apps loaded: ${state.deployedApps.length} apps`);
         
         // Enrich deployed apps with icon URLs from catalog
         enrichDeployedAppsWithIcons();
     } catch (error) {
-        console.error('Error loading deployed apps:', error);
+        console.error('❌ Error loading deployed apps:', error);
         state.deployedApps = [];
     }
 }
 
 async function loadCatalog() {
+    console.log('📚 Loading catalog...');
     try {
         const response = await authFetch(`${API_BASE}/apps/catalog`);
         if (!response.ok) {
-            console.warn('Failed to load catalog:', response.status);
+            console.warn(`⚠️  Failed to load catalog: ${response.status} ${response.statusText}`);
             state.catalog = { items: [], categories: [] };
             return;
         }
         state.catalog = await response.json();
+        console.log(`✅ Catalog loaded: ${state.catalog.items?.length || 0} items`);
         
         // Enrich deployed apps with icon URLs after catalog is loaded
         enrichDeployedAppsWithIcons();
     } catch (error) {
-        console.error('Error loading catalog:', error);
+        console.error('❌ Error loading catalog:', error);
         state.catalog = { items: [], categories: [] };
         // Don't throw - allow app to continue
     }
@@ -449,9 +455,15 @@ function updateAppsCount() {
 }
 
 function updateRecentApps() {
+    console.log('📱 updateRecentApps() called');
     const container = document.getElementById('quickApps');
 
-    if (!container) return;
+    if (!container) {
+        console.warn('⚠️  quickApps container not found in DOM');
+        return;
+    }
+    
+    console.log(`✓ quickApps container found, deployedApps count: ${state.deployedApps.length}`);
 
     if (state.deployedApps.length === 0) {
         container.innerHTML = `
@@ -675,6 +687,13 @@ function populateDeployedCard(cardElement, app) {
     // ============================================================================
     // Real-time Resource Metrics (CPU & RAM)
     // ============================================================================
+    
+    // Add data-app-id to metric bars for polling
+    const cpuBar = cardElement.querySelector('.cpu-bar');
+    const ramBar = cardElement.querySelector('.ram-bar');
+    if (cpuBar) cpuBar.setAttribute('data-app-id', app.id);
+    if (ramBar) ramBar.setAttribute('data-app-id', app.id);
+    
     updateResourceMetrics(cardElement, app);
 }
 
@@ -773,81 +792,133 @@ function startCPUPolling() {
     state.cpuPollingInterval = setInterval(async () => {
         // Only poll if we're on the apps view
         if (state.currentView !== 'apps') {
+            console.log('⏹️ Not on apps view, stopping polling');
             stopCPUPolling();
             return;
         }
 
+        console.log('📊 Polling cycle started...');
+
         try {
-            // Fetch updated app stats
-            const response = await fetch('/api/apps', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${Auth.getToken()}`
-                }
-            });
+            // Fetch updated app stats using authFetch
+            const response = await authFetch(`${API_BASE}/apps`);
 
             if (response.ok) {
                 const apps = await response.json();
+                console.log(`✓ Fetched ${apps.length} apps from API`);
 
                 // Update metrics for all visible apps
                 apps.forEach(app => {
                     const cpuBar = document.querySelector(`.cpu-bar[data-app-id="${app.id}"]`);
                     const ramBar = document.querySelector(`.ram-bar[data-app-id="${app.id}"]`);
 
-                    if (cpuBar && ramBar) {
-                        // Check if app is running
-                        const status = app.status ? app.status.toLowerCase() : 'stopped';
-                        const isRunning = status === 'running';
+                    if (!cpuBar || !ramBar) {
+                        console.warn(`⚠️ Bars not found for app ${app.id} (${app.name})`);
+                        return;
+                    }
+                    
+                    console.log(`📈 Updating metrics for ${app.name} (${app.id})`);
 
-                        if (!isRunning) {
-                            // Hide metrics for stopped apps
-                            cpuBar.style.width = '0%';
-                            ramBar.style.width = '0%';
-                            cpuBar.classList.remove('high-usage', 'critical-usage');
-                            ramBar.classList.remove('high-usage', 'critical-usage');
-                        } else {
-                            // Update CPU
-                            const cpuUsage = app.stats?.cpu_usage || app.cpu_usage || 0;
-                            cpuBar.style.width = `${cpuUsage}%`;
+                    // Check if app is running
+                    const status = app.status ? app.status.toLowerCase() : 'stopped';
+                    const isRunning = status === 'running';
 
-                            const cpuValueSpan = cpuBar.closest('.metric-item')?.querySelector('.cpu-value');
-                            if (cpuValueSpan) cpuValueSpan.textContent = `${cpuUsage}%`;
-
-                            cpuBar.classList.remove('high-usage', 'critical-usage');
-                            if (cpuUsage >= 95) {
-                                cpuBar.classList.add('critical-usage');
-                            } else if (cpuUsage >= 80) {
-                                cpuBar.classList.add('high-usage');
-                            }
-
-                            // Update RAM
-                            const ramUsageMB = app.stats?.memory_usage || app.memory_usage || 0;
-                            const ramMaxMB = app.stats?.memory_max || app.memory_max || 1024;
-                            const ramPercentage = (ramUsageMB / ramMaxMB) * 100;
-
-                            ramBar.style.width = `${ramPercentage}%`;
-
-                            const ramValueSpan = ramBar.closest('.metric-item')?.querySelector('.ram-value');
-                            if (ramValueSpan) ramValueSpan.textContent = `${ramUsageMB} MB`;
-
-                            ramBar.classList.remove('high-usage', 'critical-usage');
-                            if (ramPercentage >= 95) {
-                                ramBar.classList.add('critical-usage');
-                            } else if (ramPercentage >= 80) {
-                                ramBar.classList.add('high-usage');
-                            }
-                        }
+                    if (!isRunning) {
+                        console.log(`  ⏸️ App ${app.name} is ${status} - resetting bars to 0`);
+                        // Hide metrics for stopped apps
+                        cpuBar.style.width = '0%';
+                        ramBar.style.width = '0%';
+                        cpuBar.classList.remove('high-usage', 'critical-usage');
+                        ramBar.classList.remove('high-usage', 'critical-usage');
+                        
+                        const cpuValueSpan = cpuBar.closest('.metric-item')?.querySelector('.cpu-value');
+                        const ramValueSpan = ramBar.closest('.metric-item')?.querySelector('.ram-value');
+                        if (cpuValueSpan) cpuValueSpan.textContent = '0%';
+                        if (ramValueSpan) ramValueSpan.textContent = '0 MB';
+                    } else {
+                        console.log(`  ✓ App ${app.name} is running - fetching stats...`);
+                        // For running apps, fetch current stats
+                        fetchAndUpdateAppStats(app.id, cpuBar, ramBar);
                     }
                 });
 
-                // Update state
-                state.deployedApps = apps;
+                // Update state.deployedApps status only, preserve existing stats
+                state.deployedApps.forEach(stateApp => {
+                    const updatedApp = apps.find(a => a.id === stateApp.id);
+                    if (updatedApp) {
+                        stateApp.status = updatedApp.status;
+                        stateApp.url = updatedApp.url;
+                        stateApp.iframe_url = updatedApp.iframe_url;
+                    }
+                });
+            } else if (response.status === 401) {
+                console.error('❌ Authentication failed in CPU polling');
+                stopCPUPolling();
+            } else {
+                console.error(`❌ Polling failed with status ${response.status}`);
             }
         } catch (error) {
             console.error('❌ Error polling resource metrics:', error);
+            // Don't stop polling on network errors, just log and continue
         }
     }, 3000); // Poll every 3 seconds
+}
+
+/**
+ * Fetch and update stats for a specific app
+ */
+async function fetchAndUpdateAppStats(appId, cpuBar, ramBar) {
+    try {
+        console.log(`    🔍 Fetching stats for app ${appId}...`);
+        const response = await authFetch(`${API_BASE}/apps/${appId}/stats/current`);
+        
+        if (response.ok) {
+            const stats = await response.json();
+            console.log(`    ✓ Stats received:`, {
+                cpu_percent: stats.cpu_percent,
+                mem_used_gb: stats.mem_used_gb,
+                mem_total_gb: stats.mem_total_gb,
+                cached: stats.cached
+            });
+            
+            // Update CPU - use cpu_percent from API
+            const cpuUsage = Math.round(stats.cpu_percent || 0);
+            cpuBar.style.width = `${cpuUsage}%`;
+
+            const cpuValueSpan = cpuBar.closest('.metric-item')?.querySelector('.cpu-value');
+            if (cpuValueSpan) cpuValueSpan.textContent = `${cpuUsage}%`;
+
+            cpuBar.classList.remove('high-usage', 'critical-usage');
+            if (cpuUsage >= 95) {
+                cpuBar.classList.add('critical-usage');
+            } else if (cpuUsage >= 80) {
+                cpuBar.classList.add('high-usage');
+            }
+
+            // Update RAM - convert GB to MB for display
+            const ramUsageMB = Math.round((stats.mem_used_gb || 0) * 1024);
+            const ramMaxMB = Math.round((stats.mem_total_gb || 1) * 1024);
+            const ramPercentage = ramMaxMB > 0 ? (ramUsageMB / ramMaxMB) * 100 : 0;
+
+            ramBar.style.width = `${ramPercentage}%`;
+
+            const ramValueSpan = ramBar.closest('.metric-item')?.querySelector('.ram-value');
+            if (ramValueSpan) ramValueSpan.textContent = `${ramUsageMB} MB`;
+
+            ramBar.classList.remove('high-usage', 'critical-usage');
+            if (ramPercentage >= 95) {
+                ramBar.classList.add('critical-usage');
+            } else if (ramPercentage >= 80) {
+                ramBar.classList.add('high-usage');
+            }
+            
+            console.log(`    ✓ Updated bars: CPU=${cpuUsage}%, RAM=${ramUsageMB}MB (${Math.round(ramPercentage)}%)`);
+        } else {
+            console.error(`    ❌ Stats API returned ${response.status} for app ${appId}`);
+        }
+    } catch (error) {
+        console.error(`    ❌ Error fetching stats for app ${appId}:`, error);
+    }
 }
 
 /**
@@ -1003,6 +1074,8 @@ function renderAppCard(app, container, isDeployed = false) {
 // ============================================
 // View Management
 function showView(viewName) {
+    console.log(`👁️  showView('${viewName}') called`);
+    
     // Hide submenu when changing views
     if (typeof hideSubmenu === 'function') {
         hideSubmenu();
@@ -1026,6 +1099,7 @@ function showView(viewName) {
     if (viewElement) {
         viewElement.classList.remove('hidden');
         state.currentView = viewName;
+        console.log(`✓ View '${viewName}' is now visible`);
 
         // Stop CPU polling when leaving apps view
         if (viewName !== 'apps') {
@@ -1035,23 +1109,61 @@ function showView(viewName) {
         // Load view content
         switch(viewName) {
             case 'dashboard':
-                // Already loaded
+                // MIGRATED: Use new router for dashboard view
+                if (window.ProximityRouter) {
+                    console.log('🌉 Routing dashboard view through new router');
+                    window.ProximityRouter.navigateTo('dashboard');
+                    return; // Early return to prevent double rendering
+                }
+                // Fallback for transition period
+                console.log('✓ Dashboard view shown (fallback)');
                 break;
             case 'apps':
+                // MIGRATED: Use new router for apps view
+                if (window.ProximityRouter) {
+                    console.log('🌉 Routing apps view through new router');
+                    window.ProximityRouter.navigateTo('apps');
+                    return; // Early return to prevent double rendering
+                }
+                // Fallback for transition period
                 renderAppsView();
-                // Start CPU polling for real-time updates
                 startCPUPolling();
                 break;
             case 'catalog':
+                // MIGRATED: Use new router for catalog view
+                if (window.ProximityRouter) {
+                    console.log('🌉 Routing catalog view through new router');
+                    window.ProximityRouter.navigateTo('catalog');
+                    return; // Early return to prevent double rendering
+                }
+                // Fallback for transition period
                 renderCatalogView();
                 break;
             case 'nodes':
+                // MIGRATED: Use new router for nodes view
+                if (window.ProximityRouter) {
+                    console.log('🌉 Routing nodes view through new router');
+                    window.ProximityRouter.navigateTo('nodes');
+                    return;
+                }
                 renderNodesView();
                 break;
             case 'monitoring':
+                // MIGRATED: Use new router for monitoring view
+                if (window.ProximityRouter) {
+                    console.log('🌉 Routing monitoring view through new router');
+                    window.ProximityRouter.navigateTo('monitoring');
+                    return;
+                }
                 renderMonitoringView();
                 break;
             case 'settings':
+                // MIGRATED: Use new router for settings view
+                if (window.ProximityRouter) {
+                    console.log('🌉 Routing settings view through new router');
+                    window.ProximityRouter.navigateTo('settings');
+                    return;
+                }
                 renderSettingsView();
                 break;
             case 'uilab':
@@ -1422,40 +1534,59 @@ async function renderNodesView() {
 
         <!-- Proxmox Nodes -->
         <div class="apps-grid deployed">
-            ${state.nodes.map(node => `
-                    <div class="app-card deployed">
+            ${state.nodes.map(node => {
+                // Calculate percentages
+                const cpuPercent = node.maxcpu > 0 ? Math.round((node.cpu / node.maxcpu) * 100) : 0;
+                const ramPercent = node.maxmem > 0 ? Math.round((node.mem / node.maxmem) * 100) : 0;
+                const diskPercent = node.maxdisk > 0 ? Math.round((node.disk / node.maxdisk) * 100) : 0;
+                
+                return `
+                    <div class="app-card deployed ${node.status === 'online' ? 'status-running' : 'status-stopped'}">
                         <div class="app-card-header">
                             <div class="app-icon-lg">🖥️</div>
                             <div class="app-info">
                                 <h3 class="app-name">${node.node}</h3>
-                                <span class="status-badge ${node.status === 'online' ? 'running' : 'stopped'}">
-                                    <span class="status-dot"></span>
-                                    ${node.status}
-                                </span>
                             </div>
                         </div>
 
-                        <!-- Resource Usage -->
+                        <!-- Connection Info with Status Dot -->
                         <div class="app-connection-info">
-                            <div class="connection-item">
-                                <i data-lucide="cpu" class="connection-icon"></i>
-                                <span class="connection-value">${node.maxcpu || 0} vCPU (${node.maxcpu > 0 ? Math.round((node.cpu / node.maxcpu) * 100) : 0}% used)</span>
-                            </div>
-                            <div class="connection-item">
-                                <i data-lucide="memory-stick" class="connection-icon"></i>
-                                <span class="connection-value">${formatBytes(node.mem || 0)} / ${formatBytes(node.maxmem || 0)} RAM</span>
-                            </div>
-                            <div class="connection-item">
-                                <i data-lucide="hard-drive" class="connection-icon"></i>
-                                <span class="connection-value">${formatBytes(node.disk || 0)} / ${formatBytes(node.maxdisk || 0)} Disk</span>
+                            <div class="connection-item status-indicator">
+                                <span class="status-dot"></span>
                             </div>
                             <div class="connection-item">
                                 <i data-lucide="activity" class="connection-icon"></i>
                                 <span class="connection-value">Uptime: ${node.uptime ? formatUptime(node.uptime) : 'N/A'}</span>
                             </div>
                         </div>
+
+                        <!-- Resource Metrics: CPU, RAM, Disk with bars -->
+                        <div class="app-metrics">
+                            <div class="metric-item">
+                                <i data-lucide="cpu" class="metric-icon"></i>
+                                <div class="metric-bar-container">
+                                    <div class="metric-bar cpu-bar" style="width: ${cpuPercent}%"></div>
+                                </div>
+                                <span class="metric-value">${cpuPercent}%</span>
+                            </div>
+                            <div class="metric-item">
+                                <i data-lucide="database" class="metric-icon"></i>
+                                <div class="metric-bar-container">
+                                    <div class="metric-bar ram-bar" style="width: ${ramPercent}%"></div>
+                                </div>
+                                <span class="metric-value">${formatBytes(node.mem || 0)}</span>
+                            </div>
+                            <div class="metric-item">
+                                <i data-lucide="hard-drive" class="metric-icon"></i>
+                                <div class="metric-bar-container">
+                                    <div class="metric-bar disk-bar" style="width: ${diskPercent}%"></div>
+                                </div>
+                                <span class="metric-value">${formatBytes(node.disk || 0)}</span>
+                            </div>
+                        </div>
                     </div>
-                `).join('')}
+                `;
+            }).join('')}
             </div>
         </div>
     `;
@@ -3682,7 +3813,8 @@ function filterCatalog(category) {
 }
 
 // Search functionality for Apps
-function searchApps(query) {
+// Internal search function (not debounced)
+function _searchAppsInternal(query) {
     const searchInput = document.getElementById('appsSearchInput');
     const clearBtn = document.getElementById('appsClearSearch');
     const resultsCount = document.getElementById('appsResultsCount');
@@ -3751,6 +3883,9 @@ function searchApps(query) {
     initLucideIcons();
 }
 
+// Create debounced version (300ms delay to avoid excessive re-renders)
+const searchApps = window.debounce ? window.debounce(_searchAppsInternal, 300) : _searchAppsInternal;
+
 function clearAppsSearch() {
     const searchInput = document.getElementById('appsSearchInput');
     const clearBtn = document.getElementById('appsClearSearch');
@@ -3770,14 +3905,15 @@ function clearAppsSearch() {
     }
 
     // Trigger search with empty query to reset
-    searchApps('');
+    _searchAppsInternal('');
 }
 
 /**
  * Search catalog items by name, description, or category
  * Works in combination with category filters
+ * Internal function (not debounced)
  */
-function searchCatalog(query) {
+function _searchCatalogInternal(query) {
     const clearBtn = document.getElementById('catalogClearSearch');
     const resultsCount = document.getElementById('catalogResultsCount');
     const grid = document.getElementById('catalogGrid');
@@ -3846,6 +3982,9 @@ function searchCatalog(query) {
     initLucideIcons();
 }
 
+// Create debounced version (300ms delay to avoid excessive re-renders)
+const searchCatalog = window.debounce ? window.debounce(_searchCatalogInternal, 300) : _searchCatalogInternal;
+
 function clearCatalogSearch() {
     const searchInput = document.getElementById('catalogSearchInput');
     const clearBtn = document.getElementById('catalogClearSearch');
@@ -3865,7 +4004,7 @@ function clearCatalogSearch() {
     }
 
     // Trigger search with empty query to reset
-    searchCatalog('');
+    _searchCatalogInternal('');
 }
 
 // Console and Logs Modal Functions
@@ -5278,6 +5417,44 @@ async function handleLogout(e) {
         // Always clear local auth data
         Auth.logout();
         showNotification('You have been logged out', 'info');
+        
+        // Reset application state
+        state.deployedApps = [];
+        state.catalog = { items: [], categories: [] };
+        state.systemInfo = null;
+        state.nodes = [];
+        state.currentView = 'dashboard';
+        
+        // Stop any polling
+        if (state.cpuPollingInterval) {
+            clearInterval(state.cpuPollingInterval);
+            state.cpuPollingInterval = null;
+        }
+        
+        // Clear user info from UI
+        const userNameEl = document.querySelector('.user-name');
+        const userRoleEl = document.querySelector('.user-role');
+        const userAvatarEl = document.querySelector('.user-avatar');
+        if (userNameEl) userNameEl.textContent = '';
+        if (userRoleEl) userRoleEl.textContent = '';
+        if (userAvatarEl) userAvatarEl.textContent = '';
+        
+        // Reset apps count badge
+        const appsCountEl = document.getElementById('appsCount');
+        if (appsCountEl) appsCountEl.textContent = '0';
+        
+        // Hide all views
+        document.querySelectorAll('.view').forEach(view => {
+            view.classList.add('hidden');
+        });
+        
+        // Show authentication modal with login tab
+        showAuthModal();
+        
+        // Switch to login tab (not register)
+        renderAuthTabs('login');
+        
+        console.log('✅ User logged out and redirected to login modal');
     }
 }
 
@@ -5564,27 +5741,27 @@ async function initializeAuthenticatedSession() {
         await loadCatalog();
         console.log('   ✓ Catalog loaded');
         
-        // 5. Update the UI with loaded data
-        console.log('5️⃣ Updating UI...');
-        updateUI();
-
-        // 6. Setup event listeners FIRST (before showing views)
-        console.log('6️⃣ Setting up event listeners...');
+        // 5. Setup event listeners FIRST (before showing views)
+        console.log('5️⃣ Setting up event listeners...');
         setupEventListeners();
         console.log('   ✓ Event listeners attached');
 
         // Set global flag to indicate event listeners are ready
         window.eventListenersReady = true;
 
-        // 7. Initialize Lucide icons
+        // 6. Initialize Lucide icons
         initLucideIcons();
 
-        // 8. Hide loading state
+        // 7. Hide loading state
         hideLoading();
 
-        // 9. Show the dashboard view (LAST - after everything is ready)
-        console.log('7️⃣ Showing dashboard view...');
+        // 8. Show the dashboard view (BEFORE updating UI so DOM elements exist)
+        console.log('6️⃣ Showing dashboard view...');
         showView('dashboard');
+        
+        // 9. Update UI AFTER view is shown to ensure DOM elements exist
+        console.log('7️⃣ Updating UI with loaded data...');
+        updateUI();
         
         console.log('✅ Authenticated session initialized successfully');
         

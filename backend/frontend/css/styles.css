@@ -1664,6 +1664,33 @@ h3 { font-size: 1.5rem; font-weight: 600; }
     animation: metric-pulse-critical 1s ease-in-out infinite;
 }
 
+/* Disk Bar Styling */
+.disk-bar {
+    background: linear-gradient(90deg,
+                var(--cyan-bright) 0%,
+                rgba(34, 211, 238, 0.8) 50%,
+                var(--cyan-bright) 100%);
+    box-shadow: 0 0 8px rgba(34, 211, 238, 0.6);
+}
+
+.disk-bar.high-usage {
+    background: linear-gradient(90deg,
+                rgba(251, 191, 36, 0.9) 0%,
+                rgba(245, 158, 11, 0.8) 50%,
+                rgba(251, 191, 36, 0.9) 100%);
+    box-shadow: 0 0 10px rgba(251, 191, 36, 0.7);
+    animation: metric-pulse 1.5s ease-in-out infinite;
+}
+
+.disk-bar.critical-usage {
+    background: linear-gradient(90deg,
+                rgba(239, 68, 68, 0.9) 0%,
+                rgba(220, 38, 38, 0.8) 50%,
+                rgba(239, 68, 68, 0.9) 100%);
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.8);
+    animation: metric-pulse-critical 1s ease-in-out infinite;
+}
+
 /* Pulse animations */
 @keyframes metric-pulse {
     0%, 100% {
@@ -1706,12 +1733,70 @@ h3 { font-size: 1.5rem; font-weight: 600; }
                 inset 0 1px 0 rgba(34, 211, 238, 0.2);
 }
 
+/* Status-specific hover states - override generic hover */
+.app-card.status-running:hover {
+    border-color: var(--cyan-bright);
+    box-shadow: 0 12px 40px rgba(34, 211, 238, 0.4),
+                0 0 0 2px var(--cyan-bright),
+                inset 0 1px 0 rgba(34, 211, 238, 0.25);
+}
+
+.app-card.status-stopped:hover {
+    border-color: rgba(239, 68, 68, 0.8); /* Red for stopped */
+    box-shadow: 0 12px 40px rgba(239, 68, 68, 0.35),
+                0 0 0 2px rgba(239, 68, 68, 0.8),
+                inset 0 1px 0 rgba(239, 68, 68, 0.2);
+}
+
+.app-card.status-error:hover {
+    border-color: rgba(239, 68, 68, 0.9); /* Bright red for errors */
+    box-shadow: 0 12px 40px rgba(255, 100, 100, 0.5),
+                0 0 0 2px rgba(239, 68, 68, 0.9),
+                inset 0 1px 0 rgba(255, 100, 100, 0.25);
+}
+
+.app-card.status-in-progress:hover {
+    border-color: rgba(251, 146, 60, 0.9); /* Orange for in-progress */
+    box-shadow: 0 12px 40px rgba(251, 146, 60, 0.4),
+                0 0 0 2px rgba(251, 146, 60, 0.9),
+                inset 0 1px 0 rgba(251, 146, 60, 0.25);
+}
+
 /* Enhanced hover for deployed cards (clickable to open canvas) */
 .app-card.deployed:hover {
     border-color: var(--cyan-bright);
     box-shadow: 0 12px 40px rgba(34, 211, 238, 0.35),
                 0 0 0 2px var(--cyan-bright),
                 inset 0 1px 0 rgba(34, 211, 238, 0.25);
+}
+
+/* Status-specific hover states for deployed cards - more specific selector wins */
+.app-card.deployed.status-running:hover {
+    border-color: var(--cyan-bright);
+    box-shadow: 0 12px 40px rgba(34, 211, 238, 0.4),
+                0 0 0 2px var(--cyan-bright),
+                inset 0 1px 0 rgba(34, 211, 238, 0.25);
+}
+
+.app-card.deployed.status-stopped:hover {
+    border-color: rgba(239, 68, 68, 0.8);
+    box-shadow: 0 12px 40px rgba(239, 68, 68, 0.35),
+                0 0 0 2px rgba(239, 68, 68, 0.8),
+                inset 0 1px 0 rgba(239, 68, 68, 0.2);
+}
+
+.app-card.deployed.status-error:hover {
+    border-color: rgba(239, 68, 68, 0.9);
+    box-shadow: 0 12px 40px rgba(255, 100, 100, 0.5),
+                0 0 0 2px rgba(239, 68, 68, 0.9),
+                inset 0 1px 0 rgba(255, 100, 100, 0.25);
+}
+
+.app-card.deployed.status-in-progress:hover {
+    border-color: rgba(251, 146, 60, 0.9);
+    box-shadow: 0 12px 40px rgba(251, 146, 60, 0.4),
+                0 0 0 2px rgba(251, 146, 60, 0.9),
+                inset 0 1px 0 rgba(251, 146, 60, 0.25);
 }
 
 /* Enhanced hover for clickable catalog cards */
