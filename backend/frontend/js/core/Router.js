@@ -88,7 +88,8 @@ export class Router {
         // Step 6: Mount the new view and store its unmount function
         try {
             console.log(`✅ Router: Mounting new view '${viewName}'`);
-            this._currentUnmountFn = component.mount(container, state);
+            // CRITICAL FIX: Await mount() to support async data loading
+            this._currentUnmountFn = await component.mount(container, state);
             this._currentViewName = viewName;
 
             // Ensure unmount function is valid

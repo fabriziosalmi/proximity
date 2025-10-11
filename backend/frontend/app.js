@@ -591,6 +591,12 @@ function populateDeployedCard(cardElement, app) {
     // Add dynamic status class to app card for glow effect
     const appCard = cardElement.querySelector('.app-card');
     if (appCard) {
+        // CRITICAL FIX: Add hostname as data attribute for E2E test selectors
+        // This allows tests to find app cards by hostname using: .app-card[data-hostname="..."]
+        if (app.hostname) {
+            appCard.setAttribute('data-hostname', app.hostname);
+        }
+        
         // Map status to glow class
         const status = app.status ? app.status.toLowerCase() : 'stopped';
         let glowClass = 'status-stopped'; // default
@@ -5530,6 +5536,9 @@ function setupEventListeners() {
 
 // Make init available globally so main.js can call it after onboarding
 window.init = init;
+
+// Make loadDeployedApps available globally so views can refresh app data
+window.loadDeployedApps = loadDeployedApps;
 
 // --- Auth Modal (Register/Login) Logic ---
 // Show Auth Modal (Register/Login)

@@ -21,8 +21,18 @@ export class AppsView extends Component {
      * @param {Object} state - Application state
      * @returns {Function} Unmount function
      */
-    mount(container, state) {
+    async mount(container, state) {
         console.log('✅ Mounting Apps View');
+
+        // CRITICAL FIX: Reload deployed apps from API before rendering
+        // This ensures we always show fresh data when navigating to Apps view
+        if (typeof window.loadDeployedApps === 'function') {
+            console.log('🔄 Reloading deployed apps from API...');
+            await window.loadDeployedApps();
+            console.log(`✅ Apps reloaded: ${window.state.deployedApps?.length || 0} apps`);
+        } else {
+            console.warn('⚠️  window.loadDeployedApps not available - using cached app data');
+        }
 
         // MOVED FROM app.js: renderAppsView() function
         this.renderAppsView(container);
@@ -51,8 +61,11 @@ export class AppsView extends Component {
         // Render app cards using template cloning (existing pattern)
         const grid = document.getElementById('allAppsGrid');
 
+        console.log(`📊 DEBUG: Rendering apps view with ${window.state?.deployedApps?.length || 0} apps`);
+
         if (window.state.deployedApps.length === 0) {
             // Show empty state
+            console.log('📊 DEBUG: Showing empty state (no apps)');
             grid.innerHTML = `
                 <div class="empty-state">
                     <div class="empty-icon">📦</div>
@@ -63,9 +76,13 @@ export class AppsView extends Component {
             `;
         } else {
             // Render each app card using template (relies on global renderAppCard for now)
+            console.log(`📊 DEBUG: Rendering ${window.state.deployedApps.length} app cards`);
             for (const app of window.state.deployedApps) {
                 if (typeof window.renderAppCard === 'function') {
+                    console.log(`📊 DEBUG: Rendering app card for: ${app.hostname}`);
                     window.renderAppCard(app, grid, true);
+                } else {
+                    console.error('❌ window.renderAppCard is not a function!');
                 }
             }
         }

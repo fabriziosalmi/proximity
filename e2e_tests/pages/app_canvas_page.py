@@ -53,21 +53,28 @@ class AppCanvasPage(BasePage):
     # Canvas Modal Interaction Methods
     # ========================================================================
     
-    def open_app_canvas(self, app_name: str, timeout: int = 10000) -> None:
+    def open_app_canvas(self, app_hostname: str, timeout: int = 10000) -> None:
         """
         Open an application in the canvas modal by clicking its canvas button.
         
+        UPDATED: Now uses data-hostname attribute for precise app card matching.
+        
         Args:
-            app_name: Name of the application to open
+            app_hostname: Hostname of the application to open (e.g., 'nginx-e2e-123')
             timeout: Max time to wait for canvas to open (ms)
         """
-        logger.info(f"Opening app canvas for: {app_name}")
+        logger.info(f"Opening app canvas for: {app_hostname}")
         
-        # Find the app card containing the app name
-        app_card = self.page.locator(self.app_card).filter(has_text=app_name).first
+        # CRITICAL FIX: Use data-hostname attribute for precise matching
+        # Find the app card by hostname using data attribute
+        app_card = self.page.locator(f"{self.app_card}[data-hostname='{app_hostname}']")
+        
+        # Wait for app card to be visible first
+        expect(app_card).to_be_visible(timeout=timeout)
         
         # Click the canvas button in that app card
-        canvas_btn = app_card.locator(self.canvas_button)
+        # The button has data-action="canvas" and data-tooltip="Open in Canvas"
+        canvas_btn = app_card.locator('[data-action="canvas"]')
         expect(canvas_btn).to_be_visible(timeout=timeout)
         canvas_btn.click()
         

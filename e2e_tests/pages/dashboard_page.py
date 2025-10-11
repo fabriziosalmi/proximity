@@ -289,6 +289,9 @@ class DashboardPage(BasePage):
         This is the primary method for locating app cards during lifecycle tests.
         The hostname is unique and reliably identifies the app.
         
+        UPDATED: Now uses data-hostname attribute instead of text matching
+        for more reliable app card identification.
+        
         Args:
             hostname: Hostname of the deployed app (e.g., 'nginx-e2e-test-123')
         
@@ -300,8 +303,10 @@ class DashboardPage(BasePage):
             >>> expect(app_card).to_be_visible()
         """
         logger.info(f"Finding app card by hostname: {hostname}")
-        # The hostname appears in the app card's connection info or app name
-        return self.page.locator(f"{self.APP_CARD}:has-text('{hostname}')")
+        # CRITICAL FIX: Use data-hostname attribute for precise matching
+        # Old selector: .app-card.deployed:has-text('{hostname}') - unreliable
+        # New selector: .app-card.deployed[data-hostname='{hostname}'] - precise
+        return self.page.locator(f"{self.APP_CARD}[data-hostname='{hostname}']")
     
     def get_app_status(self, hostname: str) -> str:
         """
@@ -464,6 +469,29 @@ class DashboardPage(BasePage):
             timeout: Maximum time to wait (milliseconds)
         """
         logger.info(f"Waiting for app to be visible: {hostname}")
+        
+        # DIAGNOSTIC: Check if ANY app cards exist first
+        all_app_cards = self.page.locator(self.APP_CARD)
+        card_count = all_app_cards.count()
+        logger.info(f"📊 DEBUG: Found {card_count} total .app-card.deployed elements")
+        
+        # DIAGNOSTIC: Log the text content of ALL app cards to find our hostname
+        if card_count > 0:
+            logger.info(f"📊 DEBUG: Searching for hostname '{hostname}' in {card_count} app cards...")
+            for i in range(card_count):
+                card_text = all_app_cards.nth(i).inner_text()
+                # Check if our hostname appears in this card
+                if hostname in card_text:
+                    logger.info(f"✅ DEBUG: Found hostname in card {i+1}!")
+                    logger.info(f"📊 DEBUG: Card content: {card_text}")
+                    break
+            else:
+                logger.warning(f"❌ DEBUG: Hostname '{hostname}' NOT FOUND in any of the {card_count} app cards")
+                # Log first 3 cards for debugging
+                for i in range(min(3, card_count)):
+                    card_text = all_app_cards.nth(i).inner_text()
+                    logger.info(f"📊 DEBUG: Sample card {i+1}: {card_text[:200]}...")
+        
         app_card = self.get_app_card_by_hostname(hostname)
         
         from playwright.sync_api import expect

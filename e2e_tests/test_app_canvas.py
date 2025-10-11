@@ -115,6 +115,13 @@ def deployed_app(authenticated_page: Page, base_url: str):
     try:
         dashboard_page.navigate_to_my_apps()
         print("✅ Navigated to My Apps")
+        
+        # CRITICAL FIX: Wait for the apps list to be refreshed after navigation
+        # The Router now calls loadDeployedApps() asynchronously, so we need to wait
+        # for the network to settle before checking for the app card
+        print("⏳ Waiting for network to settle after apps view load...")
+        dashboard_page.wait_for_load_state("networkidle", timeout=10000)
+        print("✅ Network idle - apps list should be refreshed")
     except Exception as e:
         print(f"❌ FAILED to navigate to My Apps: {e}")
         raise
