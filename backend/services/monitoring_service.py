@@ -125,7 +125,15 @@ class MonitoringService:
         try:
             # Single API call gets all metrics
             # Reference: https://pve.proxmox.com/pve-docs/api-viewer/#/nodes/{node}/lxc/{vmid}/status/current
-            raw_stats = await self.proxmox.get_lxc_status(node, lxc_id)
+            lxc_info = await self.proxmox.get_lxc_status(node, lxc_id)
+
+            # Convert Pydantic model to dict for easier access
+            if isinstance(lxc_info, dict):
+                raw_stats = lxc_info
+            elif hasattr(lxc_info, 'model_dump'):
+                raw_stats = lxc_info.model_dump()
+            else:
+                raw_stats = lxc_info.dict()
 
             logger.debug(f"✓ Received stats for LXC {lxc_id}: {list(raw_stats.keys())}")
 
