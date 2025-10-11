@@ -28,7 +28,7 @@ class DeploymentModalPage(BasePage):
     MODAL_CONTENT = ".modal-content"
     MODAL_HEADER = ".modal-header"
     MODAL_TITLE = "#deployModal #modalTitle"  # Specific to deployment modal, not generic .modal-title
-    MODAL_CLOSE = ".modal-close"
+    MODAL_CLOSE = "#deployModal .modal-close"  # Scoped to deployment modal only
     MODAL_BODY = ".modal-body"
     MODAL_FOOTER = ".modal-footer"
     
@@ -221,11 +221,38 @@ class DeploymentModalPage(BasePage):
     def close_modal(self) -> None:
         """
         Click the close (X) button to close the modal.
+        Uses a scoped selector to avoid strict mode violations with multiple modals.
+        
+        If the modal is already hidden (auto-closed after success), this method
+        will skip the close action gracefully.
         """
-        logger.info("Clicking modal close button")
-        close_button = self.page.locator(self.MODAL_CLOSE)
-        close_button.click()
-        logger.info("Modal close button clicked")
+        logger.info("Attempting to close deployment modal")
+        
+        # Check if the deployment modal is visible
+        modal = self.page.locator(self.MODAL)
+        
+        try:
+            # Try to verify modal is visible with a short timeout
+            expect(modal).to_be_visible(timeout=2000)
+            
+            # Modal is visible, proceed with closing
+            logger.info("Modal is visible, clicking close button")
+            close_button = self.page.locator(self.MODAL_CLOSE)
+            close_button.click()
+            logger.info("Modal close button clicked")
+            
+            # Wait for modal to disappear
+            expect(modal).to_be_hidden(timeout=5000)
+            logger.info("✓ Modal closed successfully")
+            
+        except Exception as e:
+            # Modal might have auto-closed after deployment success
+            if "hidden" in str(e).lower() or "not visible" in str(e).lower():
+                logger.info("✓ Modal already closed (auto-close after success)")
+            else:
+                # Some other error occurred
+                logger.warning(f"Error while closing modal: {e}")
+                raise
     
     # ========================================================================
     # Progress Monitoring Methods

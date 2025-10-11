@@ -31,34 +31,116 @@ def deployed_app(authenticated_page: Page, base_url: str):
     
     Yields the hostname of the deployed app, then cleans up after the test.
     """
+    print("\n" + "="*80)
+    print("🚀 [LOCAL deployed_app fixture] Starting UI-based deployment")
+    print("="*80)
+    
     page = authenticated_page
     hostname = generate_hostname("nginx-canvas")
     
+    print(f"📝 Generated hostname: {hostname}")
+    
     # Deploy app
+    print("🔧 Creating page objects...")
     dashboard_page = DashboardPage(page)
     app_store_page = AppStorePage(page)
     deployment_modal = DeploymentModalPage(page)
+    print("✅ Page objects created")
     
-    dashboard_page.navigate_to_app_store()
-    app_store_page.wait_for_catalog_load()
-    # Click on nginx app card directly (no search function exists)
-    app_store_page.click_app_card("Nginx")
-    deployment_modal.wait_for_modal_visible()
-    deployment_modal.enter_hostname(hostname)
-    deployment_modal.submit_deployment()
-    deployment_modal.wait_for_deployment_success(timeout=180000)
-    deployment_modal.close_modal()
-    dashboard_page.navigate_to_my_apps()
-    dashboard_page.wait_for_app_visible(hostname)
+    print("\n📋 STEP 1: Navigate to App Store")
+    try:
+        dashboard_page.navigate_to_app_store()
+        print("✅ Successfully navigated to App Store")
+    except Exception as e:
+        print(f"❌ FAILED to navigate to App Store: {e}")
+        raise
+    
+    print("\n📋 STEP 2: Wait for catalog to load")
+    try:
+        app_store_page.wait_for_catalog_load()
+        print("✅ Catalog loaded successfully")
+    except Exception as e:
+        print(f"❌ FAILED to load catalog: {e}")
+        raise
+    
+    print("\n📋 STEP 3: Click on Nginx app card")
+    try:
+        app_store_page.click_app_card("Nginx")
+        print("✅ Clicked Nginx app card")
+    except Exception as e:
+        print(f"❌ FAILED to click app card: {e}")
+        raise
+    
+    print("\n📋 STEP 4: Wait for deployment modal")
+    try:
+        deployment_modal.wait_for_modal_visible()
+        print("✅ Deployment modal visible")
+    except Exception as e:
+        print(f"❌ FAILED: Modal not visible: {e}")
+        raise
+    
+    print(f"\n📋 STEP 5: Enter hostname: {hostname}")
+    try:
+        deployment_modal.fill_hostname(hostname)
+        print("✅ Hostname entered")
+    except Exception as e:
+        print(f"❌ FAILED to enter hostname: {e}")
+        raise
+    
+    print("\n📋 STEP 6: Submit deployment")
+    try:
+        deployment_modal.submit_deployment()
+        print("✅ Deployment submitted")
+    except Exception as e:
+        print(f"❌ FAILED to submit deployment: {e}")
+        raise
+    
+    print("\n📋 STEP 7: Wait for deployment success (timeout=180s)")
+    try:
+        deployment_modal.wait_for_deployment_success(timeout=180000)
+        print("✅ Deployment successful!")
+    except Exception as e:
+        print(f"❌ FAILED: Deployment did not succeed: {e}")
+        raise
+    
+    print("\n📋 STEP 8: Close modal")
+    try:
+        deployment_modal.close_modal()
+        print("✅ Modal closed")
+    except Exception as e:
+        print(f"❌ FAILED to close modal: {e}")
+        raise
+    
+    print("\n📋 STEP 9: Navigate to My Apps")
+    try:
+        dashboard_page.navigate_to_my_apps()
+        print("✅ Navigated to My Apps")
+    except Exception as e:
+        print(f"❌ FAILED to navigate to My Apps: {e}")
+        raise
+    
+    print(f"\n📋 STEP 10: Wait for app {hostname} to be visible")
+    try:
+        dashboard_page.wait_for_app_visible(hostname)
+        print(f"✅ App {hostname} is visible!")
+    except Exception as e:
+        print(f"❌ FAILED: App not visible: {e}")
+        raise
+    
+    print("\n" + "="*80)
+    print(f"🎉 [LOCAL deployed_app fixture] SUCCESS! Yielding hostname: {hostname}")
+    print("="*80)
     
     yield hostname
     
     # Cleanup
+    print(f"\n🧹 [LOCAL deployed_app fixture] Cleanup: Deleting app {hostname}")
     try:
         dashboard_page.navigate_to_my_apps()
         dashboard_page.delete_app(hostname)
+        print(f"✅ App {hostname} deleted successfully")
     except Exception as e:
-        logger.warning(f"Cleanup failed for {hostname}: {e}")
+        logger.warning(f"⚠️  Cleanup failed for {hostname}: {e}")
 
 
 @pytest.mark.canvas

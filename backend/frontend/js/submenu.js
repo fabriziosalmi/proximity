@@ -135,6 +135,90 @@ function navigateToSettings(tabName = 'proxmox') {
     activateSettingsTab(tabName);
 }
 
+// Navigate directly to Catalog view (bypassing submenu)
+function navigateToCatalog(filter = 'all') {
+    console.log(`🏪 Navigating to Catalog view with filter: ${filter}`);
+    
+    // Hide submenu if it's open
+    hideSubmenu();
+    
+    // Hide all views first
+    document.querySelectorAll('.view').forEach(view => {
+        view.classList.add('hidden');
+    });
+    
+    // Show catalog view
+    const catalogView = document.getElementById('catalogView');
+    if (catalogView) {
+        catalogView.classList.remove('hidden');
+        
+        // Render catalog content if using legacy approach
+        if (typeof renderCatalogView === 'function') {
+            renderCatalogView();
+        }
+        
+        // Apply filter if specified
+        if (filter && filter !== 'all' && typeof applyCatalogFilter === 'function') {
+            applyCatalogFilter(filter);
+        }
+        
+        // Update navigation UI
+        document.querySelectorAll('.nav-item, .nav-rack-item').forEach(item => {
+            item.classList.remove('active');
+            if (item.dataset.view === 'catalog') {
+                item.classList.add('active');
+            }
+        });
+        
+        // Reinitialize icons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    }
+}
+
+// Navigate directly to Apps view (bypassing submenu)
+function navigateToApps(filter = 'all') {
+    console.log(`📦 Navigating to Apps view with filter: ${filter}`);
+    
+    // Hide submenu if it's open
+    hideSubmenu();
+    
+    // Hide all views first
+    document.querySelectorAll('.view').forEach(view => {
+        view.classList.add('hidden');
+    });
+    
+    // Show apps view
+    const appsView = document.getElementById('appsView');
+    if (appsView) {
+        appsView.classList.remove('hidden');
+        
+        // Render apps content if using legacy approach
+        if (typeof renderAppsView === 'function') {
+            renderAppsView();
+        }
+        
+        // Apply filter if specified
+        if (filter && filter !== 'all' && typeof applyAppsFilter === 'function') {
+            applyAppsFilter(filter);
+        }
+        
+        // Update navigation UI
+        document.querySelectorAll('.nav-item, .nav-rack-item').forEach(item => {
+            item.classList.remove('active');
+            if (item.dataset.view === 'apps') {
+                item.classList.add('active');
+            }
+        });
+        
+        // Reinitialize icons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    }
+}
+
 // Example: Show Settings submenu
 function showSettingsSubmenu() {
     const settingsItems = [

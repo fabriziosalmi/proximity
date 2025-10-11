@@ -23,6 +23,7 @@ class DashboardPage(BasePage):
     # Selectors
     DASHBOARD_VIEW = "#dashboardView"
     NAV_DASHBOARD = "[data-view='dashboard']"
+    NAV_APPS = "[data-view='apps']"  # My Apps view
     NAV_APP_STORE = "[data-view='catalog']"  # The catalog IS the app store
     NAV_SETTINGS = "[data-view='settings']"
     NAV_INFRASTRUCTURE = "[data-view='nodes']"  # Infrastructure view
@@ -108,6 +109,22 @@ class DashboardPage(BasePage):
         self.page.wait_for_function("""
             () => {
                 const el = document.getElementById('catalogView');
+                if (!el) return false;
+                const style = window.getComputedStyle(el);
+                return !el.classList.contains('hidden') && 
+                       style.display !== 'none' &&
+                       parseFloat(style.opacity) > 0.5;
+            }
+        """, timeout=15000)
+    
+    def navigate_to_my_apps(self) -> None:
+        """Navigate to the My Apps page (deployed applications list)."""
+        logger.info("Navigating to My Apps")
+        self.click(self.NAV_APPS)
+        # Wait for apps view to be visible
+        self.page.wait_for_function("""
+            () => {
+                const el = document.getElementById('appsView');
                 if (!el) return false;
                 const style = window.getComputedStyle(el);
                 return !el.classList.contains('hidden') && 
