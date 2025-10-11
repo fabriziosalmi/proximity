@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..900&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-            <link rel="stylesheet" href="css/styles.css?v=20251010-85">
+            <link rel="stylesheet" href="css/styles.css?v=20251010-98">
         <link rel="stylesheet" href="/css/top-nav-rack.css?v=20251010-77">
         <link rel="stylesheet" href="/css/tablet-responsive.css?v=20251010-01">
     <!-- Xterm.js Terminal -->
@@ -32,10 +32,10 @@
     <script src="/js/validation-global.js?v=20251010-01"></script>
 
     <!-- Load legacy app.js first (non-module) -->
-    <script src="app.js?v=20251010-89"></script>
+    <script src="app.js?v=20251010-96"></script>
 
     <!-- Then load modular system (ES6 modules) -->
-    <script src="js/main.js?v=20251009-51" type="module"></script>
+    <script src="js/main.js?v=20251010-52" type="module"></script>
 </head>
 <body>
     <!-- Power On Screen (First Run Only) -->
@@ -283,43 +283,43 @@
 
                 <!-- Quick Actions -->
                 <div class="app-quick-actions">
-                    <button class="action-icon" data-action="toggle-status" title="">
+                    <button class="action-icon" data-action="toggle-status" data-tooltip="">
                         <i data-lucide="play"></i>
                     </button>
-                    <button class="action-icon" data-action="open-external" title="Open in new tab">
+                    <button class="action-icon" data-action="open-external" data-tooltip="Open in New Tab">
                         <i data-lucide="external-link"></i>
                     </button>
-                    <button class="action-icon" data-action="view-logs" title="View logs">
+                    <button class="action-icon" data-action="view-logs" data-tooltip="View Logs">
                         <i data-lucide="file-text"></i>
                     </button>
-                    <button class="action-icon" data-action="console" title="Console">
+                    <button class="action-icon" data-action="console" data-tooltip="Open Console">
                         <i data-lucide="terminal"></i>
                     </button>
-                    <button class="action-icon" data-action="backups" title="Backups">
+                    <button class="action-icon" data-action="backups" data-tooltip="Manage Backups">
                         <i data-lucide="database"></i>
                     </button>
-                    <button class="action-icon" data-action="update" title="Update Application">
+                    <button class="action-icon" data-action="update" data-tooltip="Update Application">
                         <i data-lucide="arrow-up-circle"></i>
                     </button>
-                    <button class="action-icon" data-action="volumes" title="View Volumes">
+                    <button class="action-icon" data-action="volumes" data-tooltip="View Volumes">
                         <i data-lucide="hard-drive"></i>
                     </button>
-                    <button class="action-icon" data-action="monitoring" title="Monitoring">
+                    <button class="action-icon" data-action="monitoring" data-tooltip="View Monitoring">
                         <i data-lucide="activity"></i>
                     </button>
-                    <button class="action-icon" data-action="canvas" title="Open in Canvas" style="display: none;">
+                    <button class="action-icon" data-action="canvas" data-tooltip="Open in Canvas" style="display: none;">
                         <i data-lucide="monitor"></i>
                     </button>
-                    <button class="action-icon" data-action="restart" title="Restart">
+                    <button class="action-icon" data-action="restart" data-tooltip="Restart App">
                         <i data-lucide="refresh-cw"></i>
                     </button>
-                    <button class="action-icon pro-feature" data-action="clone" title="Clone App">
+                    <button class="action-icon pro-feature" data-action="clone" data-tooltip="Clone App">
                         <i data-lucide="copy"></i>
                     </button>
-                    <button class="action-icon pro-feature" data-action="edit-config" title="Edit Resources">
+                    <button class="action-icon pro-feature" data-action="edit-config" data-tooltip="Edit Resources">
                         <i data-lucide="sliders"></i>
                     </button>
-                    <button class="action-icon danger" data-action="delete" title="Delete">
+                    <button class="action-icon danger" data-tooltip="Delete App">
                         <i data-lucide="trash-2"></i>
                     </button>
                 </div>
@@ -327,11 +327,8 @@
 
             <!-- Connection Info: Status, URL, Node, Container, Date -->
             <div class="app-connection-info">
-                <div class="connection-item">
-                    <span class="status-badge-compact">
-                        <span class="status-dot-small"></span>
-                        <span class="status-text"></span>
-                    </span>
+                <div class="connection-item status-indicator">
+                    <span class="status-dot"></span>
                 </div>
                 <div class="connection-item">
                     <i data-lucide="link" class="connection-icon"></i>
@@ -348,6 +345,24 @@
                 <div class="connection-item">
                     <i data-lucide="clock" class="connection-icon"></i>
                     <span class="connection-value date-value"></span>
+                </div>
+            </div>
+
+            <!-- Resource Metrics: CPU and RAM Usage -->
+            <div class="app-metrics">
+                <div class="metric-item">
+                    <i data-lucide="cpu" class="metric-icon"></i>
+                    <div class="metric-bar-container">
+                        <div class="metric-bar cpu-bar"></div>
+                    </div>
+                    <span class="metric-value cpu-value">0%</span>
+                </div>
+                <div class="metric-item">
+                    <i data-lucide="database" class="metric-icon"></i>
+                    <div class="metric-bar-container">
+                        <div class="metric-bar ram-bar"></div>
+                    </div>
+                    <span class="metric-value ram-value">0 MB</span>
                 </div>
             </div>
         </div>

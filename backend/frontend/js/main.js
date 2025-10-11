@@ -14,6 +14,7 @@ import * as Auth from './utils/auth.js';
 import * as UI from './utils/ui.js';
 import { SoundService } from './services/soundService.js';
 import { handleOnboarding } from './onboarding.js';
+import { initTooltips, refreshTooltips } from './utils/tooltips.js';
 
 // Make modules available globally for transition period
 // This allows the legacy code to work while we migrate
@@ -24,6 +25,8 @@ window.Notifications = Notifications;
 window.Auth = Auth;
 window.UI = UI;
 window.SoundService = SoundService;
+window.initTooltips = initTooltips;
+window.refreshTooltips = refreshTooltips;
 
 // Initialize sound system
 SoundService.init();
@@ -45,16 +48,19 @@ console.log('📦 Available modules:', {
  */
 async function initializeProximity() {
     console.log('🚀 Starting Proximity initialization...');
-    
+
     // STEP 1: Handle onboarding (first run check)
     // This will either show the Power On screen (first run) or return immediately
     await handleOnboarding();
-    
+
     // STEP 2: Continue with normal app initialization
     // The init() function from app.js handles authentication and UI setup
     if (typeof window.init === 'function') {
         console.log('✅ Onboarding complete - proceeding to app initialization');
         await window.init();
+
+        // STEP 3: Initialize custom tooltip system after UI is rendered
+        initTooltips();
     } else {
         console.error('❌ Legacy init() function not found in app.js');
     }
