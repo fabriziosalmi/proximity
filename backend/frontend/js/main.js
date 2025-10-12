@@ -30,7 +30,7 @@ import { showCloneModal } from './modals/CloneModal.js';
 import { showPromptModal } from './modals/PromptModal.js';
 import { showEditConfigModal, closeEditConfigModal } from './modals/EditConfigModal.js';
 import { showUpdateModal } from './modals/UpdateModal.js';
-import { controlApp, deleteApp, restartApp } from './services/appOperations.js';
+import { controlApp, deleteApp, restartApp, showAppDetails, showDeletionProgress, updateDeletionProgress, hideDeletionProgress, showAppLogs, showAppVolumes } from './services/appOperations.js';
 
 // Import lifecycle management system
 import { router } from './core/Router.js';
@@ -317,6 +317,12 @@ window.closeCanvas = closeCanvas;
 window.controlApp = controlApp;
 window.deleteApp = deleteApp;
 window.restartApp = restartApp;
+window.showAppDetails = showAppDetails;
+window.showDeletionProgress = showDeletionProgress;
+window.updateDeletionProgress = updateDeletionProgress;
+window.hideDeletionProgress = hideDeletionProgress;
+window.showAppLogs = showAppLogs;
+window.showAppVolumes = showAppVolumes;
 
 // Utility functions (NEW!)
 window.initLucideIcons = Icons.initLucideIcons;

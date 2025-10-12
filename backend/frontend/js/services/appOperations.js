@@ -259,6 +259,287 @@ export async function stopApp(appId) {
     return controlApp(appId, 'stop');
 }
 
+/**
+ * Show application details (placeholder for future implementation)
+ * @param {string} appId - The application ID
+ */
+export function showAppDetails(appId) {
+    // Get state from window during transition
+    const state = window.state || { deployedApps: [] };
+    const app = state.deployedApps.find(a => a.id === appId);
+    if (!app) return;
+    
+    const showNotification = getNotification();
+    // TODO: Implement detailed app view
+    showNotification('App details view coming soon', 'info');
+}
+
+/**
+ * Show deletion progress modal
+ * @param {string} appName - The application name being deleted
+ */
+export function showDeletionProgress(appName) {
+    const modal = document.getElementById('deployModal');
+    const modalBody = document.getElementById('modalBody');
+    const modalTitle = document.getElementById('modalTitle');
+    
+    if (!modal || !modalBody || !modalTitle) {
+        console.error('Modal elements not found');
+        return;
+    }
+    
+    modalTitle.textContent = 'Deleting Application';
+    
+    modalBody.innerHTML = `
+        <div style="text-align: center; padding: 2rem 1rem;">
+            <div style="margin-bottom: 1.5rem;">
+                <div class="loading-spinner" style="display: inline-block; margin-bottom: 1rem;"></div>
+                <h3 style="color: var(--text-primary); margin-bottom: 0.5rem;">${appName}</h3>
+                <p style="color: var(--text-secondary); font-size: 0.875rem;">Removing application...</p>
+            </div>
+            
+            <div style="background: var(--bg-secondary); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1rem;">
+                <div id="deletionProgressSteps" style="text-align: left;">
+                    <div class="progress-step active">
+                        <div class="progress-step-icon">🟠</div>
+                        <div class="progress-step-text">Stopping application</div>
+                    </div>
+                    <div class="progress-step">
+                        <div class="progress-step-icon">⚪</div>
+                        <div class="progress-step-text">Removing from proxy</div>
+                    </div>
+                    <div class="progress-step">
+                        <div class="progress-step-icon">⚪</div>
+                        <div class="progress-step-text">Deleting container</div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 1rem;">
+                    <div style="background: var(--bg-tertiary); border-radius: 999px; height: 6px; overflow: hidden;">
+                        <div id="deletionProgressBar" style="height: 100%; background: linear-gradient(90deg, #ef4444, #dc2626); transition: width 0.3s ease; width: 0%;"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="deletionProgressMessage" style="color: var(--text-tertiary); font-size: 0.875rem; min-height: 1.5rem;">
+                Initializing deletion...
+            </div>
+            
+            <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
+                <p style="color: var(--text-tertiary); font-size: 0.75rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                    <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #f59e0b;"></span>
+                    Please wait while the application is removed
+                </p>
+            </div>
+        </div>
+    `;
+    
+    modal.classList.add('show');
+    modal.style.pointerEvents = 'none';
+    
+    // Call openModal if available
+    if (window.openModal) {
+        window.openModal();
+    }
+}
+
+/**
+ * Update deletion progress display
+ * @param {number} progress - Progress percentage (0-100)
+ * @param {string} message - Status message to display
+ */
+export async function updateDeletionProgress(progress, message) {
+    const progressBar = document.getElementById('deletionProgressBar');
+    const progressMessage = document.getElementById('deletionProgressMessage');
+    const progressSteps = document.getElementById('deletionProgressSteps');
+    
+    if (progressBar) {
+        progressBar.style.width = `${progress}%`;
+    }
+    
+    if (progressMessage) {
+        progressMessage.textContent = message;
+    }
+    
+    if (progressSteps) {
+        const steps = progressSteps.querySelectorAll('.progress-step');
+        steps.forEach((step, index) => {
+            if (progress >= (index * 33)) {
+                step.classList.add('active');
+                const icon = step.querySelector('.progress-step-icon');
+                if (progress > ((index + 1) * 33)) {
+                    icon.textContent = '🟢';
+                    step.classList.remove('pulse');
+                } else if (progress >= (index * 33)) {
+                    icon.textContent = '🟠';
+                    step.classList.add('pulse');
+                }
+            }
+        });
+    }
+}
+
+/**
+ * Hide deletion progress modal and restore page interaction
+ */
+export function hideDeletionProgress() {
+    const modal = document.getElementById('deployModal');
+    if (!modal) return;
+    
+    modal.classList.remove('show');
+    modal.style.pointerEvents = 'auto';
+    
+    // Properly clean up modal state to re-enable page interaction
+    const anyModalOpen = Array.from(document.querySelectorAll('.modal.show')).length > 0;
+    if (!anyModalOpen) {
+        const scrollPosition = parseInt(document.body.style.top || '0') * -1;
+        document.body.classList.remove('modal-open');
+        document.body.style.top = '';
+        
+        // Re-enable pointer events on main content
+        const mainContent = document.querySelector('.app-container');
+        if (mainContent) {
+            mainContent.style.pointerEvents = '';
+        }
+        
+        // Restore scroll position
+        window.scrollTo(0, scrollPosition);
+    }
+}
+
+/**
+ * Show application logs in a modal
+ * @param {string} appId - The application ID
+ * @param {string} hostname - The application hostname
+ */
+export function showAppLogs(appId, hostname) {
+    const modal = document.getElementById('deployModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBody = document.getElementById('modalBody');
+    
+    if (!modal || !modalTitle || !modalBody) {
+        console.error('Modal elements not found');
+        return;
+    }
+    
+    modalTitle.textContent = `📋 Logs - ${hostname}`;
+    
+    modalBody.innerHTML = `
+        <div style="margin-bottom: 1rem;">
+            <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                <button class="btn btn-sm btn-secondary" onclick="refreshLogs('${appId}', 'all')">
+                    All
+                </button>
+                <button class="btn btn-sm btn-ghost" onclick="refreshLogs('${appId}', 'docker')">
+                    Docker
+                </button>
+                <button class="btn btn-sm btn-ghost" onclick="refreshLogs('${appId}', 'system')">
+                    System
+                </button>
+                <button class="btn btn-sm btn-ghost" onclick="downloadLogs('${appId}')" style="margin-left: auto;">
+                    💾 Download
+                </button>
+            </div>
+        </div>
+        
+        <div style="background: #1a1a1a; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem; height: 400px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 0.875rem; color: #e0e0e0;">
+            <div id="logsContent">
+                <div style="text-align: center; padding: 2rem; color: var(--text-tertiary);">
+                    <div class="loading-spinner" style="display: inline-block; margin-bottom: 1rem;"></div>
+                    <div>Loading logs...</div>
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 1rem; display: flex; justify-content: space-between; align-items: center;">
+            <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; color: var(--text-secondary);">
+                <input type="checkbox" id="autoRefreshLogs" onchange="toggleAutoRefresh('${appId}')">
+                Auto-refresh (5s)
+            </label>
+            <span style="font-size: 0.75rem; color: var(--text-tertiary);">
+                Last updated: <span id="logsTimestamp">-</span>
+            </span>
+        </div>
+    `;
+    
+    modal.classList.add('show');
+    
+    // Call openModal if available
+    if (window.openModal) {
+        window.openModal();
+    }
+    
+    // Load logs if function is available
+    if (window.loadAppLogs) {
+        window.loadAppLogs(appId);
+    }
+}
+
+/**
+ * Show application volumes in a modal
+ * @param {string} appId - The application ID
+ */
+export async function showAppVolumes(appId) {
+    const authFetch = getAuthFetch();
+    const showNotification = getNotification();
+    
+    try {
+        const app = await authFetch(`${API_BASE}/apps/${appId}`);
+
+        if (!app.volumes || app.volumes.length === 0) {
+            showNotification('This app has no persistent volumes', 'info');
+            return;
+        }
+
+        const volumesHtml = app.volumes.map(vol => `
+            <tr>
+                <td>${vol.container_path}</td>
+                <td class="volume-host-path">
+                    <code>${vol.host_path}</code>
+                    <button class="btn btn-sm btn-ghost" onclick="window.Clipboard?.copyToClipboard?.('${vol.host_path}') || window.copyToClipboard?.('${vol.host_path}')" title="Copy to clipboard">
+                        <i data-lucide="copy"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+
+        const modalBody = `
+            <div class="volumes-info">
+                <p class="help-text">
+                    <i data-lucide="info"></i>
+                    These are the locations on your Proxmox server where persistent data is stored.
+                    <strong>Do not modify these files directly unless you know what you are doing.</strong>
+                </p>
+                <table class="volumes-table">
+                    <thead>
+                        <tr>
+                            <th>Container Path</th>
+                            <th>Host Path (Proxmox)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${volumesHtml}
+                    </tbody>
+                </table>
+            </div>
+        `;
+
+        // Call showModal if available
+        if (window.showModal) {
+            window.showModal('Persistent Volumes', modalBody);
+        }
+        
+        // Reinitialize Lucide icons if available
+        if (window.lucide && window.lucide.createIcons) {
+            window.lucide.createIcons();
+        }
+
+    } catch (error) {
+        showNotification('Failed to load volumes', 'error');
+        console.error('Error loading volumes:', error);
+    }
+}
+
 // Expose to window for backward compatibility during transition
 if (typeof window !== 'undefined') {
     window.appOperations = {
@@ -268,6 +549,12 @@ if (typeof window !== 'undefined') {
         pollAppStatus,
         restartApp,
         startApp,
-        stopApp
+        stopApp,
+        showAppDetails,
+        showDeletionProgress,
+        updateDeletionProgress,
+        hideDeletionProgress,
+        showAppLogs,
+        showAppVolumes
     };
 }
