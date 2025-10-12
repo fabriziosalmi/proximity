@@ -17,6 +17,40 @@ import { showNotification } from '../utils/notifications.js';
 const API_BASE = 'http://localhost:8765/api/v1';
 
 /**
+ * Get stored prefill data from sessionStorage
+ */
+function getPrefillData() {
+    try {
+        const data = sessionStorage.getItem('authPrefillData');
+        return data ? JSON.parse(data) : {};
+    } catch (e) {
+        return {};
+    }
+}
+
+/**
+ * Store prefill data in sessionStorage
+ */
+function setPrefillData(data) {
+    try {
+        sessionStorage.setItem('authPrefillData', JSON.stringify(data));
+    } catch (e) {
+        console.warn('Failed to store prefill data:', e);
+    }
+}
+
+/**
+ * Clear prefill data from sessionStorage
+ */
+function clearPrefillData() {
+    try {
+        sessionStorage.removeItem('authPrefillData');
+    } catch (e) {
+        // Silent fail
+    }
+}
+
+/**
  * Toggle user profile menu visibility
  * Handles menu open/close with proper class management
  */
@@ -91,6 +125,9 @@ export function closeAuthModal() {
     if (backdrop) {
         backdrop.remove();
     }
+    
+    // Clear prefill data when modal closes
+    clearPrefillData();
 }
 
 /**
@@ -121,8 +158,11 @@ export function switchAuthTab(tab) {
 
     if (tab === 'register') {
         renderRegisterForm();
+        // Clear prefill data when switching to register
+        clearPrefillData();
     } else {
-        renderLoginForm();
+        // Use stored prefill data if available
+        renderLoginForm(getPrefillData());
     }
 }
 
@@ -132,6 +172,9 @@ export function switchAuthTab(tab) {
  * @param {object} prefill - Data to pre-fill in the form
  */
 export function switchAuthTabWithPrefill(tab, prefill = {}) {
+    // Store prefill data in sessionStorage so it persists when user clicks tab
+    setPrefillData(prefill);
+    
     // Update tab buttons
     const registerTab = document.getElementById('registerTab');
     const loginTab = document.getElementById('loginTab');
@@ -186,16 +229,33 @@ export function renderRegisterForm() {
  * @param {object} prefill - Optional values to pre-fill
  */
 export function renderLoginForm(prefill = {}) {
+    console.log('🔐 renderLoginForm called with prefill:', prefill);
+    
     const content = document.getElementById('authTabContent');
+    
+    // Escape HTML to prevent XSS and ensure proper value rendering
+    const escapeHtml = (str) => {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    };
+    
+    const username = escapeHtml(prefill.username || '');
+    const password = escapeHtml(prefill.password || '');
+    
+    console.log('🔐 Escaped username:', username);
+    console.log('🔐 Escaped password:', password ? '***' : '(empty)');
+    
     content.innerHTML = `
         <form id="loginForm" class="auth-form">
             <div class="form-group">
                 <label class="form-label">Username</label>
-                <input type="text" class="form-input" id="loginUsername" required autocomplete="username" value="${prefill.username || ''}" placeholder="Enter username">
+                <input type="text" class="form-input" id="loginUsername" required autocomplete="username" value="${username}" placeholder="Enter username">
             </div>
             <div class="form-group">
                 <label class="form-label">Password</label>
-                <input type="password" class="form-input" id="loginPassword" required autocomplete="current-password" value="${prefill.password || ''}" placeholder="Enter password">
+                <input type="password" class="form-input" id="loginPassword" required autocomplete="current-password" value="${password}" placeholder="Enter password">
             </div>
             <div id="loginError" class="form-error"></div>
             <button type="submit" class="btn btn-primary" style="width:100%;">Login</button>
