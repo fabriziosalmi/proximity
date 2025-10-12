@@ -41,9 +41,9 @@ class AppCanvasPage(BasePage):
         self.canvas_error_message = "#canvasErrorMessage"
         
         # Canvas Action Buttons
-        self.open_in_new_tab_btn = "button[onclick='openInNewTab()']"
-        self.refresh_btn = "button[onclick='refreshCanvas()']"
-        self.close_btn = "button[onclick='closeCanvas()']"
+        self.open_in_new_tab_btn = "button[data-action='canvas-new-tab']"
+        self.refresh_btn = "button[data-action='canvas-refresh']"
+        self.close_btn = "button[data-action='canvas-close']"
         
         # App Card Selectors
         self.app_card = ".app-card.deployed"

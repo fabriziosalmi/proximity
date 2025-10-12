@@ -25,6 +25,7 @@ import { showCloneModal } from './modals/CloneModal.js';
 import { showPromptModal } from './modals/PromptModal.js';
 import { showEditConfigModal, closeEditConfigModal } from './modals/EditConfigModal.js';
 import { showUpdateModal } from './modals/UpdateModal.js';
+import { controlApp, deleteApp, restartApp } from './services/appOperations.js';
 
 // Import lifecycle management system
 import { router } from './core/Router.js';
@@ -301,5 +302,10 @@ window.toggleCanvasHeader = toggleCanvasHeader;
 window.openInNewTab = openInNewTab;
 window.refreshCanvas = refreshCanvas;
 window.closeCanvas = closeCanvas;
+
+// App operations functions
+window.controlApp = controlApp;
+window.deleteApp = deleteApp;
+window.restartApp = restartApp;
 
 console.log('⚠️  Legacy window functions exposed for backward compatibility');
