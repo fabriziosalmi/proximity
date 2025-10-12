@@ -50,6 +50,9 @@ export class AppsView extends Component {
     renderAppsView(container) {
         container.classList.remove('has-sub-nav'); // Remove old sub-nav class
 
+        console.log(`📱 renderAppsView() - deployedApps count: ${window.state.deployedApps?.length || 0}`);
+        console.log(`📱 deployedApps:`, window.state.deployedApps);
+
         // Search bar is now in the submenu - no need for it here anymore
         const content = `
             <div class="apps-grid deployed" id="allAppsGrid"></div>
@@ -60,7 +63,8 @@ export class AppsView extends Component {
         // Render app cards using template cloning (existing pattern)
         const grid = document.getElementById('allAppsGrid');
 
-        if (window.state.deployedApps.length === 0) {
+        if (!window.state.deployedApps || window.state.deployedApps.length === 0) {
+            console.log('📱 No apps to display - showing empty state');
             // Show empty state
             grid.innerHTML = `
                 <div class="empty-state">
@@ -71,10 +75,13 @@ export class AppsView extends Component {
                 </div>
             `;
         } else {
+            console.log(`📱 Rendering ${window.state.deployedApps.length} app cards`);
             // Render each app card using template (relies on global renderAppCard for now)
             for (const app of window.state.deployedApps) {
                 if (typeof window.renderAppCard === 'function') {
                     window.renderAppCard(app, grid, true);
+                } else {
+                    console.error('❌ window.renderAppCard function not found!');
                 }
             }
         }

@@ -440,6 +440,7 @@
 
 .content {
     padding: 2rem;
+    padding-bottom: 4rem; /* Extra bottom padding to prevent content from being cut off */
     width: 100%; /* Full width */
     max-width: none; /* No max-width limit */
     margin: 0; /* No centering */

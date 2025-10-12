@@ -230,6 +230,9 @@ function updateUserInfo() {
 }
 
 // Application State
+// MIGRATION NOTE: State is now managed by the modular system (js/state/appState.js)
+// We keep this for backward compatibility during the transition period.
+// The modular system will override window.state when it loads.
 const state = {
     systemInfo: null,
     nodes: [],
@@ -240,6 +243,10 @@ const state = {
     proximityMode: 'AUTO', // AUTO or PRO mode
     cpuPollingInterval: null // Store polling interval ID
 };
+
+// Expose state globally for modular views
+// NOTE: This will be overridden by js/state/appState.js when the modular system loads
+window.state = state;
 
 // Initialize Application
 async function init() {

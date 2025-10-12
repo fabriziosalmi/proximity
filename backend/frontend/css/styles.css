@@ -5793,7 +5793,7 @@ body.pro-mode .pro-feature.inline-flex {
     border-radius: 16px;
     padding: 3rem;
     margin-bottom: 2rem;
-    overflow: hidden;
+    overflow: visible; /* Allow content to expand naturally */
     backdrop-filter: blur(10px);
 }
 
@@ -5938,6 +5938,7 @@ body.pro-mode .pro-feature.inline-flex {
     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
     gap: 1rem;
     min-height: 120px;
+    /* No max-height - allow natural expansion */
 }
 
 .hero-actions {
@@ -5967,6 +5968,8 @@ body.pro-mode .pro-feature.inline-flex {
     height: 100%;
     z-index: 1;
     pointer-events: none;
+    overflow: hidden; /* Clip visual effects within hero bounds */
+    border-radius: 16px; /* Match hero-section border radius */
 }
 
 .hero-grid-bg {

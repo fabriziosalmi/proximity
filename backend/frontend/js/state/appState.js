@@ -1,11 +1,16 @@
 /**
  * Application State Management
  *
- * Centralized state management for the Proximity application.
- * Provides getters and setters for global application state.
+ * THE SINGLE SOURCE OF TRUTH for application state.
+ * This module owns and manages ALL application state.
+ *
+ * ARCHITECTURE:
+ * - Pure module-based state management
+ * - NO dependencies on legacy global variables
+ * - Implements observer pattern for reactive updates
  */
 
-// Main application state
+// Main application state - THE ONLY STATE
 const state = {
     systemInfo: null,
     nodes: [],
@@ -14,8 +19,13 @@ const state = {
     currentView: 'dashboard',
     deployedApps: [],
     proxyStatus: null,
-    proximityMode: 'AUTO' // AUTO or PRO mode
+    proximityMode: 'AUTO', // AUTO or PRO mode
+    currentUser: null,
+    isAuthenticated: false
 };
+
+// Subscribers for reactive state updates
+const subscribers = [];
 
 // Interval tracking for cleanup
 const intervals = {
@@ -45,18 +55,58 @@ const contextState = {
  */
 export function getState(key = null) {
     if (key === null) {
-        return state;
+        return { ...state }; // Return a copy to prevent external mutations
     }
     return state[key];
 }
 
 /**
- * Update state with new values
- * @param {string} key - State property to update
- * @param {any} value - New value
+ * Update state with new values and notify subscribers
+ * @param {object|string} keyOrUpdates - State property key or object of updates
+ * @param {any} value - New value (if first param is string)
  */
-export function setState(key, value) {
-    state[key] = value;
+export function setState(keyOrUpdates, value) {
+    if (typeof keyOrUpdates === 'object') {
+        // Batch update: merge multiple properties
+        Object.assign(state, keyOrUpdates);
+    } else {
+        // Single property update
+        state[keyOrUpdates] = value;
+    }
+
+    // Notify all subscribers of state change
+    notifySubscribers();
+}
+
+/**
+ * Subscribe to state changes
+ * @param {function} callback - Function to call when state changes
+ * @returns {function} Unsubscribe function
+ */
+export function subscribe(callback) {
+    subscribers.push(callback);
+
+    // Return unsubscribe function
+    return () => {
+        const index = subscribers.indexOf(callback);
+        if (index > -1) {
+            subscribers.splice(index, 1);
+        }
+    };
+}
+
+/**
+ * Notify all subscribers of state change
+ */
+function notifySubscribers() {
+    const currentState = getState();
+    subscribers.forEach(callback => {
+        try {
+            callback(currentState);
+        } catch (error) {
+            console.error('Error in state subscriber:', error);
+        }
+    });
 }
 
 /**

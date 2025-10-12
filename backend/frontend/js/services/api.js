@@ -114,6 +114,16 @@ export async function logout() {
     localStorage.removeItem(TOKEN_KEY);
 }
 
+/**
+ * Get current user information
+ * @returns {Promise<object>} User data
+ */
+export async function fetchUserInfo() {
+    const response = await authFetch(`${API_BASE}/auth/me`);
+    if (!response.ok) throw new Error('Failed to fetch user info');
+    return await response.json();
+}
+
 // ============================================================================
 // SYSTEM API
 // ============================================================================
@@ -427,6 +437,17 @@ export async function deleteBackup(appId, backupId) {
 export async function getAppMetrics(appId) {
     const response = await authFetch(`${API_BASE}/apps/${appId}/metrics`);
     if (!response.ok) throw new Error('Failed to fetch metrics');
+    return await response.json();
+}
+
+/**
+ * Get app current stats (for monitoring modal)
+ * @param {string} appId - App ID
+ * @returns {Promise<object>} Current stats with CPU, memory, disk usage
+ */
+export async function getAppStats(appId) {
+    const response = await authFetch(`${API_BASE}/apps/${appId}/stats/current`);
+    if (!response.ok) throw new Error('Failed to fetch stats');
     return await response.json();
 }
 
