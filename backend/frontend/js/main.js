@@ -46,6 +46,9 @@ SoundService.init();
 
 console.log('✅ Proximity modular system loaded');
 
+// Prevent multiple initializations
+let _appInitialized = false;
+
 /**
  * Initialize the lifecycle management system (Router + Views)
  */
@@ -259,8 +262,18 @@ function waitForLucide() {
  * Main application initialization
  * This is the GOD orchestrator that bootstraps everything
  */
+/**
+ * Master app initialization function
+ */
 async function initializeApp() {
-    console.log('🚀 Initializing Proximity Application...');
+    // Prevent multiple initializations
+    if (_appInitialized) {
+        console.warn('⚠️  App already initialized, skipping...');
+        return;
+    }
+    _appInitialized = true;
+    
+    console.log('🚀 Initializing Proximity application...');
 
     // STEP 1: Handle onboarding (first run)
     await handleOnboarding();

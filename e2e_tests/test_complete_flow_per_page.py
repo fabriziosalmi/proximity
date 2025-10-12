@@ -218,18 +218,22 @@ def test_catalog_page():
             # Navigate to Catalog
             catalog_nav = page.locator('.nav-rack-item[data-view="catalog"]')
             catalog_nav.click()
-            page.wait_for_timeout(1500)  # Catalog needs more time to load items
+            
+            # Wait for catalog view to be visible first
+            page.wait_for_selector('#catalogView:not(.hidden)', timeout=5000)
+            page.wait_for_timeout(1500)  # Extra wait for async catalog loading
             
             # Verify navigation
             nav_class = catalog_nav.get_attribute("class")
             assert nav_class and "active" in nav_class, "Catalog nav should be active"
             
-            catalog_view = page.locator('#catalogView')
-            assert catalog_view.count() > 0, "Catalog view should exist"
+            catalog_view = page.locator('#catalogView:not(.hidden)')
+            assert catalog_view.count() > 0, "Catalog view should be visible"
             
             # Check for catalog items (wait for them to load)
-            page.wait_for_selector('.catalog-item, .app-template-card', timeout=5000)
-            catalog_items = page.locator('.catalog-item, .app-template-card')
+            # Catalog cards use the class 'catalog-card' or 'app-card'
+            page.wait_for_selector('.catalog-card, .app-card', timeout=10000)
+            catalog_items = page.locator('.catalog-card')
             item_count = catalog_items.count()
             assert item_count > 10, f"Catalog should have items, found {item_count}"
             
