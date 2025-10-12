@@ -72,10 +72,10 @@ function initRouter() {
 function render(state) {
     console.log('🎨 Render triggered - Current view:', state.currentView);
 
-    // Navigate to the current view via router
-    if (state.currentView) {
-        router.navigateTo(state.currentView, state);
-    }
+    // NOTE: Navigation is now handled directly by Router through click events
+    // We don't re-navigate here to avoid conflicts with Router's internal state
+    // If you need to sync state.currentView with Router, use:
+    // router.onViewChange((viewName) => AppState.setState({ currentView: viewName }));
 }
 
 /**
@@ -282,6 +282,13 @@ async function initializeApp() {
 
     // STEP 4: Initialize router and views
     initRouter();
+
+    // STEP 4b: Sync Router navigation with AppState
+    // DISABLED FOR NOW - causes navigation loops
+    // router.onViewChange((viewName) => {
+    //     console.log(`🔄 Router navigated to: ${viewName}`);
+    //     AppState.setState({ currentView: viewName });
+    // });
 
     // STEP 5: Subscribe render function to state changes
     AppState.subscribe(render);

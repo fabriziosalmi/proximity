@@ -131,14 +131,26 @@ export function switchAuthTab(tab) {
  * @param {string} tab - Tab to show ('register' or 'login')
  * @param {object} prefill - Data to pre-fill in the form
  */
-function switchAuthTabWithPrefill(tab, prefill = {}) {
-    document.getElementById('registerTab').classList.toggle('active', tab === 'register');
-    document.getElementById('loginTab').classList.toggle('active', tab === 'login');
+export function switchAuthTabWithPrefill(tab, prefill = {}) {
+    // Update tab buttons
+    const registerTab = document.getElementById('registerTab');
+    const loginTab = document.getElementById('loginTab');
+    
+    if (registerTab && loginTab) {
+        registerTab.classList.toggle('active', tab === 'register');
+        loginTab.classList.toggle('active', tab === 'login');
+    }
 
     if (tab === 'register') {
         renderRegisterForm();
     } else {
         renderLoginForm(prefill);
+        
+        // Focus on submit button after pre-fill (since fields are already filled)
+        setTimeout(() => {
+            const submitBtn = document.querySelector('#loginForm button[type="submit"]');
+            if (submitBtn) submitBtn.focus();
+        }, 100);
     }
 }
 
