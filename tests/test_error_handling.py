@@ -29,9 +29,25 @@ from models.database import App
 
 
 @pytest.fixture
-def client():
-    """Create test client."""
+def client(test_db_engine):
+    """Create test client with shared database."""
+    # Create app with test database
     app = create_app()
+    
+    # Override database dependency to use shared test engine
+    from sqlalchemy.orm import sessionmaker
+    TestingSessionLocal = sessionmaker(bind=test_db_engine)
+    
+    def override_get_db():
+        try:
+            db = TestingSessionLocal()
+            yield db
+        finally:
+            db.close()
+    
+    from models.database import get_db
+    app.dependency_overrides[get_db] = override_get_db
+    
     return TestClient(app)
 
 

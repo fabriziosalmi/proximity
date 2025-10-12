@@ -264,7 +264,11 @@ async function initializeApp() {
     // STEP 8: Initialize tooltips
     initTooltips();
 
-    // STEP 9: Initial render
+    // STEP 9: Initialize Lucide icons
+    Icons.initLucideIcons();
+    console.log('✅ Lucide icons initialized');
+
+    // STEP 10: Initial render
     if (isAuthenticated) {
         // Set initial view to dashboard
         AppState.setState('currentView', 'dashboard');
@@ -357,5 +361,7 @@ window.Formatters = Formatters;
 window.Icons = Icons;
 window.UI = UI;
 window.Clipboard = Clipboard;
+window.Auth = Auth; // CRITICAL: Expose Auth for E2E tests and conftest
+window.API = API;   // Also expose API for testing
 
 console.log('⚠️  Legacy window functions exposed for backward compatibility');

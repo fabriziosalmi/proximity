@@ -137,29 +137,75 @@ def page(context: BrowserContext, base_url: str) -> Generator[Page, None, None]:
     # Wait for app to initialize
     page.wait_for_load_state("networkidle")
     
-    # Force show auth modal if not authenticated (with proper Bootstrap modal display)
-    page.evaluate("""
-        if (typeof Auth !== 'undefined' && !Auth.isAuthenticated()) {
-            const modal = document.getElementById('authModal');
-            if (modal) {
-                // Use the app's showAuthModal function if available
-                if (typeof showAuthModal === 'function') {
-                    showAuthModal();
-                }
-                // Ensure modal is actually visible with proper styling
-                modal.style.display = 'block';
-                modal.classList.add('show');
-                document.body.classList.add('modal-open');
-                
-                // Add backdrop if not present
-                if (!document.querySelector('.modal-backdrop')) {
-                    const backdrop = document.createElement('div');
-                    backdrop.className = 'modal-backdrop fade show';
-                    document.body.appendChild(backdrop);
-                }
-            }
+    # CRITICAL: Wait for main.js to load and expose global functions
+    # The modular ES6 system takes time to initialize
+    print("  ℹ️  Waiting for app initialization...")
+    page.wait_for_function("""
+        () => {
+            return typeof window.Auth !== 'undefined' && 
+                   typeof window.showAuthModal === 'function';
         }
+    """, timeout=10000)
+    print("  ✓ App initialized, Auth module available")
+    
+    # Force show auth modal if not authenticated (with proper Bootstrap modal display)
+    auth_check_result = page.evaluate("""
+        (function() {
+            try {
+                console.log('[E2E] Checking authentication status...');
+                
+                // Check if Auth module exists and is NOT authenticated
+                if (typeof window.Auth !== 'undefined') {
+                    console.log('[E2E] Auth module found');
+                    const isAuth = window.Auth.isAuthenticated();
+                    console.log('[E2E] Is authenticated:', isAuth);
+                    
+                    if (!isAuth) {
+                        console.log('[E2E] Not authenticated, showing auth modal...');
+                        
+                        // Call the global showAuthModal function
+                        if (typeof window.showAuthModal === 'function') {
+                            window.showAuthModal();
+                            console.log('[E2E] showAuthModal() called');
+                            return 'modal_shown_via_function';
+                        } else {
+                            console.log('[E2E] showAuthModal function not found, showing manually');
+                            // Fallback: manually show modal
+                            const modal = document.getElementById('authModal');
+                            if (modal) {
+                                modal.style.display = 'flex';
+                                modal.classList.add('show');
+                                document.body.classList.add('modal-open');
+                                document.body.style.overflow = 'hidden';
+                                
+                                // Add backdrop
+                                if (!document.querySelector('.modal-backdrop')) {
+                                    const backdrop = document.createElement('div');
+                                    backdrop.className = 'modal-backdrop fade show';
+                                    document.body.appendChild(backdrop);
+                                }
+                                console.log('[E2E] Modal shown manually');
+                                return 'modal_shown_manually';
+                            } else {
+                                console.error('[E2E] Auth modal element not found!');
+                                return 'modal_not_found';
+                            }
+                        }
+                    } else {
+                        console.log('[E2E] User is authenticated, modal not needed');
+                        return 'already_authenticated';
+                    }
+                } else {
+                    console.error('[E2E] Auth module not found on window object');
+                    return 'auth_module_not_found';
+                }
+            } catch (error) {
+                console.error('[E2E] Error in auth check:', error);
+                return 'error: ' + error.message;
+            }
+        })()
     """)
+    print(f"  ℹ️  Auth check result: {auth_check_result}")
     
     yield page
     
