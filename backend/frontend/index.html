@@ -124,68 +124,8 @@
             
             <!-- Content -->
             <div class="content">
-                <!-- Dashboard View -->
-                <div id="dashboardView" class="view">
-                    <!-- Hero Section -->
-                    <div class="hero-section">
-                        <div class="hero-content">
-                            <div class="hero-badge">
-                                <i data-lucide="zap"></i>
-                                <span>Next-Gen Application Platform</span>
-                            </div>
-                            <h1 class="hero-title">Welcome to Proximity</h1>
-                            <p class="hero-description">
-                                Deploy, manage, and scale your applications effortlessly across your Proxmox infrastructure.
-                                Experience the future of container orchestration with an intuitive interface designed for developers.
-                            </p>
-                            <!-- Hero Stats: Hosts and Apps Count -->
-                            <div class="hero-stats-inline">
-                                <div class="hero-stat-compact">
-                                    <i data-lucide="server"></i>
-                                    <span class="hero-stat-value-inline" id="heroNodesCount">0</span>
-                                    <span class="hero-stat-label-inline">Hosts</span>
-                                </div>
-                                <div class="hero-stat-compact">
-                                    <i data-lucide="package"></i>
-                                    <span class="hero-stat-value-inline" id="heroAppsCount">0</span>
-                                    <span class="hero-stat-label-inline">Applications</span>
-                                </div>
-                            </div>
-
-                            <!-- Quick Apps Grid Integrated -->
-                            <div class="hero-apps-container">
-                                <div class="hero-apps-header">
-                                    <h3 class="hero-apps-title">Your Applications</h3>
-                                    <button class="hero-apps-view-all" data-view="apps" title="View All Applications">
-                                        <span>View All</span>
-                                        <i data-lucide="arrow-right"></i>
-                                    </button>
-                                </div>
-                                <div id="quickApps" class="hero-apps-grid">
-                                    <div class="empty-state-compact">
-                                        <i data-lucide="package"></i>
-                                        <span>No applications deployed yet</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="hero-actions">
-                                <button class="btn btn-primary btn-lg" data-view="catalog">
-                                    <i data-lucide="rocket"></i>
-                                    Deploy Your First App
-                                </button>
-                                <button class="btn btn-secondary btn-lg" data-view="monitoring">
-                                    <i data-lucide="activity"></i>
-                                    View Monitoring
-                                </button>
-                            </div>
-                        </div>
-                        <div class="hero-visual">
-                            <div class="hero-grid-bg"></div>
-                            <div class="hero-glow"></div>
-                        </div>
-                    </div>
-                </div>
+                <!-- Dashboard View (content generated dynamically) -->
+                <div id="dashboardView" class="view"></div>
                 
                 <!-- Apps View (Hidden by default) -->
                 <div id="appsView" class="view hidden"></div>
