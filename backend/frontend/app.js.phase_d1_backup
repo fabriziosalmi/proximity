@@ -201,7 +201,7 @@ async function init() {
         ]);
         
         updateUI();
-        // Event listeners already initialized by main.js initializeApp()
+        setupEventListeners();
         hideLoading();
 
         // Initialize Lucide icons
@@ -399,22 +399,25 @@ function showView(viewName) {
                 console.log('✓ Dashboard view shown (fallback)');
                 break;
             case 'apps':
-                // Use router for apps view
+                // MIGRATED: Use new router for apps view
                 if (window.ProximityRouter) {
-                    console.log('🌉 Routing apps view through router');
+                    console.log('🌉 Routing apps view through new router');
                     window.ProximityRouter.navigateTo('apps');
-                } else {
-                    console.error('❌ ProximityRouter not available');
+                    return; // Early return to prevent double rendering
                 }
+                // Fallback for transition period
+                renderAppsView();
+                startCPUPolling();
                 break;
             case 'catalog':
-                // Use router for catalog view
+                // MIGRATED: Use new router for catalog view
                 if (window.ProximityRouter) {
-                    console.log('🌉 Routing catalog view through router');
+                    console.log('🌉 Routing catalog view through new router');
                     window.ProximityRouter.navigateTo('catalog');
-                } else {
-                    console.error('❌ ProximityRouter not available');
+                    return; // Early return to prevent double rendering
                 }
+                // Fallback for transition period
+                renderCatalogView();
                 break;
             case 'nodes':
                 // MIGRATED: Use new router for nodes view
@@ -503,27 +506,28 @@ function playClickSound() {
     }
 }
 
-// ============================================================================
-// VIEW RENDERING WRAPPERS - PHASE D.1 MIGRATION (25 lines deleted)
-// ============================================================================
-// DELETED: renderAppsView(), renderCatalogView(), stopCPUPolling()
-//
-// These were simple wrapper functions that only redirected to the router:
-//   - renderAppsView() → window.ProximityRouter.navigateTo('apps')
-//   - renderCatalogView() → window.ProximityRouter.navigateTo('catalog')
-//   - stopCPUPolling() → Empty stub, polling handled by AppsView.unmount()
-//
-// Router (js/core/Router.js) now handles all view lifecycle directly via:
-//   - AppsView.js (js/views/AppsView.js)  
-//   - CatalogView.js (js/views/CatalogView.js)
-//
-// These wrappers were marked ⚠️ DEPRECATED and are no longer needed.
-// The router system is stable and handles all view navigation.
-//
-// NOTE: renderSettingsView() remains in app.js for now as it contains
-// 1,131 lines of settings UI logic that needs careful migration to
-// SettingsView.js in a future phase.
-// ============================================================================
+// ⚠️ DEPRECATED: Legacy view rendering and utility functions
+// ⚠️ These are kept only for transition fallback if router fails
+// ⚠️ TODO: Remove entirely once router is stable
+
+function renderAppsView() {
+    console.warn('⚠️ DEPRECATED: renderAppsView() - Use ProximityRouter instead');
+    if (window.ProximityRouter) {
+        window.ProximityRouter.navigateTo('apps');
+    }
+}
+
+function renderCatalogView() {
+    console.warn('⚠️ DEPRECATED: renderCatalogView() - Use ProximityRouter instead');
+    if (window.ProximityRouter) {
+        window.ProximityRouter.navigateTo('catalog');
+    }
+}
+
+// Stub for backward compatibility - actual polling is handled by AppsView
+function stopCPUPolling() {
+    console.warn('⚠️ DEPRECATED: stopCPUPolling() - Handled by AppsView unmount()');
+}
 
 // ⚠️ Utility function stubs for backward compatibility
 // These forward to the new modular utilities

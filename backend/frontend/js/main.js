@@ -294,6 +294,9 @@ window.showUILabSubmenu = () => {
     if (window.showSubmenu) window.showSubmenu();
 };
 
+// Event delegation
+window.setupEventListeners = initEventDelegation; // Alias for backward compatibility
+
 // Modal functions
 window.closeModal = () => {
     const modal = document.getElementById('deployModal');
