@@ -112,6 +112,22 @@ function switchAuthTab(tab) {
 }
 
 /**
+ * Switch to a tab with pre-filled data (used after registration)
+ * @param {string} tab - Tab to show ('register' or 'login')
+ * @param {object} prefill - Data to pre-fill in the form
+ */
+function switchAuthTabWithPrefill(tab, prefill = {}) {
+    document.getElementById('registerTab').classList.toggle('active', tab === 'register');
+    document.getElementById('loginTab').classList.toggle('active', tab === 'login');
+
+    if (tab === 'register') {
+        renderRegisterForm();
+    } else {
+        renderLoginForm(prefill);
+    }
+}
+
+/**
  * Render the registration form
  */
 function renderRegisterForm() {
@@ -181,16 +197,8 @@ async function handleRegisterSubmit(e) {
         // Show success notification
         showNotification('✓ Registration successful! Please log in.', 'success');
 
-        // Switch to login tab with pre-filled credentials
-        switchAuthTab('login');
-
-        // Pre-fill the login form after a brief delay to ensure DOM is ready
-        setTimeout(() => {
-            const usernameInput = document.getElementById('loginUsername');
-            const passwordInput = document.getElementById('loginPassword');
-            if (usernameInput) usernameInput.value = username;
-            if (passwordInput) passwordInput.value = password;
-        }, 100);
+        // Switch to login tab and pre-fill credentials
+        switchAuthTabWithPrefill('login', { username, password });
 
     } catch (err) {
         console.error('Registration error:', err);

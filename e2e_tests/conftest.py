@@ -15,6 +15,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Import additional fixtures
+# Note: pytest-playwright is automatically loaded via plugin discovery
 pytest_plugins = ['fixtures.deployed_app']
 
 
@@ -94,54 +95,27 @@ def browser_context_args(browser_context_args) -> dict:
     }
 
 
-@pytest.fixture
+# Note: pytest-playwright provides browser, context, and page fixtures automatically
+# We override page fixture to add custom initialization logic
+
+@pytest.fixture(scope="function")
 def context(browser):
-    """
-    Create a new browser context for each test.
-    This ensures complete isolation between tests with fresh storage.
-    
-    Note: Overrides pytest-playwright's default context fixture to use
-    function scope instead of session scope for better isolation.
-    """
-    context = browser.new_context(
+    """Create a fresh browser context for each test."""
+    ctx = browser.new_context(
         viewport={"width": 1920, "height": 1080},
         ignore_https_errors=True,
         user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
-        storage_state=None,  # No saved state
+        storage_state=None,
     )
-    
-    yield context
-    
-    # CRITICAL CLEANUP: Ensure all pages are closed before closing context
-    # This prevents Chromium from staying open
-    print("\n🧹 [Cleanup] Closing browser context and all pages")
-    try:
-        # Get list of pages before iteration (avoid modification during iteration)
-        pages = list(context.pages)
-        for page in pages:
-            try:
-                if not page.is_closed():
-                    print(f"  - Closing page: {page.url[:50] if page.url else 'unknown'}")
-                    page.close()
-            except Exception as e:
-                print(f"  ⚠️  Error closing page: {e}")
-    except Exception as e:
-        print(f"  ⚠️  Error accessing pages: {e}")
-    
-    # Close context
-    try:
-        context.close()
-        print("  ✓ Context closed successfully")
-    except Exception as e:
-        print(f"  ⚠️  Error closing context: {e}")
+    yield ctx
+    ctx.close()
 
-
-@pytest.fixture
+@pytest.fixture(scope="function")
 def page(context: BrowserContext, base_url: str) -> Generator[Page, None, None]:
     """
-    Create a new page for each test.
+    Create a new page for each test with custom initialization.
     Automatically navigates to base URL and sets timeout.
-    Note: 'context' is provided by pytest-playwright.
+    Note: 'context' is our custom fixture above, 'browser' comes from pytest-playwright.
     
     CRITICAL: This fixture ensures test isolation by:
     1. Creating a fresh page

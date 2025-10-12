@@ -9,6 +9,8 @@
 
 import { Component } from '../core/Component.js';
 import { renderAppCard } from '../components/app-card.js';
+import { loadCatalog } from '../services/dataService.js';
+import { getState, setState } from '../state/appState.js';
 
 export class CatalogView extends Component {
     constructor() {
@@ -21,17 +23,32 @@ export class CatalogView extends Component {
      * @param {Object} state - Application state
      * @returns {Function} Unmount function
      */
-    mount(container, state) {
+    async mount(container, state) {
         console.log('✅ Mounting Catalog View');
 
+        // Load catalog data if not already loaded
+        if (!state.catalog || !state.catalog.items || state.catalog.items.length === 0) {
+            console.log('📚 Catalog not loaded, fetching...');
+            const catalog = await loadCatalog(false, false);  // Don't trigger setState in loadCatalog
+            
+            // Use setState to properly update global state, but we need to access actual state
+            // Since we're in mount, we'll use the state parameter which is passed by reference
+            setState('catalog', catalog);
+            console.log(`📚 Catalog updated in global state, items: ${catalog?.items?.length || 0}`);
+        }
+
+        // Get fresh state for rendering
+        const currentState = getState();
+        console.log(`📚 About to render with ${currentState.catalog?.items?.length || 0} catalog items`);
+        
         // MOVED FROM app.js: renderCatalogView() function
-        this.renderCatalogView(container, state);
+        this.renderCatalogView(container, currentState);
 
         // Track click events using event delegation
-        this.trackListener(container, 'click', (e) => this.handleCatalogClick(e, state));
+        this.trackListener(container, 'click', (e) => this.handleCatalogClick(e, currentState));
 
         // Call parent mount
-        return super.mount(container, state);
+        return super.mount(container, currentState);
     }
 
     /**
@@ -76,9 +93,24 @@ export class CatalogView extends Component {
 
         // Render catalog app cards using imported renderAppCard function
         const grid = document.getElementById('catalogGrid');
+        
+        if (!grid) {
+            console.error('❌ catalogGrid element not found!');
+            return;
+        }
+        
+        console.log(`🃏 About to render ${state.catalog.items.length} app cards...`);
+        let cardCount = 0;
+        
         for (const app of state.catalog.items) {
             renderAppCard(app, grid, false);
+            cardCount++;
+            if (cardCount <= 3) {
+                console.log(`  ✓ Rendered card ${cardCount}: ${app.name} (id: ${app.id})`);
+            }
         }
+        
+        console.log(`✅ Total cards rendered: ${cardCount}`);
 
         // Initialize Lucide icons
         if (typeof window.initLucideIcons === 'function') {

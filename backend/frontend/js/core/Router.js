@@ -54,6 +54,12 @@ export class Router {
     async navigateTo(viewName, state = {}) {
         console.log(`🧭 Router: Navigating from '${this._currentViewName}' to '${viewName}'`);
 
+        // OPTIMIZATION: Skip if already on the requested view
+        if (this._currentViewName === viewName) {
+            console.log(`⏩ Router: Already on '${viewName}', skipping navigation`);
+            return;
+        }
+
         // Step 1: Unmount the current view (CRITICAL for preventing memory leaks)
         if (this._currentUnmountFn) {
             console.log(`🧹 Router: Unmounting previous view '${this._currentViewName}'`);

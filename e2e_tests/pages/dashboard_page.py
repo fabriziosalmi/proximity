@@ -22,11 +22,11 @@ class DashboardPage(BasePage):
     
     # Selectors
     DASHBOARD_VIEW = "#dashboardView"
-    NAV_DASHBOARD = "[data-view='dashboard']"
-    NAV_APPS = "[data-view='apps']"  # My Apps view
-    NAV_APP_STORE = "[data-view='catalog']"  # The catalog IS the app store
-    NAV_SETTINGS = "[data-view='settings']"
-    NAV_INFRASTRUCTURE = "[data-view='nodes']"  # Infrastructure view
+    NAV_DASHBOARD = "a.nav-rack-item[data-view='dashboard']"
+    NAV_APPS = "a.nav-rack-item[data-view='apps']"  # My Apps view
+    NAV_APP_STORE = "a.nav-rack-item[data-view='catalog']"  # The catalog IS the app store - SPECIFIC to nav link
+    NAV_SETTINGS = "a.nav-rack-item[data-view='settings']"
+    NAV_INFRASTRUCTURE = "a.nav-rack-item[data-view='nodes']"  # Infrastructure view
     USER_MENU = ".user-menu"
     LOGOUT_BUTTON = "text=Logout"
     

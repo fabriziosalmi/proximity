@@ -23,15 +23,25 @@ let deploymentProgressInterval = null;
  * @param {string} catalogId - Catalog app ID
  */
 export function showDeployModal(catalogId) {
+    console.log(`📋 showDeployModal called with catalogId: ${catalogId}`);
+    
     const state = AppState.getState();
+    console.log(`   State has catalog:`, !!state.catalog);
+    console.log(`   Catalog has items:`, state.catalog?.items?.length || 0);
+    
     const app = state.catalog?.items?.find(a => a.id === catalogId);
 
     if (!app) {
-        console.error('Catalog app not found:', catalogId);
+        console.error('❌ Catalog app not found:', catalogId);
+        console.error('   Available app IDs:', state.catalog?.items?.map(a => a.id).slice(0, 5));
+        console.error('   ⚠️ EARLY RETURN - no app found');
         return;
     }
 
+    console.log(`✅ Found app: ${app.name}`);
     const modal = document.getElementById('deployModal');
+    console.log(`   Modal element found:`, !!modal);
+    console.log(`   Modal classes before:`, modal?.className);
     document.getElementById('modalTitle').textContent = `Deploy ${app.name}`;
 
     document.getElementById('modalBody').innerHTML = `
@@ -94,8 +104,12 @@ export function showDeployModal(catalogId) {
         deployApp(catalogId);
     });
 
+    console.log(`   Adding 'show' class to modal...`);
     modal.classList.add('show');
+    console.log(`   Modal classes after:`, modal.className);
+    console.log(`   Calling openModal()...`);
     openModal();
+    console.log(`   ✅ showDeployModal complete`);
 }
 
 /**

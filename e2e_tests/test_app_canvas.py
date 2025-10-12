@@ -38,6 +38,9 @@ def deployed_app(authenticated_page: Page, base_url: str):
     page = authenticated_page
     hostname = generate_hostname("nginx-canvas")
     
+    # Enable console logging
+    page.on("console", lambda msg: print(f"  [BROWSER] {msg.text}"))
+    
     print(f"📝 Generated hostname: {hostname}")
     
     # Deploy app

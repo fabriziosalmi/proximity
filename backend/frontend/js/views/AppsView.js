@@ -10,6 +10,8 @@
 import { Component } from '../core/Component.js';
 import { renderAppCard, startCPUPolling } from '../components/app-card.js';
 import { authFetch, API_BASE } from '../services/api.js';
+import { loadDeployedApps } from '../services/dataService.js';
+import { getState } from '../state/appState.js';
 
 export class AppsView extends Component {
     constructor() {
@@ -31,13 +33,13 @@ export class AppsView extends Component {
         this._state = state;
 
         // CRITICAL FIX: Reload deployed apps from API before rendering
-        // This ensures we always show fresh data when navigating to Apps view
-        if (typeof window.loadDeployedApps === 'function') {
-            console.log('🔄 Reloading deployed apps from API...');
-            await window.loadDeployedApps();
-        } else {
-            console.warn('⚠️  window.loadDeployedApps not available - using cached app data');
-        }
+        // Don't update global state to avoid re-render during mount
+        console.log('🔄 Reloading deployed apps from API...');
+        const deployedApps = await loadDeployedApps(false);  // Don't trigger setState
+        
+        // Update local state copy with fresh data
+        state.deployedApps = deployedApps;
+        this._state = state;
 
         // MOVED FROM app.js: renderAppsView() function
         this.renderAppsView(container, state);

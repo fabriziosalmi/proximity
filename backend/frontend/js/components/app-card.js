@@ -16,9 +16,11 @@ export function populateDeployedCard(cardElement, app) {
     // Basic App Information
     // ============================================================================
     
-    // Populate icon
-    const iconContainer = cardElement.querySelector('.app-icon-md');
-    renderAppIcon(iconContainer, app);
+    // Populate icon - deployed cards use .app-icon-lg
+    const iconContainer = cardElement.querySelector('.app-icon-lg');
+    if (iconContainer) {
+        renderAppIcon(iconContainer, app);
+    }
     
     // Populate text fields (safe textContent prevents XSS)
     cardElement.querySelector('.app-name').textContent = app.name || app.hostname || 'Unknown';
@@ -332,10 +334,27 @@ export function populateCatalogCard(cardElement, app) {
  */
 export function attachCatalogCardEvents(cardElement, app) {
     const card = cardElement.querySelector('.app-card');
+    if (!card) {
+        console.error('❌ Could not find .app-card in catalog card template!');
+        return;
+    }
     card.style.cursor = 'pointer';
-    card.addEventListener('click', () => {
-        window.showDeployModal(app.id);
+    card.addEventListener('click', (e) => {
+        console.log(`🖱️ Catalog card clicked: ${app.name} (id: ${app.id})`);
+        console.log(`   Checking window.showDeployModal:`, typeof window.showDeployModal);
+        if (typeof window.showDeployModal === 'function') {
+            console.log(`   ✓ Calling showDeployModal with id: ${app.id}`);
+            try {
+                window.showDeployModal(app.id);
+                console.log(`   ✅ showDeployModal call completed`);
+            } catch (error) {
+                console.error(`   ❌ Error calling showDeployModal:`, error);
+            }
+        } else {
+            console.error(`   ❌ window.showDeployModal is not a function!`);
+        }
     });
+    console.log(`✅ Click handler attached to catalog card: ${app.name}`);
 }
 
 /**
@@ -349,7 +368,8 @@ export function renderAppCard(app, container, isDeployed = false) {
     const template = document.getElementById(templateId);
 
     if (!template) {
-        console.error(`Template ${templateId} not found!`);
+        console.error(`❌ Template ${templateId} not found in DOM!`);
+        console.error(`App data:`, app);
         return;
     }
 
@@ -367,6 +387,7 @@ export function renderAppCard(app, container, isDeployed = false) {
 
     // Append to container
     container.appendChild(clone);
+    console.log(`📌 Appended ${isDeployed ? 'deployed' : 'catalog'} card for: ${app.name}`);
 }
 
 /**

@@ -22,7 +22,7 @@ class AppStorePage(BasePage):
     
     # Selectors
     CATALOG_VIEW = "#catalogView"
-    NAV_CATALOG = "[data-view='catalog']"
+    NAV_CATALOG = "a.nav-rack-item[data-view='catalog']"  # SPECIFIC to nav link to avoid ambiguity
     APP_GRID = ".apps-grid"
     APP_CARD = ".app-card"
     APP_NAME = ".app-name"

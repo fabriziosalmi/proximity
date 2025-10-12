@@ -23,9 +23,9 @@ def test_catalog_navigation(authenticated_page: Page):
     expect(page.locator("#dashboardView")).to_be_visible(timeout=5000)
     print("  ✓ Dashboard visible")
 
-    # Step 2: Click catalog navigation
+    # Step 2: Click catalog navigation (use specific selector to avoid ambiguity)
     print("  → Clicking catalog navigation")
-    catalog_nav = page.locator("[data-view='catalog']")
+    catalog_nav = page.locator("a.nav-rack-item[data-view='catalog']")  # Specific to nav link
 
     # Debug: Check if event listeners are attached
     has_listeners = page.evaluate("""

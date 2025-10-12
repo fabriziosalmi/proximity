@@ -15,12 +15,15 @@
  * @module dataService
  */
 
+import { authFetch, API_BASE } from './api.js';
+import { getState, setState } from '../state/appState.js';
+
 /**
  * Get API base URL
  * @returns {string} API base URL
  */
 function getAPIBase() {
-    return window.API_BASE || '/api/v1';
+    return API_BASE;
 }
 
 /**
@@ -28,22 +31,7 @@ function getAPIBase() {
  * @returns {Function} Auth fetch function
  */
 function getAuthFetch() {
-    return window.authFetch || fetch;
-}
-
-/**
- * Get current app state
- * @returns {Object} State object
- */
-function getState() {
-    if (!window.state) {
-        window.state = {
-            deployedApps: [],
-            catalog: { items: [], categories: [] },
-            nodes: []
-        };
-    }
-    return window.state;
+    return authFetch;
 }
 
 /**
@@ -76,29 +64,41 @@ const CATALOG_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
  * @returns {Promise<Array>} Array of deployed apps
  * @throws {Error} If API call fails
  */
-export async function loadDeployedApps() {
+/**
+ * Load deployed apps from API
+ * Fetches all deployed applications
+ * 
+ * @param {boolean} updateState - Whether to update global state (default: true)
+ * @returns {Promise<Array>} Array of deployed apps
+ * @throws {Error} If API call fails
+ */
+export async function loadDeployedApps(updateState = true) {
     console.log('🚀 Loading deployed apps...');
-    const authFetch = getAuthFetch();
-    const apiBase = getAPIBase();
-    const state = getState();
 
     try {
-        const response = await authFetch(`${apiBase}/apps`);
+        const response = await authFetch(`${API_BASE}/apps`);
         if (!response.ok) {
             console.error(`❌ Failed to load apps: ${response.status} ${response.statusText}`);
             throw new Error('Failed to load apps');
         }
-        state.deployedApps = await response.json();
+        const deployedApps = await response.json();
         
-        console.log(`✅ Deployed apps loaded: ${state.deployedApps.length} apps`);
+        // Update state only if requested
+        if (updateState) {
+            setState('deployedApps', deployedApps);
+        }
+        
+        console.log(`✅ Deployed apps loaded: ${deployedApps.length} apps`);
         
         // Enrich deployed apps with icon URLs from catalog
         enrichDeployedAppsWithIcons();
         
-        return state.deployedApps;
+        return deployedApps;
     } catch (error) {
         console.error('❌ Error loading deployed apps:', error);
-        state.deployedApps = [];
+        if (updateState) {
+            setState('deployedApps', []);
+        }
         throw error;
     }
 }
@@ -109,45 +109,56 @@ export async function loadDeployedApps() {
  * Uses caching (5 min TTL) to reduce API calls
  * 
  * @param {boolean} force - Force refresh (bypass cache)
+ * @param {boolean} updateState - Whether to update global state (default: true)
  * @returns {Promise<Object>} Catalog object with items and categories
  */
-export async function loadCatalog(force = false) {
+export async function loadCatalog(force = false, updateState = true) {
     console.log('📚 Loading catalog...');
-    const authFetch = getAuthFetch();
-    const apiBase = getAPIBase();
-    const state = getState();
 
     // Check cache (unless forced)
     if (!force && catalogCache && (Date.now() - catalogCacheTime < CATALOG_CACHE_TTL)) {
         console.log('✓ Using cached catalog');
-        state.catalog = catalogCache;
+        if (updateState) {
+            setState('catalog', catalogCache);
+        }
         enrichDeployedAppsWithIcons();
-        return state.catalog;
+        return catalogCache;
     }
 
     try {
-        const response = await authFetch(`${apiBase}/apps/catalog`);
+        const response = await authFetch(`${API_BASE}/apps/catalog`);
         if (!response.ok) {
             console.warn(`⚠️  Failed to load catalog: ${response.status} ${response.statusText}`);
-            state.catalog = { items: [], categories: [] };
-            return state.catalog;
+            const emptyCatalog = { items: [], categories: [] };
+            if (updateState) {
+                setState('catalog', emptyCatalog);
+            }
+            return emptyCatalog;
         }
-        state.catalog = await response.json();
+        const catalog = await response.json();
+        
+        // Update state only if requested
+        if (updateState) {
+            setState('catalog', catalog);
+        }
         
         // Update cache
-        catalogCache = state.catalog;
+        catalogCache = catalog;
         catalogCacheTime = Date.now();
         
-        console.log(`✅ Catalog loaded: ${state.catalog.items?.length || 0} items`);
+        console.log(`✅ Catalog loaded: ${catalog.items?.length || 0} items`);
         
         // Enrich deployed apps with icon URLs after catalog is loaded
         enrichDeployedAppsWithIcons();
         
-        return state.catalog;
+        return catalog;
     } catch (error) {
         console.error('❌ Error loading catalog:', error);
-        state.catalog = { items: [], categories: [] };
-        return state.catalog;
+        const emptyCatalog = { items: [], categories: [] };
+        if (updateState) {
+            setState('catalog', emptyCatalog);
+        }
+        return emptyCatalog;
     }
 }
 
