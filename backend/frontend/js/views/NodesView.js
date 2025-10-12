@@ -270,7 +270,7 @@ export class NodesView extends Component {
 
             <!-- Proxmox Nodes -->
             <div class="apps-grid deployed">
-                ${state.nodes.map(node => {
+                ${(state.nodes || []).map(node => {
                     // Calculate percentages
                     const cpuPercent = node.maxcpu > 0 ? Math.round((node.cpu / node.maxcpu) * 100) : 0;
                     const ramPercent = node.maxmem > 0 ? Math.round((node.mem / node.maxmem) * 100) : 0;

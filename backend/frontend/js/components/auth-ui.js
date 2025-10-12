@@ -66,8 +66,8 @@ export function showAuthModal() {
     }
     backdrop.classList.add('show');
 
-    // Render the tabs (default to register)
-    renderAuthTabs('register');
+    // Render the tabs (default to login for easier access)
+    renderAuthTabs('login');
 
     console.log('✅ Auth modal displayed');
 }
@@ -97,7 +97,7 @@ export function closeAuthModal() {
  * Render auth modal tabs (Register/Login)
  * @param {string} defaultTab - Default tab to show ('register' or 'login')
  */
-export function renderAuthTabs(defaultTab = 'register') {
+export function renderAuthTabs(defaultTab = 'login') {
     const body = document.getElementById('authModalBody');
     body.innerHTML = `
         <div class="auth-tabs">

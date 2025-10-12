@@ -57,12 +57,14 @@ export class MonitoringView extends Component {
      * @param {Object} state - Application state
      */
     renderMonitoringView(container, state) {
-        // Calculate statistics for Applications Summary
-        const totalApps = state.deployedApps.length;
+        // Calculate statistics for Applications Summary with safe defaults
+        const deployedApps = state.deployedApps || [];
+        const nodes = state.nodes || [];
+        const totalApps = deployedApps.length;
 
         const content = `
             <!-- Node-by-Node Breakdown -->
-            ${state.nodes.length > 0 ? `
+            ${nodes.length > 0 ? `
             <div class="monitor-section">
                 <h2 class="monitor-section-title">
                     <i data-lucide="server"></i>
