@@ -17,6 +17,25 @@ import { showNotification } from '../utils/notifications.js';
 const API_BASE = 'http://localhost:8765/api/v1';
 
 /**
+ * Toggle user profile menu visibility
+ * Handles menu open/close with proper class management
+ */
+export function toggleUserMenu() {
+    // Fallback stub - real implementation in js/utils/ui.js
+    if (window.UI?.toggleUserMenu) {
+        window.UI.toggleUserMenu();
+    } else {
+        // Legacy fallback
+        const menu = document.getElementById('userMenu');
+        const profileBtn = document.getElementById('userProfileBtn');
+        if (menu && profileBtn) {
+            menu.classList.toggle('active');
+            profileBtn.classList.toggle('active');
+        }
+    }
+}
+
+/**
  * Show the authentication modal
  * Displays register/login tabs
  */
@@ -78,19 +97,15 @@ export function closeAuthModal() {
  * Render auth modal tabs (Register/Login)
  * @param {string} defaultTab - Default tab to show ('register' or 'login')
  */
-function renderAuthTabs(defaultTab = 'register') {
+export function renderAuthTabs(defaultTab = 'register') {
     const body = document.getElementById('authModalBody');
     body.innerHTML = `
         <div class="auth-tabs">
-            <button id="registerTab" class="auth-tab ${defaultTab === 'register' ? 'active' : ''}" data-tab="register">Register</button>
-            <button id="loginTab" class="auth-tab ${defaultTab === 'login' ? 'active' : ''}" data-tab="login">Login</button>
+            <button id="registerTab" class="auth-tab ${defaultTab === 'register' ? 'active' : ''}" onclick="window.authUI.switchAuthTab('register')">Register</button>
+            <button id="loginTab" class="auth-tab ${defaultTab === 'login' ? 'active' : ''}" onclick="window.authUI.switchAuthTab('login')">Login</button>
         </div>
         <div id="authTabContent"></div>
     `;
-
-    // Attach event listeners
-    document.getElementById('registerTab').addEventListener('click', () => switchAuthTab('register'));
-    document.getElementById('loginTab').addEventListener('click', () => switchAuthTab('login'));
 
     // Show the default tab
     switchAuthTab(defaultTab);
@@ -100,7 +115,7 @@ function renderAuthTabs(defaultTab = 'register') {
  * Switch between register and login tabs
  * @param {string} tab - Tab to show ('register' or 'login')
  */
-function switchAuthTab(tab) {
+export function switchAuthTab(tab) {
     document.getElementById('registerTab').classList.toggle('active', tab === 'register');
     document.getElementById('loginTab').classList.toggle('active', tab === 'login');
 
@@ -130,7 +145,7 @@ function switchAuthTabWithPrefill(tab, prefill = {}) {
 /**
  * Render the registration form
  */
-function renderRegisterForm() {
+export function renderRegisterForm() {
     const content = document.getElementById('authTabContent');
     content.innerHTML = `
         <form id="registerForm" class="auth-form">
@@ -158,7 +173,7 @@ function renderRegisterForm() {
  * Render the login form
  * @param {object} prefill - Optional values to pre-fill
  */
-function renderLoginForm(prefill = {}) {
+export function renderLoginForm(prefill = {}) {
     const content = document.getElementById('authTabContent');
     content.innerHTML = `
         <form id="loginForm" class="auth-form">
@@ -182,7 +197,7 @@ function renderLoginForm(prefill = {}) {
  * Handle registration form submission
  * @param {Event} e - Form submit event
  */
-async function handleRegisterSubmit(e) {
+export async function handleRegisterSubmit(e) {
     e.preventDefault();
 
     const username = document.getElementById('registerUsername').value.trim();
@@ -210,7 +225,7 @@ async function handleRegisterSubmit(e) {
  * Handle login form submission
  * @param {Event} e - Form submit event
  */
-async function handleLoginSubmit(e) {
+export async function handleLoginSubmit(e) {
     e.preventDefault();
 
     const username = document.getElementById('loginUsername').value.trim();
@@ -226,19 +241,95 @@ async function handleLoginSubmit(e) {
 
         showNotification('Login successful!', 'success');
 
-        // Update application state
-        AppState.setState({
-            isAuthenticated: true,
-            currentUser: data.user,
-            currentView: 'dashboard'
-        });
-
-        // Close auth modal
-        closeAuthModal();
+        // Initialize authenticated session (uses same flow as app.js)
+        await initializeAuthenticatedSession();
 
     } catch (err) {
         console.error('Login error:', err);
         errorDiv.textContent = err.message || 'Login failed. Please try again.';
+    }
+}
+
+/**
+ * Centralized function to initialize authenticated session
+ * Called after both successful registration and login
+ * Ensures consistent authentication state across the application
+ */
+export async function initializeAuthenticatedSession() {
+    console.log('🔐 Initializing authenticated session...');
+    
+    try {
+        // 1. Close the auth modal
+        closeAuthModal();
+        
+        // 2. Update user info in sidebar (legacy function from app.js)
+        if (window.updateUserInfo) {
+            window.updateUserInfo();
+        }
+        
+        // 3. Show loading state (legacy function from app.js)
+        if (window.showLoading) {
+            window.showLoading('Loading your applications...');
+        }
+        
+        // 4. Load all necessary data with individual error handling
+        console.log('4️⃣ Loading data...');
+        console.log('   ⏳ Loading system info...');
+        if (window.loadSystemInfo) await window.loadSystemInfo();
+        console.log('   ✓ System info loaded');
+        
+        console.log('   ⏳ Loading nodes...');
+        if (window.loadNodes) await window.loadNodes();
+        console.log('   ✓ Nodes loaded');
+        
+        console.log('   ⏳ Loading deployed apps...');
+        if (window.loadDeployedApps) await window.loadDeployedApps();
+        console.log('   ✓ Deployed apps loaded');
+        
+        console.log('   ⏳ Loading catalog...');
+        if (window.loadCatalog) await window.loadCatalog();
+        console.log('   ✓ Catalog loaded');
+        
+        // 5. Setup event listeners FIRST (before showing views)
+        console.log('5️⃣ Setting up event listeners...');
+        if (window.setupEventListeners) {
+            window.setupEventListeners();
+        }
+        console.log('   ✓ Event listeners attached');
+
+        // Set global flag to indicate event listeners are ready
+        window.eventListenersReady = true;
+
+        // 6. Initialize Lucide icons
+        if (window.initLucideIcons) {
+            window.initLucideIcons();
+        }
+
+        // 7. Hide loading state
+        if (window.hideLoading) {
+            window.hideLoading();
+        }
+
+        // 8. Show the dashboard view (BEFORE updating UI so DOM elements exist)
+        console.log('6️⃣ Showing dashboard view...');
+        if (window.showView) {
+            window.showView('dashboard');
+        }
+        
+        // 9. Update UI AFTER view is shown to ensure DOM elements exist
+        console.log('7️⃣ Updating UI with loaded data...');
+        if (window.updateUI) {
+            window.updateUI();
+        }
+        
+        console.log('✅ Authenticated session initialized successfully');
+        
+    } catch (error) {
+        console.error('❌ Error initializing authenticated session:', error);
+        if (window.hideLoading) {
+            window.hideLoading();
+        }
+        showNotification('Failed to load application data. Please refresh the page.', 'error');
     }
 }
 
@@ -275,7 +366,30 @@ export async function handleLogout(e) {
 
 // Expose functions globally for legacy compatibility
 if (typeof window !== 'undefined') {
+    window.authUI = {
+        showAuthModal,
+        closeAuthModal,
+        renderAuthTabs,
+        switchAuthTab,
+        renderRegisterForm,
+        renderLoginForm,
+        handleRegisterSubmit,
+        handleLoginSubmit,
+        initializeAuthenticatedSession,
+        toggleUserMenu,
+        handleLogout
+    };
+    
+    // Also expose top-level for backward compatibility
     window.showAuthModal = showAuthModal;
     window.closeAuthModal = closeAuthModal;
     window.handleLogout = handleLogout;
+    window.toggleUserMenu = toggleUserMenu;
+    window.renderAuthTabs = renderAuthTabs;
+    window.switchAuthTab = switchAuthTab;
+    window.renderRegisterForm = renderRegisterForm;
+    window.renderLoginForm = renderLoginForm;
+    window.handleRegisterSubmit = handleRegisterSubmit;
+    window.handleLoginSubmit = handleLoginSubmit;
+    window.initializeAuthenticatedSession = initializeAuthenticatedSession;
 }

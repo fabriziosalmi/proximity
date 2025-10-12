@@ -1931,11 +1931,249 @@ function attachCardHoverSounds() {
     console.debug('attachCardHoverSounds() called but using event delegation instead');
 }
 
-// DELETED: Search & Filter Functions - Fully migrated to js/services/searchService.js (243 lines)
-//          Functions deleted: filterApps, filterCatalog, _searchAppsInternal, searchApps, clearAppsSearch,
-//                             _searchCatalogInternal, searchCatalog, clearCatalogSearch
-//          All search/filter functionality now in searchService.js with debouncing and proper state management
-//          Exposed globally via window.searchService (searchService.js handles this automatically)
+function filterApps(filter) {
+    // Update tab active state
+    document.querySelectorAll('.sub-nav-item').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    
+    // Filter apps
+    let filtered = state.deployedApps;
+    if (filter !== 'all') {
+        filtered = state.deployedApps.filter(app => app.status === filter);
+    }
+    
+    const grid = document.getElementById('allAppsGrid');
+    if (filtered.length === 0) {
+        grid.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">🔍</div>
+                <h3 class="empty-title">No ${filter} applications</h3>
+                <p class="empty-message">No applications match the current filter.</p>
+            </div>
+        `;
+    } else {
+        // Clear grid and render using template cloning
+        grid.innerHTML = '';
+        for (const app of filtered) {
+            renderAppCard(app, grid, true);
+        }
+        // Reinitialize Lucide icons after updating the DOM
+        initLucideIcons();
+        // Hover sounds handled automatically via event delegation
+    }
+}
+
+function filterCatalog(category) {
+    // Update tab active state
+    document.querySelectorAll('.sub-nav-item[data-category]').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    event.target.classList.add('active');
+
+    // Get current search query
+    const searchInput = document.getElementById('catalogSearchInput');
+    const currentQuery = searchInput ? searchInput.value : '';
+
+    // Apply both filter and search via searchCatalog()
+    searchCatalog(currentQuery);
+}
+
+// Search functionality for Apps
+// Internal search function (not debounced)
+function _searchAppsInternal(query) {
+    const searchInput = document.getElementById('appsSearchInput');
+    const clearBtn = document.getElementById('appsClearSearch');
+    const resultsCount = document.getElementById('appsResultsCount');
+    const grid = document.getElementById('allAppsGrid');
+
+    // Show/hide clear button
+    if (clearBtn) {
+        clearBtn.style.display = query ? 'flex' : 'none';
+    }
+
+    // Get current filter (all, running, stopped)
+    const activeFilter = document.querySelector('.sub-nav-item[data-filter].active');
+    const filter = activeFilter ? activeFilter.dataset.filter : 'all';
+
+    // Apply filter first
+    let filtered = state.deployedApps;
+    if (filter !== 'all') {
+        filtered = state.deployedApps.filter(app => app.status === filter);
+    }
+
+    // Then apply search
+    if (query && query.trim()) {
+        const searchTerm = query.toLowerCase().trim();
+        filtered = filtered.filter(app => {
+            const appName = (app.name || app.id || '').toLowerCase();
+            const appId = (app.id || '').toLowerCase();
+            const hostname = (app.hostname || '').toLowerCase();
+            return appName.includes(searchTerm) ||
+                   appId.includes(searchTerm) ||
+                   hostname.includes(searchTerm);
+        });
+
+        // Show results count
+        if (resultsCount) {
+            resultsCount.textContent = `${filtered.length} result${filtered.length !== 1 ? 's' : ''} found`;
+            resultsCount.style.display = 'block';
+        }
+    } else {
+        // Hide results count when no search
+        if (resultsCount) {
+            resultsCount.style.display = 'none';
+        }
+    }
+
+    // Render filtered results
+    if (filtered.length === 0) {
+        grid.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i data-lucide="search"></i>
+                </div>
+                <h3 class="empty-title">No matches found</h3>
+                <p class="empty-message">Try adjusting your search or filter</p>
+                <button class="btn btn-secondary" onclick="clearAppsSearch()">Clear Search</button>
+            </div>
+        `;
+    } else {
+        // Clear grid and render using template cloning
+        grid.innerHTML = '';
+        for (const app of filtered) {
+            renderAppCard(app, grid, true);
+        }
+    }
+
+    // Reinitialize Lucide icons
+    initLucideIcons();
+}
+
+// Create debounced version (300ms delay to avoid excessive re-renders)
+const searchApps = window.debounce ? window.debounce(_searchAppsInternal, 300) : _searchAppsInternal;
+
+function clearAppsSearch() {
+    const searchInput = document.getElementById('appsSearchInput');
+    const clearBtn = document.getElementById('appsClearSearch');
+    const resultsCount = document.getElementById('appsResultsCount');
+
+    if (searchInput) {
+        searchInput.value = '';
+        searchInput.focus();
+    }
+
+    if (clearBtn) {
+        clearBtn.style.display = 'none';
+    }
+
+    if (resultsCount) {
+        resultsCount.style.display = 'none';
+    }
+
+    // Trigger search with empty query to reset
+    _searchAppsInternal('');
+}
+
+/**
+ * Search catalog items by name, description, or category
+ * Works in combination with category filters
+ * Internal function (not debounced)
+ */
+function _searchCatalogInternal(query) {
+    const clearBtn = document.getElementById('catalogClearSearch');
+    const resultsCount = document.getElementById('catalogResultsCount');
+    const grid = document.getElementById('catalogGrid');
+
+    // Show/hide clear button based on query
+    if (clearBtn) {
+        clearBtn.style.display = query ? 'flex' : 'none';
+    }
+
+    // Get active category filter
+    const activeCategory = document.querySelector('.sub-nav-item[data-category].active');
+    const category = activeCategory ? activeCategory.dataset.category : 'all';
+
+    // Apply category filter first
+    let filtered = state.catalog.items || [];
+    if (category !== 'all') {
+        filtered = filtered.filter(app => app.category === category);
+    }
+
+    // Then apply search query if present
+    if (query && query.trim()) {
+        const searchTerm = query.toLowerCase().trim();
+        filtered = filtered.filter(app => {
+            const appName = (app.name || '').toLowerCase();
+            const appDescription = (app.description || '').toLowerCase();
+            const appCategory = (app.category || '').toLowerCase();
+
+            return appName.includes(searchTerm) ||
+                   appDescription.includes(searchTerm) ||
+                   appCategory.includes(searchTerm);
+        });
+
+        // Show results count
+        if (resultsCount) {
+            resultsCount.textContent = `${filtered.length} result${filtered.length !== 1 ? 's' : ''} found`;
+            resultsCount.style.display = 'block';
+        }
+    } else {
+        // Hide results count when no search query
+        if (resultsCount) {
+            resultsCount.style.display = 'none';
+        }
+    }
+
+    // Render filtered results
+    if (filtered.length === 0) {
+        grid.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i data-lucide="search"></i>
+                </div>
+                <h3 class="empty-title">No matches found</h3>
+                <p class="empty-message">Try adjusting your search or category filter</p>
+                <button class="btn btn-secondary" onclick="clearCatalogSearch()">Clear Search</button>
+            </div>
+        `;
+    } else {
+        // Clear grid and render using template cloning
+        grid.innerHTML = '';
+        for (const app of filtered) {
+            renderAppCard(app, grid, false);
+        }
+    }
+
+    // Reinitialize Lucide icons
+    initLucideIcons();
+}
+
+// Create debounced version (300ms delay to avoid excessive re-renders)
+const searchCatalog = window.debounce ? window.debounce(_searchCatalogInternal, 300) : _searchCatalogInternal;
+
+function clearCatalogSearch() {
+    const searchInput = document.getElementById('catalogSearchInput');
+    const clearBtn = document.getElementById('catalogClearSearch');
+    const resultsCount = document.getElementById('catalogResultsCount');
+
+    if (searchInput) {
+        searchInput.value = '';
+        searchInput.focus();
+    }
+
+    if (clearBtn) {
+        clearBtn.style.display = 'none';
+    }
+
+    if (resultsCount) {
+        resultsCount.style.display = 'none';
+    }
+
+    // Trigger search with empty query to reset
+    _searchCatalogInternal('');
+}
 
 // DELETED: showAppLogs() - Migrated to js/services/appOperations.js (45 lines)
 //          Displays application logs in a modal with filtering and auto-refresh options
@@ -1956,6 +2194,407 @@ function attachCardHoverSounds() {
 // Event Listeners
 // ⚠️ DEPRECATED: Moved to js/utils/ui.js
 // User Menu Toggle
+function toggleUserMenu() {
+    // Fallback stub - real implementation in js/utils/ui.js
+    if (window.UI?.toggleUserMenu) {
+        window.UI.toggleUserMenu();
+    } else {
+        // Legacy fallback
+        const menu = document.getElementById('userMenu');
+        const profileBtn = document.getElementById('userProfileBtn');
+        if (menu && profileBtn) {
+            menu.classList.toggle('active');
+            profileBtn.classList.toggle('active');
+        }
+    }
+}
+
+// Close user menu when clicking outside
+document.addEventListener('click', (e) => {
+    const menu = document.getElementById('userMenu');
+    const profileBtn = document.getElementById('userProfileBtn');
+
+    if (menu && profileBtn && !profileBtn.contains(e.target) && !menu.contains(e.target)) {
+        menu.classList.remove('active');
+        profileBtn.classList.remove('active');
+    }
+});
+
+// Handle Logout
+async function handleLogout(e) {
+    e.preventDefault();
+
+    try {
+        // Call logout endpoint for audit logging
+        await authFetch(`${API_BASE}/auth/logout`, {
+            method: 'POST'
+        });
+    } catch (error) {
+        console.error('Logout error:', error);
+    } finally {
+        // Always clear local auth data
+        Auth.logout();
+        showNotification('You have been logged out', 'info');
+        
+        // Reset application state
+        state.deployedApps = [];
+        state.catalog = { items: [], categories: [] };
+        state.systemInfo = null;
+        state.nodes = [];
+        state.currentView = 'dashboard';
+        
+        // Stop any polling
+        if (state.cpuPollingInterval) {
+            clearInterval(state.cpuPollingInterval);
+            state.cpuPollingInterval = null;
+        }
+        
+        // Clear user info from UI
+        const userNameEl = document.querySelector('.user-name');
+        const userRoleEl = document.querySelector('.user-role');
+        const userAvatarEl = document.querySelector('.user-avatar');
+        if (userNameEl) userNameEl.textContent = '';
+        if (userRoleEl) userRoleEl.textContent = '';
+        if (userAvatarEl) userAvatarEl.textContent = '';
+        
+        // Reset apps count badge
+        const appsCountEl = document.getElementById('appsCount');
+        if (appsCountEl) appsCountEl.textContent = '0';
+        
+        // Hide all views
+        document.querySelectorAll('.view').forEach(view => {
+            view.classList.add('hidden');
+        });
+        
+        // Show authentication modal with login tab
+        showAuthModal();
+        
+        // Switch to login tab (not register)
+        renderAuthTabs('login');
+        
+        console.log('✅ User logged out and redirected to login modal');
+    }
+}
+
+// Show User Profile (placeholder)
+function showUserProfile(e) {
+    e.preventDefault();
+    toggleUserMenu();
+    showNotification('Profile view coming soon!', 'info');
+}
+
+function setupEventListeners() {
+    console.log('🔧 setupEventListeners() called');
+
+    // Navigation
+    const navItems = document.querySelectorAll('.nav-item');
+    console.log(`📍 Found ${navItems.length} nav items`);
+
+    navItems.forEach((item, index) => {
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            const view = item.dataset.view;
+            console.log(`🖱️  Nav item clicked: ${view}`);
+            if (view) showView(view);
+        });
+        console.log(`  ✓ Attached listener to nav item ${index}: ${item.dataset.view}`);
+    });
+
+    // User profile menu toggle
+    const userProfileBtn = document.getElementById('userProfileBtn');
+    if (userProfileBtn) {
+        userProfileBtn.addEventListener('click', toggleUserMenu);
+    }
+
+    // Close modal on outside click
+    document.getElementById('deployModal').addEventListener('click', (e) => {
+        if (e.target.id === 'deployModal') {
+            closeModal();
+        }
+    });
+}
+
+// Initialize on load - DISABLED: Now handled by main.js with onboarding
+// document.addEventListener('DOMContentLoaded', init);
+
+// Make init available globally so main.js can call it after onboarding
+window.init = init;
+
+// Make loadDeployedApps available globally so views can refresh app data
+window.loadDeployedApps = loadDeployedApps;
+
+// --- Auth Modal (Register/Login) Logic ---
+// Show Auth Modal (Register/Login)
+function showAuthModal() {
+        const modal = document.getElementById('authModal');
+        if (!modal) {
+                console.error('Auth modal element not found');
+                return;
+        }
+
+        // Show the modal with proper Bootstrap mechanics
+        modal.style.display = 'flex';
+        modal.classList.add('show');
+        
+        // Force reflow for animation
+        modal.offsetHeight;
+        
+        // Prevent body scrolling
+        document.body.classList.add('modal-open');
+        document.body.style.overflow = 'hidden';
+        
+        // Create backdrop if it doesn't exist
+        let backdrop = document.querySelector('.modal-backdrop');
+        if (!backdrop) {
+                backdrop = document.createElement('div');
+                backdrop.className = 'modal-backdrop fade show';
+                document.body.appendChild(backdrop);
+        }
+        backdrop.classList.add('show');
+
+        // Render the tabs
+        renderAuthTabs('register');
+
+        console.log('✅ Auth modal displayed');
+}
+
+function closeAuthModal() {
+        const modal = document.getElementById('authModal');
+        if (modal) {
+                modal.classList.remove('show');
+                modal.style.display = 'none';
+        }
+
+        // Restore body scrolling
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+        
+        // Remove backdrop
+        const backdrop = document.querySelector('.modal-backdrop');
+        if (backdrop) {
+                backdrop.remove();
+        }
+}
+
+function renderAuthTabs(defaultTab = 'register') {
+        const body = document.getElementById('authModalBody');
+        body.innerHTML = `
+            <div class="auth-tabs">
+                <button id="registerTab" class="auth-tab ${defaultTab === 'register' ? 'active' : ''}" onclick="switchAuthTab('register')">Register</button>
+                <button id="loginTab" class="auth-tab ${defaultTab === 'login' ? 'active' : ''}" onclick="switchAuthTab('login')">Login</button>
+            </div>
+            <div id="authTabContent"></div>
+        `;
+        switchAuthTab(defaultTab);
+}
+
+function switchAuthTab(tab) {
+        document.getElementById('registerTab').classList.toggle('active', tab === 'register');
+        document.getElementById('loginTab').classList.toggle('active', tab === 'login');
+        if (tab === 'register') {
+                renderRegisterForm();
+        } else {
+                renderLoginForm();
+        }
+}
+
+function renderRegisterForm() {
+    const content = document.getElementById('authTabContent');
+    content.innerHTML = `
+      <form id="registerForm" class="auth-form">
+        <div class="form-group">
+          <label class="form-label">Username</label>
+          <input type="text" class="form-input" id="registerUsername" required autocomplete="username" placeholder="Enter username">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-input" id="registerPassword" required autocomplete="new-password" placeholder="Min. 8 characters">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-input" id="registerEmail" required autocomplete="email" placeholder="your@email.com">
+        </div>
+        <div id="registerError" class="form-error"></div>
+        <button type="submit" class="btn btn-primary" style="width:100%;">Register</button>
+      </form>
+    `;
+    document.getElementById('registerForm').onsubmit = handleRegisterSubmit;
+}
+
+function renderLoginForm(prefill = {}) {
+    const content = document.getElementById('authTabContent');
+    content.innerHTML = `
+      <form id="loginForm" class="auth-form">
+        <div class="form-group">
+          <label class="form-label">Username</label>
+          <input type="text" class="form-input" id="loginUsername" required autocomplete="username" value="${prefill.username || ''}" placeholder="Enter username">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-input" id="loginPassword" required autocomplete="current-password" value="${prefill.password || ''}" placeholder="Enter password">
+        </div>
+        <div id="loginError" class="form-error"></div>
+        <button type="submit" class="btn btn-primary" style="width:100%;">Login</button>
+      </form>
+    `;
+    document.getElementById('loginForm').onsubmit = handleLoginSubmit;
+}
+
+async function handleRegisterSubmit(e) {
+    e.preventDefault();
+    const username = document.getElementById('registerUsername').value.trim();
+    const password = document.getElementById('registerPassword').value;
+    const email = document.getElementById('registerEmail').value.trim();
+    const errorDiv = document.getElementById('registerError');
+    errorDiv.textContent = '';
+    
+    // Build payload (email is required)
+    const payload = { username, password, email };
+    
+    try {
+        const res = await fetch(`${API_BASE}/auth/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if (!res.ok) {
+            const err = await res.json();
+            // Handle validation errors properly
+            if (err.detail && Array.isArray(err.detail)) {
+                errorDiv.textContent = err.detail.map(e => e.msg).join(', ');
+            } else if (typeof err.detail === 'string') {
+                errorDiv.textContent = err.detail;
+            } else {
+                errorDiv.textContent = 'Registration failed.';
+            }
+            return;
+        }
+        
+        // Registration successful - switch to login tab
+        const result = await res.json();
+
+        // Show success notification
+        showNotification('✓ Registration successful! Please log in.', 'success');
+
+        // Switch to login tab with pre-filled credentials
+        switchAuthTab('login');
+
+        // Pre-fill the login form after a brief delay to ensure DOM is ready
+        setTimeout(() => {
+            const usernameInput = document.getElementById('loginUsername');
+            const passwordInput = document.getElementById('loginPassword');
+            if (usernameInput) usernameInput.value = username;
+            if (passwordInput) passwordInput.value = password;
+        }, 100);
+        
+    } catch (err) {
+        console.error('Registration error:', err);
+        errorDiv.textContent = 'Network error. Please try again.';
+    }
+}
+
+async function handleLoginSubmit(e) {
+    e.preventDefault();
+    const username = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const errorDiv = document.getElementById('loginError');
+    errorDiv.textContent = '';
+    try {
+        const res = await fetch(`${API_BASE}/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+        if (!res.ok) {
+            const err = await res.json();
+            errorDiv.textContent = err.detail || 'Login failed.';
+            return;
+        }
+        const data = await res.json();
+        
+        // Store the token and user data
+        Auth.setToken(data.access_token, data.user);
+        
+        showNotification('Login successful!', 'success');
+        
+        // Initialize authenticated session (uses same flow as registration)
+        await initializeAuthenticatedSession();
+        
+    } catch (err) {
+        console.error('Login error:', err);
+        errorDiv.textContent = 'Network error. Please try again.';
+    }
+}
+
+/**
+ * Centralized function to initialize authenticated session
+ * Called after both successful registration and login
+ * Ensures consistent authentication state across the application
+ */
+async function initializeAuthenticatedSession() {
+    console.log('🔐 Initializing authenticated session...');
+    
+    try {
+        // 1. Close the auth modal
+        closeAuthModal();
+        
+        // 2. Update user info in sidebar
+        updateUserInfo();
+        
+        // 3. Show loading state
+        showLoading('Loading your applications...');
+        
+        // 4. Load all necessary data with individual error handling
+        console.log('4️⃣ Loading data...');
+        console.log('   ⏳ Loading system info...');
+        await loadSystemInfo();
+        console.log('   ✓ System info loaded');
+        
+        console.log('   ⏳ Loading nodes...');
+        await loadNodes();
+        console.log('   ✓ Nodes loaded');
+        
+        console.log('   ⏳ Loading deployed apps...');
+        await loadDeployedApps();
+        console.log('   ✓ Deployed apps loaded');
+        
+        console.log('   ⏳ Loading catalog...');
+        await loadCatalog();
+        console.log('   ✓ Catalog loaded');
+        
+        // 5. Setup event listeners FIRST (before showing views)
+        console.log('5️⃣ Setting up event listeners...');
+        setupEventListeners();
+        console.log('   ✓ Event listeners attached');
+
+        // Set global flag to indicate event listeners are ready
+        window.eventListenersReady = true;
+
+        // 6. Initialize Lucide icons
+        initLucideIcons();
+
+        // 7. Hide loading state
+        hideLoading();
+
+        // 8. Show the dashboard view (BEFORE updating UI so DOM elements exist)
+        console.log('6️⃣ Showing dashboard view...');
+        showView('dashboard');
+        
+        // 9. Update UI AFTER view is shown to ensure DOM elements exist
+        console.log('7️⃣ Updating UI with loaded data...');
+        updateUI();
+        
+        console.log('✅ Authenticated session initialized successfully');
+        
+    } catch (error) {
+        console.error('❌ Error initializing authenticated session:', error);
+        hideLoading();
+        showNotification('Failed to load application data. Please refresh the page.', 'error');
+    }
+}
+
+// Patch: override showLoginModal to showAuthModal for legacy calls
+window.showLoginModal = showAuthModal;
 
 // ============================================================================
 // VOLUME MANAGEMENT

@@ -20,7 +20,7 @@ import { refreshInfrastructure, restartAppliance, viewApplianceLogs, testNAT } f
 import { SoundService } from './services/soundService.js';
 import { handleOnboarding } from './onboarding.js';
 import { initTooltips, refreshTooltips } from './utils/tooltips.js';
-import { showAuthModal, closeAuthModal, handleLogout } from './components/auth-ui.js';
+import { showAuthModal, closeAuthModal, handleLogout, renderAuthTabs, switchAuthTab, renderRegisterForm, renderLoginForm, handleRegisterSubmit, handleLoginSubmit, initializeAuthenticatedSession, toggleUserMenu } from './components/auth-ui.js';
 import { showDeployModal } from './modals/DeployModal.js';
 import { showBackupModal, hideBackupModal, createBackup, refreshBackups } from './modals/BackupModal.js';
 import { openCanvas, closeCanvas, toggleCanvasHeader, refreshCanvas, openInNewTab } from './modals/CanvasModal.js';
@@ -302,6 +302,14 @@ window.closeModal = () => {
 window.showAuthModal = showAuthModal;
 window.closeAuthModal = closeAuthModal;
 window.handleLogout = handleLogout;
+window.renderAuthTabs = renderAuthTabs;
+window.switchAuthTab = switchAuthTab;
+window.renderRegisterForm = renderRegisterForm;
+window.renderLoginForm = renderLoginForm;
+window.handleRegisterSubmit = handleRegisterSubmit;
+window.handleLoginSubmit = handleLoginSubmit;
+window.initializeAuthenticatedSession = initializeAuthenticatedSession;
+window.toggleUserMenu = toggleUserMenu;
 window.showDeployModal = showDeployModal;
 window.hideBackupModal = hideBackupModal;
 window.createBackup = createBackup;
