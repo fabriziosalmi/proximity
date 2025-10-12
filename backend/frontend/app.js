@@ -537,558 +537,6 @@ function updateRecentApps() {
 }
 
 // ============================================
-// APP CARD RENDERING (Template-based)
-// ============================================
-// ⚠️ MIGRATED: These functions have been moved to js/components/app-card.js
-// ⚠️ They are kept here temporarily for backward compatibility
-// ⚠️ TODO: Remove after Phase 3 testing is complete
-
-/**
- * Render app icon with proper fallback handling
- * @param {HTMLElement} iconContainer - The icon container element
- * @param {Object} app - App data
- * @deprecated Use import from js/utils/ui-helpers.js instead
- */
-function renderAppIcon(iconContainer, app) {
-    // Clear existing content
-    iconContainer.innerHTML = '';
-
-    // Get fallback icon (emoji or SVG)
-    const fallbackIcon = getAppIcon(app.name || app.id);
-
-    // If app has custom icon URL from catalog
-    if (app.icon) {
-        const img = document.createElement('img');
-        img.src = app.icon;
-        img.alt = app.name || app.id;
-        img.style.width = '75%';
-        img.style.height = '75%';
-        img.style.objectFit = 'contain';
-
-        // Fallback to emoji/SVG on error
-        img.onerror = function() {
-            this.style.display = 'none';
-            if (typeof fallbackIcon === 'string') {
-                iconContainer.insertAdjacentHTML('beforeend', fallbackIcon);
-            }
-        };
-
-        iconContainer.appendChild(img);
-    } else {
-        // Use fallback icon directly
-        if (typeof fallbackIcon === 'string') {
-            iconContainer.innerHTML = fallbackIcon;
-        }
-    }
-}
-
-/**
- * Populate deployed app card with data
- * @param {DocumentFragment} cardElement - Cloned template
- * @param {Object} app - App data
- */
-function populateDeployedCard(cardElement, app) {
-    const isRunning = app.status === 'running';
-    const appUrl = (app.url && app.url !== 'None' && app.url !== 'null') ? app.url : null;
-    const displayUrl = appUrl || 'IP not available';
-
-    // Populate icon
-    const iconContainer = cardElement.querySelector('.app-icon-lg');
-    renderAppIcon(iconContainer, app);
-
-    // Populate text (safe textContent)
-    cardElement.querySelector('.app-name').textContent = app.name || app.id;
-
-    // Add dynamic status class to app card for glow effect
-    const appCard = cardElement.querySelector('.app-card');
-    if (appCard) {
-        // CRITICAL FIX: Add hostname as data attribute for E2E test selectors
-        // This allows tests to find app cards by hostname using: .app-card[data-hostname="..."]
-        if (app.hostname) {
-            appCard.setAttribute('data-hostname', app.hostname);
-        }
-        
-        // Map status to glow class
-        const status = app.status ? app.status.toLowerCase() : 'stopped';
-        let glowClass = 'status-stopped'; // default
-
-        if (status === 'running') {
-            glowClass = 'status-running';
-        } else if (status === 'error' || status === 'failed') {
-            glowClass = 'status-error';
-        } else if (status === 'deploying' || status === 'updating' || status === 'backing_up' || status === 'starting' || status === 'stopping') {
-            glowClass = 'status-in-progress';
-        } else {
-            glowClass = 'status-stopped';
-        }
-
-        appCard.classList.add(glowClass);
-    }
-
-    // Populate URL
-    const urlLink = cardElement.querySelector('.connection-link');
-    if (appUrl) {
-        urlLink.href = appUrl;
-        urlLink.textContent = displayUrl;
-        if (!isRunning) {
-            urlLink.style.opacity = '0.5';
-            urlLink.style.pointerEvents = 'none';
-        }
-    } else {
-        urlLink.href = '#';
-        urlLink.textContent = 'IP not available';
-        urlLink.style.opacity = '0.5';
-        urlLink.style.pointerEvents = 'none';
-    }
-
-    // Populate node, LXC ID, date
-    cardElement.querySelector('.node-value').textContent = app.node || 'N/A';
-    cardElement.querySelector('.lxc-id-value').textContent = app.lxc_id || 'N/A';
-    cardElement.querySelector('.date-value').textContent = formatDate(app.created_at);
-
-    // ============================================================================
-    // Dynamic Action Bar - Context-Aware Button States
-    // ============================================================================
-
-    // Update toggle-status button (Start/Stop)
-    const toggleBtn = cardElement.querySelector('[data-action="toggle-status"]');
-    const toggleIcon = toggleBtn.querySelector('i');
-    if (isRunning) {
-        toggleBtn.setAttribute('data-tooltip', 'Stop App');
-        toggleIcon.setAttribute('data-lucide', 'pause');
-    } else {
-        toggleBtn.setAttribute('data-tooltip', 'Start App');
-        toggleIcon.setAttribute('data-lucide', 'play');
-    }
-
-    // Define running-only actions
-    const runningOnlyActions = [
-        'open-external',
-        'canvas',
-        'restart',
-        'monitoring'
-    ];
-
-    // Disable running-only actions when app is stopped
-    runningOnlyActions.forEach(action => {
-        const actionBtn = cardElement.querySelector(`[data-action="${action}"]`);
-        if (actionBtn) {
-            if (!isRunning) {
-                actionBtn.classList.add('disabled');
-                actionBtn.disabled = true;
-            } else {
-                actionBtn.classList.remove('disabled');
-                actionBtn.disabled = false;
-            }
-        }
-    });
-
-    // Special handling for open-external (also check if URL exists)
-    const openExternalBtn = cardElement.querySelector('[data-action="open-external"]');
-    if (openExternalBtn) {
-        if (!isRunning || !appUrl) {
-            openExternalBtn.classList.add('disabled');
-            openExternalBtn.disabled = true;
-        } else {
-            openExternalBtn.classList.remove('disabled');
-            openExternalBtn.disabled = false;
-        }
-    }
-
-    // Show canvas button only if URL exists
-    const canvasBtn = cardElement.querySelector('[data-action="canvas"]');
-    if (canvasBtn && (app.iframe_url || appUrl)) {
-        canvasBtn.style.display = 'flex';
-    }
-
-    // ============================================================================
-    // Real-time Resource Metrics (CPU & RAM)
-    // ============================================================================
-    
-    // Add data-app-id to metric bars for polling
-    const cpuBar = cardElement.querySelector('.cpu-bar');
-    const ramBar = cardElement.querySelector('.ram-bar');
-    if (cpuBar) cpuBar.setAttribute('data-app-id', app.id);
-    if (ramBar) ramBar.setAttribute('data-app-id', app.id);
-    
-    updateResourceMetrics(cardElement, app);
-}
-
-/**
- * Update resource metrics (CPU & RAM) for an app card
- * @param {DocumentFragment|HTMLElement} cardElement - Card element
- * @param {Object} app - App data with stats
- */
-function updateResourceMetrics(cardElement, app) {
-    const cpuBar = cardElement.querySelector('.cpu-bar');
-    const ramBar = cardElement.querySelector('.ram-bar');
-    const cpuValueSpan = cardElement.querySelector('.cpu-value');
-    const ramValueSpan = cardElement.querySelector('.ram-value');
-
-    if (!cpuBar || !ramBar) {
-        console.warn('⚠️ Metric bars not found for app:', app.name);
-        return;
-    }
-
-    // Check if app is running
-    const status = app.status ? app.status.toLowerCase() : 'stopped';
-    const isRunning = status === 'running';
-
-    // Hide metrics if app is not running
-    if (!isRunning) {
-        cpuBar.style.width = '0%';
-        ramBar.style.width = '0%';
-        cpuBar.classList.remove('high-usage', 'critical-usage');
-        ramBar.classList.remove('high-usage', 'critical-usage');
-        if (cpuValueSpan) cpuValueSpan.textContent = '0%';
-        if (ramValueSpan) ramValueSpan.textContent = '0 MB';
-        console.log(`⏸️ Metrics hidden for ${app.name} (status: ${status})`);
-        return;
-    }
-
-    // Get CPU usage from app stats
-    let cpuUsage = app.stats?.cpu_usage || app.cpu_usage || 0;
-
-    // For testing: if no real CPU data, generate a random value
-    if (cpuUsage === 0) {
-        cpuUsage = Math.floor(Math.random() * 100);
-    }
-
-    // Update CPU bar
-    cpuBar.style.width = `${cpuUsage}%`;
-    if (cpuValueSpan) cpuValueSpan.textContent = `${cpuUsage}%`;
-
-    cpuBar.classList.remove('high-usage', 'critical-usage');
-    if (cpuUsage >= 95) {
-        cpuBar.classList.add('critical-usage');
-    } else if (cpuUsage >= 80) {
-        cpuBar.classList.add('high-usage');
-    }
-
-    // Get RAM usage from app stats
-    let ramUsageMB = app.stats?.memory_usage || app.memory_usage || 0;
-    let ramMaxMB = app.stats?.memory_max || app.memory_max || 1024;
-
-    // For testing: if no real RAM data, generate random values
-    if (ramUsageMB === 0) {
-        ramMaxMB = 1024;
-        ramUsageMB = Math.floor(Math.random() * 800);
-    }
-
-    const ramPercentage = (ramUsageMB / ramMaxMB) * 100;
-
-    // Update RAM bar
-    ramBar.style.width = `${ramPercentage}%`;
-    if (ramValueSpan) ramValueSpan.textContent = `${ramUsageMB} MB`;
-
-    ramBar.classList.remove('high-usage', 'critical-usage');
-    if (ramPercentage >= 95) {
-        ramBar.classList.add('critical-usage');
-    } else if (ramPercentage >= 80) {
-        ramBar.classList.add('high-usage');
-    }
-
-    console.log(`📊 Metrics for ${app.name}: CPU ${cpuUsage}%, RAM ${ramUsageMB}MB/${ramMaxMB}MB (${ramPercentage.toFixed(1)}%)`);
-
-    // Store app ID for polling updates
-    cpuBar.setAttribute('data-app-id', app.id);
-    ramBar.setAttribute('data-app-id', app.id);
-}
-
-/**
- * Start polling for resource metrics updates (CPU & RAM)
- * Called when Apps view is shown
- */
-function startCPUPolling() {
-    // Clear any existing interval
-    stopCPUPolling();
-
-    console.log('🔄 Starting resource metrics polling...');
-
-    // Poll every 3 seconds
-    state.cpuPollingInterval = setInterval(async () => {
-        // Only poll if we're on the apps view
-        if (state.currentView !== 'apps') {
-            console.log('⏹️ Not on apps view, stopping polling');
-            stopCPUPolling();
-            return;
-        }
-
-        console.log('📊 Polling cycle started...');
-
-        try {
-            // Fetch updated app stats using authFetch
-            const response = await authFetch(`${API_BASE}/apps`);
-
-            if (response.ok) {
-                const apps = await response.json();
-                console.log(`✓ Fetched ${apps.length} apps from API`);
-
-                // Update metrics for all visible apps
-                apps.forEach(app => {
-                    const cpuBar = document.querySelector(`.cpu-bar[data-app-id="${app.id}"]`);
-                    const ramBar = document.querySelector(`.ram-bar[data-app-id="${app.id}"]`);
-
-                    if (!cpuBar || !ramBar) {
-                        console.warn(`⚠️ Bars not found for app ${app.id} (${app.name})`);
-                        return;
-                    }
-                    
-                    console.log(`📈 Updating metrics for ${app.name} (${app.id})`);
-
-                    // Check if app is running
-                    const status = app.status ? app.status.toLowerCase() : 'stopped';
-                    const isRunning = status === 'running';
-
-                    if (!isRunning) {
-                        console.log(`  ⏸️ App ${app.name} is ${status} - resetting bars to 0`);
-                        // Hide metrics for stopped apps
-                        cpuBar.style.width = '0%';
-                        ramBar.style.width = '0%';
-                        cpuBar.classList.remove('high-usage', 'critical-usage');
-                        ramBar.classList.remove('high-usage', 'critical-usage');
-                        
-                        const cpuValueSpan = cpuBar.closest('.metric-item')?.querySelector('.cpu-value');
-                        const ramValueSpan = ramBar.closest('.metric-item')?.querySelector('.ram-value');
-                        if (cpuValueSpan) cpuValueSpan.textContent = '0%';
-                        if (ramValueSpan) ramValueSpan.textContent = '0 MB';
-                    } else {
-                        console.log(`  ✓ App ${app.name} is running - fetching stats...`);
-                        // For running apps, fetch current stats
-                        fetchAndUpdateAppStats(app.id, cpuBar, ramBar);
-                    }
-                });
-
-                // Update state.deployedApps status only, preserve existing stats
-                state.deployedApps.forEach(stateApp => {
-                    const updatedApp = apps.find(a => a.id === stateApp.id);
-                    if (updatedApp) {
-                        stateApp.status = updatedApp.status;
-                        stateApp.url = updatedApp.url;
-                        stateApp.iframe_url = updatedApp.iframe_url;
-                    }
-                });
-            } else if (response.status === 401) {
-                console.error('❌ Authentication failed in CPU polling');
-                stopCPUPolling();
-            } else {
-                console.error(`❌ Polling failed with status ${response.status}`);
-            }
-        } catch (error) {
-            console.error('❌ Error polling resource metrics:', error);
-            // Don't stop polling on network errors, just log and continue
-        }
-    }, 3000); // Poll every 3 seconds
-}
-
-/**
- * Fetch and update stats for a specific app
- */
-async function fetchAndUpdateAppStats(appId, cpuBar, ramBar) {
-    try {
-        console.log(`    🔍 Fetching stats for app ${appId}...`);
-        const response = await authFetch(`${API_BASE}/apps/${appId}/stats/current`);
-        
-        if (response.ok) {
-            const stats = await response.json();
-            console.log(`    ✓ Stats received:`, {
-                cpu_percent: stats.cpu_percent,
-                mem_used_gb: stats.mem_used_gb,
-                mem_total_gb: stats.mem_total_gb,
-                cached: stats.cached
-            });
-            
-            // Update CPU - use cpu_percent from API
-            const cpuUsage = Math.round(stats.cpu_percent || 0);
-            cpuBar.style.width = `${cpuUsage}%`;
-
-            const cpuValueSpan = cpuBar.closest('.metric-item')?.querySelector('.cpu-value');
-            if (cpuValueSpan) cpuValueSpan.textContent = `${cpuUsage}%`;
-
-            cpuBar.classList.remove('high-usage', 'critical-usage');
-            if (cpuUsage >= 95) {
-                cpuBar.classList.add('critical-usage');
-            } else if (cpuUsage >= 80) {
-                cpuBar.classList.add('high-usage');
-            }
-
-            // Update RAM - convert GB to MB for display
-            const ramUsageMB = Math.round((stats.mem_used_gb || 0) * 1024);
-            const ramMaxMB = Math.round((stats.mem_total_gb || 1) * 1024);
-            const ramPercentage = ramMaxMB > 0 ? (ramUsageMB / ramMaxMB) * 100 : 0;
-
-            ramBar.style.width = `${ramPercentage}%`;
-
-            const ramValueSpan = ramBar.closest('.metric-item')?.querySelector('.ram-value');
-            if (ramValueSpan) ramValueSpan.textContent = `${ramUsageMB} MB`;
-
-            ramBar.classList.remove('high-usage', 'critical-usage');
-            if (ramPercentage >= 95) {
-                ramBar.classList.add('critical-usage');
-            } else if (ramPercentage >= 80) {
-                ramBar.classList.add('high-usage');
-            }
-            
-            console.log(`    ✓ Updated bars: CPU=${cpuUsage}%, RAM=${ramUsageMB}MB (${Math.round(ramPercentage)}%)`);
-        } else {
-            console.error(`    ❌ Stats API returned ${response.status} for app ${appId}`);
-        }
-    } catch (error) {
-        console.error(`    ❌ Error fetching stats for app ${appId}:`, error);
-    }
-}
-
-/**
- * Stop polling for CPU usage updates
- * Called when leaving Apps view
- */
-function stopCPUPolling() {
-    if (state.cpuPollingInterval) {
-        console.log('⏹️ Stopping CPU usage polling...');
-        clearInterval(state.cpuPollingInterval);
-        state.cpuPollingInterval = null;
-    }
-}
-
-/**
- * Attach event listeners to deployed app card
- * @param {DocumentFragment} cardElement - Cloned template
- * @param {Object} app - App data
- */
-function attachDeployedCardEvents(cardElement, app) {
-    const isRunning = app.status === 'running';
-    const appUrl = (app.url && app.url !== 'None' && app.url !== 'null') ? app.url : null;
-
-    // Action button handlers
-    const actions = {
-        'toggle-status': () => controlApp(app.id, isRunning ? 'stop' : 'start'),
-        'open-external': () => appUrl && window.open(appUrl, '_blank'),
-        'view-logs': () => showAppLogs(app.id, app.hostname),
-        'console': () => showAppConsole(app.id, app.hostname),
-        'backups': () => showBackupModal(app.id),
-        'update': () => showUpdateModal(app.id),
-        'volumes': () => showAppVolumes(app.id),
-        'monitoring': () => showMonitoringModal(app.id, app.name),
-        'canvas': () => openCanvas({
-            id: app.id,
-            name: app.name,
-            hostname: app.hostname,
-            iframe_url: appUrl || app.url,
-            url: appUrl || app.url,
-            status: app.status
-        }),
-        'restart': () => controlApp(app.id, isRunning ? 'restart' : 'start'),
-        'clone': () => showCloneModal(app.id, app.name),
-        'edit-config': () => showEditConfigModal(app.id, app.name),
-        'delete': () => confirmDeleteApp(app.id, app.name)
-    };
-
-    // Attach event listeners to action buttons
-    cardElement.querySelectorAll('.action-icon').forEach(btn => {
-        const action = btn.dataset.action;
-        if (actions[action]) {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                actions[action]();
-            });
-        }
-    });
-
-    // Canvas click on whole card (if running and has URL)
-    const card = cardElement.querySelector('.app-card');
-    if (isRunning && appUrl) {
-        card.style.cursor = 'pointer';
-        card.title = 'Click to open in canvas';
-        card.addEventListener('click', (e) => {
-            // Don't trigger if clicking on action buttons or links
-            if (!e.target.closest('.action-icon, .connection-link')) {
-                openCanvas({
-                    id: app.id,
-                    name: app.name,
-                    hostname: app.hostname,
-                    iframe_url: appUrl,
-                    url: appUrl,
-                    status: app.status
-                });
-            }
-        });
-    } else {
-        card.style.cursor = 'default';
-        card.title = 'App must be running to open in canvas';
-    }
-
-    // Prevent link propagation
-    const urlLink = cardElement.querySelector('.connection-link');
-    if (urlLink) {
-        urlLink.addEventListener('click', (e) => {
-            e.stopPropagation();
-        });
-    }
-}
-
-/**
- * Populate catalog app card with data
- * @param {DocumentFragment} cardElement - Cloned template
- * @param {Object} app - App data
- */
-function populateCatalogCard(cardElement, app) {
-    // Populate icon
-    const iconContainer = cardElement.querySelector('.app-icon-md');
-    renderAppIcon(iconContainer, app);
-
-    // Populate text (safe textContent)
-    cardElement.querySelector('.app-name').textContent = app.name || 'Unknown';
-    cardElement.querySelector('.category-badge').textContent = app.category || 'Other';
-    cardElement.querySelector('.app-description-compact').textContent = app.description || 'No description available';
-    cardElement.querySelector('.cpu-value').textContent = `${app.min_cpu || 1} vCPU`;
-    cardElement.querySelector('.memory-value').textContent = `${app.min_memory || 512}MB`;
-}
-
-/**
- * Attach event listeners to catalog app card
- * @param {DocumentFragment} cardElement - Cloned template
- * @param {Object} app - App data
- */
-function attachCatalogCardEvents(cardElement, app) {
-    const card = cardElement.querySelector('.app-card');
-    card.style.cursor = 'pointer';
-    card.addEventListener('click', () => {
-        showDeployModal(app.id);
-    });
-}
-
-/**
- * Render app card using template cloning (NEW PATTERN)
- * @param {Object} app - App data
- * @param {HTMLElement} container - Container to append card to
- * @param {boolean} isDeployed - Whether this is a deployed app card
- */
-function renderAppCard(app, container, isDeployed = false) {
-    const templateId = isDeployed ? 'deployed-app-card-template' : 'catalog-app-card-template';
-    const template = document.getElementById(templateId);
-
-    if (!template) {
-        console.error(`Template ${templateId} not found!`);
-        return;
-    }
-
-    // Clone template
-    const clone = template.content.cloneNode(true);
-
-    // Populate and attach events
-    if (isDeployed) {
-        populateDeployedCard(clone, app);
-        attachDeployedCardEvents(clone, app);
-    } else {
-        populateCatalogCard(clone, app);
-        attachCatalogCardEvents(clone, app);
-    }
-
-    // Append to container
-    container.appendChild(clone);
-}
-
-// ============================================
 // View Management
 function showView(viewName) {
     console.log(`👁️  showView('${viewName}') called`);
@@ -1243,94 +691,93 @@ function playClickSound() {
     }
 }
 
+// ⚠️ DEPRECATED: Legacy view rendering and utility functions
+// ⚠️ These are kept only for transition fallback if router fails
+// ⚠️ TODO: Remove entirely once router is stable
+
 function renderAppsView() {
-    const view = document.getElementById('appsView');
-    view.classList.remove('has-sub-nav'); // Remove old sub-nav class
-
-    // Search bar is now in the submenu - no need for it here anymore
-    const content = `
-        <div class="apps-grid deployed" id="allAppsGrid"></div>
-    `;
-
-    view.innerHTML = content;
-
-    // Render app cards using template cloning (NEW PATTERN)
-    const grid = document.getElementById('allAppsGrid');
-
-    if (state.deployedApps.length === 0) {
-        // Show empty state
-        grid.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-icon">📦</div>
-                <h3 class="empty-title">No applications deployed</h3>
-                <p class="empty-message">Start by deploying an application from the catalog.</p>
-                <button class="btn btn-primary" onclick="showView('catalog')">Browse Catalog</button>
-            </div>
-        `;
-    } else {
-        // Render each app card using template
-        for (const app of state.deployedApps) {
-            renderAppCard(app, grid, true);
-        }
+    console.warn('⚠️ DEPRECATED: renderAppsView() - Use ProximityRouter instead');
+    if (window.ProximityRouter) {
+        window.ProximityRouter.navigateTo('apps');
     }
-
-    // Initialize Lucide icons
-    initLucideIcons();
-
-    // Refresh tooltips after rendering new content
-    if (typeof refreshTooltips === 'function') {
-        refreshTooltips();
-    }
-
-    // Hover sounds are handled automatically via event delegation (initCardHoverSounds)
 }
 
 function renderCatalogView() {
-    console.log('🏪 renderCatalogView() called');
-    const view = document.getElementById('catalogView');
-    view.classList.remove('has-sub-nav'); // Remove old sub-nav class
-
-    if (!state.catalog || !state.catalog.items) {
-        console.log('⚠️  Catalog data not loaded yet');
-        view.innerHTML = '<div class="loading-spinner"></div>';
-        return;
+    console.warn('⚠️ DEPRECATED: renderCatalogView() - Use ProximityRouter instead');
+    if (window.ProximityRouter) {
+        window.ProximityRouter.navigateTo('catalog');
     }
-    console.log(`✓ Rendering ${state.catalog.items.length} catalog items`);
-
-    const content = `
-        <div class="search-bar-container">
-            <div class="search-bar">
-                <i data-lucide="search" class="search-icon"></i>
-                <input
-                    type="text"
-                    class="search-input"
-                    id="catalogSearchInput"
-                    placeholder="Search applications by name, description, or category..."
-                    oninput="searchCatalog(this.value)"
-                />
-                <button class="search-clear" id="catalogClearSearch" onclick="clearCatalogSearch()" style="display: none;">
-                    <i data-lucide="x"></i>
-                </button>
-            </div>
-            <div class="search-results-count" id="catalogResultsCount" style="display: none;"></div>
-        </div>
-
-        <div class="apps-grid" id="catalogGrid"></div>
-    `;
-    
-    view.innerHTML = content;
-
-    // Render catalog app cards using template cloning (NEW PATTERN)
-    const grid = document.getElementById('catalogGrid');
-    for (const app of state.catalog.items) {
-        renderAppCard(app, grid, false);
-    }
-
-    // Initialize Lucide icons
-    initLucideIcons();
-
-    // Hover sounds are handled automatically via event delegation (initCardHoverSounds)
 }
+
+// Stub for backward compatibility - actual polling is handled by AppsView
+function stopCPUPolling() {
+    console.warn('⚠️ DEPRECATED: stopCPUPolling() - Handled by AppsView unmount()');
+}
+
+// ⚠️ Utility function stubs for backward compatibility
+// These forward to the new modular utilities
+// TODO: Migrate these call sites to import directly from the modules
+
+// Import utility functions dynamically when needed
+let _uiHelpers = null;
+let _appCard = null;
+
+async function _loadUtilities() {
+    if (!_uiHelpers) {
+        const module = await import('./js/utils/ui-helpers.js');
+        _uiHelpers = module;
+    }
+    if (!_appCard) {
+        const module = await import('./js/components/app-card.js');
+        _appCard = module;
+    }
+}
+
+// Synchronous wrappers for backward compatibility
+function getAppIcon(name) {
+    // Fallback icon until module loads
+    return '📦';
+}
+
+function formatDate(dateString) {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString();
+}
+
+function formatSize(bytes) {
+    if (!bytes) return 'Unknown';
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    return (bytes / Math.pow(1024, i)).toFixed(2) + ' ' + sizes[i];
+}
+
+function formatUptime(seconds) {
+    if (!seconds || seconds < 0) return '--';
+    const days = Math.floor(seconds / 86400);
+    const hours = Math.floor((seconds % 86400) / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    if (days > 0) return `${days}d ${hours}h`;
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    return `${minutes}m`;
+}
+
+function getStatusIcon(status) {
+    const icons = {
+        'creating': '<i data-lucide="loader" class="spin"></i>',
+        'available': '<i data-lucide="check-circle"></i>',
+        'failed': '<i data-lucide="x-circle"></i>',
+        'restoring': '<i data-lucide="rotate-cw" class="spin"></i>'
+    };
+    return icons[status] || '';
+}
+
+function renderAppCard(app, container, isDeployed) {
+    console.warn('⚠️ DEPRECATED: renderAppCard() in app.js - Use import from app-card.js');
+    // Fallback - do nothing, router should handle rendering
+}
+
+// End Legacy View Functions
 
 async function renderNodesView() {
     const view = document.getElementById('nodesView');
@@ -3611,129 +3058,6 @@ function hideDeletionProgress() {
         // Restore scroll position
         window.scrollTo(0, scrollPosition);
     }
-}
-
-// ⚠️ MIGRATED: Icon and formatting utilities moved to js/utils/ui-helpers.js
-// ⚠️ Kept here temporarily for backward compatibility
-// ⚠️ TODO: Remove after Phase 3 testing is complete
-
-// Utility Functions
-/**
- * @deprecated Use import from js/utils/ui-helpers.js instead
- */
-function getAppIcon(name) {
-    // Comprehensive icon mapping with SVG support
-    const iconMap = {
-        // Popular Apps
-        'wordpress': { svg: 'wordpress', emoji: '📝', color: '#21759b' },
-        'nextcloud': { svg: 'nextcloud', emoji: '☁️', color: '#0082c9' },
-        'portainer': { svg: 'portainer', emoji: '🐳', color: '#13bef9' },
-        'nginx': { svg: 'nginx', emoji: '🌐', color: '#009639' },
-        'apache': { svg: 'apache', emoji: '🪶', color: '#d22128' },
-        
-        // Databases
-        'mysql': { svg: 'mysql', emoji: '🗄️', color: '#4479a1' },
-        'mariadb': { svg: 'mariadb', emoji: '🗄️', color: '#003545' },
-        'postgresql': { svg: 'postgresql', emoji: '🐘', color: '#4169e1' },
-        'postgres': { svg: 'postgresql', emoji: '🐘', color: '#4169e1' },
-        'redis': { svg: 'redis', emoji: '🔴', color: '#dc382d' },
-        'mongodb': { svg: 'mongodb', emoji: '🍃', color: '#47a248' },
-        
-        // Development
-        'git': { svg: 'git', emoji: '🔀', color: '#f05032' },
-        'gitlab': { svg: 'gitlab', emoji: '🦊', color: '#fc6d26' },
-        'github': { svg: 'github', emoji: '🐙', color: '#181717' },
-        'jenkins': { svg: 'jenkins', emoji: '👨‍🔧', color: '#d24939' },
-        'docker': { svg: 'docker', emoji: '🐳', color: '#2496ed' },
-        
-        // Monitoring & Analytics
-        'grafana': { svg: 'grafana', emoji: '📊', color: '#f46800' },
-        'prometheus': { svg: 'prometheus', emoji: '🔥', color: '#e6522c' },
-        'elasticsearch': { svg: 'elasticsearch', emoji: '🔍', color: '#005571' },
-        'kibana': { svg: 'kibana', emoji: '🔍', color: '#005571' },
-        
-        // Communication
-        'rocketchat': { svg: 'rocketdotchat', emoji: '💬', color: '#f5455c' },
-        'mattermost': { svg: 'mattermost', emoji: '💬', color: '#0058cc' },
-        'jitsi': { svg: 'jitsi', emoji: '📹', color: '#1d76ba' },
-        
-        // Media
-        'plex': { svg: 'plex', emoji: '🎬', color: '#ebaf00' },
-        'jellyfin': { svg: 'jellyfin', emoji: '🎬', color: '#00a4dc' },
-        'emby': { svg: null, emoji: '🎬', color: '#52b54b' },
-        
-        // Productivity
-        'bitwarden': { svg: 'bitwarden', emoji: '🔐', color: '#175ddc' },
-        'vaultwarden': { svg: 'bitwarden', emoji: '🔐', color: '#175ddc' },
-        'bookstack': { svg: 'bookstack', emoji: '📚', color: '#0288d1' },
-        'wikijs': { svg: 'wikidotjs', emoji: '📖', color: '#1976d2' },
-        
-        // File Management
-        'syncthing': { svg: 'syncthing', emoji: '🔄', color: '#0891d1' },
-        'filebrowser': { svg: null, emoji: '📁', color: '#3f51b5' },
-        
-        // Security
-        'traefik': { svg: 'traefikproxy', emoji: '🔀', color: '#24a1c1' },
-        'certbot': { svg: 'letsencrypt', emoji: '🔒', color: '#003a70' },
-        'fail2ban': { svg: null, emoji: '🛡️', color: '#d32f2f' },
-        
-        // CMS & E-commerce
-        'drupal': { svg: 'drupal', emoji: '💧', color: '#0678be' },
-        'joomla': { svg: 'joomla', emoji: '🌟', color: '#5091cd' },
-        'magento': { svg: 'magento', emoji: '🛒', color: '#ee672f' },
-        'prestashop': { svg: 'prestashop', emoji: '🛒', color: '#df0067' },
-        
-        // Others
-        'pihole': { svg: 'pihole', emoji: '🕳️', color: '#96060c' },
-        'homeassistant': { svg: 'homeassistant', emoji: '🏠', color: '#18bcf2' },
-        'node-red': { svg: 'nodered', emoji: '🔴', color: '#8f0000' },
-    };
-    
-    const nameLower = (name || '').toLowerCase();
-    
-    // Find matching icon
-    for (const [key, config] of Object.entries(iconMap)) {
-        if (nameLower.includes(key)) {
-            return createIconElement(config, name);
-        }
-    }
-    
-    // Default fallback
-    return createIconElement({ svg: null, emoji: '📦', color: '#6366f1' }, name);
-}
-
-function createIconElement(config, appName) {
-    // For now, return emoji (SVG implementation can be added later)
-    // When implementing SVG: use Simple Icons CDN or local SVG files
-    // Example: https://cdn.simpleicons.org/${config.svg}/${config.color.replace('#', '')}
-    
-    if (config.svg) {
-        // Return SVG icon with fallback to emoji
-        const escapedEmoji = config.emoji.replace(/'/g, "&#39;").replace(/"/g, "&quot;");
-        return `<img 
-            src="https://cdn.simpleicons.org/${config.svg}" 
-            alt="${appName}" 
-            style="width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));"
-            onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '${escapedEmoji}');"
-        />`;
-    }
-    
-    // Fallback to emoji
-    return config.emoji;
-}
-
-function formatDate(dateString) {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    const now = new Date();
-    const diff = now - date;
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    
-    if (days === 0) return 'Today';
-    if (days === 1) return 'Yesterday';
-    if (days < 7) return `${days} days ago`;
-    if (days < 30) return `${Math.floor(days / 7)} weeks ago`;
-    return date.toLocaleDateString();
 }
 
 function formatBytes(bytes) {
@@ -6053,29 +5377,6 @@ function startBackupPolling(appId) {
     }, 5000);
 }
 
-/**
- * Format backup size
- */
-function formatSize(bytes) {
-    if (!bytes) return 'Unknown';
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(1024));
-    return (bytes / Math.pow(1024, i)).toFixed(2) + ' ' + sizes[i];
-}
-
-/**
- * Get status icon
- */
-function getStatusIcon(status) {
-    const icons = {
-        'creating': '<i data-lucide="loader" class="spin"></i>',
-        'available': '<i data-lucide="check-circle"></i>',
-        'failed': '<i data-lucide="x-circle"></i>',
-        'restoring': '<i data-lucide="rotate-cw" class="spin"></i>'
-    };
-    return icons[status] || '';
-}
-
 // ============================================================================
 // FEARLESS UPDATE WORKFLOW
 // ============================================================================
@@ -6639,24 +5940,6 @@ function updateGauge(gaugeId, percent, suffix = '%') {
     }
 }
 
-/**
- * Format uptime seconds to human-readable string.
- */
-function formatUptime(seconds) {
-    if (!seconds || seconds < 0) return '--';
-
-    const days = Math.floor(seconds / 86400);
-    const hours = Math.floor((seconds % 86400) / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-
-    if (days > 0) {
-        return `${days}d ${hours}h`;
-    } else if (hours > 0) {
-        return `${hours}h ${minutes}m`;
-    } else {
-        return `${minutes}m`;
-    }
-}
 // ==================== In-App Canvas Modal ====================
 
 let currentCanvasApp = null;
@@ -7074,6 +6357,7 @@ document.getElementById('canvasModal')?.addEventListener('click', (e) => {
     }
 });
 
+
 // Close canvas modal with Escape key
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && document.getElementById('canvasModal')?.classList.contains('show')) {
@@ -7081,21 +6365,3 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// Helper function to get icon for category
-function getCategoryIcon(category) {
-    const icons = {
-        'Development': 'code',
-        'Database': 'database',
-        'Web Server': 'globe',
-        'Monitoring': 'activity',
-        'CMS': 'file-text',
-        'E-Commerce': 'shopping-cart',
-        'Communication': 'message-circle',
-        'Media': 'play-circle',
-        'Storage': 'hard-drive',
-        'Security': 'shield',
-        'Networking': 'network',
-        'Automation': 'zap'
-    };
-    return icons[category] || 'box';
-}
