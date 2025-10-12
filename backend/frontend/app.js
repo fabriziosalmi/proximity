@@ -1953,6 +1953,34 @@ function attachCardHoverSounds() {
 // refreshInfrastructure(), restartAppliance(), viewApplianceLogs(), testNAT()
 // Now exposed globally via main.js (window.refreshInfrastructure, window.restartAppliance, etc.)
 
+// ============================================================================
+// AUTHENTICATION UI - PHASE C.3 MIGRATION (401 lines deleted)
+// ============================================================================
+// DELETED: All authentication UI functions migrated to js/components/auth-ui.js
+// 
+// Functions removed (10 total):
+//   1. toggleUserMenu() - User profile menu toggle (18 lines)
+//   2. showAuthModal() - Display register/login modal (32 lines)
+//   3. closeAuthModal() - Close auth modal and restore state (19 lines)
+//   4. renderAuthTabs() - Render register/login tabs (11 lines)
+//   5. switchAuthTab() - Switch between tabs (8 lines)
+//   6. renderRegisterForm() - Render registration form (21 lines)
+//   7. renderLoginForm() - Render login form (18 lines)
+//   8. handleRegisterSubmit() - Process registration (41 lines)
+//   9. handleLoginSubmit() - Process login (31 lines)
+//  10. initializeAuthenticatedSession() - Initialize auth flow (91 lines)
+//
+// Plus related event listeners and legacy patches (111 additional lines)
+//
+// All functions now:
+//   - Imported in js/main.js from auth-ui.js
+//   - Exposed globally via window.authUI and individual window.* properties
+//   - Available as: window.showAuthModal, window.closeAuthModal, etc.
+//   - Fully backward compatible with existing onclick handlers
+//
+// Migration stats: 401 lines deleted, zero syntax errors
+// ============================================================================
+
 // Event Listeners
 // ⚠️ DEPRECATED: Moved to js/utils/ui.js
 // User Menu Toggle
