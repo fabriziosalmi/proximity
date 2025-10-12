@@ -109,7 +109,9 @@ export async function loadDeployedApps(updateState = true) {
         if (updateState) {
             setState('deployedApps', []);
         }
-        throw error;
+        
+        // Return empty array instead of throwing to allow graceful degradation
+        return [];
     }
 }
 

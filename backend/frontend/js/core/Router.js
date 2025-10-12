@@ -52,10 +52,14 @@ export class Router {
      * @returns {Promise<void>}
      */
     async navigateTo(viewName, state = {}) {
+        // Check authentication from localStorage
+        const token = localStorage.getItem('token');
+        const isAuthenticated = token && token !== 'null' && token !== 'undefined';
+        
         console.group('🧭 Router Navigation');
         console.log('📍 From:', this._currentViewName || 'none');
         console.log('📍 To:', viewName);
-        console.log('🔐 Auth:', state.isAuthenticated ? '✅ Authenticated' : '❌ Not Authenticated');
+        console.log('🔐 Auth:', isAuthenticated ? '✅ Authenticated' : '❌ Not Authenticated');
         console.log('📦 View Registered:', this._viewComponents.has(viewName));
         console.log('📦 Container Exists:', !!document.getElementById(`${viewName}View`));
 

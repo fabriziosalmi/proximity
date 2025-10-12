@@ -274,9 +274,12 @@ export async function initializeAuthenticatedSession() {
         // 1. Close the auth modal
         closeAuthModal();
         
-        // 2. Update user info in sidebar (legacy function from app.js)
+        // 2. Update user info in sidebar and navigation
         if (window.updateUserInfo) {
             window.updateUserInfo();
+        }
+        if (window.updateUserInfoNav) {
+            window.updateUserInfoNav();
         }
         
         // 3. Show loading state (legacy function from app.js)

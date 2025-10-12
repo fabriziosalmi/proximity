@@ -106,6 +106,7 @@ function updateActiveNav(viewName) {
 function updateUserInfoNav() {
     const user = Auth.getUser();
     if (user) {
+        // Update legacy user info elements (if they exist)
         const userNameEl = document.querySelector('.nav-rack-user .user-name');
         const userRoleEl = document.querySelector('.nav-rack-user .user-role');
         const userAvatarEl = document.querySelector('.nav-rack-user .user-avatar');
@@ -119,6 +120,20 @@ function updateUserInfoNav() {
         if (userAvatarEl) {
             const initials = (user.username || 'U').substring(0, 2).toUpperCase();
             userAvatarEl.textContent = initials;
+        }
+        
+        // Update new user-info element
+        const userInfoEl = document.getElementById('userInfo');
+        const usernameDisplayEl = document.getElementById('usernameDisplay');
+        
+        if (userInfoEl && usernameDisplayEl) {
+            usernameDisplayEl.textContent = user.username || 'User';
+            userInfoEl.style.display = ''; // Show the element
+            
+            // Initialize icon if lucide is available
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
         }
     }
 }

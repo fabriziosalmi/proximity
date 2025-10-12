@@ -92,11 +92,22 @@ export class CatalogView extends Component {
         container.innerHTML = content;
 
         // Render catalog app cards using imported renderAppCard function
-        const grid = document.getElementById('catalogGrid');
+        let grid = document.getElementById('catalogGrid');
         
         if (!grid) {
             console.error('❌ catalogGrid element not found!');
-            return;
+            console.log('🔧 Attempting to create catalogGrid element...');
+            
+            // Try to create the element dynamically
+            grid = document.createElement('div');
+            grid.id = 'catalogGrid';
+            grid.className = 'apps-grid';
+            
+            // Find the container and append the grid
+            const catalogContainer = container.querySelector('.catalog-container') || container;
+            catalogContainer.appendChild(grid);
+            
+            console.log('✅ Created catalogGrid element dynamically');
         }
         
         console.log(`🃏 About to render ${state.catalog.items.length} app cards...`);
