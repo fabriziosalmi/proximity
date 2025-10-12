@@ -51,7 +51,7 @@ def test_navigate_all_views(authenticated_page):
     
     # Catalog (App Store)
     print("  → Catalog")
-    page.click("[data-view='catalog']")
+    page.click("a.nav-rack-item[data-view='catalog']")  # Specific to nav link to avoid ambiguity
     expect(page.locator("#catalogView, #appStoreView")).to_be_visible(timeout=10000)
     print("  ✓ Catalog loaded")
     

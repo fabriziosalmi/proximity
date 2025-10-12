@@ -96,7 +96,7 @@ def deployed_nginx_app(authenticated_page):
     page = authenticated_page
     
     # Deploy NGINX
-    page.click("[data-view='catalog']")
+    page.click("a.nav-rack-item[data-view='catalog']")  # Specific to nav link to avoid ambiguity
     page.wait_for_selector(".app-card", timeout=15000)
     
     nginx_card = page.locator(".app-card:has-text('NGINX')").first
@@ -159,7 +159,7 @@ def deployed_app_factory(authenticated_page):
     
     def deploy_app(page: Page, app_name: str):
         """Deploy an app and track it for cleanup."""
-        page.click("[data-view='catalog']")
+        page.click("a.nav-rack-item[data-view='catalog']")  # Specific to nav link to avoid ambiguity
         page.wait_for_selector(".app-card", timeout=15000)
         
         app_card = page.locator(f".app-card:has-text('{app_name}')").first

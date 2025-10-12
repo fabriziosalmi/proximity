@@ -143,7 +143,19 @@ export function closeCanvas() {
 
     // Hide modal
     modal.classList.remove('show');
-    document.body.classList.remove('modal-open');
+
+    // CRITICAL FIX: Only remove modal-open if no other modals are still open
+    // This prevents body.modal-open from being removed when multiple modals are open
+    const anyModalOpen = Array.from(document.querySelectorAll('.modal.show')).length > 0;
+    if (!anyModalOpen) {
+        document.body.classList.remove('modal-open');
+
+        // Re-enable pointer events on main content
+        const mainContent = document.querySelector('.app-container');
+        if (mainContent) {
+            mainContent.style.pointerEvents = '';
+        }
+    }
 
     // Clear iframe after animation
     setTimeout(() => {

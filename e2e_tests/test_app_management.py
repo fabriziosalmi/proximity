@@ -29,7 +29,7 @@ def deployed_app(authenticated_page: Page):
     dashboard = DashboardPage(page)
 
     # Deploy a test app (NGINX)
-    page.click("[data-view='catalog']")
+    page.click("a.nav-rack-item[data-view='catalog']")  # Specific to nav link to avoid ambiguity
     page.wait_for_selector(".app-card", timeout=15000)
     
     nginx_card = page.locator(".app-card:has-text('NGINX')").first

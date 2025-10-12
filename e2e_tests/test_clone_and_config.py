@@ -37,7 +37,7 @@ def deployed_app(authenticated_page: Page, base_url: str):
     # Click on nginx app card directly (no search function exists)
     app_store_page.click_app_card("Nginx")
     deployment_modal.wait_for_modal_visible()
-    deployment_modal.enter_hostname(hostname)
+    deployment_modal.fill_hostname(hostname)
     deployment_modal.submit_deployment()
     deployment_modal.wait_for_deployment_success(timeout=180000)
     deployment_modal.close_modal()

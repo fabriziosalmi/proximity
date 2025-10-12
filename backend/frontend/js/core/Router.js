@@ -52,17 +52,23 @@ export class Router {
      * @returns {Promise<void>}
      */
     async navigateTo(viewName, state = {}) {
-        console.log(`🧭 Router: Navigating from '${this._currentViewName}' to '${viewName}'`);
+        console.group('🧭 Router Navigation');
+        console.log('📍 From:', this._currentViewName || 'none');
+        console.log('📍 To:', viewName);
+        console.log('🔐 Auth:', state.isAuthenticated ? '✅ Authenticated' : '❌ Not Authenticated');
+        console.log('📦 View Registered:', this._viewComponents.has(viewName));
+        console.log('📦 Container Exists:', !!document.getElementById(`${viewName}View`));
 
         // OPTIMIZATION: Skip if already on the requested view
         if (this._currentViewName === viewName) {
-            console.log(`⏩ Router: Already on '${viewName}', skipping navigation`);
+            console.log(`⏩ Already on '${viewName}', skipping navigation`);
+            console.groupEnd();
             return;
         }
 
         // Step 1: Unmount the current view (CRITICAL for preventing memory leaks)
         if (this._currentUnmountFn) {
-            console.log(`🧹 Router: Unmounting previous view '${this._currentViewName}'`);
+            console.log(`🧹 Unmounting previous view '${this._currentViewName}'`);
             try {
                 this._currentUnmountFn();
             } catch (error) {
@@ -75,6 +81,8 @@ export class Router {
         const component = this._viewComponents.get(viewName);
         if (!component) {
             console.error(`❌ View '${viewName}' not registered!`);
+            console.error('Available views:', Array.from(this._viewComponents.keys()));
+            console.groupEnd();
             return;
         }
 
@@ -85,6 +93,8 @@ export class Router {
         const container = document.getElementById(`${viewName}View`);
         if (!container) {
             console.error(`❌ Container element '#${viewName}View' not found!`);
+            console.error('Available containers:', Array.from(document.querySelectorAll('[id$="View"]')).map(el => el.id));
+            console.groupEnd();
             return;
         }
 
@@ -93,7 +103,7 @@ export class Router {
 
         // Step 6: Mount the new view and store its unmount function
         try {
-            console.log(`✅ Router: Mounting new view '${viewName}'`);
+            console.log(`✅ Mounting new view '${viewName}'`);
             // CRITICAL FIX: Await mount() to support async data loading
             this._currentUnmountFn = await component.mount(container, state);
             this._currentViewName = viewName;
@@ -103,9 +113,14 @@ export class Router {
                 console.warn(`⚠️  View '${viewName}' did not return an unmount function`);
                 this._currentUnmountFn = null;
             }
+            
+            console.log('✅ Navigation complete');
         } catch (error) {
             console.error(`❌ Error mounting view '${viewName}':`, error);
+            console.error('Stack:', error.stack);
             this._currentUnmountFn = null;
+        } finally {
+            console.groupEnd();
         }
 
         // Step 7: Update navigation UI
