@@ -305,6 +305,22 @@ export async function deleteApp(appId) {
 }
 
 /**
+ * Update app (pull new images and restart)
+ * @param {string} appId - App ID
+ * @returns {Promise<object>} Update result
+ */
+export async function updateApp(appId) {
+    const response = await authFetch(`${API_BASE}/apps/${appId}/update`, {
+        method: 'POST'
+    });
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Failed to update app');
+    }
+    return await response.json();
+}
+
+/**
  * Get app logs
  * @param {string} appId - App ID
  * @returns {Promise<object>} Log data

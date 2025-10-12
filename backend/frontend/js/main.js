@@ -23,6 +23,8 @@ import { showAppConsole, cleanupTerminal, closeConsoleModal } from './modals/Con
 import { showMonitoringModal, startMonitoringPolling, stopMonitoringPolling, formatUptime } from './modals/MonitoringModal.js';
 import { showCloneModal } from './modals/CloneModal.js';
 import { showPromptModal } from './modals/PromptModal.js';
+import { showEditConfigModal, closeEditConfigModal } from './modals/EditConfigModal.js';
+import { showUpdateModal } from './modals/UpdateModal.js';
 
 // Import lifecycle management system
 import { router } from './core/Router.js';
