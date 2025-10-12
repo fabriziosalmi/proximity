@@ -539,11 +539,15 @@ function updateRecentApps() {
 // ============================================
 // APP CARD RENDERING (Template-based)
 // ============================================
+// ⚠️ MIGRATED: These functions have been moved to js/components/app-card.js
+// ⚠️ They are kept here temporarily for backward compatibility
+// ⚠️ TODO: Remove after Phase 3 testing is complete
 
 /**
  * Render app icon with proper fallback handling
  * @param {HTMLElement} iconContainer - The icon container element
  * @param {Object} app - App data
+ * @deprecated Use import from js/utils/ui-helpers.js instead
  */
 function renderAppIcon(iconContainer, app) {
     // Clear existing content
@@ -3609,7 +3613,14 @@ function hideDeletionProgress() {
     }
 }
 
+// ⚠️ MIGRATED: Icon and formatting utilities moved to js/utils/ui-helpers.js
+// ⚠️ Kept here temporarily for backward compatibility
+// ⚠️ TODO: Remove after Phase 3 testing is complete
+
 // Utility Functions
+/**
+ * @deprecated Use import from js/utils/ui-helpers.js instead
+ */
 function getAppIcon(name) {
     // Comprehensive icon mapping with SVG support
     const iconMap = {
