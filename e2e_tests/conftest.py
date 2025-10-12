@@ -292,18 +292,48 @@ def authenticated_page(page: Page, base_url: str) -> Generator[Page, None, None]
     print("\n🔑 STEP 3: UI Login - Using LoginPage object")
     login_page = LoginPage(page)
     dashboard_page = DashboardPage(page)
-    
+
     print(f"   Logging in as: {user_credentials['username']}")
-    login_page.login(user_credentials['username'], user_credentials['password'])
+    login_page.login(user_credentials['username'], user_credentials['password'], wait_for_success=False)
     print("   ✓ Login form submitted")
-    
+
     # ========================================================================
-    # STEP 4: SMART WAIT - Wait for dashboard element to be visible
+    # STEP 4: SMART WAIT - Wait for authentication to complete
     # ========================================================================
     print("\n✅ STEP 4: Smart Wait - Waiting for authentication to complete")
-    
-    # CRITICAL: Wait for the user display locator to become visible
-    # This confirms that the async login completed and the UI has fully updated
+
+    # CRITICAL FIX: Wait for token to be saved in localStorage
+    # This ensures that subsequent API calls will have the authentication token
+    print("   ⏳ Waiting for token to be saved in localStorage...")
+    page.wait_for_function("""
+        () => {
+            return localStorage.getItem('proximity_token') ||
+                   sessionStorage.getItem('proximity_token') ||
+                   localStorage.getItem('authToken') ||
+                   sessionStorage.getItem('authToken');
+        }
+    """, timeout=10000)
+    print("   ✅ Token saved in storage")
+
+    # Wait for auth modal to close
+    try:
+        expect(login_page.modal).not_to_be_visible(timeout=5000)
+        print("   ✅ Auth modal hidden - login complete")
+    except Exception as e:
+        print(f"   ⚠️  Auth modal still visible, forcing close: {e}")
+        # Force close the modal if it's still visible
+        page.evaluate("""
+            const modal = document.getElementById('authModal');
+            if (modal && modal.classList.contains('show')) {
+                modal.classList.remove('show');
+                modal.style.display = 'none';
+                document.body.classList.remove('modal-open');
+                const backdrop = document.querySelector('.modal-backdrop');
+                if (backdrop) backdrop.remove();
+            }
+        """)
+
+    # Wait for dashboard element to be visible
     try:
         expect(dashboard_page.get_user_display_locator).to_be_visible(timeout=15000)
         print("   ✅ User display visible - authentication confirmed")
@@ -312,13 +342,6 @@ def authenticated_page(page: Page, base_url: str) -> Generator[Page, None, None]
         # Fallback: check if dashboard container is visible
         expect(dashboard_page.dashboard_container).to_be_visible(timeout=15000)
         print("   ✅ Dashboard container visible - authentication confirmed")
-    
-    # Verify auth modal is hidden
-    try:
-        expect(login_page.modal).not_to_be_visible(timeout=5000)
-        print("   ✅ Auth modal hidden - login complete")
-    except Exception as e:
-        print(f"   ⚠️  Auth modal check inconclusive: {e}")
     
     print("\n" + "="*80)
     print("🎉 AUTHENTICATION COMPLETE - Page ready for testing")

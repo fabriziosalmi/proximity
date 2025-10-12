@@ -74,7 +74,7 @@ def test_complete_click_and_use_flow(authenticated_page: Page, base_url: str):
         
         # Step 3: Configure and deploy
         print(f"   [3/4] Deploy with hostname: {hostname}...")
-        deployment_modal.enter_hostname(hostname)
+        deployment_modal.fill_hostname(hostname)
         deployment_modal.submit_deployment()
         print("   ⏳ Waiting for deployment to complete (this may take 2-3 minutes)...")
         
@@ -252,7 +252,7 @@ def test_complete_flow_with_console_interaction(authenticated_page: Page, base_u
         app_store_page.wait_for_catalog_load()
         app_store_page.click_app_card("Nginx")
         deployment_modal.wait_for_modal_visible()
-        deployment_modal.enter_hostname(hostname)
+        deployment_modal.fill_hostname(hostname)
         deployment_modal.submit_deployment()
         deployment_modal.wait_for_deployment_success(timeout=180000)
         deployment_modal.close_modal()
