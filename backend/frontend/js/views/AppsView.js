@@ -32,6 +32,9 @@ export class AppsView extends Component {
         // Store state reference
         this._state = state;
 
+        // Mark container as loading
+        container.setAttribute('data-loading', 'true');
+
         // CRITICAL FIX: Reload deployed apps from API before rendering
         // Don't update global state to avoid re-render during mount
         console.log('🔄 Reloading deployed apps from API...');
@@ -48,8 +51,17 @@ export class AppsView extends Component {
 
             // MOVED FROM app.js: Start CPU polling using imported function
             this._cpuPollingInterval = startCPUPolling(state);
+            
+            // Mark as fully loaded
+            container.setAttribute('data-loading', 'false');
+            container.setAttribute('data-loaded', 'true');
+            console.log('✅ Apps View fully loaded and rendered');
         } catch (error) {
             console.error('❌ Failed to load apps:', error);
+            
+            // Mark as failed
+            container.setAttribute('data-loading', 'false');
+            container.setAttribute('data-loaded', 'error');
             
             // Show error state
             container.innerHTML = `

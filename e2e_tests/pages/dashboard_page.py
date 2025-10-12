@@ -132,6 +132,17 @@ class DashboardPage(BasePage):
                        parseFloat(style.opacity) > 0.5;
             }
         """, timeout=15000)
+        
+        # CRITICAL: Wait for apps to be fully loaded from API
+        # The AppsView.mount() method loads apps asynchronously and sets data-loaded="true" when complete
+        logger.info("⏳ Waiting for apps to be fully loaded from API...")
+        self.page.wait_for_function("""
+            () => {
+                const el = document.getElementById('appsView');
+                return el && el.getAttribute('data-loaded') === 'true';
+            }
+        """, timeout=30000)
+        logger.info("✅ Apps view fully loaded")
     
     def navigate_to_settings(self) -> None:
         """Navigate to the Settings page."""
