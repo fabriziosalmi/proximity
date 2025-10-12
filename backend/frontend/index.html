@@ -34,10 +34,10 @@
     <!-- Debounce Utility -->
     <script src="/js/utils/debounce.js?v=20251010-01" type="module"></script>
 
-    <!-- Load legacy app.js first (non-module) -->
-    <script src="app.js?v=20251010-100"></script>
+    <!-- DISABLED: Legacy app.js (replaced by modular system) -->
+    <!-- <script src="app.js?v=20251010-100"></script> -->
 
-    <!-- Then load modular system (ES6 modules) with lifecycle management -->
+    <!-- Modular system (ES6 modules) with lifecycle management -->
     <script src="js/main.js?v=20251010-63" type="module"></script>
 </head>
 <body>
@@ -65,32 +65,32 @@
                 
                 <!-- Main Navigation -->
                 <div class="nav-rack-items">
-                    <a href="#" class="nav-rack-item active" data-view="dashboard" title="Dashboard" onclick="event.preventDefault(); showView('dashboard');">
+                    <a href="#" class="nav-rack-item active" data-view="dashboard" title="Dashboard">
                         <i data-lucide="layout-dashboard"></i>
                         <span>Dashboard</span>
                     </a>
-                    <a href="#" class="nav-rack-item" data-view="apps" title="My Apps" onclick="event.preventDefault(); navigateToApps();">
+                    <a href="#" class="nav-rack-item" data-view="apps" title="My Apps">
                         <i data-lucide="package"></i>
                         <span>Apps</span>
                         <span class="nav-badge" id="appsCount">0</span>
                     </a>
-                    <a href="#" class="nav-rack-item" data-view="catalog" title="App Store" onclick="event.preventDefault(); navigateToCatalog();">
+                    <a href="#" class="nav-rack-item" data-view="catalog" title="App Store">
                         <i data-lucide="store"></i>
                         <span>Store</span>
                     </a>
-                    <a href="#" class="nav-rack-item" data-view="nodes" title="Hosts" onclick="event.preventDefault(); showView('nodes');">
+                    <a href="#" class="nav-rack-item" data-view="nodes" title="Hosts">
                         <i data-lucide="server"></i>
                         <span>Hosts</span>
                     </a>
-                    <a href="#" class="nav-rack-item" data-view="monitoring" title="Monitoring" onclick="event.preventDefault(); showView('monitoring');">
+                    <a href="#" class="nav-rack-item" data-view="monitoring" title="Monitoring">
                         <i data-lucide="activity"></i>
                         <span>Monitoring</span>
                     </a>
-                    <a href="#" class="nav-rack-item" data-view="settings" title="Settings" onclick="event.preventDefault(); navigateToSettings();">
+                    <a href="#" class="nav-rack-item" data-view="settings" title="Settings">
                         <i data-lucide="settings"></i>
                         <span>Settings</span>
                     </a>
-                    <a href="#" class="nav-rack-item" data-view="uilab" title="UI Lab" onclick="event.preventDefault(); showUILabSubmenu();">
+                    <a href="#" class="nav-rack-item" data-view="uilab" data-action="show-uilab-submenu" title="UI Lab">
                         <i data-lucide="flask-conical"></i>
                         <span>UI Lab</span>
                         <span class="nav-badge dev-badge">DEV</span>
@@ -105,7 +105,7 @@
                     </button>
 
                     <!-- Logout -->
-                    <button class="nav-rack-item logout-btn" onclick="handleLogout(event)" title="Logout">
+                    <button class="nav-rack-item logout-btn" data-action="logout" title="Logout">
                         <i data-lucide="log-out"></i>
                     </button>
                 </div>
@@ -156,7 +156,7 @@
                             <div class="hero-apps-container">
                                 <div class="hero-apps-header">
                                     <h3 class="hero-apps-title">Your Applications</h3>
-                                    <button class="hero-apps-view-all" onclick="showView('apps')" title="View All Applications">
+                                    <button class="hero-apps-view-all" data-view="apps" title="View All Applications">
                                         <span>View All</span>
                                         <i data-lucide="arrow-right"></i>
                                     </button>
@@ -170,11 +170,11 @@
                             </div>
 
                             <div class="hero-actions">
-                                <button class="btn btn-primary btn-lg" onclick="showView('catalog')">
+                                <button class="btn btn-primary btn-lg" data-view="catalog">
                                     <i data-lucide="rocket"></i>
                                     Deploy Your First App
                                 </button>
-                                <button class="btn btn-secondary btn-lg" onclick="showView('monitoring')">
+                                <button class="btn btn-secondary btn-lg" data-view="monitoring">
                                     <i data-lucide="activity"></i>
                                     View Monitoring
                                 </button>
@@ -213,7 +213,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2 class="modal-title" id="modalTitle">Deploy Application</h2>
-                <button class="modal-close" onclick="closeModal()">✕</button>
+                <button class="modal-close" data-modal="deployModal">✕</button>
             </div>
             <div class="modal-body" id="modalBody">
                 <!-- Dynamic content -->
@@ -229,7 +229,7 @@
                     <i data-lucide="database"></i>
                     Backups for <span id="backup-app-name"></span>
                 </h2>
-                <button class="modal-close" onclick="hideBackupModal()">✕</button>
+                <button class="modal-close" data-modal="backupModal">✕</button>
             </div>
             <div class="modal-body">
                 <div class="backup-info-banner">
@@ -241,11 +241,11 @@
                 </div>
                 
                 <div class="backup-actions">
-                    <button class="btn btn-primary" onclick="createBackup()">
+                    <button class="btn btn-primary" data-action="create-backup">
                         <i data-lucide="plus"></i>
                         Create New Backup
                     </button>
-                    <button class="btn btn-secondary" onclick="refreshBackups()">
+                    <button class="btn btn-secondary" data-action="refresh-backups">
                         <i data-lucide="refresh-cw"></i>
                         Refresh
                     </button>
@@ -402,7 +402,7 @@
             <div class="modal-content" style="max-width: 400px;">
                 <div class="modal-header">
                     <h2 class="modal-title" id="authModalTitle">Welcome to Proximity</h2>
-                    <button class="modal-close" onclick="closeAuthModal()">✕</button>
+                    <button class="modal-close" data-modal="authModal">✕</button>
                 </div>
                 <div class="modal-body" id="authModalBody">
                     <!-- Dynamic content: tabs for Register/Login -->
@@ -419,16 +419,16 @@
                         <span id="canvasAppName">Application</span>
                     </div>
                     <div class="canvas-modal-actions">
-                        <button class="canvas-btn" onclick="toggleCanvasHeader()" title="Minimize/Maximize header">
+                        <button class="canvas-btn" data-action="toggle-canvas-header" title="Minimize/Maximize header">
                             <i data-lucide="minimize-2" id="canvasHeaderToggleIcon"></i>
                         </button>
-                        <button class="canvas-btn" onclick="openInNewTab()" title="Open in new tab">
+                        <button class="canvas-btn" data-action="canvas-new-tab" title="Open in new tab">
                             <i data-lucide="external-link"></i>
                         </button>
-                        <button class="canvas-btn" onclick="refreshCanvas()" title="Refresh">
+                        <button class="canvas-btn" data-action="canvas-refresh" title="Refresh">
                             <i data-lucide="refresh-cw"></i>
                         </button>
-                        <button class="canvas-btn canvas-close" onclick="closeCanvas()" title="Close">
+                        <button class="canvas-btn canvas-close" data-action="canvas-close" title="Close">
                             <i data-lucide="x"></i>
                         </button>
                     </div>
@@ -443,7 +443,7 @@
                         <div class="canvas-error-text">
                             <h3>Unable to load application</h3>
                             <p id="canvasErrorMessage">The application could not be loaded in the canvas.</p>
-                            <button class="btn btn-primary" onclick="openInNewTab()">
+                            <button class="btn btn-primary" data-action="canvas-new-tab">
                                 Open in New Tab
                             </button>
                         </div>

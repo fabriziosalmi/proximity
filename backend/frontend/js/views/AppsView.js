@@ -9,7 +9,7 @@
 
 import { Component } from '../core/Component.js';
 import { renderAppCard, startCPUPolling } from '../components/app-card.js';
-import { authFetch, API_BASE } from '../api.js';
+import { authFetch, API_BASE } from '../services/api.js';
 
 export class AppsView extends Component {
     constructor() {

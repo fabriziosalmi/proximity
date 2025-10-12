@@ -5,7 +5,7 @@
  * Handles all HTTP requests to the backend API.
  */
 
-const API_BASE = 'http://localhost:8765/api/v1';
+export const API_BASE = 'http://localhost:8765/api/v1';
 const TOKEN_KEY = 'proximity_token';
 
 /**
@@ -31,7 +31,7 @@ export function isAuthenticated() {
  * @param {object} options - Fetch options
  * @returns {Promise<Response>} Fetch response
  */
-async function authFetch(url, options = {}) {
+export async function authFetch(url, options = {}) {
     const token = getToken();
     if (!token) {
         throw new Error('No authentication token found');

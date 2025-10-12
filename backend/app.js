@@ -152,7 +152,7 @@ const state = {
     systemInfo: null,
     nodes: [],
     apps: [],
-    catalog: null,
+    catalog: { items: [] }, // Initialize with empty items array to prevent null access errors
     currentView: 'dashboard',
     deployedApps: [],
     proxyStatus: null

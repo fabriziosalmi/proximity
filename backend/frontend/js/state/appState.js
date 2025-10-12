@@ -15,7 +15,7 @@ const state = {
     systemInfo: null,
     nodes: [],
     apps: [],
-    catalog: null,
+    catalog: { items: [] }, // Initialize with empty items array
     currentView: 'dashboard',
     deployedApps: [],
     proxyStatus: null,

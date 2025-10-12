@@ -4,7 +4,7 @@
  */
 
 import { renderAppIcon, formatDate } from '../utils/ui-helpers.js';
-import { authFetch, API_BASE } from '../api.js';
+import { authFetch, API_BASE } from '../services/api.js';
 
 /**
  * Populate deployed app card with data

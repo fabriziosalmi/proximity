@@ -56,7 +56,7 @@ function initRouter() {
         'monitoring': monitoringView
     });
 
-    console.log('✅ Router initialized with views:', Object.keys(router.views));
+    console.log('✅ Router initialized with 6 views');
 }
 
 /**
@@ -117,6 +117,113 @@ async function initAuth() {
 }
 
 /**
+ * Central event delegation handler
+ * Handles ALL user interactions via event delegation
+ */
+function initEventDelegation() {
+    console.log('🎯 Initializing event delegation system...');
+
+    // Single click handler for the entire application
+    document.body.addEventListener('click', (event) => {
+        const target = event.target;
+        console.log('🖱️ Click detected on:', target.tagName, target.className);
+
+        // --- 1. NAVIGATION: Handle view navigation ---
+        const navLink = target.closest('[data-view]:not([data-action])');
+        if (navLink) {
+            event.preventDefault();
+            event.stopPropagation();
+            const viewName = navLink.dataset.view;
+            console.log(`📍 Navigation to: ${viewName}`);
+            
+            // Use router for navigation
+            router.navigateTo(viewName);
+            return;
+        }
+
+        // --- 2. MODALS: Close buttons ---
+        const modalClose = target.closest('.modal-close');
+        if (modalClose) {
+            const modal = modalClose.closest('.modal');
+            if (modal) {
+                const modalId = modal.id;
+                console.log(`❌ Closing modal: ${modalId}`);
+                
+                if (modalId === 'authModal') {
+                    closeAuthModal();
+                } else if (modalId === 'backupModal') {
+                    hideBackupModal();
+                } else if (modalId === 'deployModal') {
+                    if (window.closeModal) window.closeModal();
+                } else {
+                    modal.style.display = 'none';
+                }
+            }
+            return;
+        }
+
+        // --- 3. BACKUP ACTIONS ---
+        const backupAction = target.closest('[data-action="create-backup"]');
+        if (backupAction) {
+            console.log('📦 Creating backup...');
+            createBackup();
+            return;
+        }
+
+        const refreshBackupsBtn = target.closest('[data-action="refresh-backups"]');
+        if (refreshBackupsBtn) {
+            console.log('🔄 Refreshing backups...');
+            refreshBackups();
+            return;
+        }
+
+        // --- 4. CANVAS ACTIONS ---
+        const canvasToggle = target.closest('[data-action="toggle-canvas-header"]');
+        if (canvasToggle) {
+            toggleCanvasHeader();
+            return;
+        }
+
+        const canvasNewTab = target.closest('[data-action="canvas-new-tab"]');
+        if (canvasNewTab) {
+            openInNewTab();
+            return;
+        }
+
+        const canvasRefresh = target.closest('[data-action="canvas-refresh"]');
+        if (canvasRefresh) {
+            refreshCanvas();
+            return;
+        }
+
+        const canvasClose = target.closest('[data-action="canvas-close"]');
+        if (canvasClose) {
+            closeCanvas();
+            return;
+        }
+
+        // --- 5. LOGOUT ---
+        const logoutBtn = target.closest('[data-action="logout"]');
+        if (logoutBtn) {
+            event.preventDefault();
+            handleLogout(event);
+            return;
+        }
+
+        // --- 6. GENERIC VIEW SWITCH (buttons with data-view) ---
+        const viewButton = target.closest('button[data-view]');
+        if (viewButton) {
+            const viewName = viewButton.dataset.view;
+            console.log(`🔘 Button navigation to: ${viewName}`);
+            router.navigateTo(viewName);
+            return;
+        }
+    });
+
+    console.log('✅ Event delegation system initialized');
+}
+
+/**
  * Main application initialization
  * This is the GOD orchestrator that bootstraps everything
  */
@@ -138,13 +245,16 @@ async function initializeApp() {
     AppState.subscribe(render);
     console.log('✅ Render function subscribed to state changes');
 
-    // STEP 5: Initialize authentication
+    // STEP 5: Initialize event delegation (NEW!)
+    initEventDelegation();
+
+    // STEP 6: Initialize authentication
     const isAuthenticated = await initAuth();
 
-    // STEP 6: Initialize tooltips
+    // STEP 7: Initialize tooltips
     initTooltips();
 
-    // STEP 7: Initial render
+    // STEP 8: Initial render
     if (isAuthenticated) {
         // Set initial view to dashboard
         AppState.setState('currentView', 'dashboard');
@@ -159,3 +269,37 @@ if (document.readyState === 'loading') {
 } else {
     initializeApp();
 }
+
+// ============================================================================
+// BACKWARD COMPATIBILITY: Expose functions to window for legacy code
+// ============================================================================
+// TODO: Remove these once all legacy onclick attributes are removed from HTML
+
+window.showView = (viewName) => router.navigateTo(viewName);
+window.navigateToApps = () => router.navigateTo('apps');
+window.navigateToCatalog = () => router.navigateTo('catalog');
+window.navigateToSettings = () => router.navigateTo('settings');
+window.showUILabSubmenu = () => {
+    if (window.showSubmenu) window.showSubmenu();
+};
+
+// Modal functions
+window.closeModal = () => {
+    const modal = document.getElementById('deployModal');
+    if (modal) modal.style.display = 'none';
+};
+window.showAuthModal = showAuthModal;
+window.closeAuthModal = closeAuthModal;
+window.handleLogout = handleLogout;
+window.showDeployModal = showDeployModal;
+window.hideBackupModal = hideBackupModal;
+window.createBackup = createBackup;
+window.refreshBackups = refreshBackups;
+
+// Canvas functions
+window.toggleCanvasHeader = toggleCanvasHeader;
+window.openInNewTab = openInNewTab;
+window.refreshCanvas = refreshCanvas;
+window.closeCanvas = closeCanvas;
+
+console.log('⚠️  Legacy window functions exposed for backward compatibility');

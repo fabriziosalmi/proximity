@@ -25,12 +25,27 @@ export class DashboardView extends Component {
      */
     mount(container, state) {
         console.log('✅ Mounting Dashboard View');
+        console.log('📦 Container isEmpty:', !container.innerHTML.trim());
+        console.log('📦 Container hasHero:', !!container.querySelector('.hero-section'));
 
         // Store state reference for refresh interval
         this._state = state;
 
-        // Dashboard HTML is already in index.html (hero section)
-        // We just update the dynamic parts
+        // Generate dashboard HTML if container is empty
+        const needsHTML = !container.innerHTML.trim() || !container.querySelector('.hero-section');
+        console.log('🏗️  Needs HTML generation:', needsHTML);
+        
+        if (needsHTML) {
+            console.log('🏗️  Generating dashboard HTML...');
+            container.innerHTML = this.generateDashboardHTML();
+            console.log('✅ HTML generated, length:', container.innerHTML.length);
+            
+            // Re-initialize Lucide icons
+            if (window.lucide && window.lucide.createIcons) {
+                window.lucide.createIcons();
+                console.log('✅ Lucide icons re-initialized');
+            }
+        }
 
         // MOVED FROM app.js: Update hero stats and recent apps
         this.updateHeroStats(state);
@@ -47,6 +62,74 @@ export class DashboardView extends Component {
     }
 
     /**
+     * Generate dashboard HTML structure
+     * @returns {string} Dashboard HTML
+     */
+    generateDashboardHTML() {
+        return `
+            <!-- Hero Section -->
+            <div class="hero-section">
+                <div class="hero-content">
+                    <div class="hero-badge">
+                        <i data-lucide="zap"></i>
+                        <span>Next-Gen Application Platform</span>
+                    </div>
+                    <h1 class="hero-title">Welcome to Proximity</h1>
+                    <p class="hero-description">
+                        Deploy, manage, and scale your applications effortlessly across your Proxmox infrastructure.
+                        Experience the future of container orchestration with an intuitive interface designed for developers.
+                    </p>
+                    <!-- Hero Stats: Hosts and Apps Count -->
+                    <div class="hero-stats-inline">
+                        <div class="hero-stat-compact">
+                            <i data-lucide="server"></i>
+                            <span class="hero-stat-value-inline" id="heroNodesCount">0</span>
+                            <span class="hero-stat-label-inline">Hosts</span>
+                        </div>
+                        <div class="hero-stat-compact">
+                            <i data-lucide="package"></i>
+                            <span class="hero-stat-value-inline" id="heroAppsCount">0</span>
+                            <span class="hero-stat-label-inline">Applications</span>
+                        </div>
+                    </div>
+
+                    <!-- Quick Apps Grid Integrated -->
+                    <div class="hero-apps-container">
+                        <div class="hero-apps-header">
+                            <h3 class="hero-apps-title">Your Applications</h3>
+                            <button class="hero-apps-view-all" data-view="apps" title="View All Applications">
+                                <span>View All</span>
+                                <i data-lucide="arrow-right"></i>
+                            </button>
+                        </div>
+                        <div id="quickApps" class="hero-apps-grid">
+                            <div class="empty-state-compact">
+                                <i data-lucide="package"></i>
+                                <span>No applications deployed yet</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="hero-actions">
+                        <button class="btn btn-primary btn-lg" data-view="catalog">
+                            <i data-lucide="rocket"></i>
+                            Deploy Your First App
+                        </button>
+                        <button class="btn btn-secondary btn-lg" data-view="monitoring">
+                            <i data-lucide="activity"></i>
+                            View Monitoring
+                        </button>
+                    </div>
+                </div>
+                <div class="hero-visual">
+                    <div class="hero-grid-bg"></div>
+                    <div class="hero-glow"></div>
+                </div>
+            </div>
+        `;
+    }
+
+    /**
      * MOVED FROM app.js (line 406): updateHeroStats()
      * Update hero section stats (apps count, nodes count, containers count)
      * @param {Object} state - Application state
@@ -58,17 +141,17 @@ export class DashboardView extends Component {
         const heroContainersCount = document.getElementById('heroContainersCount');
 
         if (heroAppsCount) {
-            const totalApps = state.deployedApps.length;
+            const totalApps = (state.deployedApps || []).length;
             heroAppsCount.textContent = totalApps;
         }
 
         if (heroNodesCount) {
-            const activeNodes = state.nodes.filter(n => n.status === 'online').length;
+            const activeNodes = (state.nodes || []).filter(n => n.status === 'online').length;
             heroNodesCount.textContent = activeNodes;
         }
 
         if (heroContainersCount) {
-            const runningContainers = state.deployedApps.filter(a => a.status === 'running').length;
+            const runningContainers = (state.deployedApps || []).filter(a => a.status === 'running').length;
             heroContainersCount.textContent = runningContainers;
         }
     }
@@ -87,9 +170,10 @@ export class DashboardView extends Component {
             return;
         }
 
-        console.log(`✓ quickApps container found, deployedApps count: ${state.deployedApps.length}`);
+        const deployedApps = state.deployedApps || [];
+        console.log(`✓ quickApps container found, deployedApps count: ${deployedApps.length}`);
 
-        if (state.deployedApps.length === 0) {
+        if (deployedApps.length === 0) {
             container.innerHTML = `
                 <div class="empty-state">
                     <div class="empty-icon">
@@ -107,7 +191,7 @@ export class DashboardView extends Component {
         }
 
         // Show all apps as quick access icons
-        container.innerHTML = state.deployedApps.map(app => {
+        container.innerHTML = deployedApps.map(app => {
             const isRunning = app.status === 'running';
             const appUrl = (app.url && app.url !== 'None' && app.url !== 'null') ? app.url : null;
 
