@@ -231,3 +231,26 @@ export function resetState() {
     contextState.backupAppId = null;
     contextState.canvasApp = null;
 }
+
+// ===========================================================================
+// BACKWARD COMPATIBILITY: Expose state as window.state
+// ===========================================================================
+// This allows legacy code to access state via window.state
+// TODO: Remove this once all code is migrated to use getState()
+if (typeof window !== 'undefined') {
+    // Create a Proxy that always returns fresh state
+    window.state = new Proxy(state, {
+        get(target, prop) {
+            return target[prop];
+        },
+        set(target, prop, value) {
+            // Redirect writes to setState for proper reactivity
+            setState(prop, value);
+            return true;
+        }
+    });
+    
+    // Also expose getState function globally
+    window.getState = getState;
+    console.log('✅ window.state compatibility layer enabled');
+}
