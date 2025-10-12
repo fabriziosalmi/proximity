@@ -597,3 +597,244 @@ export function handleModeToggle(checkbox) {
 
     showNotification(`Switched to ${newMode} mode`, 'success');
 }
+
+/**
+ * Refresh infrastructure status view
+ * Navigates to nodes view and triggers a re-render
+ */
+export async function refreshInfrastructure() {
+    showNotification('Refreshing infrastructure status...', 'info');
+    
+    // Navigate to nodes view to trigger refresh
+    if (window.showView) {
+        window.showView('nodes');
+    }
+    
+    showNotification('Infrastructure status refreshed', 'success');
+}
+
+/**
+ * Restart the network appliance VM
+ */
+export async function restartAppliance() {
+    const statusDiv = document.getElementById('infrastructureStatus');
+    const token = localStorage.getItem('proximity_token');
+
+    if (!token) {
+        statusDiv.innerHTML = `
+            <div class="alert error">
+                <span class="alert-icon">❌</span>
+                <div class="alert-content">
+                    <div class="alert-message">Not authenticated. Please log in.</div>
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    if (!confirm('Restart the Network Appliance? This will temporarily interrupt network services for all containers.')) {
+        return;
+    }
+
+    try {
+        showLoading('Restarting network appliance...');
+
+        const response = await authFetch(`${API_BASE}/system/infrastructure/appliance/restart`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const result = await response.json();
+        hideLoading();
+
+        if (response.ok) {
+            statusDiv.innerHTML = `
+                <div class="alert success">
+                    <span class="alert-icon">✅</span>
+                    <div class="alert-content">
+                        <div class="alert-title">Appliance Restarted</div>
+                        <div class="alert-message">${result.message || 'Network appliance restarted successfully'}</div>
+                    </div>
+                </div>
+            `;
+            showNotification('Network appliance restarted successfully', 'success');
+
+            // Refresh infrastructure view after delay
+            setTimeout(async () => {
+                await refreshInfrastructure();
+            }, 5000);
+        } else {
+            statusDiv.innerHTML = `
+                <div class="alert error">
+                    <span class="alert-icon">❌</span>
+                    <div class="alert-content">
+                        <div class="alert-title">Restart Failed</div>
+                        <div class="alert-message">${result.detail || result.error || 'Failed to restart appliance'}</div>
+                    </div>
+                </div>
+            `;
+            showNotification('Failed to restart appliance', 'error');
+        }
+    } catch (error) {
+        hideLoading();
+        console.error('Error restarting appliance:', error);
+        statusDiv.innerHTML = `
+            <div class="alert error">
+                <span class="alert-icon">❌</span>
+                <div class="alert-content">
+                    <div class="alert-message">Network error: ${error.message}</div>
+                </div>
+            </div>
+        `;
+        showNotification('Failed to restart appliance', 'error');
+    }
+}
+
+/**
+ * View network appliance logs in a modal
+ */
+export async function viewApplianceLogs() {
+    const token = localStorage.getItem('proximity_token');
+
+    if (!token) {
+        showNotification('Not authenticated', 'error');
+        return;
+    }
+
+    try {
+        showLoading('Fetching appliance logs...');
+
+        const response = await authFetch(`${API_BASE}/system/infrastructure/appliance/logs?lines=50`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const result = await response.json();
+        hideLoading();
+
+        if (response.ok && result.data) {
+            const logs = result.data.logs;
+
+            // Display logs in a modal
+            const modalBody = document.getElementById('modalBody');
+            const modalTitle = document.getElementById('modalTitle');
+
+            modalTitle.textContent = 'Network Appliance Logs';
+            modalBody.innerHTML = `
+                <div class="logs-viewer">
+                    <div class="log-section">
+                        <h4 class="log-section-title">System Logs</h4>
+                        <pre class="log-output">${logs.system || 'No system logs available'}</pre>
+                    </div>
+
+                    <div class="log-section">
+                        <h4 class="log-section-title">DNSMASQ Status</h4>
+                        <pre class="log-output">${logs.dnsmasq_status || 'No dnsmasq status available'}</pre>
+                    </div>
+
+                    <div class="log-section">
+                        <h4 class="log-section-title">Network Status</h4>
+                        <pre class="log-output">${logs.network_status || 'No network status available'}</pre>
+                    </div>
+
+                    <div class="log-section">
+                        <h4 class="log-section-title">NAT Rules</h4>
+                        <pre class="log-output">${logs.nat_rules || 'No NAT rules available'}</pre>
+                    </div>
+                </div>
+
+                <div class="modal-actions" style="margin-top: 1.5rem; display: flex; justify-content: flex-end;">
+                    <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+                </div>
+            `;
+
+            document.getElementById('deployModal').classList.add('show');
+        } else {
+            showNotification('Failed to fetch logs', 'error');
+        }
+    } catch (error) {
+        hideLoading();
+        console.error('Error fetching logs:', error);
+        showNotification('Failed to fetch logs', 'error');
+    }
+}
+
+/**
+ * Test NAT connectivity for the network appliance
+ */
+export async function testNAT() {
+    const statusDiv = document.getElementById('infrastructureStatus');
+    const token = localStorage.getItem('proximity_token');
+
+    if (!token) {
+        statusDiv.innerHTML = `
+            <div class="alert error">
+                <span class="alert-icon">❌</span>
+                <div class="alert-content">
+                    <div class="alert-message">Not authenticated. Please log in.</div>
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    try {
+        showLoading('Testing NAT connectivity...');
+
+        const response = await authFetch(`${API_BASE}/system/infrastructure/test-nat`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const result = await response.json();
+        hideLoading();
+
+        if (response.ok && result.data) {
+            const { success, tests } = result.data;
+
+            const testResults = Object.entries(tests).map(([name, test]) => `
+                <div class="test-result ${test.passed ? 'passed' : 'failed'}">
+                    <div class="test-name">
+                        ${test.passed ? '✅' : '❌'}
+                        ${name.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                    </div>
+                </div>
+            `).join('');
+
+            statusDiv.innerHTML = `
+                <div class="alert ${success ? 'success' : 'error'}">
+                    <span class="alert-icon">${success ? '✅' : '❌'}</span>
+                    <div class="alert-content">
+                        <div class="alert-title">NAT Connectivity Test ${success ? 'Passed' : 'Failed'}</div>
+                        <div class="test-results" style="margin-top: 0.75rem;">
+                            ${testResults}
+                        </div>
+                    </div>
+                </div>
+            `;
+            showNotification(`NAT test ${success ? 'passed' : 'failed'}`, success ? 'success' : 'error');
+        } else {
+            statusDiv.innerHTML = `
+                <div class="alert error">
+                    <span class="alert-icon">❌</span>
+                    <div class="alert-content">
+                        <div class="alert-title">Test Failed</div>
+                        <div class="alert-message">${result.detail || result.error || 'Failed to run NAT test'}</div>
+                    </div>
+                </div>
+            `;
+            showNotification('NAT test failed', 'error');
+        }
+    } catch (error) {
+        hideLoading();
+        console.error('Error testing NAT:', error);
+        statusDiv.innerHTML = `
+            <div class="alert error">
+                <span class="alert-icon">❌</span>
+                <div class="alert-content">
+                    <div class="alert-message">Network error: ${error.message}</div>
+                </div>
+            </div>
+        `;
+        showNotification('NAT test failed', 'error');
+    }
+}

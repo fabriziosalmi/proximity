@@ -8,7 +8,7 @@
  */
 
 import { Component } from '../core/Component.js';
-import { formatBytes } from '../utils/formatting.js';
+import { formatBytes } from '../utils/formatters.js';
 
 export class MonitoringView extends Component {
     constructor() {

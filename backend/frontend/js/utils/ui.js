@@ -1,7 +1,8 @@
 /**
  * UI Utilities
  *
- * Centralized UI control functions including dual-mode visibility.
+ * Centralized UI control functions including dual-mode visibility,
+ * loading overlays, and user menu management.
  */
 
 import { getProximityMode, setProximityMode, initProximityMode } from '../state/appState.js';
@@ -48,6 +49,67 @@ export function switchProximityMode(newMode) {
     }));
 
     console.log(`✅ Switched to ${newMode} mode`);
+}
+
+/**
+ * Show loading overlay with message
+ * @param {string} text - Loading message (default: 'Loading...')
+ */
+export function showLoading(text = 'Loading...') {
+    let loadingOverlay = document.getElementById('loadingOverlay');
+    
+    if (!loadingOverlay) {
+        // Create loading overlay if it doesn't exist
+        loadingOverlay = document.createElement('div');
+        loadingOverlay.id = 'loadingOverlay';
+        loadingOverlay.className = 'loading-overlay';
+        loadingOverlay.innerHTML = `
+            <div class="loading-spinner">
+                <div class="spinner"></div>
+                <p class="loading-text">${text}</p>
+            </div>
+        `;
+        document.body.appendChild(loadingOverlay);
+    } else {
+        // Update text if overlay already exists
+        const textElement = loadingOverlay.querySelector('.loading-text');
+        if (textElement) {
+            textElement.textContent = text;
+        }
+    }
+    
+    loadingOverlay.classList.add('show');
+}
+
+/**
+ * Hide loading overlay
+ */
+export function hideLoading() {
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    if (loadingOverlay) {
+        loadingOverlay.classList.remove('show');
+    }
+}
+
+/**
+ * Toggle user menu visibility
+ */
+export function toggleUserMenu() {
+    const userMenu = document.querySelector('.user-menu-dropdown');
+    if (userMenu) {
+        userMenu.classList.toggle('show');
+    }
+    
+    // Close menu when clicking outside
+    if (userMenu && userMenu.classList.contains('show')) {
+        const closeMenu = (e) => {
+            if (!e.target.closest('.user-menu')) {
+                userMenu.classList.remove('show');
+                document.removeEventListener('click', closeMenu);
+            }
+        };
+        setTimeout(() => document.addEventListener('click', closeMenu), 0);
+    }
 }
 
 /**

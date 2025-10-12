@@ -1,84 +1,3 @@
-// Utility function to reinitialize Lucide icons
-function initLucideIcons() {
-    if (typeof lucide !== 'undefined') {
-        setTimeout(() => lucide.createIcons(), 0);
-    }
-}
-
-// Sidebar collapse functionality
-function initSidebarToggle() {
-    const sidebar = document.querySelector('.sidebar');
-    const toggleButton = document.getElementById('sidebarToggle');
-    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-    const overlay = document.getElementById('sidebarOverlay');
-    
-    if (sidebar) {
-        // Load saved state for desktop
-        const savedState = localStorage.getItem('sidebarCollapsed');
-        if (savedState === 'true') {
-            sidebar.classList.add('collapsed');
-        }
-        
-        // Desktop toggle button
-        if (toggleButton) {
-            toggleButton.addEventListener('click', () => {
-                const isMobile = window.innerWidth <= 1024;
-                
-                if (isMobile) {
-                    // On mobile: toggle 'active' class to show/hide sidebar
-                    sidebar.classList.toggle('active');
-                    if (overlay) {
-                        overlay.classList.toggle('active');
-                    }
-                } else {
-                    // On desktop: toggle 'collapsed' class to collapse/expand
-                    sidebar.classList.toggle('collapsed');
-                    // Save state
-                    localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
-                }
-                
-                // Reinitialize icons after toggle animation
-                setTimeout(() => initLucideIcons(), 300);
-            });
-        }
-        
-        // Mobile menu button
-        if (mobileMenuBtn) {
-            mobileMenuBtn.addEventListener('click', () => {
-                sidebar.classList.add('active');
-                if (overlay) {
-                    overlay.classList.add('active');
-                }
-                // Reinitialize icons after toggle animation
-                setTimeout(() => initLucideIcons(), 300);
-            });
-        }
-        
-        // Close sidebar when clicking overlay (mobile)
-        if (overlay) {
-            overlay.addEventListener('click', () => {
-                sidebar.classList.remove('active');
-                overlay.classList.remove('active');
-            });
-        }
-        
-        // Handle window resize: reset classes appropriately
-        window.addEventListener('resize', () => {
-            const isMobile = window.innerWidth <= 1024;
-            if (!isMobile) {
-                // Desktop: remove mobile 'active' class
-                sidebar.classList.remove('active');
-                if (overlay) {
-                    overlay.classList.remove('active');
-                }
-            } else {
-                // Mobile: remove desktop 'collapsed' class
-                sidebar.classList.remove('collapsed');
-            }
-        });
-    }
-}
-
 // Proximity UI - State-of-the-Art Application Management Interface
 const API_BASE = 'http://localhost:8765/api/v1';
 
@@ -733,43 +652,33 @@ async function _loadUtilities() {
     }
 }
 
-// Synchronous wrappers for backward compatibility
+// ⚠️ DEPRECATED: These functions have been moved to modular utilities
+// They are kept here only as fallback stubs for any remaining legacy code
+// TODO: Remove once all references are updated to use imports
+
 function getAppIcon(name) {
-    // Fallback icon until module loads
-    return '📦';
+    // Fallback stub - real implementation in js/utils/icons.js
+    return window.Icons?.getAppIcon(name) || '📦';
 }
 
 function formatDate(dateString) {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return date.toLocaleDateString();
+    // Fallback stub - real implementation in js/utils/formatters.js
+    return window.Formatters?.formatDate(dateString) || 'N/A';
 }
 
 function formatSize(bytes) {
-    if (!bytes) return 'Unknown';
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(1024));
-    return (bytes / Math.pow(1024, i)).toFixed(2) + ' ' + sizes[i];
+    // Fallback stub - real implementation in js/utils/formatters.js
+    return window.Formatters?.formatSize(bytes) || 'Unknown';
 }
 
 function formatUptime(seconds) {
-    if (!seconds || seconds < 0) return '--';
-    const days = Math.floor(seconds / 86400);
-    const hours = Math.floor((seconds % 86400) / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    if (days > 0) return `${days}d ${hours}h`;
-    if (hours > 0) return `${hours}h ${minutes}m`;
-    return `${minutes}m`;
+    // Fallback stub - real implementation in js/utils/formatters.js
+    return window.Formatters?.formatUptime(seconds) || '--';
 }
 
 function getStatusIcon(status) {
-    const icons = {
-        'creating': '<i data-lucide="loader" class="spin"></i>',
-        'available': '<i data-lucide="check-circle"></i>',
-        'failed': '<i data-lucide="x-circle"></i>',
-        'restoring': '<i data-lucide="rotate-cw" class="spin"></i>'
-    };
-    return icons[status] || '';
+    // Fallback stub - real implementation in js/utils/icons.js
+    return window.Icons?.getStatusIcon(status) || '';
 }
 
 function renderAppCard(app, container, isDeployed) {
@@ -779,450 +688,11 @@ function renderAppCard(app, container, isDeployed) {
 
 // End Legacy View Functions
 
-async function renderNodesView() {
-    const view = document.getElementById('nodesView');
+// DELETED: renderNodesView() - Fully migrated to js/views/NodesView.js (348 lines)
+//          Router handles component lifecycle directly. This 282-line wrapper is obsolete.
 
-    // Load infrastructure status
-    showLoading('Loading infrastructure status...');
-    let infrastructure = null;
-    let error = null;
-
-    try {
-        const token = Auth.getToken();
-        if (token) {
-            console.log('[Infrastructure] Fetching status...');
-            const response = await authFetch(`${API_BASE}/system/infrastructure/status`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            console.log('[Infrastructure] Response status:', response.status);
-            
-            if (response.ok) {
-                const result = await response.json();
-                console.log('[Infrastructure] Result:', result);
-                infrastructure = result.data;
-                console.log('[Infrastructure] Infrastructure data:', infrastructure);
-                console.log('[Infrastructure] Appliance:', infrastructure?.appliance);
-                console.log('[Infrastructure] Health status:', infrastructure?.health_status);
-            } else {
-                error = `Failed to load infrastructure status (${response.status})`;
-                console.error('[Infrastructure] Error:', error);
-            }
-        } else {
-            error = 'Not authenticated';
-            console.error('[Infrastructure] No auth token');
-        }
-    } catch (err) {
-        error = err.message || 'Failed to load infrastructure';
-        console.error('[Infrastructure] Exception:', err);
-    }
-    hideLoading();
-
-    // Prepare appliance info
-    const appliance = infrastructure?.appliance || null;
-    const services = infrastructure?.services || {};
-    const network = infrastructure?.network || {};
-    const connected_apps = infrastructure?.applications || infrastructure?.connected_apps || [];
-    const health_status = infrastructure?.health_status || 'unknown';
-    
-    console.log('[Infrastructure] Final state:', {
-        appliance: !!appliance,
-        services: Object.keys(services).length,
-        connected_apps: connected_apps.length,
-        health_status,
-        error
-    });
-
-    const content = `
-        <!-- Network Appliance Card -->
-        ${appliance ? `
-        <div class="app-card deployed" style="margin-bottom: 2rem;">
-            <!-- Header with icon, name, status and quick actions -->
-            <div class="app-card-header">
-                <div class="app-icon-lg">🌐</div>
-                <div class="app-info">
-                    <h3 class="app-name">${appliance.hostname || 'Network Appliance'}</h3>
-                        <span class="status-badge ${appliance.status === 'running' ? 'running' : 'stopped'}">
-                            <span class="status-dot"></span>
-                            ${appliance.status || 'unknown'}
-                        </span>
-                    </div>
-                        
-                        <!-- Quick Actions -->
-                        <div class="app-quick-actions">
-                            <button class="action-icon" title="Restart Appliance" onclick="restartAppliance()">
-                                <i data-lucide="rotate-cw"></i>
-                            </button>
-                            <button class="action-icon" title="View Logs" onclick="viewApplianceLogs()">
-                                <i data-lucide="file-text"></i>
-                            </button>
-                            <button class="action-icon" title="Test NAT" onclick="testNAT()">
-                                <i data-lucide="zap"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Connection info -->
-                    <div class="app-connection-info">
-                        <div class="connection-item" title="VMID">
-                            <i data-lucide="hash" class="connection-icon"></i>
-                            <span class="connection-value">${appliance.vmid || 'N/A'}</span>
-                        </div>
-                        <div class="connection-item" title="Node">
-                            <i data-lucide="server" class="connection-icon"></i>
-                            <span class="connection-value">${appliance.node || 'N/A'}</span>
-                        </div>
-                        <div class="connection-item" title="WAN interface (eth0) - DHCP from external network via vmbr0">
-                            <i data-lucide="globe" class="connection-icon"></i>
-                            <span class="connection-value">WAN: ${appliance.wan_ip || 'N/A'}</span>
-                        </div>
-                        <div class="connection-item" title="LAN interface (eth1) - Gateway for applications on proximity-lan">
-                            <i data-lucide="network" class="connection-icon"></i>
-                            <span class="connection-value">LAN: ${appliance.lan_ip || 'N/A'}</span>
-                        </div>
-                    </div>
-
-                    <!-- Resource stats -->
-                    <div class="app-connection-info" style="margin-top: 0.5rem;">
-                        <div class="connection-item">
-                            <i data-lucide="cpu" class="connection-icon"></i>
-                            <span class="connection-value">${appliance.cores || 'N/A'} cores</span>
-                        </div>
-                        <div class="connection-item">
-                            <i data-lucide="memory-stick" class="connection-icon"></i>
-                            <span class="connection-value">${appliance.memory || 'N/A'} MB</span>
-                        </div>
-                        <div class="connection-item">
-                            <i data-lucide="hard-drive" class="connection-icon"></i>
-                            <span class="connection-value">${appliance.disk || 'N/A'} GB</span>
-                        </div>
-                        <div class="connection-item">
-                            <i data-lucide="clock" class="connection-icon"></i>
-                            <span class="connection-value">${appliance.uptime || 'N/A'}</span>
-                        </div>
-                    </div>
-
-                    <div id="infrastructureStatus" style="margin-top: 1rem;"></div>
-                </div>
-        ` : ''}
-
-        <!-- Services Health Grid -->
-        ${Object.keys(services).length > 0 ? `
-        <div class="services-grid" style="margin-bottom: 2rem;">
-            ${Object.entries(services).map(([name, service]) => `
-                    <div class="service-card ${service.healthy ? 'healthy' : 'unhealthy'}">
-                        <div class="service-header">
-                            <div class="service-icon">
-                                ${name === 'dnsmasq' ? '🌐' :
-                                  name === 'caddy' ? '🔀' :
-                                  name === 'nat' ? '🔗' : '⚙️'}
-                            </div>
-                            <div class="service-info">
-                                <h3 class="service-name">${name.charAt(0).toUpperCase() + name.slice(1)}</h3>
-                                <span class="service-status ${service.healthy ? 'healthy' : 'unhealthy'}">
-                                    ${service.healthy ? '● Running' : '○ Stopped'}
-                                </span>
-                            </div>
-                        </div>
-                        ${service.details ? `
-                        <div class="service-details">
-                            <small>${service.details}</small>
-                        </div>
-                        ` : ''}
-                    </div>
-                `).join('')}
-            </div>
-        ` : ''}
-
-        <!-- Network Configuration -->
-        ${network.subnet ? `
-        <div class="app-card deployed" style="margin-bottom: 2rem;">
-            <div class="app-connection-info">
-                    <div class="connection-item">
-                        <i data-lucide="network" class="connection-icon"></i>
-                        <span class="connection-value">Bridge: ${network.bridge || 'proximity-lan'}</span>
-                    </div>
-                    <div class="connection-item">
-                        <i data-lucide="wifi" class="connection-icon"></i>
-                        <span class="connection-value">Subnet: ${network.subnet || 'N/A'}</span>
-                    </div>
-                    <div class="connection-item">
-                            <i data-lucide="door-open" class="connection-icon"></i>
-                            <span class="connection-value">Gateway: ${network.gateway || 'N/A'}</span>
-                        </div>
-                        <div class="connection-item">
-                            <i data-lucide="settings" class="connection-icon"></i>
-                            <span class="connection-value">DHCP: ${network.dhcp_range || 'N/A'}</span>
-                        </div>
-                    </div>
-                    <div class="app-connection-info" style="margin-top: 0.5rem;">
-                        <div class="connection-item">
-                        <i data-lucide="globe" class="connection-icon"></i>
-                        <span class="connection-value">DNS: ${network.dns_domain || 'prox.local'}</span>
-                    </div>
-                </div>
-            </div>
-        ` : ''}
-
-        <!-- Connected Apps -->
-        ${connected_apps && connected_apps.length > 0 ? `
-        <div class="connected-apps-table">
-            <table class="infrastructure-table">
-                    <thead>
-                        <tr>
-                            <th>App Name</th>
-                            <th>VMID</th>
-                            <th>IP Address</th>
-                            <th>Status</th>
-                            <th>DNS Name</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${connected_apps.map(app => `
-                            <tr>
-                                <td><strong>${app.name || 'N/A'}</strong></td>
-                                <td>${app.vmid || 'N/A'}</td>
-                                <td><code>${app.ip_address || 'N/A'}</code></td>
-                                <td>
-                                    <span class="status-badge ${app.status === 'running' ? 'running' : 'stopped'}">
-                                        <span class="status-dot"></span>
-                                        ${app.status || 'unknown'}
-                                    </span>
-                                </td>
-                                <td><code>${app.dns_name || app.name + '.prox.local' || 'N/A'}</code></td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            </div>
-        ` : ''}
-
-        <!-- Proxmox Nodes -->
-        <div class="apps-grid deployed">
-            ${state.nodes.map(node => {
-                // Calculate percentages
-                const cpuPercent = node.maxcpu > 0 ? Math.round((node.cpu / node.maxcpu) * 100) : 0;
-                const ramPercent = node.maxmem > 0 ? Math.round((node.mem / node.maxmem) * 100) : 0;
-                const diskPercent = node.maxdisk > 0 ? Math.round((node.disk / node.maxdisk) * 100) : 0;
-                
-                return `
-                    <div class="app-card deployed ${node.status === 'online' ? 'status-running' : 'status-stopped'}">
-                        <div class="app-card-header">
-                            <div class="app-icon-lg">🖥️</div>
-                            <div class="app-info">
-                                <h3 class="app-name">${node.node}</h3>
-                            </div>
-                        </div>
-
-                        <!-- Connection Info with Status Dot -->
-                        <div class="app-connection-info">
-                            <div class="connection-item status-indicator">
-                                <span class="status-dot"></span>
-                            </div>
-                            <div class="connection-item">
-                                <i data-lucide="activity" class="connection-icon"></i>
-                                <span class="connection-value">Uptime: ${node.uptime ? formatUptime(node.uptime) : 'N/A'}</span>
-                            </div>
-                        </div>
-
-                        <!-- Resource Metrics: CPU, RAM, Disk with bars -->
-                        <div class="app-metrics">
-                            <div class="metric-item">
-                                <i data-lucide="cpu" class="metric-icon"></i>
-                                <div class="metric-bar-container">
-                                    <div class="metric-bar cpu-bar" style="width: ${cpuPercent}%"></div>
-                                </div>
-                                <span class="metric-value">${cpuPercent}%</span>
-                            </div>
-                            <div class="metric-item">
-                                <i data-lucide="database" class="metric-icon"></i>
-                                <div class="metric-bar-container">
-                                    <div class="metric-bar ram-bar" style="width: ${ramPercent}%"></div>
-                                </div>
-                                <span class="metric-value">${formatBytes(node.mem || 0)}</span>
-                            </div>
-                            <div class="metric-item">
-                                <i data-lucide="hard-drive" class="metric-icon"></i>
-                                <div class="metric-bar-container">
-                                    <div class="metric-bar disk-bar" style="width: ${diskPercent}%"></div>
-                                </div>
-                                <span class="metric-value">${formatBytes(node.disk || 0)}</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('')}
-            </div>
-        </div>
-    `;
-
-    view.innerHTML = content;
-
-    // Initialize icons
-    initLucideIcons();
-}
-
-function renderMonitoringView() {
-    const view = document.getElementById('monitoringView');
-
-    // Calculate statistics for Applications Summary
-    const totalApps = state.deployedApps.length;
-
-    const content = `
-        <!-- Node-by-Node Breakdown -->
-        ${state.nodes.length > 0 ? `
-        <div class="monitor-section">
-            <h2 class="monitor-section-title">
-                <i data-lucide="server"></i>
-                Node Resource Breakdown
-            </h2>
-            ${state.nodes.map(node => {
-                const nodeCpuPercent = node.maxcpu > 0 ? Math.round((node.cpu / node.maxcpu) * 100) : 0;
-                const nodeRamPercent = node.maxmem > 0 ? Math.round((node.mem / node.maxmem) * 100) : 0;
-                const nodeDiskPercent = node.maxdisk > 0 ? Math.round((node.disk / node.maxdisk) * 100) : 0;
-
-                return `
-                <div class="node-monitor-card">
-                    <div class="node-monitor-header">
-                        <div class="node-monitor-title">
-                            <i data-lucide="server"></i>
-                            <h3>${node.node}</h3>
-                            <span class="status-badge ${node.status === 'online' ? 'running' : 'stopped'}">
-                                <span class="status-dot"></span>
-                                ${node.status}
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="node-monitor-resources">
-                        <!-- CPU -->
-                        <div class="node-resource">
-                            <div class="node-resource-header">
-                                <span class="node-resource-label">
-                                    <i data-lucide="cpu"></i>
-                                    CPU
-                                </span>
-                                <span class="node-resource-value">${nodeCpuPercent}%</span>
-                            </div>
-                            <div class="monitor-bar-container">
-                                <div class="monitor-bar small">
-                                    <div class="monitor-bar-fill ${nodeCpuPercent >= 80 ? 'critical' : nodeCpuPercent >= 60 ? 'warning' : 'normal'}"
-                                         style="width: ${nodeCpuPercent}%"></div>
-                                </div>
-                            </div>
-                            <div class="node-resource-details">
-                                ${node.cpu?.toFixed(2) || 0} / ${node.maxcpu || 0} cores
-                            </div>
-                        </div>
-
-                        <!-- RAM -->
-                        <div class="node-resource">
-                            <div class="node-resource-header">
-                                <span class="node-resource-label">
-                                    <i data-lucide="memory-stick"></i>
-                                    RAM
-                                </span>
-                                <span class="node-resource-value">${nodeRamPercent}%</span>
-                            </div>
-                            <div class="monitor-bar-container">
-                                <div class="monitor-bar small">
-                                    <div class="monitor-bar-fill ${nodeRamPercent >= 80 ? 'critical' : nodeRamPercent >= 60 ? 'warning' : 'normal'}"
-                                         style="width: ${nodeRamPercent}%"></div>
-                                </div>
-                            </div>
-                            <div class="node-resource-details">
-                                ${formatBytes(node.mem || 0)} / ${formatBytes(node.maxmem || 0)}
-                            </div>
-                        </div>
-
-                        <!-- Disk -->
-                        <div class="node-resource">
-                            <div class="node-resource-header">
-                                <span class="node-resource-label">
-                                    <i data-lucide="hard-drive"></i>
-                                    Storage
-                                </span>
-                                <span class="node-resource-value">${nodeDiskPercent}%</span>
-                            </div>
-                            <div class="monitor-bar-container">
-                                <div class="monitor-bar small">
-                                    <div class="monitor-bar-fill ${nodeDiskPercent >= 80 ? 'critical' : nodeDiskPercent >= 60 ? 'warning' : 'normal'}"
-                                         style="width: ${nodeDiskPercent}%"></div>
-                                </div>
-                            </div>
-                            <div class="node-resource-details">
-                                ${formatBytes(node.disk || 0)} / ${formatBytes(node.maxdisk || 0)}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                `;
-            }).join('')}
-        </div>
-        ` : ''}
-
-        <!-- Applications Summary Table -->
-        ${totalApps > 0 ? `
-        <div class="monitor-section">
-            <h2 class="monitor-section-title">
-                <i data-lucide="package"></i>
-                Application Resources
-            </h2>
-            <div class="monitor-table-container">
-                <table class="monitor-table">
-                    <thead>
-                        <tr>
-                            <th>Application</th>
-                            <th>Status</th>
-                            <th>Node</th>
-                            <th>CPU</th>
-                            <th>RAM</th>
-                            <th>Disk</th>
-                            <th>IP Address</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${state.deployedApps.map(app => `
-                            <tr>
-                                <td>
-                                    <div class="table-app-name">
-                                        <span class="table-app-icon">${app.icon || '📦'}</span>
-                                        <strong>${app.name || app.hostname}</strong>
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="status-badge ${app.status === 'running' ? 'running' : 'stopped'}">
-                                        <span class="status-dot"></span>
-                                        ${app.status || 'unknown'}
-                                    </span>
-                                </td>
-                                <td><code>${app.node || 'N/A'}</code></td>
-                                <td>${app.cores || app.cpu || 'N/A'}</td>
-                                <td>${app.memory ? (app.memory + ' MB') : 'N/A'}</td>
-                                <td>${app.disk || 'N/A'} GB</td>
-                                <td><code>${app.ip || 'N/A'}</code></td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        ` : `
-        <div class="empty-state">
-            <div class="empty-icon">
-                <i data-lucide="activity" style="width: 48px; height: 48px;"></i>
-            </div>
-            <h3 class="empty-title">No applications to monitor</h3>
-            <p class="empty-message">Deploy applications to see monitoring data here.</p>
-            <button class="btn btn-primary" onclick="showView('catalog')">Browse Catalog</button>
-        </div>
-        `}
-    `;
-
-    view.innerHTML = content;
-
-    // Initialize icons
-    initLucideIcons();
-}
+// DELETED: renderMonitoringView() - Fully migrated to js/views/MonitoringView.js (233 lines)
+//          Router handles component lifecycle directly. This 163-line wrapper is obsolete.
 
 async function renderSettingsView() {
     const view = document.getElementById('settingsView');
@@ -2601,21 +2071,25 @@ function hideDeletionProgress() {
     }
 }
 
+// ⚠️ DEPRECATED: Moved to js/utils/formatters.js
 function formatBytes(bytes) {
-    if (bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+    // Fallback stub - real implementation in js/utils/formatters.js
+    return window.Formatters?.formatBytes(bytes) || '0 B';
 }
 
+// ⚠️ DEPRECATED: Moved to js/utils/ui.js
 function showLoading(text = 'Loading...') {
-    document.getElementById('loadingText').textContent = text;
-    document.getElementById('loadingOverlay').classList.add('show');
+    // Fallback stub - real implementation in js/utils/ui.js
+    if (window.UI?.showLoading) {
+        window.UI.showLoading(text);
+    }
 }
 
 function hideLoading() {
-    document.getElementById('loadingOverlay').classList.remove('show');
+    // Fallback stub - real implementation in js/utils/ui.js
+    if (window.UI?.hideLoading) {
+        window.UI.hideLoading();
+    }
 }
 
 // showNotification is now provided by /js/notifications-global.js
@@ -2968,66 +2442,12 @@ function showAppLogs(appId, hostname) {
 }
 
 
-// Settings Page Helpers
-// Proximity Mode Toggle Handler
-function handleModeToggle(checkbox) {
-    const newMode = checkbox.checked ? 'PRO' : 'AUTO';
+// DELETED: Settings Page Helper Functions (635 lines) - Fully migrated to js/utils/settingsHelpers.js
+// Functions deleted: handleModeToggle, setupSettingsTabs, setupSettingsForms, setupAudioSettings, 
+//                    saveProxmoxSettings, testProxmoxConnection, saveNetworkSettings, saveResourceSettings
+// These functions are imported by SettingsView.js and exposed globally via main.js where needed
 
-    // Use the modular UI utility
-    if (window.UI && window.UI.switchProximityMode) {
-        window.UI.switchProximityMode(newMode);
-    } else {
-        // Fallback if modular system not loaded
-        state.proximityMode = newMode;
-        localStorage.setItem('proximityMode', newMode);
-        document.body.classList.toggle('pro-mode', newMode === 'PRO');
-    }
-
-    // Update slider text
-    const slider = checkbox.nextElementSibling;
-    if (slider) {
-        slider.textContent = newMode;
-    }
-
-    // Update badge
-    const badge = document.getElementById('current-mode-badge');
-    if (badge) {
-        badge.className = `mode-badge ${newMode.toLowerCase()}`;
-        badge.innerHTML = `
-            <i data-lucide="${newMode === 'AUTO' ? 'zap' : 'wrench'}"></i>
-            ${newMode}
-        `;
-        initLucideIcons();
-    }
-
-    // Update mode cards
-    const autoCard = document.getElementById('auto-mode-card');
-    const proCard = document.getElementById('pro-mode-card');
-    if (autoCard && proCard) {
-        autoCard.classList.toggle('active', newMode === 'AUTO');
-        proCard.classList.toggle('active', newMode === 'PRO');
-    }
-
-    // Show notification
-    showNotification(`✓ Switched to ${newMode} mode`, 'success');
-
-    console.log(`🎯 Mode toggled to: ${newMode}`);
-}
-
-function setupSettingsTabs() {
-    // Add click event listeners to all settings tabs
-    const tabs = document.querySelectorAll('.settings-tab[data-tab]');
-    tabs.forEach(tab => {
-        tab.addEventListener('click', (e) => {
-            e.preventDefault();
-            const tabName = tab.getAttribute('data-tab');
-            // Use the activateSettingsTab function from submenu.js
-            if (typeof activateSettingsTab === 'function') {
-                activateSettingsTab(tabName);
-            }
-        });
-    });
-}
+// Infrastructure Page Helpers
 
 function setupSettingsForms() {
     // Initialize validation for all settings forms
@@ -3605,240 +3025,26 @@ async function saveResourceSettings(formData) {
 }
 
 // Infrastructure Page Helpers
-async function refreshInfrastructure() {
-    showNotification('Refreshing infrastructure status...', 'info');
-    await renderNodesView();
-    showNotification('Infrastructure status refreshed', 'success');
-}
-
-async function restartAppliance() {
-    const statusDiv = document.getElementById('infrastructureStatus');
-    const token = Auth.getToken();
-
-    if (!token) {
-        statusDiv.innerHTML = `
-            <div class="alert error">
-                <span class="alert-icon">❌</span>
-                <div class="alert-content">
-                    <div class="alert-message">Not authenticated. Please log in.</div>
-                </div>
-            </div>
-        `;
-        return;
-    }
-
-    if (!confirm('Restart the Network Appliance? This will temporarily interrupt network services for all containers.')) {
-        return;
-    }
-
-    try {
-        showLoading('Restarting network appliance...');
-
-        const response = await authFetch(`${API_BASE}/system/infrastructure/appliance/restart`, {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-
-        const result = await response.json();
-        hideLoading();
-
-        if (response.ok) {
-            statusDiv.innerHTML = `
-                <div class="alert success">
-                    <span class="alert-icon">✅</span>
-                    <div class="alert-content">
-                        <div class="alert-title">Appliance Restarted</div>
-                        <div class="alert-message">${result.message || 'Network appliance restarted successfully'}</div>
-                    </div>
-                </div>
-            `;
-            showNotification('Network appliance restarted successfully', 'success');
-
-            // Refresh infrastructure view after delay
-            setTimeout(async () => {
-                await refreshInfrastructure();
-            }, 5000);
-        } else {
-            statusDiv.innerHTML = `
-                <div class="alert error">
-                    <span class="alert-icon">❌</span>
-                    <div class="alert-content">
-                        <div class="alert-title">Restart Failed</div>
-                        <div class="alert-message">${result.detail || result.error || 'Failed to restart appliance'}</div>
-                    </div>
-                </div>
-            `;
-            showNotification('Failed to restart appliance', 'error');
-        }
-    } catch (error) {
-        hideLoading();
-        console.error('Error restarting appliance:', error);
-        statusDiv.innerHTML = `
-            <div class="alert error">
-                <span class="alert-icon">❌</span>
-                <div class="alert-content">
-                    <div class="alert-message">Network error: ${error.message}</div>
-                </div>
-            </div>
-        `;
-        showNotification('Failed to restart appliance', 'error');
-    }
-}
-
-async function viewApplianceLogs() {
-    const token = Auth.getToken();
-
-    if (!token) {
-        showNotification('Not authenticated', 'error');
-        return;
-    }
-
-    try {
-        showLoading('Fetching appliance logs...');
-
-        const response = await authFetch(`${API_BASE}/system/infrastructure/appliance/logs?lines=50`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-
-        const result = await response.json();
-        hideLoading();
-
-        if (response.ok && result.data) {
-            const logs = result.data.logs;
-
-            // Display logs in a modal
-            const modalBody = document.getElementById('modalBody');
-            const modalTitle = document.getElementById('modalTitle');
-
-            modalTitle.textContent = 'Network Appliance Logs';
-            modalBody.innerHTML = `
-                <div class="logs-viewer">
-                    <div class="log-section">
-                        <h4 class="log-section-title">System Logs</h4>
-                        <pre class="log-output">${logs.system || 'No system logs available'}</pre>
-                    </div>
-
-                    <div class="log-section">
-                        <h4 class="log-section-title">DNSMASQ Status</h4>
-                        <pre class="log-output">${logs.dnsmasq_status || 'No dnsmasq status available'}</pre>
-                    </div>
-
-                    <div class="log-section">
-                        <h4 class="log-section-title">Network Status</h4>
-                        <pre class="log-output">${logs.network_status || 'No network status available'}</pre>
-                    </div>
-
-                    <div class="log-section">
-                        <h4 class="log-section-title">NAT Rules</h4>
-                        <pre class="log-output">${logs.nat_rules || 'No NAT rules available'}</pre>
-                    </div>
-                </div>
-
-                <div class="modal-actions" style="margin-top: 1.5rem; display: flex; justify-content: flex-end;">
-                    <button class="btn btn-secondary" onclick="closeModal()">Close</button>
-                </div>
-            `;
-
-            document.getElementById('deployModal').classList.add('show');
-        } else {
-            showNotification('Failed to fetch logs', 'error');
-        }
-    } catch (error) {
-        hideLoading();
-        console.error('Error fetching logs:', error);
-        showNotification('Failed to fetch logs', 'error');
-    }
-}
-
-async function testNAT() {
-    const statusDiv = document.getElementById('infrastructureStatus');
-    const token = Auth.getToken();
-
-    if (!token) {
-        statusDiv.innerHTML = `
-            <div class="alert error">
-                <span class="alert-icon">❌</span>
-                <div class="alert-content">
-                    <div class="alert-message">Not authenticated. Please log in.</div>
-                </div>
-            </div>
-        `;
-        return;
-    }
-
-    try {
-        showLoading('Testing NAT connectivity...');
-
-        const response = await authFetch(`${API_BASE}/system/infrastructure/test-nat`, {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-
-        const result = await response.json();
-        hideLoading();
-
-        if (response.ok && result.data) {
-            const { success, tests } = result.data;
-
-            const testResults = Object.entries(tests).map(([name, test]) => `
-                <div class="test-result ${test.passed ? 'passed' : 'failed'}">
-                    <div class="test-name">
-                        ${test.passed ? '✅' : '❌'}
-                        ${name.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-                    </div>
-                </div>
-            `).join('');
-
-            statusDiv.innerHTML = `
-                <div class="alert ${success ? 'success' : 'error'}">
-                    <span class="alert-icon">${success ? '✅' : '❌'}</span>
-                    <div class="alert-content">
-                        <div class="alert-title">NAT Connectivity Test ${success ? 'Passed' : 'Failed'}</div>
-                        <div class="test-results" style="margin-top: 0.75rem;">
-                            ${testResults}
-                        </div>
-                    </div>
-                </div>
-            `;
-            showNotification(`NAT test ${success ? 'passed' : 'failed'}`, success ? 'success' : 'error');
-        } else {
-            statusDiv.innerHTML = `
-                <div class="alert error">
-                    <span class="alert-icon">❌</span>
-                    <div class="alert-content">
-                        <div class="alert-title">Test Failed</div>
-                        <div class="alert-message">${result.detail || result.error || 'Failed to run NAT test'}</div>
-                    </div>
-                </div>
-            `;
-            showNotification('NAT test failed', 'error');
-        }
-    } catch (error) {
-        hideLoading();
-        console.error('Error testing NAT:', error);
-        statusDiv.innerHTML = `
-            <div class="alert error">
-                <span class="alert-icon">❌</span>
-                <div class="alert-content">
-                    <div class="alert-message">Network error: ${error.message}</div>
-                </div>
-            </div>
-        `;
-        showNotification('NAT test failed', 'error');
-    }
-}
+// DELETED: Infrastructure management functions (223 lines) - Migrated to js/utils/settingsHelpers.js
+// refreshInfrastructure(), restartAppliance(), viewApplianceLogs(), testNAT()
+// Now exposed globally via main.js (window.refreshInfrastructure, window.restartAppliance, etc.)
 
 // Event Listeners
+// ⚠️ DEPRECATED: Moved to js/utils/ui.js
 // User Menu Toggle
 function toggleUserMenu() {
-    const menu = document.getElementById('userMenu');
-    const profileBtn = document.getElementById('userProfileBtn');
-
-    menu.classList.toggle('active');
-    profileBtn.classList.toggle('active');
-
-    // Reinitialize Lucide icons
-    initLucideIcons();
+    // Fallback stub - real implementation in js/utils/ui.js
+    if (window.UI?.toggleUserMenu) {
+        window.UI.toggleUserMenu();
+    } else {
+        // Legacy fallback
+        const menu = document.getElementById('userMenu');
+        const profileBtn = document.getElementById('userProfileBtn');
+        if (menu && profileBtn) {
+            menu.classList.toggle('active');
+            profileBtn.classList.toggle('active');
+        }
+    }
 }
 
 // Close user menu when clicking outside
@@ -4287,14 +3493,26 @@ async function showAppVolumes(appId) {
 }
 
 /**
+ * ⚠️ DEPRECATED: Moved to js/utils/clipboard.js
  * Copy text to clipboard
  */
 function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(() => {
-        showNotification('Copied to clipboard!', 'success');
-    }).catch(err => {
-        showNotification('Failed to copy', 'error');
-        console.error('Clipboard error:', err);
-    });
+    // Fallback stub - real implementation in js/utils/clipboard.js
+    if (window.Clipboard?.copyToClipboard) {
+        window.Clipboard.copyToClipboard(text);
+    } else {
+        // Legacy fallback
+        navigator.clipboard.writeText(text).then(() => {
+            if (window.showNotification) {
+                window.showNotification('Copied to clipboard!', 'success');
+            }
+        }).catch(err => {
+            if (window.showNotification) {
+                window.showNotification('Failed to copy', 'error');
+            }
+            console.error('Clipboard error:', err);
+        });
+    }
 }
+
 

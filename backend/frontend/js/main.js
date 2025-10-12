@@ -12,6 +12,11 @@ import * as DOM from './utils/dom.js';
 import * as Notifications from './utils/notifications.js';
 import * as Auth from './utils/auth.js';
 import * as UI from './utils/ui.js';
+import * as Formatters from './utils/formatters.js';
+import * as Icons from './utils/icons.js';
+import * as Clipboard from './utils/clipboard.js';
+import { initSidebarToggle } from './utils/sidebar.js';
+import { refreshInfrastructure, restartAppliance, viewApplianceLogs, testNAT } from './utils/settingsHelpers.js';
 import { SoundService } from './services/soundService.js';
 import { handleOnboarding } from './onboarding.js';
 import { initTooltips, refreshTooltips } from './utils/tooltips.js';
@@ -239,23 +244,27 @@ async function initializeApp() {
     AppState.initProximityMode();
     console.log(`🎯 Mode: ${AppState.getProximityMode()}`);
 
-    // STEP 3: Initialize router and views
+    // STEP 3: Initialize sidebar toggle
+    initSidebarToggle();
+    console.log('✅ Sidebar initialized');
+
+    // STEP 4: Initialize router and views
     initRouter();
 
-    // STEP 4: Subscribe render function to state changes
+    // STEP 5: Subscribe render function to state changes
     AppState.subscribe(render);
     console.log('✅ Render function subscribed to state changes');
 
-    // STEP 5: Initialize event delegation (NEW!)
+    // STEP 6: Initialize event delegation (NEW!)
     initEventDelegation();
 
-    // STEP 6: Initialize authentication
+    // STEP 7: Initialize authentication
     const isAuthenticated = await initAuth();
 
-    // STEP 7: Initialize tooltips
+    // STEP 8: Initialize tooltips
     initTooltips();
 
-    // STEP 8: Initial render
+    // STEP 9: Initial render
     if (isAuthenticated) {
         // Set initial view to dashboard
         AppState.setState('currentView', 'dashboard');
@@ -276,6 +285,7 @@ if (document.readyState === 'loading') {
 // ============================================================================
 // TODO: Remove these once all legacy onclick attributes are removed from HTML
 
+// Navigation functions
 window.showView = (viewName) => router.navigateTo(viewName);
 window.navigateToApps = () => router.navigateTo('apps');
 window.navigateToCatalog = () => router.navigateTo('catalog');
@@ -307,5 +317,28 @@ window.closeCanvas = closeCanvas;
 window.controlApp = controlApp;
 window.deleteApp = deleteApp;
 window.restartApp = restartApp;
+
+// Utility functions (NEW!)
+window.initLucideIcons = Icons.initLucideIcons;
+window.getAppIcon = Icons.getAppIcon;
+window.formatDate = Formatters.formatDate;
+window.formatBytes = Formatters.formatBytes;
+window.formatSize = Formatters.formatSize;
+window.formatUptime = Formatters.formatUptime;
+window.showLoading = UI.showLoading;
+window.hideLoading = UI.hideLoading;
+window.copyToClipboard = Clipboard.copyToClipboard;
+
+// Infrastructure management functions (called from NodesView onclick handlers)
+window.refreshInfrastructure = refreshInfrastructure;
+window.restartAppliance = restartAppliance;
+window.viewApplianceLogs = viewApplianceLogs;
+window.testNAT = testNAT;
+
+// Expose modules for advanced usage
+window.Formatters = Formatters;
+window.Icons = Icons;
+window.UI = UI;
+window.Clipboard = Clipboard;
 
 console.log('⚠️  Legacy window functions exposed for backward compatibility');

@@ -12,7 +12,7 @@
  * @module views/SettingsView
  */
 
-import { View } from '../core/View.js';
+import { Component } from '../core/Component.js';
 import { getState } from '../state/appState.js';
 import { authFetch, API_BASE } from '../services/api.js';
 import { showLoading, hideLoading } from '../utils/ui.js';
@@ -24,25 +24,25 @@ import {
     handleModeToggle 
 } from '../utils/settingsHelpers.js';
 
-export class SettingsView extends View {
+export class SettingsView extends Component {
     constructor() {
-        super('settingsView');
+        super();
         console.log('🔧 SettingsView constructor called');
     }
 
     /**
      * Called when the view is mounted/navigated to
      */
-    async mount() {
+    async mount(container, state) {
         console.group('🔧 SettingsView.mount()');
-        console.log('Container element:', this.container);
+        console.log('Container element:', container);
         
         try {
-            await this.renderSettingsView();
+            await this.renderSettingsView(container, state);
         } catch (error) {
             console.error('❌ Error in SettingsView.mount():', error);
-            if (this.container) {
-                this.container.innerHTML = `
+            if (container) {
+                container.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-state-icon">❌</div>
                         <h2>Error Loading Settings</h2>
@@ -53,20 +53,23 @@ export class SettingsView extends View {
         } finally {
             console.groupEnd();
         }
+        
+        // Call parent mount and return unmount function
+        return super.mount(container, state);
     }
 
     /**
      * Render the settings view with all panels
      */
-    async renderSettingsView() {
+    async renderSettingsView(container, state) {
         console.log('🎨 Rendering Settings View');
         
-        if (!this.container) {
+        if (!container) {
             console.error('No container element found');
             return;
         }
 
-        this.container.classList.remove('has-sub-nav');
+        container.classList.remove('has-sub-nav');
 
         // Load settings data
         showLoading('Loading settings...');
@@ -124,10 +127,10 @@ export class SettingsView extends View {
         const state = getState();
         const content = this.generateSettingsHTML(proxmoxSettings, networkSettings, resourceSettings, state);
 
-        this.container.innerHTML = content;
-        this.container.classList.add('has-sub-nav');
-        this.container.classList.remove('hidden');
-        this.container.style.display = 'block';
+        container.innerHTML = content;
+        container.classList.add('has-sub-nav');
+        container.classList.remove('hidden');
+        container.style.display = 'block';
 
         // Initialize icons
         initLucideIcons();
@@ -468,9 +471,10 @@ export class SettingsView extends View {
         delete window.testProxmoxConnection;
         delete window.handleModeToggle;
         
-        if (this.container) {
-            this.container.classList.add('hidden');
-            this.container.style.display = 'none';
-        }
+        // Call parent unmount
+        super.unmount();
     }
 }
+
+// Create singleton instance
+export const settingsView = new SettingsView();

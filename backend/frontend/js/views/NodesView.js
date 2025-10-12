@@ -10,7 +10,7 @@
 import { Component } from '../core/Component.js';
 import { authFetch, API_BASE } from '../services/api.js';
 import { showLoading, hideLoading } from '../utils/ui.js';
-import { formatBytes, formatUptime } from '../utils/formatting.js';
+import { formatBytes, formatUptime } from '../utils/formatters.js';
 import { getState } from '../state/appState.js';
 
 export class NodesView extends Component {
