@@ -404,9 +404,10 @@ def admin_authenticated_page(page: Page, base_url: str) -> Generator[Page, None,
 # ============================================================================
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
-def pytest_runtest_makereport(item, call):
+def pytest_runtest_makereport(item, _call):  # noqa: ARG001
     """
     Hook to capture test failure status for screenshot capture.
+    Note: _call parameter required by pytest hook signature but not used.
     """
     outcome = yield
     rep = outcome.get_result()
