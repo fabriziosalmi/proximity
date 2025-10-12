@@ -8,11 +8,13 @@
  */
 
 import { Component } from '../core/Component.js';
+import { getAppIcon } from '../utils/ui-helpers.js';
 
 export class DashboardView extends Component {
     constructor() {
         super();
         this._refreshInterval = null;
+        this._state = null;
     }
 
     /**
@@ -24,17 +26,20 @@ export class DashboardView extends Component {
     mount(container, state) {
         console.log('✅ Mounting Dashboard View');
 
+        // Store state reference for refresh interval
+        this._state = state;
+
         // Dashboard HTML is already in index.html (hero section)
         // We just update the dynamic parts
 
         // MOVED FROM app.js: Update hero stats and recent apps
-        this.updateHeroStats();
-        this.updateRecentApps();
+        this.updateHeroStats(state);
+        this.updateRecentApps(state);
 
         // Optional: Auto-refresh dashboard every 30 seconds
         this._refreshInterval = this.trackInterval(() => {
-            this.updateHeroStats();
-            this.updateRecentApps();
+            this.updateHeroStats(this._state);
+            this.updateRecentApps(this._state);
         }, 30000);
 
         // Call parent mount
@@ -44,25 +49,26 @@ export class DashboardView extends Component {
     /**
      * MOVED FROM app.js (line 406): updateHeroStats()
      * Update hero section stats (apps count, nodes count, containers count)
+     * @param {Object} state - Application state
      */
-    updateHeroStats() {
+    updateHeroStats(state) {
         // Update hero section stats
         const heroAppsCount = document.getElementById('heroAppsCount');
         const heroNodesCount = document.getElementById('heroNodesCount');
         const heroContainersCount = document.getElementById('heroContainersCount');
 
         if (heroAppsCount) {
-            const totalApps = window.state.deployedApps.length;
+            const totalApps = state.deployedApps.length;
             heroAppsCount.textContent = totalApps;
         }
 
         if (heroNodesCount) {
-            const activeNodes = window.state.nodes.filter(n => n.status === 'online').length;
+            const activeNodes = state.nodes.filter(n => n.status === 'online').length;
             heroNodesCount.textContent = activeNodes;
         }
 
         if (heroContainersCount) {
-            const runningContainers = window.state.deployedApps.filter(a => a.status === 'running').length;
+            const runningContainers = state.deployedApps.filter(a => a.status === 'running').length;
             heroContainersCount.textContent = runningContainers;
         }
     }
@@ -70,8 +76,9 @@ export class DashboardView extends Component {
     /**
      * MOVED FROM app.js (line 457): updateRecentApps()
      * Update quick apps grid in hero section
+     * @param {Object} state - Application state
      */
-    updateRecentApps() {
+    updateRecentApps(state) {
         console.log('📱 updateRecentApps() called');
         const container = document.getElementById('quickApps');
 
@@ -80,9 +87,9 @@ export class DashboardView extends Component {
             return;
         }
 
-        console.log(`✓ quickApps container found, deployedApps count: ${window.state.deployedApps.length}`);
+        console.log(`✓ quickApps container found, deployedApps count: ${state.deployedApps.length}`);
 
-        if (window.state.deployedApps.length === 0) {
+        if (state.deployedApps.length === 0) {
             container.innerHTML = `
                 <div class="empty-state">
                     <div class="empty-icon">
@@ -100,12 +107,12 @@ export class DashboardView extends Component {
         }
 
         // Show all apps as quick access icons
-        container.innerHTML = window.state.deployedApps.map(app => {
+        container.innerHTML = state.deployedApps.map(app => {
             const isRunning = app.status === 'running';
             const appUrl = (app.url && app.url !== 'None' && app.url !== 'null') ? app.url : null;
 
-            // Get icon - uses global getAppIcon function
-            let icon = window.getAppIcon ? window.getAppIcon(app.name || app.id) : '📦';
+            // Get icon - uses imported getAppIcon utility
+            let icon = getAppIcon(app.name || app.id);
             if (app.icon) {
                 const escapedFallback = typeof icon === 'string' ? icon.replace(/'/g, "&#39;").replace(/"/g, "&quot;") : icon;
                 icon = `<img

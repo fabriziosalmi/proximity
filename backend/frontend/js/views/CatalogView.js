@@ -8,6 +8,7 @@
  */
 
 import { Component } from '../core/Component.js';
+import { renderAppCard } from '../components/app-card.js';
 
 export class CatalogView extends Component {
     constructor() {
@@ -24,10 +25,10 @@ export class CatalogView extends Component {
         console.log('✅ Mounting Catalog View');
 
         // MOVED FROM app.js: renderCatalogView() function
-        this.renderCatalogView(container);
+        this.renderCatalogView(container, state);
 
         // Track click events using event delegation
-        this.trackListener(container, 'click', (e) => this.handleCatalogClick(e));
+        this.trackListener(container, 'click', (e) => this.handleCatalogClick(e, state));
 
         // Call parent mount
         return super.mount(container, state);
@@ -36,17 +37,19 @@ export class CatalogView extends Component {
     /**
      * MOVED FROM app.js (line 1246): renderCatalogView()
      * Render catalog view HTML structure
+     * @param {HTMLElement} container - Container element
+     * @param {Object} state - Application state
      */
-    renderCatalogView(container) {
+    renderCatalogView(container, state) {
         console.log('🏪 renderCatalogView() called');
         container.classList.remove('has-sub-nav'); // Remove old sub-nav class
 
-        if (!window.state.catalog || !window.state.catalog.items) {
+        if (!state.catalog || !state.catalog.items) {
             console.log('⚠️  Catalog data not loaded yet');
             container.innerHTML = '<div class="loading-spinner"></div>';
             return;
         }
-        console.log(`✓ Rendering ${window.state.catalog.items.length} catalog items`);
+        console.log(`✓ Rendering ${state.catalog.items.length} catalog items`);
 
         const content = `
             <div class="search-bar-container">
@@ -71,13 +74,10 @@ export class CatalogView extends Component {
 
         container.innerHTML = content;
 
-        // Render catalog app cards using template cloning (EXISTING PATTERN)
+        // Render catalog app cards using imported renderAppCard function
         const grid = document.getElementById('catalogGrid');
-        for (const app of window.state.catalog.items) {
-            // Use global renderAppCard function for now
-            if (typeof window.renderAppCard === 'function') {
-                window.renderAppCard(app, grid, false);
-            }
+        for (const app of state.catalog.items) {
+            renderAppCard(app, grid, false);
         }
 
         // Initialize Lucide icons
@@ -91,8 +91,9 @@ export class CatalogView extends Component {
     /**
      * Handle catalog clicks (event delegation)
      * @param {Event} e - Click event
+     * @param {Object} state - Application state
      */
-    handleCatalogClick(e) {
+    handleCatalogClick(e, state) {
         const deployBtn = e.target.closest('[data-action="deploy"]');
         if (!deployBtn) return;
 
@@ -100,7 +101,7 @@ export class CatalogView extends Component {
         if (!catalogCard) return;
 
         const catalogId = catalogCard.getAttribute('data-catalog-id');
-        const app = window.state.catalog.items.find(a => a.id === catalogId);
+        const app = state.catalog.items.find(a => a.id === catalogId);
 
         if (!app) {
             console.error('Catalog app not found:', catalogId);
