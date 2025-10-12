@@ -59,6 +59,12 @@ function initTopNavRack() {
         });
     }
     
+    // Initialize Lucide icons in the navigation bar
+    if (window.lucide) {
+        window.lucide.createIcons();
+        console.log('✓ Top Navigation Rack icons initialized');
+    }
+    
     console.log('✓ Top Navigation Rack initialized');
 }
 

@@ -35,17 +35,41 @@ export class AppsView extends Component {
         // CRITICAL FIX: Reload deployed apps from API before rendering
         // Don't update global state to avoid re-render during mount
         console.log('🔄 Reloading deployed apps from API...');
-        const deployedApps = await loadDeployedApps(false);  // Don't trigger setState
         
-        // Update local state copy with fresh data
-        state.deployedApps = deployedApps;
-        this._state = state;
+        try {
+            const deployedApps = await loadDeployedApps(false);  // Don't trigger setState
+            
+            // Update local state copy with fresh data
+            state.deployedApps = deployedApps;
+            this._state = state;
 
-        // MOVED FROM app.js: renderAppsView() function
-        this.renderAppsView(container, state);
+            // MOVED FROM app.js: renderAppsView() function
+            this.renderAppsView(container, state);
 
-        // MOVED FROM app.js: Start CPU polling using imported function
-        this._cpuPollingInterval = startCPUPolling(state);
+            // MOVED FROM app.js: Start CPU polling using imported function
+            this._cpuPollingInterval = startCPUPolling(state);
+        } catch (error) {
+            console.error('❌ Failed to load apps:', error);
+            
+            // Show error state
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">⚠️</div>
+                    <h2>Cannot Load Applications</h2>
+                    <p>Unable to connect to the backend server.</p>
+                    <p class="text-muted">Please make sure the backend is running.</p>
+                    <button class="btn btn-primary" onclick="window.location.reload()">
+                        <i data-lucide="refresh-cw"></i>
+                        Retry
+                    </button>
+                </div>
+            `;
+            
+            // Initialize icons for the retry button
+            if (window.lucide) {
+                window.lucide.createIcons();
+            }
+        }
 
         // Call parent mount
         return super.mount(container, state);

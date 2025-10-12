@@ -78,8 +78,9 @@ export async function loadDeployedApps(updateState = true) {
     try {
         const response = await authFetch(`${API_BASE}/apps`);
         if (!response.ok) {
-            console.error(`❌ Failed to load apps: ${response.status} ${response.statusText}`);
-            throw new Error('Failed to load apps');
+            const errorText = await response.text();
+            console.error(`❌ Failed to load apps: ${response.status} ${response.statusText}`, errorText);
+            throw new Error(`Failed to load apps: ${response.status} ${response.statusText}`);
         }
         const deployedApps = await response.json();
         
@@ -96,6 +97,15 @@ export async function loadDeployedApps(updateState = true) {
         return deployedApps;
     } catch (error) {
         console.error('❌ Error loading deployed apps:', error);
+        console.error('   Error type:', error.constructor.name);
+        console.error('   Error message:', error.message);
+        
+        // Check if it's a network error (no connection)
+        if (error instanceof TypeError && error.message.includes('fetch')) {
+            console.error('   ⚠️  Network error: Cannot connect to backend server');
+            console.error('   ⚠️  Make sure the backend is running on', API_BASE);
+        }
+        
         if (updateState) {
             setState('deployedApps', []);
         }

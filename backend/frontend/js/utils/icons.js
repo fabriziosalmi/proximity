@@ -13,7 +13,23 @@
  */
 export function initLucideIcons() {
     if (typeof lucide !== 'undefined') {
-        setTimeout(() => lucide.createIcons(), 0);
+        console.log('🎨 Initializing Lucide icons...');
+        try {
+            // Force immediate execution
+            lucide.createIcons();
+            
+            // Also schedule for next frame to handle any race conditions
+            setTimeout(() => {
+                lucide.createIcons();
+                console.log('✅ Lucide icons initialized (delayed)');
+            }, 100);
+            
+            console.log('✅ Lucide icons initialized (immediate)');
+        } catch (error) {
+            console.error('❌ Error initializing Lucide icons:', error);
+        }
+    } else {
+        console.warn('⚠️  Lucide library not available');
     }
 }
 

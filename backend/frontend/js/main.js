@@ -230,6 +230,32 @@ function initEventDelegation() {
 }
 
 /**
+ * Wait for Lucide library to be loaded
+ * @returns {Promise<void>}
+ */
+function waitForLucide() {
+    return new Promise((resolve) => {
+        if (typeof lucide !== 'undefined') {
+            resolve();
+        } else {
+            const checkInterval = setInterval(() => {
+                if (typeof lucide !== 'undefined') {
+                    clearInterval(checkInterval);
+                    resolve();
+                }
+            }, 50);
+            
+            // Timeout after 5 seconds
+            setTimeout(() => {
+                clearInterval(checkInterval);
+                console.warn('⚠️  Lucide library not loaded after 5 seconds');
+                resolve();
+            }, 5000);
+        }
+    });
+}
+
+/**
  * Main application initialization
  * This is the GOD orchestrator that bootstraps everything
  */
@@ -248,6 +274,12 @@ async function initializeApp() {
     initSidebarToggle();
     console.log('✅ Sidebar initialized');
 
+    // STEP 3.5: Initialize Top Navigation Rack
+    if (typeof initTopNavRack !== 'undefined') {
+        initTopNavRack();
+        console.log('✅ Top Navigation Rack initialized');
+    }
+
     // STEP 4: Initialize router and views
     initRouter();
 
@@ -264,7 +296,9 @@ async function initializeApp() {
     // STEP 8: Initialize tooltips
     initTooltips();
 
-    // STEP 9: Initialize Lucide icons
+    // STEP 9: Initialize Lucide icons (CRITICAL)
+    // Wait for Lucide library to be fully loaded before initializing
+    await waitForLucide();
     Icons.initLucideIcons();
     console.log('✅ Lucide icons initialized');
 

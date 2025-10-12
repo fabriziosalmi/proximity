@@ -120,12 +120,12 @@ export class SettingsView extends Component {
             }
         } catch (error) {
             console.error('Error loading settings:', error);
-        } finally {
+        } finally{
             hideLoading();
         }
 
-        const state = getState();
-        const content = this.generateSettingsHTML(proxmoxSettings, networkSettings, resourceSettings, state);
+        const appState = getState();
+        const content = this.generateSettingsHTML(proxmoxSettings, networkSettings, resourceSettings, appState);
 
         container.innerHTML = content;
         container.classList.add('has-sub-nav');

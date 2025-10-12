@@ -117,7 +117,29 @@ export class Router {
             console.log('✅ Navigation complete');
         } catch (error) {
             console.error(`❌ Error mounting view '${viewName}':`, error);
-            console.error('Stack:', error.stack);
+            console.error('   Error type:', error.constructor.name);
+            console.error('   Error message:', error.message);
+            
+            // Show user-friendly error message in the container
+            if (container) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <h2>Error Loading View</h2>
+                        <p>${error.message || 'An unexpected error occurred'}</p>
+                        <button class="btn btn-primary" onclick="window.location.reload()">
+                            <i data-lucide="refresh-cw"></i>
+                            Reload Page
+                        </button>
+                    </div>
+                `;
+                
+                // Initialize icons
+                if (window.lucide) {
+                    window.lucide.createIcons();
+                }
+            }
+            
             this._currentUnmountFn = null;
         } finally {
             console.groupEnd();
@@ -126,7 +148,10 @@ export class Router {
         // Step 7: Update navigation UI
         this._updateNavigationUI(viewName);
 
-        // Step 8: Trigger callbacks
+        // Step 8: Initialize Lucide icons (CRITICAL for icon rendering)
+        this._initializeIcons();
+
+        // Step 9: Trigger callbacks
         this._triggerViewChangeCallbacks(viewName, state);
     }
 
@@ -159,6 +184,26 @@ export class Router {
                 item.classList.remove('active');
             }
         });
+    }
+
+    /**
+     * Initialize Lucide icons after navigation
+     * @private
+     */
+    _initializeIcons() {
+        if (typeof lucide !== 'undefined') {
+            try {
+                // Use requestAnimationFrame to ensure DOM is fully updated
+                requestAnimationFrame(() => {
+                    lucide.createIcons();
+                    console.log('✅ Lucide icons initialized after navigation');
+                });
+            } catch (error) {
+                console.error('❌ Error initializing Lucide icons:', error);
+            }
+        } else {
+            console.warn('⚠️  Lucide library not loaded');
+        }
     }
 
     /**
