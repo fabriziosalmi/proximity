@@ -357,9 +357,10 @@ def test_password_field_masking(page: Page):
     
     Steps:
     1. Navigate to login modal
-    2. Type password
-    3. Verify input type is 'password'
-    4. Verify characters are masked
+    2. Switch to register mode
+    3. Type password
+    4. Verify input type is 'password'
+    5. Verify characters are masked
     
     Expected: Password field uses type='password',
               input is not visible as plain text.
@@ -369,7 +370,8 @@ def test_password_field_masking(page: Page):
     
     # Act
     login_page.wait_for_auth_modal()
-    # Use register mode password field (default mode on load)
+    # Switch to register mode to access register password field
+    login_page.switch_to_register_mode()
     login_page.fill_password("TestPassword123!", mode="register")
     
     # Assert - Password field is masked

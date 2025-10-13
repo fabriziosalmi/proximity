@@ -160,24 +160,11 @@ class DashboardPage(BasePage):
         """Perform logout action."""
         logger.info("Logging out")
         
-        # The logout button is inside a dropdown menu, so we need to open it first
-        # Use JavaScript to trigger the menu toggle (workaround for timing issues)
-        logger.info("Opening user menu dropdown using JavaScript")
-        self.page.evaluate("""
-            const menu = document.getElementById('userMenu');
-            const btn = document.getElementById('userProfileBtn');
-            if (menu && btn) {
-                menu.classList.add('active');
-                btn.classList.add('active');
-            }
-        """)
-
-        # Wait for the logout link to become visible
-        logger.info("Waiting for logout button to appear")
-        logout_link = self.page.locator(".user-menu-item.logout")
-        logout_link.wait_for(state="visible", timeout=5000)
-        logger.info("Logout button is visible, clicking it")
-        logout_link.click()
+        # Click the logout button (it's a simple button in the top navigation)
+        logger.info("Clicking logout button")
+        logout_button = self.page.locator("button.logout-btn[data-action='logout']")
+        logout_button.wait_for(state="visible", timeout=5000)
+        logout_button.click()
         
         logger.info("Logout action completed")
     

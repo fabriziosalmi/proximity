@@ -384,17 +384,35 @@ class LoginPage(BasePage):
         logger.info("Getting pre-filled username from login form")
         return self.get_value(self.LOGIN_USERNAME_INPUT)
     
-    def assert_username_prefilled(self, expected_username: str) -> None:
+    def assert_username_prefilled(self, expected_username: str, timeout: int = 5000) -> None:
         """
         Assert that the login username field is pre-filled with expected value.
+        Uses polling to wait for sessionStorage to be populated.
         
         Args:
             expected_username: Expected username value
+            timeout: Maximum time to wait in milliseconds (default: 5000ms)
         """
         logger.info(f"Asserting username is pre-filled with: {expected_username}")
-        actual_username = self.get_prefilled_username()
-        assert actual_username == expected_username, \
-            f"Expected username '{expected_username}' to be pre-filled, got: '{actual_username}'"
+        
+        # Poll for the username to appear (sessionStorage population is async)
+        import time
+        start_time = time.time()
+        timeout_seconds = timeout / 1000.0
+        
+        while True:
+            actual_username = self.get_prefilled_username()
+            if actual_username == expected_username:
+                logger.info(f"✓ Username pre-fill verified: {expected_username}")
+                return
+            
+            elapsed = time.time() - start_time
+            if elapsed >= timeout_seconds:
+                assert False, \
+                    f"Expected username '{expected_username}' to be pre-filled within {timeout}ms, got: '{actual_username}'"
+            
+            # Wait a bit before retrying
+            time.sleep(0.1)
     
     def wait_for_success_notification(self, timeout: int = 10000) -> str:
         """
