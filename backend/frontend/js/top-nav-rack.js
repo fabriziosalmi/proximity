@@ -104,7 +104,7 @@ function updateActiveNav(viewName) {
 
 // Update user info in navigation
 function updateUserInfoNav() {
-    const user = Auth.getUser();
+    const user = Auth.getUserInfo();
     if (user) {
         // Update legacy user info elements (if they exist)
         const userNameEl = document.querySelector('.nav-rack-user .user-name');
