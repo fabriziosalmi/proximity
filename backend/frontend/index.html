@@ -23,7 +23,9 @@
     <script src="/js/top-nav-rack.js?v=20251012-fix02"></script>
 
     <!-- Dynamic Submenu System -->
-    <script src="/js/submenu.js?v=20251010-09"></script>
+        <script src="/js/notifications.js?v=20241009-01"></script>
+    <!-- submenu.js removed - using search functionality and Router navigation instead -->
+    <script type="module" src="/js/main.js?v=20251014-79"></script>
 
     <!-- Toast Notifications System -->
     <script src="/js/notifications-global.js?v=20251010-01"></script>
@@ -87,13 +89,10 @@
                         <i data-lucide="settings"></i>
                         <span>Settings</span>
                     </a>
-                    <a href="#" class="nav-rack-item" data-view="uilab" data-action="show-uilab-submenu" title="UI Lab">
-                        <i data-lucide="flask-conical"></i>
-                        <span>UI Lab</span>
-                        <span class="nav-badge dev-badge">DEV</span>
-                    </a>
-
-                    <!-- Divider -->
+                        <a href="#" class="nav-rack-item" data-view="uilab" title="UI Lab">
+                            <i class="fas fa-flask"></i>
+                            <span class="nav-label">UI Lab</span>
+                        </a>                    <!-- Divider -->
                     <div class="nav-rack-divider"></div>
 
                     <!-- Sound Control -->

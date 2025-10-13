@@ -72,7 +72,7 @@ def test_auto_mode_hides_pro_features(authenticated_page: Page):
 
     # Step 4: Navigate to Settings to verify mode display
     print("\n⚙️  Step 4: Check Settings page shows AUTO mode")
-    settings_nav = page.locator('a.nav-item[data-view="settings"]')
+    settings_nav = page.locator('a.nav-rack-item[data-view="settings"]')
     settings_nav.click()
     page.wait_for_timeout(1000)
 
@@ -130,7 +130,7 @@ def test_switching_to_pro_mode_reveals_features(authenticated_page: Page):
 
     # Step 2: Navigate to Settings
     print("\n⚙️  Step 2: Navigate to Settings page")
-    settings_nav = page.locator('a.nav-item[data-view="settings"]')
+    settings_nav = page.locator('a.nav-rack-item[data-view="settings"]')
     settings_nav.click()
     page.wait_for_timeout(1500)
 
@@ -329,7 +329,7 @@ def test_mode_toggle_ui_behavior(authenticated_page: Page):
 
     # Navigate to Settings > System
     print("\n⚙️  Step 2: Navigate to Settings > System")
-    settings_nav = page.locator('a.nav-item[data-view="settings"]')
+    settings_nav = page.locator('a.nav-rack-item[data-view="settings"]')
     settings_nav.click()
     page.wait_for_timeout(1000)
 

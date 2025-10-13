@@ -71,14 +71,26 @@ class AppStorePage(BasePage):
     
     def wait_for_catalog_load(self, timeout: int = 30000) -> None:
         """
-        Wait for the catalog view to fully load.
+        Wait for the catalog view to fully load with rendered cards.
         
         Args:
             timeout: Maximum time to wait (milliseconds)
         """
         logger.info("Waiting for catalog to load")
-        self.wait_for_selector(self.CATALOG_VIEW, timeout=timeout)
-        self.wait_for_load_state("networkidle", timeout=timeout)
+        # Use the same wait pattern as navigate_to_app_store in DashboardPage
+        self.page.wait_for_function("""
+            () => {
+                const el = document.getElementById('catalogView');
+                if (!el) return false;
+                const style = window.getComputedStyle(el);
+                return !el.classList.contains('hidden') && 
+                       style.display !== 'none' &&
+                       parseFloat(style.opacity) > 0.5;
+            }
+        """, timeout=15000)
+        # Wait a bit for cards to render
+        self.page.wait_for_timeout(1000)
+        logger.info("Catalog view visible")
     
     # ========================================================================
     # App Search and Selection Methods
@@ -109,10 +121,10 @@ class AppStorePage(BasePage):
             name exist (one in catalog, one or more deployed).
         """
         logger.info(f"Finding catalog app card for: {app_name}")
-        # CRITICAL FIX: Use :not(.deployed) to target ONLY catalog cards
-        # Catalog cards: <div class="app-card">
+        # Use .catalog-card to explicitly target catalog cards (not deployed)
+        # Catalog cards: <div class="app-card catalog-card">
         # Deployed cards: <div class="app-card deployed">
-        return self.page.locator(f"{self.APP_CARD}:not(.deployed):has({self.APP_NAME}:text-is('{app_name}'))")
+        return self.page.locator(f".catalog-card:has({self.APP_NAME}:text-is('{app_name}'))")
     
     def get_all_app_cards(self) -> Locator:
         """

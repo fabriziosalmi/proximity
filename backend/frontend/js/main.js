@@ -348,9 +348,7 @@ window.showView = (viewName) => router.navigateTo(viewName);
 window.navigateToApps = () => router.navigateTo('apps');
 window.navigateToCatalog = () => router.navigateTo('catalog');
 window.navigateToSettings = () => router.navigateTo('settings');
-window.showUILabSubmenu = () => {
-    if (window.showSubmenu) window.showSubmenu();
-};
+// showUILabSubmenu removed - UI Lab uses direct Router navigation now
 
 // Event delegation
 window.setupEventListeners = initEventDelegation; // Alias for backward compatibility
