@@ -117,7 +117,7 @@ export class AppsView extends Component {
                     <div class="empty-icon">📦</div>
                     <h3 class="empty-title">No applications deployed</h3>
                     <p class="empty-message">Start by deploying an application from the catalog.</p>
-                    <button class="btn btn-primary" onclick="showView('catalog')">Browse Catalog</button>
+                    <button class="btn btn-primary" onclick="window.router.navigateTo('catalog')">Browse Catalog</button>
                 </div>
             `;
         } else {

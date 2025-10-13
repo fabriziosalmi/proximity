@@ -297,7 +297,7 @@ export function updateRecentApps() {
                 </div>
                 <h3 class="empty-title">No applications yet</h3>
                 <p class="empty-message">Deploy your first application from the catalog to get started.</p>
-                <button class="btn btn-primary" onclick="window.showView('catalog')">Browse Catalog</button>
+                <button class="btn btn-primary" onclick="window.router.navigateTo('catalog')">Browse Catalog</button>
             </div>
         `;
         initIcons();
@@ -334,7 +334,7 @@ export function updateRecentApps() {
         // Click handler
         const clickHandler = (isRunning && appUrl)
             ? `onclick="openCanvas(${appDataForCanvas})" style="cursor: pointer;"`
-            : `onclick="window.showView('apps')" style="cursor: pointer;"`;
+            : `onclick="window.router.navigateTo('apps')" style="cursor: pointer;"`;
 
         return `
             <div class="quick-app-item ${isRunning ? 'running' : 'stopped'}"

@@ -341,14 +341,8 @@ if (document.readyState === 'loading') {
 // ============================================================================
 // BACKWARD COMPATIBILITY: Expose functions to window for legacy code
 // ============================================================================
-// TODO: Remove these once all legacy onclick attributes are removed from HTML
-
-// Navigation functions
-window.showView = (viewName) => router.navigateTo(viewName);
-window.navigateToApps = () => router.navigateTo('apps');
-window.navigateToCatalog = () => router.navigateTo('catalog');
-window.navigateToSettings = () => router.navigateTo('settings');
-// showUILabSubmenu removed - UI Lab uses direct Router navigation now
+// NOTE: Legacy showView() removed to prevent double navigation conflicts with Router
+// All navigation now goes through router.navigateTo() directly
 
 // Event delegation
 window.setupEventListeners = initEventDelegation; // Alias for backward compatibility
@@ -415,5 +409,8 @@ window.UI = UI;
 window.Clipboard = Clipboard;
 window.Auth = Auth; // CRITICAL: Expose Auth for E2E tests and conftest
 window.API = API;   // Also expose API for testing
+
+// CRITICAL: Expose Router for navigation (replaces legacy showView)
+window.router = router;
 
 console.log('⚠️  Legacy window functions exposed for backward compatibility');

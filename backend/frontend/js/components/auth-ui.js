@@ -406,10 +406,10 @@ export async function initializeAuthenticatedSession() {
             window.hideLoading();
         }
 
-        // 8. Show the dashboard view (BEFORE updating UI so DOM elements exist)
-        console.log('6️⃣ Showing dashboard view...');
-        if (window.showView) {
-            window.showView('dashboard');
+        // 8. Navigate to dashboard using Router (BEFORE updating UI so DOM elements exist)
+        console.log('6️⃣ Navigating to dashboard view...');
+        if (window.router) {
+            await window.router.navigateTo('dashboard');
         }
         
         // 9. Update UI AFTER view is shown to ensure DOM elements exist
@@ -436,13 +436,13 @@ export async function initializeAuthenticatedSession() {
         const errorMsg = error.message || 'Unknown error occurred';
         showNotification(`Failed to initialize session: ${errorMsg}. Please refresh the page.`, 'error');
         
-        // Still show the dashboard even if data loading failed
+        // Still navigate to dashboard even if data loading failed
         // This allows the user to retry or navigate
-        if (window.showView) {
+        if (window.router) {
             try {
-                window.showView('dashboard');
+                await window.router.navigateTo('dashboard');
             } catch (viewError) {
-                console.error('Failed to show dashboard after error:', viewError);
+                console.error('Failed to navigate to dashboard after error:', viewError);
             }
         }
     }

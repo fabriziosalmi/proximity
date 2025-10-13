@@ -604,12 +604,12 @@ export function handleModeToggle(checkbox) {
  */
 export async function refreshInfrastructure() {
     showNotification('Refreshing infrastructure status...', 'info');
-    
+
     // Navigate to nodes view to trigger refresh
-    if (window.showView) {
-        window.showView('nodes');
+    if (window.router) {
+        await window.router.navigateTo('nodes');
     }
-    
+
     showNotification('Infrastructure status refreshed', 'success');
 }
 
