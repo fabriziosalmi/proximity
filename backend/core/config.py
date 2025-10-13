@@ -77,6 +77,23 @@ class Settings(BaseSettings):
         """Get the full Proxmox API URL"""
         protocol = "https" if self.PROXMOX_VERIFY_SSL else "https"
         return f"{protocol}://{self.PROXMOX_HOST}:{self.PROXMOX_PORT}"
+    
+    def get_bool(self, key: str, default: bool = False) -> bool:
+        """Get boolean environment variable with default"""
+        value = os.getenv(key)
+        if value is None:
+            return default
+        return value.lower() in ('true', '1', 'yes', 'on')
+    
+    def get_int(self, key: str, default: int = 0) -> int:
+        """Get integer environment variable with default"""
+        value = os.getenv(key)
+        if value is None:
+            return default
+        try:
+            return int(value)
+        except ValueError:
+            return default
 
 
 # Global settings instance

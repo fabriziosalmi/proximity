@@ -141,6 +141,46 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             logger.error(f"Failed to initialize Scheduler Service: {e}")
             logger.warning("⚠ Continuing without scheduler")
             app.state.scheduler = None
+        
+        # Step 5: Initialize Cleanup Service
+        logger.info("=" * 60)
+        logger.info("STEP 5: Initializing Cleanup Service")
+        logger.info("=" * 60)
+
+        try:
+            from services.cleanup_service import get_cleanup_service
+
+            # Get cleanup service with fresh db session
+            db = next(get_db())
+            try:
+                cleanup_service = get_cleanup_service(proxmox_service, db)
+                
+                # Run initial cleanup if enabled
+                if cleanup_service and cleanup_service.config.enabled:
+                    logger.info("Running initial cleanup check...")
+                    stats = await cleanup_service.run_cleanup()
+                    
+                    if stats.total_removed > 0:
+                        logger.info(f"✓ Initial cleanup: removed {stats.total_removed} stale records")
+                    else:
+                        logger.info("✓ No stale records found")
+                    
+                    # Start background cleanup
+                    await cleanup_service.start_background_cleanup()
+                    logger.info(f"✓ Cleanup service started (interval: {cleanup_service.config.cleanup_interval_minutes}m)")
+                else:
+                    logger.info("ℹ️  Cleanup service disabled")
+                
+                # Store in app state
+                app.state.cleanup_service = cleanup_service
+
+            finally:
+                db.close()
+
+        except Exception as e:
+            logger.error(f"Failed to initialize Cleanup Service: {e}")
+            logger.warning("⚠ Continuing without cleanup service")
+            app.state.cleanup_service = None
 
     except Exception as e:
         logger.error(f"Failed to initialize services: {e}")
@@ -152,6 +192,15 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     # Shutdown tasks
     logger.info("Shutting down Proximity API...")
+
+    # Stop cleanup service if running
+    if hasattr(app.state, 'cleanup_service') and app.state.cleanup_service:
+        try:
+            logger.info("Stopping cleanup service...")
+            await app.state.cleanup_service.stop_background_cleanup()
+            logger.info("✓ Cleanup service stopped")
+        except Exception as e:
+            logger.error(f"Error stopping cleanup service: {e}")
 
     # Stop scheduler if running
     if hasattr(app.state, 'scheduler') and app.state.scheduler:

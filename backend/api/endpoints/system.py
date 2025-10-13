@@ -4,6 +4,7 @@ import logging
 from models.schemas import SystemInfo, NodeInfo, APIResponse
 from services.proxmox_service import ProxmoxService, ProxmoxError, proxmox_service
 from services.app_service import AppService, get_app_service
+from services.cleanup_service import get_cleanup_service
 from core.config import settings
 from models.database import get_db, User
 from sqlalchemy.orm import Session
@@ -160,6 +161,73 @@ async def get_configuration():
         "lxc_disk_size": settings.LXC_DISK_SIZE,
         "lxc_bridge": settings.LXC_BRIDGE
     }
+
+
+@router.get("/cleanup/stats")
+async def get_cleanup_stats():
+    """
+    Get cleanup service statistics and configuration.
+    
+    Returns:
+        - enabled: Whether cleanup is enabled
+        - last_run: Timestamp of last cleanup
+        - ghost_apps_removed: Count of ghost apps removed
+        - old_errors_removed: Count of old error apps removed
+        - ports_freed: Count of ports freed
+        - total_removed: Total apps removed
+        - config: Cleanup configuration parameters
+    """
+    try:
+        cleanup_service = get_cleanup_service()
+        
+        if cleanup_service is None:
+            raise HTTPException(
+                status_code=503,
+                detail="Cleanup service not initialized"
+            )
+        
+        return cleanup_service.get_stats()
+        
+    except Exception as e:
+        logger.error(f"Failed to get cleanup stats: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/cleanup/run")
+async def trigger_cleanup(
+    db: Session = Depends(get_db)
+):
+    """
+    Manually trigger a cleanup cycle.
+    
+    This will:
+    1. Remove "ghost" apps (DB records without Proxmox containers)
+    2. Remove old error status apps based on retention policy
+    3. Free up associated ports
+    
+    Returns cleanup statistics.
+    """
+    try:
+        cleanup_service = get_cleanup_service()
+        
+        if cleanup_service is None:
+            raise HTTPException(
+                status_code=503,
+                detail="Cleanup service not initialized"
+            )
+        
+        logger.info("🧹 Manual cleanup triggered via API")
+        stats = await cleanup_service.run_cleanup()
+        
+        return {
+            "success": True,
+            "message": f"Cleanup complete: removed {stats.total_removed} apps, freed {stats.ports_freed} ports",
+            "stats": cleanup_service.get_stats()
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to run cleanup: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/metrics")
