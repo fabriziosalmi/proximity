@@ -118,15 +118,47 @@ def test_navigate_to_profile(authenticated_page):
 
 
 @pytest.mark.navigation
-@pytest.mark.skip(reason="Active nav indicators not yet implemented in Router - enhancement needed")
 def test_active_nav_indicator(authenticated_page):
     """
     Test active navigation indicator in new nav-rack UI.
     
-    NOTE: Router doesn't currently add 'active' class to nav items.
-    This would be a nice enhancement but isn't critical functionality.
+    Verifies:
+    - Current view has active indicator
+    - Active class applied to correct nav item
+    - Visual feedback for current location
     """
-    pass
+    page = authenticated_page
+    
+    print("\n🎯 Testing active navigation indicators")
+    
+    # Navigate to catalog
+    page.click("a.nav-rack-item[data-view='catalog']")
+    page.wait_for_timeout(500)
+    
+    # Check catalog nav has active class
+    catalog_nav = page.locator("a.nav-rack-item[data-view='catalog']")
+    catalog_class = catalog_nav.get_attribute("class")
+    assert "active" in catalog_class, f"Catalog nav should have 'active' class, got: {catalog_class}"
+    print("  ✓ Catalog nav marked as active")
+    
+    # Navigate to apps
+    page.click("a.nav-rack-item[data-view='apps']")
+    # Wait for apps view to be fully loaded (it's async)
+    page.wait_for_function("""
+        () => document.getElementById('appsView')?.getAttribute('data-loaded') === 'true'
+    """, timeout=30000)
+    page.wait_for_timeout(500)
+    
+    # Check apps nav has active class
+    apps_nav = page.locator("a.nav-rack-item[data-view='apps']")
+    apps_class = apps_nav.get_attribute("class")
+    assert "active" in apps_class, f"Apps nav should have 'active' class, got: {apps_class}"
+    print("  ✓ Apps nav marked as active")
+    
+    # Verify catalog is no longer active
+    catalog_class_now = catalog_nav.get_attribute("class")
+    assert "active" not in catalog_class_now, "Previous nav should not be active"
+    print("  ✓ Previous nav no longer active")
 
 
 @pytest.mark.navigation
@@ -166,10 +198,14 @@ def test_page_titles_update(authenticated_page):
     
     # Navigate to apps and check title
     page.click("a.nav-rack-item[data-view='apps']")
+    # Wait for apps view to be fully loaded
+    page.wait_for_function("""
+        () => document.getElementById('appsView')?.getAttribute('data-loaded') === 'true'
+    """, timeout=30000)
     page.wait_for_timeout(500)
     title = page.title()
-    assert "apps" in title.lower() or "applications" in title.lower(), \
-        f"Expected title to contain 'apps', got: {title}"
+    assert "apps" in title.lower() or "my apps" in title.lower(), \
+        f"Expected title to contain 'apps' or 'my apps', got: {title}"
     print(f"  ✓ Apps title: {title}")
 
 

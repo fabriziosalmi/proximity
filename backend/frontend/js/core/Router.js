@@ -118,6 +118,12 @@ export class Router {
                 this._currentUnmountFn = null;
             }
             
+            // Step 7: Update active navigation indicator
+            this._updateActiveNavIndicator(viewName);
+            
+            // Step 8: Update page title
+            this._updatePageTitle(viewName);
+            
             console.log('✅ Navigation complete');
         } catch (error) {
             console.error(`❌ Error mounting view '${viewName}':`, error);
@@ -240,6 +246,46 @@ export class Router {
      */
     getCurrentView() {
         return this._currentViewName;
+    }
+
+    /**
+     * Update active navigation indicator for current view
+     * Adds 'active' class to current nav item, removes from others
+     * @param {string} viewName - Name of the current view
+     * @private
+     */
+    _updateActiveNavIndicator(viewName) {
+        // Remove 'active' class from all nav items
+        const allNavItems = document.querySelectorAll('.nav-rack-item[data-view]');
+        allNavItems.forEach(item => {
+            item.classList.remove('active');
+        });
+
+        // Add 'active' class to current view's nav item
+        const currentNavItem = document.querySelector(`.nav-rack-item[data-view="${viewName}"]`);
+        if (currentNavItem) {
+            currentNavItem.classList.add('active');
+            console.log(`✓ Active indicator set for '${viewName}'`);
+        }
+    }
+
+    /**
+     * Update page title based on current view
+     * @param {string} viewName - Name of the current view
+     * @private
+     */
+    _updatePageTitle(viewName) {
+        const titleMap = {
+            'dashboard': 'Dashboard',
+            'catalog': 'App Store',
+            'apps': 'My Apps',
+            'nodes': 'Infrastructure',
+            'settings': 'Settings'
+        };
+
+        const viewTitle = titleMap[viewName] || viewName;
+        document.title = `Proximity - ${viewTitle}`;
+        console.log(`✓ Page title updated: ${document.title}`);
     }
 
     /**
