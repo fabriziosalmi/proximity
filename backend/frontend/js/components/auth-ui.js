@@ -349,21 +349,42 @@ export async function initializeAuthenticatedSession() {
         
         // 4. Load all necessary data with individual error handling
         console.log('4️⃣ Loading data...');
+        
+        // Load system info (non-critical)
         console.log('   ⏳ Loading system info...');
-        if (window.loadSystemInfo) await window.loadSystemInfo();
-        console.log('   ✓ System info loaded');
+        try {
+            if (window.loadSystemInfo) await window.loadSystemInfo();
+            console.log('   ✓ System info loaded');
+        } catch (error) {
+            console.warn('   ⚠️  System info failed to load (non-critical):', error.message);
+        }
         
+        // Load nodes (non-critical)
         console.log('   ⏳ Loading nodes...');
-        if (window.loadNodes) await window.loadNodes();
-        console.log('   ✓ Nodes loaded');
+        try {
+            if (window.loadNodes) await window.loadNodes();
+            console.log('   ✓ Nodes loaded');
+        } catch (error) {
+            console.warn('   ⚠️  Nodes failed to load (non-critical):', error.message);
+        }
         
+        // Load deployed apps (non-critical)
         console.log('   ⏳ Loading deployed apps...');
-        if (window.loadDeployedApps) await window.loadDeployedApps();
-        console.log('   ✓ Deployed apps loaded');
+        try {
+            if (window.loadDeployedApps) await window.loadDeployedApps();
+            console.log('   ✓ Deployed apps loaded');
+        } catch (error) {
+            console.warn('   ⚠️  Deployed apps failed to load (non-critical):', error.message);
+        }
         
+        // Load catalog (non-critical)
         console.log('   ⏳ Loading catalog...');
-        if (window.loadCatalog) await window.loadCatalog();
-        console.log('   ✓ Catalog loaded');
+        try {
+            if (window.loadCatalog) await window.loadCatalog();
+            console.log('   ✓ Catalog loaded');
+        } catch (error) {
+            console.warn('   ⚠️  Catalog failed to load (non-critical):', error.message);
+        }
         
         // 5. Setup event listeners FIRST (before showing views)
         console.log('5️⃣ Setting up event listeners...');
@@ -401,10 +422,29 @@ export async function initializeAuthenticatedSession() {
         
     } catch (error) {
         console.error('❌ Error initializing authenticated session:', error);
+        console.error('   Error details:', {
+            name: error.name,
+            message: error.message,
+            stack: error.stack
+        });
+        
         if (window.hideLoading) {
             window.hideLoading();
         }
-        showNotification('Failed to load application data. Please refresh the page.', 'error');
+        
+        // More specific error message
+        const errorMsg = error.message || 'Unknown error occurred';
+        showNotification(`Failed to initialize session: ${errorMsg}. Please refresh the page.`, 'error');
+        
+        // Still show the dashboard even if data loading failed
+        // This allows the user to retry or navigate
+        if (window.showView) {
+            try {
+                window.showView('dashboard');
+            } catch (viewError) {
+                console.error('Failed to show dashboard after error:', viewError);
+            }
+        }
     }
 }
 
