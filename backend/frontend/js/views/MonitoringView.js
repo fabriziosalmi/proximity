@@ -9,6 +9,8 @@
 
 import { Component } from '../core/Component.js';
 import { formatBytes } from '../utils/formatters.js';
+import { authFetch, API_BASE } from '../services/api.js';
+import { showLoading, hideLoading } from '../utils/ui.js';
 
 export class MonitoringView extends Component {
     constructor() {
@@ -56,10 +58,26 @@ export class MonitoringView extends Component {
      * @param {HTMLElement} container - Container element
      * @param {Object} state - Application state
      */
-    renderMonitoringView(container, state) {
+    async renderMonitoringView(container, state) {
+        // Fetch nodes if not in state
+        let nodes = state.nodes || [];
+        if (!nodes || nodes.length === 0) {
+            showLoading('Loading monitoring data...');
+            try {
+                console.log('[Monitoring] Fetching nodes from API...');
+                const response = await authFetch(`${API_BASE}/system/nodes`);
+                if (response.ok) {
+                    nodes = await response.json();
+                    console.log('[Monitoring] Loaded nodes:', nodes.length);
+                }
+            } catch (err) {
+                console.error('[Monitoring] Failed to load nodes:', err);
+            }
+            hideLoading();
+        }
+
         // Calculate statistics for Applications Summary with safe defaults
         const deployedApps = state.deployedApps || [];
-        const nodes = state.nodes || [];
         const totalApps = deployedApps.length;
 
         const content = `
@@ -70,7 +88,7 @@ export class MonitoringView extends Component {
                     <i data-lucide="server"></i>
                     Node Resource Breakdown
                 </h2>
-                ${state.nodes.map(node => {
+                ${nodes.map(node => {
                     const nodeCpuPercent = node.maxcpu > 0 ? Math.round((node.cpu / node.maxcpu) * 100) : 0;
                     const nodeRamPercent = node.maxmem > 0 ? Math.round((node.mem / node.maxmem) * 100) : 0;
                     const nodeDiskPercent = node.maxdisk > 0 ? Math.round((node.disk / node.maxdisk) * 100) : 0;

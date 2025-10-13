@@ -58,219 +58,114 @@ export class NodesView extends Component {
      * @param {Object} state - Application state
      */
     async renderNodesView(container, state) {
-        // Load infrastructure status
-        showLoading('Loading infrastructure status...');
-        let infrastructure = null;
+        // Load nodes directly from API
+        showLoading('Loading infrastructure nodes...');
+        let nodes = state.nodes || [];
         let error = null;
 
         try {
-            const token = localStorage.getItem('proximity_token');
-            if (token) {
-                console.log('[Infrastructure] Fetching status...');
-                const response = await authFetch(`${API_BASE}/system/infrastructure/status`);
-                console.log('[Infrastructure] Response status:', response.status);
-                
-                if (response.ok) {
-                    const result = await response.json();
-                    console.log('[Infrastructure] Result:', result);
-                    infrastructure = result.data;
-                    console.log('[Infrastructure] Infrastructure data:', infrastructure);
-                } else {
-                    error = `Failed to load infrastructure status (${response.status})`;
-                    console.error('[Infrastructure] Error:', error);
-                }
+            console.log('[Nodes] Fetching nodes from API...');
+            const response = await authFetch(`${API_BASE}/system/nodes`);
+            console.log('[Nodes] Response status:', response.status);
+
+            if (response.ok) {
+                nodes = await response.json();
+                console.log('[Nodes] Loaded nodes:', nodes.length);
             } else {
-                error = 'Not authenticated';
-                console.error('[Infrastructure] No auth token');
+                error = `Failed to load nodes (${response.status})`;
+                console.error('[Nodes] Error:', error);
             }
         } catch (err) {
-            error = err.message || 'Failed to load infrastructure';
-            console.error('[Infrastructure] Exception:', err);
+            error = err.message || 'Failed to load nodes';
+            console.error('[Nodes] Exception:', err);
         }
         hideLoading();
 
-        // Prepare appliance info
-        const appliance = infrastructure?.appliance || null;
-        const services = infrastructure?.services || {};
-        const network = infrastructure?.network || {};
-        const connected_apps = infrastructure?.applications || infrastructure?.connected_apps || [];
-        const health_status = infrastructure?.health_status || 'unknown';
-        
-        console.log('[Infrastructure] Final state:', {
-            appliance: !!appliance,
-            services: Object.keys(services).length,
-            connected_apps: connected_apps.length,
-            health_status,
+        console.log('[Nodes] Final state:', {
+            nodes: nodes.length,
             error
         });
 
+        // Show error if API call failed
+        if (error) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i data-lucide="alert-triangle" style="width: 48px; height: 48px;"></i>
+                    </div>
+                    <h3 class="empty-title">Failed to Load Nodes</h3>
+                    <p class="empty-message">${error}</p>
+                    <button class="btn btn-primary" onclick="window.location.reload()">
+                        <i data-lucide="refresh-cw"></i>
+                        Retry
+                    </button>
+                </div>
+            `;
+            if (window.lucide && window.lucide.createIcons) {
+                window.lucide.createIcons();
+            }
+            return;
+        }
+
+        // Show empty state if no nodes
+        if (!nodes || nodes.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i data-lucide="server" style="width: 48px; height: 48px;"></i>
+                    </div>
+                    <h3 class="empty-title">No Proxmox Nodes Found</h3>
+                    <p class="empty-message">Check your Proxmox connection in settings.</p>
+                    <button class="btn btn-primary" data-view="settings">
+                        <i data-lucide="settings"></i>
+                        Configure Proxmox
+                    </button>
+                </div>
+            `;
+            if (window.lucide && window.lucide.createIcons) {
+                window.lucide.createIcons();
+            }
+            return;
+        }
+
         const content = `
-            <!-- Network Appliance Card -->
-            ${appliance ? `
+            <!-- Network Architecture Info -->
             <div class="app-card deployed" style="margin-bottom: 2rem;">
-                <!-- Header with icon, name, status and quick actions -->
                 <div class="app-card-header">
                     <div class="app-icon-lg">🌐</div>
                     <div class="app-info">
-                        <h3 class="app-name">${appliance.hostname || 'Network Appliance'}</h3>
-                        <span class="status-badge ${appliance.status === 'running' ? 'running' : 'stopped'}">
-                            <span class="status-dot"></span>
-                            ${appliance.status || 'unknown'}
-                        </span>
-                    </div>
-                    
-                    <!-- Quick Actions -->
-                    <div class="app-quick-actions">
-                        <button class="action-icon" title="Restart Appliance" data-action="restart-appliance">
-                            <i data-lucide="rotate-cw"></i>
-                        </button>
-                        <button class="action-icon" title="View Logs" data-action="view-appliance-logs">
-                            <i data-lucide="file-text"></i>
-                        </button>
-                        <button class="action-icon" title="Test NAT" data-action="test-nat">
-                            <i data-lucide="zap"></i>
-                        </button>
+                        <h3 class="app-name">Network Architecture</h3>
+                        <p style="margin: 0.5rem 0 0 0; opacity: 0.8; font-size: 0.9rem;">
+                            Simple DHCP networking via vmbr0 bridge
+                        </p>
                     </div>
                 </div>
 
-                <!-- Connection info -->
-                <div class="app-connection-info">
-                    <div class="connection-item" title="VMID">
-                        <i data-lucide="hash" class="connection-icon"></i>
-                        <span class="connection-value">${appliance.vmid || 'N/A'}</span>
-                    </div>
-                    <div class="connection-item" title="Node">
-                        <i data-lucide="server" class="connection-icon"></i>
-                        <span class="connection-value">${appliance.node || 'N/A'}</span>
-                    </div>
-                    <div class="connection-item" title="WAN interface (eth0) - DHCP from external network via vmbr0">
-                        <i data-lucide="globe" class="connection-icon"></i>
-                        <span class="connection-value">WAN: ${appliance.wan_ip || 'N/A'}</span>
-                    </div>
-                    <div class="connection-item" title="LAN interface (eth1) - Gateway for applications on proximity-lan">
-                        <i data-lucide="network" class="connection-icon"></i>
-                        <span class="connection-value">LAN: ${appliance.lan_ip || 'N/A'}</span>
-                    </div>
-                </div>
-
-                <!-- Resource stats -->
-                <div class="app-connection-info" style="margin-top: 0.5rem;">
-                    <div class="connection-item">
-                        <i data-lucide="cpu" class="connection-icon"></i>
-                        <span class="connection-value">${appliance.cores || 'N/A'} cores</span>
-                    </div>
-                    <div class="connection-item">
-                        <i data-lucide="memory-stick" class="connection-icon"></i>
-                        <span class="connection-value">${appliance.memory || 'N/A'} MB</span>
-                    </div>
-                    <div class="connection-item">
-                        <i data-lucide="hard-drive" class="connection-icon"></i>
-                        <span class="connection-value">${appliance.disk || 'N/A'} GB</span>
-                    </div>
-                    <div class="connection-item">
-                        <i data-lucide="clock" class="connection-icon"></i>
-                        <span class="connection-value">${appliance.uptime || 'N/A'}</span>
-                    </div>
-                </div>
-
-                <div id="infrastructureStatus" style="margin-top: 1rem;"></div>
-            </div>
-            ` : ''}
-
-            <!-- Services Health Grid -->
-            ${Object.keys(services).length > 0 ? `
-            <div class="services-grid" style="margin-bottom: 2rem;">
-                ${Object.entries(services).map(([name, service]) => `
-                    <div class="service-card ${service.healthy ? 'healthy' : 'unhealthy'}">
-                        <div class="service-header">
-                            <div class="service-icon">
-                                ${name === 'dnsmasq' ? '🌐' :
-                                  name === 'caddy' ? '🔀' :
-                                  name === 'nat' ? '🔗' : '⚙️'}
-                            </div>
-                            <div class="service-info">
-                                <h3 class="service-name">${name.charAt(0).toUpperCase() + name.slice(1)}</h3>
-                                <span class="service-status ${service.healthy ? 'healthy' : 'unhealthy'}">
-                                    ${service.healthy ? '● Running' : '○ Stopped'}
-                                </span>
-                            </div>
-                        </div>
-                        ${service.details ? `
-                        <div class="service-details">
-                            <small>${service.details}</small>
-                        </div>
-                        ` : ''}
-                    </div>
-                `).join('')}
-            </div>
-            ` : ''}
-
-            <!-- Network Configuration -->
-            ${network.subnet ? `
-            <div class="app-card deployed" style="margin-bottom: 2rem;">
-                <div class="app-connection-info">
+                <!-- Network info -->
+                <div class="app-connection-info" style="margin-top: 1rem;">
                     <div class="connection-item">
                         <i data-lucide="network" class="connection-icon"></i>
-                        <span class="connection-value">Bridge: ${network.bridge || 'proximity-lan'}</span>
+                        <span class="connection-value">Bridge: vmbr0</span>
                     </div>
                     <div class="connection-item">
                         <i data-lucide="wifi" class="connection-icon"></i>
-                        <span class="connection-value">Subnet: ${network.subnet || 'N/A'}</span>
+                        <span class="connection-value">IP: DHCP</span>
                     </div>
-                    <div class="connection-item">
-                        <i data-lucide="door-open" class="connection-icon"></i>
-                        <span class="connection-value">Gateway: ${network.gateway || 'N/A'}</span>
-                    </div>
-                    <div class="connection-item">
-                        <i data-lucide="settings" class="connection-icon"></i>
-                        <span class="connection-value">DHCP: ${network.dhcp_range || 'N/A'}</span>
-                    </div>
-                </div>
-                <div class="app-connection-info" style="margin-top: 0.5rem;">
                     <div class="connection-item">
                         <i data-lucide="globe" class="connection-icon"></i>
-                        <span class="connection-value">DNS: ${network.dns_domain || 'prox.local'}</span>
+                        <span class="connection-value">Internet: Direct</span>
+                    </div>
+                    <div class="connection-item">
+                        <i data-lucide="check-circle" class="connection-icon"></i>
+                        <span class="connection-value">No complex appliance needed</span>
                     </div>
                 </div>
             </div>
-            ` : ''}
-
-            <!-- Connected Apps -->
-            ${connected_apps && connected_apps.length > 0 ? `
-            <div class="connected-apps-table">
-                <table class="infrastructure-table">
-                    <thead>
-                        <tr>
-                            <th>App Name</th>
-                            <th>VMID</th>
-                            <th>IP Address</th>
-                            <th>Status</th>
-                            <th>DNS Name</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${connected_apps.map(app => `
-                            <tr>
-                                <td><strong>${app.name || 'N/A'}</strong></td>
-                                <td>${app.vmid || 'N/A'}</td>
-                                <td><code>${app.ip_address || 'N/A'}</code></td>
-                                <td>
-                                    <span class="status-badge ${app.status === 'running' ? 'running' : 'stopped'}">
-                                        <span class="status-dot"></span>
-                                        ${app.status || 'unknown'}
-                                    </span>
-                                </td>
-                                <td><code>${app.dns_name || app.name + '.prox.local' || 'N/A'}</code></td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            </div>
-            ` : ''}
 
             <!-- Proxmox Nodes -->
+            <h2 style="margin: 2rem 0 1rem 0;">Proxmox Hosts</h2>
             <div class="apps-grid deployed">
-                ${(state.nodes || []).map(node => {
+                ${nodes.map(node => {
                     // Calculate percentages
                     const cpuPercent = node.maxcpu > 0 ? Math.round((node.cpu / node.maxcpu) * 100) : 0;
                     const ramPercent = node.maxmem > 0 ? Math.round((node.mem / node.maxmem) * 100) : 0;
