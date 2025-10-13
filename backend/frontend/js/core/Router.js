@@ -105,55 +105,63 @@ export class Router {
         // Step 5: Show the container
         container.classList.remove('hidden');
 
-        // Step 6: Mount the new view and store its unmount function
-        try {
-            console.log(`✅ Mounting new view '${viewName}'`);
-            // CRITICAL FIX: Await mount() to support async data loading
-            this._currentUnmountFn = await component.mount(container, state);
+        // Step 6: Check if component is already mounted (for singleton views)
+        // If so, skip remounting to avoid flash and unnecessary re-render
+        if (component.isMounted && component.isMounted()) {
+            console.log(`⚡ Component '${viewName}' already mounted, reusing instance`);
             this._currentViewName = viewName;
+            // Create unmount function that calls the component's unmount
+            this._currentUnmountFn = () => component.unmount();
+        } else {
+            // Step 7: Mount the new view and store its unmount function
+            try {
+                console.log(`✅ Mounting new view '${viewName}'`);
+                // CRITICAL FIX: Await mount() to support async data loading
+                this._currentUnmountFn = await component.mount(container, state);
+                this._currentViewName = viewName;
 
-            // Ensure unmount function is valid
-            if (typeof this._currentUnmountFn !== 'function') {
-                console.warn(`⚠️  View '${viewName}' did not return an unmount function`);
+                // Ensure unmount function is valid
+                if (typeof this._currentUnmountFn !== 'function') {
+                    console.warn(`⚠️  View '${viewName}' did not return an unmount function`);
+                    this._currentUnmountFn = null;
+                }
+            } catch (error) {
+                console.error(`❌ Error mounting view '${viewName}':`, error);
+                console.error('   Error type:', error.constructor.name);
+                console.error('   Error message:', error.message);
+
+                // Show user-friendly error message in the container
+                if (container) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">⚠️</div>
+                            <h2>Error Loading View</h2>
+                            <p>${error.message || 'An unexpected error occurred'}</p>
+                            <button class="btn btn-primary" onclick="window.location.reload()">
+                                <i data-lucide="refresh-cw"></i>
+                                Reload Page
+                            </button>
+                        </div>
+                    `;
+
+                    // Initialize icons
+                    if (window.lucide) {
+                        window.lucide.createIcons();
+                    }
+                }
+
                 this._currentUnmountFn = null;
             }
-            
-            // Step 7: Update active navigation indicator
-            this._updateActiveNavIndicator(viewName);
-            
-            // Step 8: Update page title
-            this._updatePageTitle(viewName);
-            
-            console.log('✅ Navigation complete');
-        } catch (error) {
-            console.error(`❌ Error mounting view '${viewName}':`, error);
-            console.error('   Error type:', error.constructor.name);
-            console.error('   Error message:', error.message);
-            
-            // Show user-friendly error message in the container
-            if (container) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">⚠️</div>
-                        <h2>Error Loading View</h2>
-                        <p>${error.message || 'An unexpected error occurred'}</p>
-                        <button class="btn btn-primary" onclick="window.location.reload()">
-                            <i data-lucide="refresh-cw"></i>
-                            Reload Page
-                        </button>
-                    </div>
-                `;
-                
-                // Initialize icons
-                if (window.lucide) {
-                    window.lucide.createIcons();
-                }
-            }
-            
-            this._currentUnmountFn = null;
-        } finally {
-            console.groupEnd();
         }
+
+        // Step 8: Update active navigation indicator
+        this._updateActiveNavIndicator(viewName);
+
+        // Step 9: Update page title
+        this._updatePageTitle(viewName);
+
+        console.log('✅ Navigation complete');
+        console.groupEnd();
 
         // Step 7: Update navigation UI
         this._updateNavigationUI(viewName);
