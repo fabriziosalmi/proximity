@@ -322,10 +322,11 @@ async function initializeApp() {
     Icons.initLucideIcons();
     console.log('✅ Lucide icons initialized');
 
-    // STEP 10: Initial render
+    // STEP 10: Initial navigation (only if authenticated)
     if (isAuthenticated) {
-        // Set initial view to dashboard
-        AppState.setState('currentView', 'dashboard');
+        // Navigate to dashboard using Router (no need to set state)
+        // This ensures single render and proper lifecycle
+        await router.navigateTo('dashboard');
     }
 
     console.log('✅ Proximity Application initialized successfully');
