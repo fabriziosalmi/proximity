@@ -48,6 +48,9 @@ class NodeInfo(BaseModel):
     mem: Optional[int] = None
     disk: Optional[int] = None
     maxdisk: Optional[int] = None
+    ip: Optional[str] = None  # Node IP address
+    pveversion: Optional[str] = None  # Proxmox VE version
+    lxc_count: Optional[int] = None  # Number of LXC containers on this node
 
 
 class LXCInfo(BaseModel):

@@ -12,10 +12,12 @@ import { authFetch, API_BASE } from '../services/api.js';
 import { showLoading, hideLoading } from '../utils/ui.js';
 import { formatBytes, formatUptime } from '../utils/formatters.js';
 import { getState } from '../state/appState.js';
+import { networkMonitor } from '../services/networkMonitor.js';
 
 export class NodesView extends Component {
     constructor() {
         super();
+        this.unsubscribe = null;
     }
 
     /**
@@ -29,6 +31,14 @@ export class NodesView extends Component {
         console.log('🔐 Auth Status:', state.isAuthenticated ? '✅ Authenticated' : '❌ Not Authenticated');
         console.log('👤 Current User:', state.currentUser?.username || 'none');
         console.log('📦 Container:', container.id, 'Empty:', !container.innerHTML.trim());
+
+        // Start network monitoring
+        networkMonitor.startMonitoring();
+        
+        // Subscribe to network updates
+        this.unsubscribe = networkMonitor.subscribe((metrics) => {
+            this.updateNetworkStatus(metrics);
+        });
 
         // Start async render WITHOUT blocking mount return
         this.renderNodesView(container, state).then(() => {
@@ -47,8 +57,23 @@ export class NodesView extends Component {
             console.groupEnd();
         });
 
-        // Call parent mount IMMEDIATELY (sync)
-        return super.mount(container, state);
+        // Return unmount function
+        const parentUnmount = super.mount(container, state);
+        return () => {
+            // Stop network monitoring
+            networkMonitor.stopMonitoring();
+            
+            // Unsubscribe from updates
+            if (this.unsubscribe) {
+                this.unsubscribe();
+                this.unsubscribe = null;
+            }
+            
+            // Call parent unmount
+            if (parentUnmount) {
+                parentUnmount();
+            }
+        };
     }
 
     /**
@@ -144,22 +169,22 @@ export class NodesView extends Component {
                 <!-- Network info with status LEDs -->
                 <div class="app-connection-info" style="margin-top: 1rem;">
                     <div class="connection-item">
-                        <span class="status-led status-led-active" title="Bridge Active"></span>
+                        <span class="status-led status-led-active network-led-bridge" title="Bridge Active"></span>
                         <i data-lucide="network" class="connection-icon"></i>
                         <span class="connection-value">Bridge: vmbr0</span>
                     </div>
                     <div class="connection-item">
-                        <span class="status-led status-led-pulse" title="DHCP Active"></span>
+                        <span class="status-led status-led-pulse network-led-dhcp" title="DHCP Active"></span>
                         <i data-lucide="wifi" class="connection-icon"></i>
                         <span class="connection-value">IP: DHCP</span>
                     </div>
                     <div class="connection-item">
-                        <span class="status-led status-led-blink" title="Network Activity (TX/RX)"></span>
+                        <span class="status-led status-led-blink network-led-gateway" title="Network Activity (TX/RX)"></span>
                         <i data-lucide="activity" class="connection-icon"></i>
-                        <span class="connection-value">Gateway: Active</span>
+                        <span class="connection-value">Gateway: <span class="network-node-count">Checking...</span></span>
                     </div>
                     <div class="connection-item">
-                        <span class="status-led status-led-active" title="Internet Connected"></span>
+                        <span class="status-led status-led-active network-led-internet" title="Internet Connected"></span>
                         <i data-lucide="globe" class="connection-icon"></i>
                         <span class="connection-value">Internet: Connected</span>
                     </div>
@@ -174,24 +199,52 @@ export class NodesView extends Component {
                     const cpuPercent = node.maxcpu > 0 ? Math.round((node.cpu / node.maxcpu) * 100) : 0;
                     const ramPercent = node.maxmem > 0 ? Math.round((node.mem / node.maxmem) * 100) : 0;
                     const diskPercent = node.maxdisk > 0 ? Math.round((node.disk / node.maxdisk) * 100) : 0;
+                    const isOnline = node.status === 'online';
+                    
+                    // Extract version (e.g., "pve-manager/8.1.3")
+                    const pveVersion = node.pveversion || 'N/A';
+                    const versionShort = pveVersion.split('/')[1] || pveVersion;
                     
                     return `
-                        <div class="app-card deployed ${node.status === 'online' ? 'status-running' : 'status-stopped'}">
+                        <div class="app-card deployed ${isOnline ? 'status-running' : 'status-stopped'}">
                             <div class="app-card-header">
                                 <div class="app-icon-lg">🖥️</div>
                                 <div class="app-info">
                                     <h3 class="app-name">${node.node}</h3>
+                                    <p class="app-description" style="margin-top: 0.25rem; font-size: 0.75rem; opacity: 0.7;">
+                                        Proxmox VE ${versionShort}
+                                    </p>
                                 </div>
                             </div>
 
-                            <!-- Connection Info with Status Dot -->
+                            <!-- Connection Info with Status LEDs and Details -->
                             <div class="app-connection-info">
-                                <div class="connection-item status-indicator">
-                                    <span class="status-dot"></span>
-                                </div>
+                                <!-- Status LED with label -->
                                 <div class="connection-item">
-                                    <i data-lucide="activity" class="connection-icon"></i>
+                                    <span class="status-led ${isOnline ? 'status-led-active' : 'status-led-error'}" 
+                                          title="${isOnline ? 'Host Online' : 'Host Offline'}"></span>
+                                    <i data-lucide="server" class="connection-icon"></i>
+                                    <span class="connection-value">Status: ${isOnline ? 'Online' : 'Offline'}</span>
+                                </div>
+                                
+                                <!-- Network LED with IP -->
+                                <div class="connection-item">
+                                    <span class="status-led ${isOnline ? 'status-led-blink' : 'status-led-off'}" 
+                                          title="Network Activity"></span>
+                                    <i data-lucide="network" class="connection-icon"></i>
+                                    <span class="connection-value">IP: ${node.ip || 'N/A'}</span>
+                                </div>
+                                
+                                <!-- Uptime -->
+                                <div class="connection-item">
+                                    <i data-lucide="clock" class="connection-icon"></i>
                                     <span class="connection-value">Uptime: ${node.uptime ? formatUptime(node.uptime) : 'N/A'}</span>
+                                </div>
+                                
+                                <!-- LXC Containers count -->
+                                <div class="connection-item">
+                                    <i data-lucide="box" class="connection-icon"></i>
+                                    <span class="connection-value">LXCs: ${node.lxc_count || '0'}</span>
                                 </div>
                             </div>
 
@@ -234,10 +287,64 @@ export class NodesView extends Component {
     }
 
     /**
+     * Update network status LEDs based on real-time metrics
+     * @param {Object} metrics - Network metrics from API
+     */
+    updateNetworkStatus(metrics) {
+        if (!metrics || !metrics.summary) return;
+
+        const summary = metrics.summary;
+
+        // Update Bridge LED
+        const bridgeLED = document.querySelector('.network-led-bridge');
+        if (bridgeLED) {
+            bridgeLED.className = 'status-led network-led-bridge ' + networkMonitor.getLEDClass('bridge');
+            bridgeLED.title = `Bridge: ${networkMonitor.getStatusText('bridge')}`;
+        }
+
+        // Update DHCP LED
+        const dhcpLED = document.querySelector('.network-led-dhcp');
+        if (dhcpLED) {
+            dhcpLED.className = 'status-led network-led-dhcp ' + networkMonitor.getLEDClass('dhcp');
+            dhcpLED.title = `DHCP: ${networkMonitor.getStatusText('dhcp')}`;
+        }
+
+        // Update Gateway LED (TX/RX activity)
+        const gatewayLED = document.querySelector('.network-led-gateway');
+        if (gatewayLED) {
+            gatewayLED.className = 'status-led network-led-gateway ' + networkMonitor.getLEDClass('gateway');
+            gatewayLED.title = `Gateway: ${networkMonitor.getStatusText('gateway')} (TX/RX Activity)`;
+        }
+
+        // Update Internet LED
+        const internetLED = document.querySelector('.network-led-internet');
+        if (internetLED) {
+            internetLED.className = 'status-led network-led-internet ' + networkMonitor.getLEDClass('internet');
+            internetLED.title = `Internet: ${networkMonitor.getStatusText('internet')}`;
+        }
+
+        // Update node count text if exists
+        const nodeCountEl = document.querySelector('.network-node-count');
+        if (nodeCountEl) {
+            nodeCountEl.textContent = networkMonitor.getStatusText('nodes');
+        }
+    }
+
+    /**
      * Unmount nodes view and cleanup
      */
     unmount() {
         console.log('🧹 Unmounting Nodes View');
+        
+        // Stop network monitoring
+        networkMonitor.stopMonitoring();
+        
+        // Unsubscribe from updates
+        if (this.unsubscribe) {
+            this.unsubscribe();
+            this.unsubscribe = null;
+        }
+        
         super.unmount();
     }
 }

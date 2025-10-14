@@ -7,8 +7,6 @@
 function initTopNavRack() {
     console.log('🎯 Initializing Top Navigation Rack...');
 
-    // NOTE: Navigation items now use inline onclick handlers in HTML
-    // No need for addEventListener here to avoid duplicate handlers
     
     // Sound toggle button - Now opens advanced panel
     const soundToggleBtn = document.getElementById('soundToggleBtn');

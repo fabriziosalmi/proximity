@@ -2283,45 +2283,45 @@ a.connection-value:hover::after {
     transition: all 0.3s ease;
 }
 
-/* LED Active (solid green) */
+/* LED Active (solid cyan - matching theme) */
 .status-led-active {
-    background: #10b981;
-    box-shadow: 0 0 10px rgba(16, 185, 129, 0.8), 0 0 6px rgba(16, 185, 129, 0.6);
+    background: #22d3ee;
+    box-shadow: 0 0 10px rgba(34, 211, 238, 0.8), 0 0 6px rgba(34, 211, 238, 0.6);
 }
 
-/* LED Pulse (breathing green for DHCP) */
+/* LED Pulse (breathing cyan for DHCP) */
 .status-led-pulse {
-    background: #10b981;
+    background: #22d3ee;
     animation: led-pulse 2s ease-in-out infinite;
 }
 
 @keyframes led-pulse {
     0%, 100% {
         opacity: 1;
-        box-shadow: 0 0 10px rgba(16, 185, 129, 0.8), 0 0 6px rgba(16, 185, 129, 0.6);
+        box-shadow: 0 0 10px rgba(34, 211, 238, 0.8), 0 0 6px rgba(34, 211, 238, 0.6);
     }
     50% {
         opacity: 0.6;
-        box-shadow: 0 0 6px rgba(16, 185, 129, 0.5), 0 0 3px rgba(16, 185, 129, 0.3);
+        box-shadow: 0 0 6px rgba(34, 211, 238, 0.5), 0 0 3px rgba(34, 211, 238, 0.3);
     }
 }
 
 /* LED Blink (fast blink for TX/RX activity) */
 .status-led-blink {
-    background: #22d3ee;
+    background: #06b6d4;
     animation: led-blink 0.8s ease-in-out infinite;
 }
 
 @keyframes led-blink {
     0%, 49% {
         opacity: 1;
-        background: #22d3ee;
-        box-shadow: 0 0 10px rgba(34, 211, 238, 0.8), 0 0 6px rgba(34, 211, 238, 0.6);
+        background: #06b6d4;
+        box-shadow: 0 0 10px rgba(6, 182, 212, 0.8), 0 0 6px rgba(6, 182, 212, 0.6);
     }
     50%, 100% {
         opacity: 0.3;
         background: #0e7490;
-        box-shadow: 0 0 4px rgba(34, 211, 238, 0.3), 0 0 2px rgba(34, 211, 238, 0.2);
+        box-shadow: 0 0 4px rgba(6, 182, 212, 0.3), 0 0 2px rgba(6, 182, 212, 0.2);
     }
 }
 

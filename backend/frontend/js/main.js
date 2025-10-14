@@ -40,7 +40,6 @@ import { appsView } from './views/AppsView.js';
 import { catalogView } from './views/CatalogView.js';
 import { settingsView } from './views/SettingsView.js';
 import { nodesView } from './views/NodesView.js';
-import { monitoringView } from './views/MonitoringView.js';
 
 // Initialize sound system
 SoundService.init();
@@ -58,12 +57,11 @@ function initRouter() {
 
     // Register all views with the router
     router.registerViews({
-        'dashboard': dashboardView,
-        'apps': appsView,
-        'catalog': catalogView,
-        'settings': settingsView,
-        'nodes': nodesView,
-        'monitoring': monitoringView
+    'dashboard': dashboardView,
+    'apps': appsView,
+    'catalog': catalogView,
+    'settings': settingsView,
+    'nodes': nodesView
     });
 
     console.log('✅ Router initialized with 6 views');
