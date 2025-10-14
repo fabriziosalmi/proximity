@@ -55,6 +55,14 @@ export class Router {
      * @returns {Promise<void>}
      */
     async navigateTo(viewName, customState = null) {
+        // Add Sentry breadcrumb for navigation
+        if (window.addDebugBreadcrumb) {
+            window.addDebugBreadcrumb(`Navigation to ${viewName}`, {
+                from: this._currentViewName,
+                authenticated: isUserAuthenticated(),
+            });
+        }
+
         // CRITICAL FIX: Always use global appState unless custom state provided
         // This was the ROOT CAUSE of slow loading - views were getting empty state!
         const state = customState || getState();
@@ -88,6 +96,13 @@ export class Router {
                 this._currentUnmountFn();
             } catch (error) {
                 console.error(`❌ Error unmounting view '${this._currentViewName}':`, error);
+                // Report unmount errors to Sentry
+                if (window.reportToSentry) {
+                    window.reportToSentry(error, {
+                        context: 'view_unmount',
+                        view: this._currentViewName,
+                    });
+                }
             }
             this._currentUnmountFn = null;
         }
@@ -95,9 +110,19 @@ export class Router {
         // Step 2: Find the component for the new view
         const component = this._viewComponents.get(viewName);
         if (!component) {
-            console.error(`❌ View '${viewName}' not registered!`);
+            const error = new Error(`View '${viewName}' not registered`);
+            console.error(`❌ ${error.message}`);
             console.error('Available views:', Array.from(this._viewComponents.keys()));
             console.groupEnd();
+            
+            // Report to Sentry
+            if (window.reportToSentry) {
+                window.reportToSentry(error, {
+                    context: 'view_registration',
+                    requested_view: viewName,
+                    available_views: Array.from(this._viewComponents.keys()),
+                });
+            }
             return;
         }
 
@@ -111,9 +136,19 @@ export class Router {
         // Step 5: Get the container for the new view
         const container = document.getElementById(`${viewName}View`);
         if (!container) {
-            console.error(`❌ Container element '#${viewName}View' not found!`);
+            const error = new Error(`Container element '#${viewName}View' not found`);
+            console.error(`❌ ${error.message}`);
             console.error('Available containers:', Array.from(document.querySelectorAll('[id$="View"]')).map(el => el.id));
             console.groupEnd();
+            
+            // Report to Sentry
+            if (window.reportToSentry) {
+                window.reportToSentry(error, {
+                    context: 'container_missing',
+                    view: viewName,
+                    available_containers: Array.from(document.querySelectorAll('[id$="View"]')).map(el => el.id),
+                });
+            }
             return;
         }
 
@@ -153,6 +188,16 @@ export class Router {
                 console.error(`❌ Error mounting view '${viewName}':`, error);
                 console.error('   Error type:', error.constructor.name);
                 console.error('   Error message:', error.message);
+
+                // Report to Sentry with full context
+                if (window.reportToSentry) {
+                    window.reportToSentry(error, {
+                        context: 'view_mount',
+                        view: viewName,
+                        error_type: error.constructor.name,
+                        stack: error.stack,
+                    });
+                }
 
                 // Show user-friendly error message in the container
                 if (container) {
