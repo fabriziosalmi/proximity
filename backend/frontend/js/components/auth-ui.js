@@ -305,11 +305,35 @@ export async function handleLoginSubmit(e) {
     const errorDiv = document.getElementById('loginError');
     errorDiv.textContent = '';
 
+    // Add breadcrumb for login attempt
+    if (window.addDebugBreadcrumb) {
+        window.addDebugBreadcrumb('Login attempt', { username });
+    }
+
     try {
         const data = await API.login(username, password);
 
         // Store the token and user data
         Auth.setToken(data.access_token, data.user);
+
+        // Set Sentry user context immediately after successful login
+        if (window.Sentry && data.user) {
+            Sentry.setUser({
+                id: data.user.id,
+                username: data.user.username,
+                email: data.user.email || undefined,
+                role: data.user.role,
+            });
+            console.log('✓ Sentry user context set:', data.user.username);
+        }
+
+        // Add breadcrumb for successful login
+        if (window.addDebugBreadcrumb) {
+            window.addDebugBreadcrumb('Login successful', { 
+                username: data.user.username,
+                role: data.user.role 
+            });
+        }
 
         showNotification('Login successful!', 'success');
 
@@ -318,6 +342,24 @@ export async function handleLoginSubmit(e) {
 
     } catch (err) {
         console.error('Login error:', err);
+        
+        // Report login failure to Sentry (without password)
+        if (window.reportToSentry) {
+            window.reportToSentry(new Error('Login failed'), {
+                username,
+                error_message: err.message,
+                context: 'authentication',
+            });
+        }
+        
+        // Add breadcrumb for failed login
+        if (window.addDebugBreadcrumb) {
+            window.addDebugBreadcrumb('Login failed', { 
+                username,
+                error: err.message 
+            });
+        }
+        
         errorDiv.textContent = err.message || 'Login failed. Please try again.';
     }
 }
@@ -455,6 +497,14 @@ export async function initializeAuthenticatedSession() {
 export async function handleLogout(e) {
     if (e) e.preventDefault();
 
+    // Add breadcrumb for logout
+    if (window.addDebugBreadcrumb) {
+        const user = Auth.getUser();
+        window.addDebugBreadcrumb('Logout initiated', { 
+            username: user?.username 
+        });
+    }
+
     try {
         // Call logout API
         await API.logout();
@@ -465,6 +515,17 @@ export async function handleLogout(e) {
 
     // Clear local authentication
     Auth.clearToken();
+
+    // Clear Sentry user context
+    if (window.Sentry) {
+        Sentry.setUser(null);
+        console.log('✓ Sentry user context cleared');
+    }
+
+    // Add breadcrumb for successful logout
+    if (window.addDebugBreadcrumb) {
+        window.addDebugBreadcrumb('Logout completed', {});
+    }
 
     // Reset application state
     AppState.resetState();

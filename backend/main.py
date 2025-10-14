@@ -1,5 +1,6 @@
 import logging
 import sys
+import socket
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 from pathlib import Path
@@ -10,12 +11,80 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 import uvicorn
+import sentry_sdk
+from sentry_sdk.integrations.fastapi import FastApiIntegration
+from sentry_sdk.integrations.logging import LoggingIntegration
 
 from core.config import settings as config_settings
-from api.endpoints import apps, system, auth, settings, backups
+from api.endpoints import apps, system, auth, settings, backups, test
 from api.middleware.auth import get_current_user
 from services.proxmox_service import ProxmoxError
 from services.app_service import AppServiceError
+
+
+# Define Sentry event processor BEFORE initialization
+def _sentry_before_send(event, hint):
+    """
+    Custom event processor to filter and enrich Sentry events.
+    This runs before events are sent to Sentry.
+    """
+    # Filter out non-error events in production
+    if config_settings.SENTRY_ENVIRONMENT == "production":
+        if event.get("level") not in ["error", "fatal"]:
+            return None
+    
+    # Add application context
+    event.setdefault("contexts", {})
+    event["contexts"]["app"] = {
+        "name": config_settings.APP_NAME,
+        "version": config_settings.APP_VERSION,
+        "debug_mode": config_settings.DEBUG,
+    }
+    
+    # Add Proxmox context (without sensitive data)
+    event["contexts"]["proxmox"] = {
+        "host": config_settings.PROXMOX_HOST,
+        "port": config_settings.PROXMOX_PORT,
+    }
+    
+    return event
+
+
+# Initialize Sentry BEFORE any application logic
+if config_settings.SENTRY_DSN:
+    # Detect environment automatically if not explicitly set
+    environment = config_settings.SENTRY_ENVIRONMENT
+    if not environment:
+        hostname = socket.gethostname()
+        environment = "development" if hostname in ["localhost", "127.0.0.1"] or "local" in hostname else "production"
+    
+    # Use APP_VERSION as release if not explicitly set
+    release = config_settings.SENTRY_RELEASE or config_settings.APP_VERSION
+    
+    sentry_sdk.init(
+        dsn=config_settings.SENTRY_DSN,
+        environment=environment,
+        release=release,
+        integrations=[
+            FastApiIntegration(
+                transaction_style="endpoint",  # Group transactions by route
+                failed_request_status_codes={500, 502, 503, 504},  # Set instead of list (fixes deprecation warning)
+            ),
+            LoggingIntegration(
+                level=logging.INFO,  # Capture info and above
+                event_level=logging.ERROR  # Send events for ERROR and above
+            ),
+        ],
+        traces_sample_rate=1.0 if environment == "development" else 0.1,  # 100% in dev, 10% in prod
+        profiles_sample_rate=0.0,  # Disable profiling for now
+        send_default_pii=False,  # Don't send personally identifiable information
+        before_send=_sentry_before_send,  # Custom event processor
+    )
+    
+    print(f"✓ Sentry initialized (environment={environment}, release={release})")
+else:
+    print("ℹ️  Sentry disabled (no SENTRY_DSN configured)")
+
 
 # Configure logging
 logging.basicConfig(
@@ -275,7 +344,7 @@ def create_app() -> FastAPI:
             content={"success": False, "error": "Internal server error"}
         )
     
-    # Middleware for request logging
+    # Middleware for request logging and Sentry context
     @app.middleware("http")
     async def log_requests(request: Request, call_next):
         # Handle OPTIONS requests for CORS preflight
@@ -290,6 +359,22 @@ def create_app() -> FastAPI:
                     "Access-Control-Allow-Credentials": "true",
                 }
             )
+        
+        # Clear Sentry user context at the start of each request
+        # Will be set later by auth middleware if user is authenticated
+        sentry_sdk.set_user(None)
+        
+        # Add request breadcrumb for Sentry error tracking
+        sentry_sdk.add_breadcrumb(
+            category="request",
+            message=f"{request.method} {request.url.path}",
+            level="info",
+            data={
+                "url": str(request.url),
+                "method": request.method,
+                "client_host": request.client.host if request.client else None,
+            }
+        )
         
         start_time = request.state.start_time = logger.time() if hasattr(logger, 'time') else 0
         
@@ -324,6 +409,14 @@ def create_app() -> FastAPI:
         public_system,
         prefix=f"/api/{config_settings.API_VERSION}/system",
         tags=["System - Public"]
+    )
+
+    # Test router (PUBLIC - for debugging and monitoring)
+    # Includes Sentry test endpoints and health checks
+    app.include_router(
+        test.router,
+        prefix=f"/api/{config_settings.API_VERSION}",
+        tags=["Test & Debugging"]
     )
 
     # Apps router (PROTECTED - requires authentication)
@@ -365,11 +458,7 @@ def create_app() -> FastAPI:
     @app.get("/")
     async def read_root():
         """Serve the main UI"""
-        response = FileResponse(static_dir / "index.html")
-        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-        response.headers["Pragma"] = "no-cache"
-        response.headers["Expires"] = "0"
-        return response
+        return FileResponse(static_dir / "index.html")
 
     # Mount static file directory for all frontend assets
     app.mount("/js", StaticFiles(directory=static_dir / "js"), name="js")

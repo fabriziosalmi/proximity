@@ -54,6 +54,11 @@ class Settings(BaseSettings):
     # Logging
     LOG_LEVEL: str = "INFO"
 
+    # Error Monitoring & Observability
+    SENTRY_DSN: Optional[str] = None  # Leave empty to disable Sentry
+    SENTRY_ENVIRONMENT: Optional[str] = None  # Auto-detected if not set
+    SENTRY_RELEASE: Optional[str] = None  # Defaults to APP_VERSION if not set
+
     # Authentication Settings (Phase 1)
     JWT_SECRET_KEY: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60

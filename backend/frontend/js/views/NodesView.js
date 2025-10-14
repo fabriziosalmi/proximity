@@ -160,14 +160,14 @@ export class NodesView extends Component {
                     <div class="app-icon-lg">🌐</div>
                     <div class="app-info">
                         <h3 class="app-name">Network Architecture</h3>
-                        <p style="margin: 0.5rem 0 0 0; opacity: 0.8; font-size: 0.9rem;">
+                        <p class="app-description" style="margin-top: 0.25rem; font-size: 0.75rem; opacity: 0.7;">
                             Simple DHCP networking via vmbr0 bridge
                         </p>
                     </div>
                 </div>
 
-                <!-- Network info with status LEDs -->
-                <div class="app-connection-info" style="margin-top: 1rem;">
+                <!-- Network Status LEDs - Second Row -->
+                <div class="app-connection-info">
                     <div class="connection-item">
                         <span class="status-led status-led-active network-led-bridge" title="Bridge Active"></span>
                         <i data-lucide="network" class="connection-icon"></i>
@@ -187,6 +187,22 @@ export class NodesView extends Component {
                         <span class="status-led status-led-active network-led-internet" title="Internet Connected"></span>
                         <i data-lucide="globe" class="connection-icon"></i>
                         <span class="connection-value">Internet: Connected</span>
+                    </div>
+                </div>
+
+                <!-- Network Details - Third Row (styled as metrics) -->
+                <div class="app-metrics">
+                    <div class="connection-item">
+                        <i data-lucide="server" class="metric-icon"></i>
+                        <span class="metric-value">Type: Bridge</span>
+                    </div>
+                    <div class="connection-item">
+                        <i data-lucide="shield" class="metric-icon"></i>
+                        <span class="metric-value">Mode: NAT</span>
+                    </div>
+                    <div class="connection-item">
+                        <i data-lucide="zap" class="metric-icon"></i>
+                        <span class="metric-value">Status: Active</span>
                     </div>
                 </div>
             </div>

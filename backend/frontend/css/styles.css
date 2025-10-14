@@ -1552,6 +1552,14 @@ h3 { font-size: 1.5rem; font-weight: 600; }
     gap: 0.5rem;
 }
 
+/* Allow connection-item to work inside app-metrics for network card */
+.app-metrics .connection-item {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
 .metric-icon {
     width: 14px;
     height: 14px;

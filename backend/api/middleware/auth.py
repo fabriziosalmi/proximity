@@ -13,6 +13,7 @@ from services.auth_service import AuthService
 from core.config import settings
 from typing import Optional
 import logging
+import sentry_sdk
 
 logger = logging.getLogger(__name__)
 
@@ -69,6 +70,15 @@ async def get_current_user(
     # Store user info in request state for logging
     request.state.user = token_data
     request.state.user_ip = request.client.host
+
+    # Set Sentry user context for error tracking
+    # This ensures all backend errors include user information
+    sentry_sdk.set_user({
+        "id": str(token_data.user_id),
+        "username": token_data.username,
+        "email": getattr(user, "email", None),  # Include email if available
+        "role": token_data.role,
+    })
 
     return token_data
 

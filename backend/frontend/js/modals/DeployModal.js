@@ -147,6 +147,15 @@ async function deployApp(catalogId) {
             payload.node = targetNode;
         }
 
+        // Add breadcrumb for deployment start
+        if (window.addDebugBreadcrumb) {
+            window.addDebugBreadcrumb('App deployment started', {
+                catalog_id: catalogId,
+                hostname: hostname,
+                target_node: targetNode || 'auto'
+            });
+        }
+
         // Show deployment progress modal
         showDeploymentProgress(catalogId, hostname);
 
@@ -159,6 +168,15 @@ async function deployApp(catalogId) {
         hideDeploymentProgress();
         closeDeployModal();
         showNotification(`Application deployed successfully!`, 'success');
+
+        // Add breadcrumb for successful deployment
+        if (window.addDebugBreadcrumb) {
+            window.addDebugBreadcrumb('App deployment succeeded', {
+                catalog_id: catalogId,
+                hostname: hostname,
+                vmid: result.vmid
+            });
+        }
 
         // Wait for proxy vhost to be fully propagated
         console.log('Waiting for proxy vhost propagation...');
@@ -183,6 +201,26 @@ async function deployApp(catalogId) {
         closeDeployModal();
         showNotification('Deployment failed: ' + error.message, 'error');
         console.error('Deployment error:', error);
+
+        // Report deployment failure to Sentry
+        if (window.reportToSentry) {
+            window.reportToSentry(error, {
+                context: 'app_deployment',
+                catalog_id: catalogId,
+                hostname: hostname,
+                target_node: targetNode || 'auto',
+                error_message: error.message
+            });
+        }
+
+        // Add breadcrumb for failed deployment
+        if (window.addDebugBreadcrumb) {
+            window.addDebugBreadcrumb('App deployment failed', {
+                catalog_id: catalogId,
+                hostname: hostname,
+                error: error.message
+            });
+        }
     }
 }
 

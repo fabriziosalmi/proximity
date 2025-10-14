@@ -145,6 +145,14 @@ export async function deleteApp(appId, appName) {
     const authFetch = getAuthFetch();
     const showNotification = getNotification();
     
+    // Add breadcrumb for deletion start
+    if (window.addDebugBreadcrumb) {
+        window.addDebugBreadcrumb('App deletion started', {
+            app_id: appId,
+            app_name: appName
+        });
+    }
+    
     // Show deletion progress if function exists
     if (window.showDeletionProgress) {
         window.showDeletionProgress(appName);
@@ -181,6 +189,14 @@ export async function deleteApp(appId, appName) {
             window.hideDeletionProgress();
         }
         
+        // Add breadcrumb for successful deletion
+        if (window.addDebugBreadcrumb) {
+            window.addDebugBreadcrumb('App deletion succeeded', {
+                app_id: appId,
+                app_name: appName
+            });
+        }
+        
         showNotification('Application deleted successfully', 'success');
         
         return true;
@@ -189,6 +205,26 @@ export async function deleteApp(appId, appName) {
         if (window.hideDeletionProgress) {
             window.hideDeletionProgress();
         }
+        
+        // Report deletion failure to Sentry
+        if (window.reportToSentry) {
+            window.reportToSentry(error, {
+                context: 'app_deletion',
+                app_id: appId,
+                app_name: appName,
+                error_message: error.message
+            });
+        }
+        
+        // Add breadcrumb for failed deletion
+        if (window.addDebugBreadcrumb) {
+            window.addDebugBreadcrumb('App deletion failed', {
+                app_id: appId,
+                app_name: appName,
+                error: error.message
+            });
+        }
+        
         showNotification('Failed to delete app: ' + error.message, 'error');
         console.error('Delete error:', error);
         throw error;
