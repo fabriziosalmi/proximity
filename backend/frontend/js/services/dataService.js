@@ -215,12 +215,12 @@ export async function refreshAppList() {
 
 /**
  * Update all UI components
- * Updates stats, counts, and recent apps section
+ * Updates stats, counts (but NOT recent apps - removed from dashboard)
  */
 export function updateUI() {
     updateStats();
     updateAppsCount();
-    updateRecentApps();
+    // Removed: updateRecentApps() - dashboard is now static
 }
 
 /**
@@ -280,86 +280,15 @@ export function updateAppsCount() {
 }
 
 /**
- * Update recent apps section
- * Renders quick access icons for deployed apps on dashboard
+ * Update recent apps section (DEPRECATED - Dashboard is now static)
+ * This function is kept for backward compatibility but does nothing.
+ * Apps are now only shown in the dedicated "My Apps" view.
  */
 export function updateRecentApps() {
-    console.log('📱 updateRecentApps() called');
-    const state = getState();
-    const container = document.getElementById('quickApps');
-
-    if (!container) {
-        console.warn('⚠️  quickApps container not found in DOM');
-        return;
-    }
-    
-    console.log(`✓ quickApps container found, deployedApps count: ${state.deployedApps.length}`);
-
-    if (state.deployedApps.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-icon">
-                    <i data-lucide="package" style="width: 48px; height: 48px;"></i>
-                </div>
-                <h3 class="empty-title">No applications yet</h3>
-                <p class="empty-message">Deploy your first application from the catalog to get started.</p>
-                <button class="btn btn-primary" onclick="window.router.navigateTo('catalog')">Browse Catalog</button>
-            </div>
-        `;
-        initIcons();
-        return;
-    }
-
-    // Show all apps as quick access icons
-    container.innerHTML = state.deployedApps.map(app => {
-        const isRunning = app.status === 'running';
-        const appUrl = (app.url && app.url !== 'None' && app.url !== 'null') ? app.url : null;
-
-        // Get icon
-        let icon = getIcon(app.name || app.id);
-        if (app.icon) {
-            const escapedFallback = typeof icon === 'string' ? icon.replace(/'/g, "&#39;").replace(/"/g, "&quot;") : icon;
-            icon = `<img
-                src="${app.icon}"
-                alt="${app.name}"
-                style="width: 100%; height: 100%; object-fit: contain;"
-                onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '${escapedFallback}');"
-            />`;
-        }
-
-        // Prepare app data for canvas click
-        const appDataForCanvas = JSON.stringify({
-            id: app.id,
-            name: app.name,
-            hostname: app.hostname,
-            iframe_url: appUrl || app.url,
-            url: appUrl || app.url,
-            status: app.status
-        }).replace(/"/g, '&quot;');
-
-        // Click handler
-        const clickHandler = (isRunning && appUrl)
-            ? `onclick="openCanvas(${appDataForCanvas})" style="cursor: pointer;"`
-            : `onclick="window.router.navigateTo('apps')" style="cursor: pointer;"`;
-
-        return `
-            <div class="quick-app-item ${isRunning ? 'running' : 'stopped'}"
-                 ${clickHandler}
-                 title="${app.name || app.hostname} - ${isRunning ? 'Click to open' : 'Not running'}">
-                <div class="quick-app-icon">
-                    ${icon}
-                </div>
-                <div class="quick-app-status ${isRunning ? 'running' : 'stopped'}"></div>
-                <div class="quick-app-name">${app.name || app.hostname}</div>
-            </div>
-        `;
-    }).join('');
-
-    // Reinitialize Lucide icons
-    initIcons();
-}
-
-/**
+    // Intentionally empty - dashboard is now static
+    // All app management happens in AppsView
+    return;
+}/**
  * Clear catalog cache
  * Forces next loadCatalog() to fetch fresh data
  */

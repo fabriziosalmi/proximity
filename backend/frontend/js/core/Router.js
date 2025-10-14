@@ -11,6 +11,7 @@
  */
 
 import { getState } from '../state/appState.js';
+import { isAuthenticated as isUserAuthenticated } from '../utils/auth.js';
 
 /**
  * Router class that manages view lifecycle
@@ -58,9 +59,13 @@ export class Router {
         // This was the ROOT CAUSE of slow loading - views were getting empty state!
         const state = customState || getState();
 
-        // Check authentication from localStorage
-        const token = localStorage.getItem('token');
-        const isAuthenticated = token && token !== 'null' && token !== 'undefined';
+        // Check authentication status using shared auth utilities
+        const isAuthenticated = isUserAuthenticated();
+
+        // Mirror authentication state in legacy globals for backward compatibility
+        if (typeof window !== 'undefined') {
+            window.isAuthenticated = isAuthenticated;
+        }
         
         console.group('🧭 Router Navigation');
         console.log('📍 From:', this._currentViewName || 'none');

@@ -398,6 +398,9 @@ window.showAppVolumes = showAppVolumes;
 // Utility functions (NEW!)
 window.initLucideIcons = Icons.initLucideIcons;
 window.getAppIcon = Icons.getAppIcon;
+window.getToken = Auth.getToken;
+window.setToken = Auth.setToken;
+window.clearToken = Auth.clearToken;
 window.formatDate = Formatters.formatDate;
 window.formatBytes = Formatters.formatBytes;
 window.formatSize = Formatters.formatSize;

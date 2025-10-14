@@ -14,6 +14,8 @@
  * @module configService
  */
 
+import { getToken as getAuthToken } from '../utils/auth.js';
+
 /**
  * Get API base URL
  * @returns {string} API base URL
@@ -27,7 +29,11 @@ function getAPIBase() {
  * @returns {string} Auth token
  */
 function getToken() {
-    return window.getToken ? window.getToken() : localStorage.getItem('token');
+    if (typeof window !== 'undefined' && typeof window.getToken === 'function') {
+        return window.getToken();
+    }
+
+    return getAuthToken();
 }
 
 /**
