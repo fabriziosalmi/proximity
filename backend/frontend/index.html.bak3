@@ -8,9 +8,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..900&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/styles.css?v=demo-1760459902">
-    <link rel="stylesheet" href="/css/top-nav-rack.css?v=demo-1760459902">
-    <link rel="stylesheet" href="/css/tablet-responsive.css?v=demo-1760459902">
+    <link rel="stylesheet" href="css/styles.css?v=20251010-98">
+    <link rel="stylesheet" href="/css/top-nav-rack.css?v=20251010-77">
+    <link rel="stylesheet" href="/css/tablet-responsive.css?v=20251010-01">
     <!-- Xterm.js Terminal -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
     <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
@@ -20,19 +20,19 @@
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <!-- Top Navigation Rack -->
-    <script src="/js/top-nav-rack.js?v=demo-1760459902"></script>
+    <script src="/js/top-nav-rack.js?v=20251012-fix02"></script>
 
     <!-- Toast Notifications System -->
-    <script src="/js/notifications-global.js?v=demo-1760459902"></script>
+    <script src="/js/notifications-global.js?v=20251010-01"></script>
 
     <!-- Form Validation System -->
-    <script src="/js/validation-global.js?v=demo-1760459902"></script>
+    <script src="/js/validation-global.js?v=20251010-01"></script>
 
     <!-- Debounce Utility -->
-    <script src="/js/utils/debounce.js?v=demo-1760459902" type="module"></script>
+    <script src="/js/utils/debounce.js?v=20251010-01" type="module"></script>
 
     <!-- Modular system (ES6 modules) with lifecycle management -->
-    <script src="js/main.js?v=demo-1760459902" type="module"></script>
+    <script src="js/main.js?v=20251014-no-cache" type="module"></script>
 </head>
 <body>
     <!-- Power On Screen (First Run Only) -->

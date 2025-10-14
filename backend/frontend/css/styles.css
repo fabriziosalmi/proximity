@@ -7743,3 +7743,98 @@ code {
                 inset 0 1px 0 rgba(34, 211, 238, 0.1);
 }
 
+
+/* ============================================================================
+   DASHBOARD APP CARD DEMO SECTION
+   ============================================================================ */
+
+.dashboard-section {
+    max-width: 1200px;
+    margin: 60px auto;
+    padding: 0 24px;
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+}
+
+.section-title i {
+    color: var(--cyan-bright);
+    width: 32px;
+    height: 32px;
+}
+
+.section-subtitle {
+    font-size: 16px;
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.app-card-container-demo {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 16px;
+}
+
+.demo-card {
+    position: relative;
+    border: 2px solid var(--border-cyan);
+    box-shadow: 0 0 30px rgba(34, 211, 238, 0.15);
+    animation: pulse-border 3s ease-in-out infinite;
+}
+
+@keyframes pulse-border {
+    0%, 100% {
+        border-color: rgba(34, 211, 238, 0.3);
+        box-shadow: 0 0 30px rgba(34, 211, 238, 0.15);
+    }
+    50% {
+        border-color: rgba(34, 211, 238, 0.6);
+        box-shadow: 0 0 40px rgba(34, 211, 238, 0.25);
+    }
+}
+
+.demo-card .action-icon:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.demo-card-note {
+    max-width: 800px;
+    margin: 24px auto 0;
+    padding: 16px 24px;
+    background: rgba(6, 182, 212, 0.1);
+    border: 1px solid rgba(34, 211, 238, 0.3);
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.demo-card-note i {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    color: var(--cyan-bright);
+}
+
+.demo-card-note strong {
+    color: var(--cyan-bright);
+    font-weight: 600;
+}
+
