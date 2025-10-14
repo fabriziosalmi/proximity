@@ -39,6 +39,35 @@ function initTopNavRack() {
         }
     });
     
+    // Fullscreen toggle button
+    const fullscreenToggleBtn = document.getElementById('fullscreenToggleBtn');
+    const fullscreenIcon = document.getElementById('fullscreenIcon');
+
+    if (fullscreenToggleBtn && fullscreenIcon) {
+        // Set initial icon
+        updateFullscreenIcon(fullscreenIcon);
+
+        fullscreenToggleBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleFullscreen();
+        });
+
+        // Listen for fullscreen changes (user pressing ESC, F11, etc.)
+        document.addEventListener('fullscreenchange', () => {
+            updateFullscreenIcon(fullscreenIcon);
+        });
+        document.addEventListener('webkitfullscreenchange', () => {
+            updateFullscreenIcon(fullscreenIcon);
+        });
+        document.addEventListener('mozfullscreenchange', () => {
+            updateFullscreenIcon(fullscreenIcon);
+        });
+        document.addEventListener('MSFullscreenChange', () => {
+            updateFullscreenIcon(fullscreenIcon);
+        });
+    }
+    
     // User profile button toggle
     const userProfileBtn = document.getElementById('userProfileBtn');
     const userMenu = document.getElementById('userMenu');
@@ -281,6 +310,86 @@ function setupSoundPanelListeners(panel) {
             }
         });
     });
+}
+
+// ============================================================================
+// FULLSCREEN FUNCTIONS
+// ============================================================================
+
+/**
+ * Toggle fullscreen mode
+ */
+function toggleFullscreen() {
+    if (!document.fullscreenElement &&
+        !document.webkitFullscreenElement &&
+        !document.mozFullScreenElement &&
+        !document.msFullscreenElement) {
+        // Enter fullscreen
+        enterFullscreen();
+    } else {
+        // Exit fullscreen
+        exitFullscreen();
+    }
+}
+
+/**
+ * Enter fullscreen mode
+ */
+function enterFullscreen() {
+    const elem = document.documentElement;
+    
+    if (elem.requestFullscreen) {
+        elem.requestFullscreen();
+    } else if (elem.webkitRequestFullscreen) { // Safari
+        elem.webkitRequestFullscreen();
+    } else if (elem.mozRequestFullScreen) { // Firefox
+        elem.mozRequestFullScreen();
+    } else if (elem.msRequestFullscreen) { // IE/Edge
+        elem.msRequestFullscreen();
+    }
+}
+
+/**
+ * Exit fullscreen mode
+ */
+function exitFullscreen() {
+    if (document.exitFullscreen) {
+        document.exitFullscreen();
+    } else if (document.webkitExitFullscreen) { // Safari
+        document.webkitExitFullscreen();
+    } else if (document.mozCancelFullScreen) { // Firefox
+        document.mozCancelFullScreen();
+    } else if (document.msExitFullscreen) { // IE/Edge
+        document.msExitFullscreen();
+    }
+}
+
+/**
+ * Check if currently in fullscreen
+ */
+function isFullscreen() {
+    return !!(document.fullscreenElement ||
+              document.webkitFullscreenElement ||
+              document.mozFullScreenElement ||
+              document.msFullscreenElement);
+}
+
+/**
+ * Update fullscreen icon based on current state
+ */
+function updateFullscreenIcon(icon) {
+    if (isFullscreen()) {
+        icon.setAttribute('data-lucide', 'minimize');
+        icon.parentElement.title = 'Exit Fullscreen';
+    } else {
+        icon.setAttribute('data-lucide', 'maximize');
+        icon.parentElement.title = 'Enter Fullscreen';
+    }
+    
+    // Re-render Lucide icon
+    if (window.lucide) {
+        window.lucide.createIcons();
+    }
 }
 
 // Export functions for use in main app.js

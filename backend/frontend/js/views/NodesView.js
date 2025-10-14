@@ -8,11 +8,12 @@
  */
 
 import { Component } from '../core/Component.js';
-import { authFetch, API_BASE } from '../services/api.js';
+import { authFetch, API_BASE, getPublicNetworkInfo } from '../services/api.js';
 import { showLoading, hideLoading } from '../utils/ui.js';
 import { formatBytes, formatUptime } from '../utils/formatters.js';
 import { getState } from '../state/appState.js';
 import { networkMonitor } from '../services/networkMonitor.js';
+import networkActivityMonitor from '../services/NetworkActivityMonitor.js';
 
 export class NodesView extends Component {
     constructor() {
@@ -161,7 +162,6 @@ export class NodesView extends Component {
                     <div class="app-info">
                         <h3 class="app-name">Network Architecture</h3>
                         <p class="app-description" style="margin-top: 0.25rem; font-size: 0.75rem; opacity: 0.7;">
-                            Simple DHCP networking via vmbr0 bridge
                         </p>
                     </div>
                 </div>
@@ -176,7 +176,7 @@ export class NodesView extends Component {
                     <div class="connection-item">
                         <span class="status-led status-led-pulse network-led-dhcp" title="DHCP Active"></span>
                         <i data-lucide="wifi" class="connection-icon"></i>
-                        <span class="connection-value">IP: DHCP</span>
+                        <span class="connection-value"> DHCP</span>
                     </div>
                     <div class="connection-item">
                         <span class="status-led status-led-blink network-led-gateway" title="Network Activity (TX/RX)"></span>
@@ -186,7 +186,16 @@ export class NodesView extends Component {
                     <div class="connection-item">
                         <span class="status-led status-led-active network-led-internet" title="Internet Connected"></span>
                         <i data-lucide="globe" class="connection-icon"></i>
-                        <span class="connection-value">Internet: Connected</span>
+                        <span class="connection-value"> Connected</span>
+                    </div>
+                    <div class="connection-item" id="public-ip-item">
+                        <i data-lucide="globe-2" class="connection-icon"></i>
+                        <span class="connection-value"> <span class="public-ip-value">Loading...</span></span>
+                    </div>
+                    <div class="connection-item" id="country-item">
+                        <span class="country-flag" style="width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; margin-right: 0.5rem;">🌍</span>
+                        <i data-lucide="map-pin" class="connection-icon"></i>
+                        <span class="connection-value"> <span class="country-value">Loading...</span></span>
                     </div>
                 </div>
 
@@ -248,7 +257,27 @@ export class NodesView extends Component {
                                     <span class="status-led ${isOnline ? 'status-led-blink' : 'status-led-off'}" 
                                           title="Network Activity"></span>
                                     <i data-lucide="network" class="connection-icon"></i>
-                                    <span class="connection-value">IP: ${node.ip || 'N/A'}</span>
+                                    <span class="connection-value"> ${node.ip || 'N/A'}</span>
+                                </div>
+                                
+                                <!-- Network TX (Upload) with LED -->
+                                <div class="connection-item">
+                                    <span class="status-led led-tx" 
+                                          data-node="${node.node}" 
+                                          data-type="tx"
+                                          title="TX - Network Upload"></span>
+                                    <i data-lucide="upload" class="connection-icon"></i>
+                                    <span class="connection-value">TX</span>
+                                </div>
+                                
+                                <!-- Network RX (Download) with LED -->
+                                <div class="connection-item">
+                                    <span class="status-led led-rx" 
+                                          data-node="${node.node}" 
+                                          data-type="rx"
+                                          title="RX - Network Download"></span>
+                                    <i data-lucide="download" class="connection-icon"></i>
+                                    <span class="connection-value">RX</span>
                                 </div>
                                 
                                 <!-- Uptime -->
@@ -274,7 +303,7 @@ export class NodesView extends Component {
                                     <span class="metric-value">${cpuPercent}%</span>
                                 </div>
                                 <div class="metric-item">
-                                    <i data-lucide="database" class="metric-icon"></i>
+                                    <i data-lucide="memory-stick" class="metric-icon"></i>
                                     <div class="metric-bar-container">
                                         <div class="metric-bar ram-bar" style="width: ${ramPercent}%"></div>
                                     </div>
@@ -299,6 +328,63 @@ export class NodesView extends Component {
         // Initialize Lucide icons
         if (window.lucide && window.lucide.createIcons) {
             window.lucide.createIcons();
+        }
+
+        // Subscribe node LEDs to network activity monitor
+        nodes.forEach(node => {
+            const txLed = container.querySelector(`[data-node="${node.node}"][data-type="tx"]`);
+            const rxLed = container.querySelector(`[data-node="${node.node}"][data-type="rx"]`);
+            
+            if (txLed && rxLed) {
+                networkActivityMonitor.subscribe(node.node, txLed, rxLed);
+            }
+        });
+
+        // Fetch public IP and geolocation info
+        this.fetchPublicNetworkInfo();
+    }
+
+    /**
+     * Fetch and update public IP and geolocation information
+     */
+    async fetchPublicNetworkInfo() {
+        try {
+            const publicInfo = await getPublicNetworkInfo();
+            
+            // Update Public IP
+            const publicIpEl = document.querySelector('.public-ip-value');
+            if (publicIpEl && publicInfo.public_ip) {
+                publicIpEl.textContent = publicInfo.public_ip;
+            } else if (publicIpEl) {
+                publicIpEl.textContent = 'N/A';
+            }
+            
+            // Update Country/Location
+            const countryEl = document.querySelector('.country-value');
+            const flagEl = document.querySelector('.country-flag');
+            
+            if (countryEl && publicInfo.country) {
+                const cityPart = publicInfo.city ? `${publicInfo.city}, ` : '';
+                countryEl.textContent = `${cityPart}${publicInfo.country}`;
+            } else if (countryEl) {
+                countryEl.textContent = 'N/A';
+            }
+            
+            // Update flag emoji
+            if (flagEl && publicInfo.flag_emoji) {
+                flagEl.textContent = publicInfo.flag_emoji;
+                flagEl.title = publicInfo.country || '';
+            }
+            
+        } catch (error) {
+            console.error('Failed to fetch public network info:', error);
+            
+            // Show error state
+            const publicIpEl = document.querySelector('.public-ip-value');
+            if (publicIpEl) publicIpEl.textContent = 'Error';
+            
+            const countryEl = document.querySelector('.country-value');
+            if (countryEl) countryEl.textContent = 'Error';
         }
     }
 

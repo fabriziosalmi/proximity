@@ -51,6 +51,8 @@ class NodeInfo(BaseModel):
     ip: Optional[str] = None  # Node IP address
     pveversion: Optional[str] = None  # Proxmox VE version
     lxc_count: Optional[int] = None  # Number of LXC containers on this node
+    netout: Optional[int] = None  # Network bytes transmitted
+    netin: Optional[int] = None  # Network bytes received
 
 
 class LXCInfo(BaseModel):

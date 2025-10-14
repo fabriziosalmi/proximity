@@ -955,6 +955,25 @@
     color: #ef4444;
 }
 
+/* Fullscreen Toggle Button - Card style icon-only (same style as sound button) */
+.nav-rack-items .fullscreen-toggle-btn {
+    min-width: 44px;
+    width: 44px;
+    padding: 0.625rem;
+    /* Inherits app card style from .nav-rack-item */
+}
+
+.nav-rack-items .fullscreen-toggle-btn:hover {
+    border-color: var(--cyan-bright);
+    box-shadow: 0 12px 40px rgba(34, 211, 238, 0.35),
+                0 0 0 2px var(--cyan-bright);
+}
+
+.nav-rack-items .fullscreen-toggle-btn:hover i {
+    color: var(--cyan-bright);
+    filter: brightness(1.2);
+}
+
 /* Logout Button - Card style icon-only with danger theme */
 .nav-rack-items .logout-btn {
     min-width: 44px;

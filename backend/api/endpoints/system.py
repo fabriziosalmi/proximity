@@ -92,6 +92,12 @@ async def get_nodes(
                 if hasattr(node_detail, 'pveversion') and node_detail.pveversion:
                     node.pveversion = node_detail.pveversion
                 
+                # Copy network stats if available
+                if hasattr(node_detail, 'netin') and node_detail.netin is not None:
+                    node.netin = node_detail.netin
+                if hasattr(node_detail, 'netout') and node_detail.netout is not None:
+                    node.netout = node_detail.netout
+                
                 # Count LXC containers on this node
                 try:
                     containers = await proxmox.get_lxc_containers(node.node)
@@ -104,6 +110,13 @@ async def get_nodes(
                 logger.warning(f"Failed to enrich node {node.node} data: {e}")
                 # Continue with basic node data
                 node.lxc_count = 0
+            
+            # Fallback: If IP is still not set, try to use PROXMOX_HOST from settings
+            if not hasattr(node, 'ip') or not node.ip:
+                # If there's only one node and we're connected, use the connection host
+                if len(nodes) == 1 and settings.PROXMOX_HOST:
+                    node.ip = settings.PROXMOX_HOST
+                    logger.debug(f"Using PROXMOX_HOST as fallback IP for node {node.node}: {node.ip}")
         
         return nodes
         
@@ -124,7 +137,10 @@ async def get_network_metrics(
     Returns bridge status, network stats, and connectivity info.
     """
     try:
+        logger.debug("Fetching nodes for network metrics...")
         nodes = await proxmox.get_nodes()
+        logger.debug(f"Successfully retrieved {len(nodes)} nodes")
+        
         metrics = {
             "timestamp": datetime.now(UTC).isoformat(),
             "nodes": [],
@@ -168,10 +184,11 @@ async def get_network_metrics(
         elif metrics["summary"]["healthy_nodes"] < metrics["summary"]["total_nodes"]:
             metrics["summary"]["bridge_status"] = "warning"
         
+        logger.debug(f"Network metrics successfully generated: {metrics['summary']}")
         return metrics
         
     except ProxmoxError as e:
-        logger.error(f"Failed to get network metrics: {e}")
+        logger.error(f"Failed to get network metrics: Failed to get nodes: {e}")
         # Return degraded status instead of error
         return {
             "timestamp": datetime.now(UTC).isoformat(),
@@ -186,8 +203,90 @@ async def get_network_metrics(
             "error": str(e)
         }
     except Exception as e:
-        logger.error(f"Unexpected error getting network metrics: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Failed to get network metrics: Unexpected error: {e}", exc_info=True)
+        # Return degraded status for any error
+        return {
+            "timestamp": datetime.now(UTC).isoformat(),
+            "nodes": [],
+            "summary": {
+                "total_nodes": 0,
+                "healthy_nodes": 0,
+                "bridge_status": "error",
+                "dhcp_active": False,
+                "internet_connected": False
+            },
+            "error": f"Connection error: {type(e).__name__}"
+        }
+
+
+@router.get("/network/public-info")
+async def get_public_network_info():
+    """
+    Get public IP address and geolocation information.
+    Tries multiple services with fallback for reliability.
+    """
+    import httpx
+    
+    result = {
+        "public_ip": None,
+        "country": None,
+        "country_code": None,
+        "city": None,
+        "flag_emoji": None,
+        "error": None
+    }
+    
+    # Try to get public IP with fallbacks
+    ip_services = [
+        "https://ifconfig.me/ip",
+        "https://api.ipify.org",
+        "https://icanhazip.com",
+        "https://checkip.amazonaws.com"
+    ]
+    
+    async with httpx.AsyncClient(timeout=5.0) as client:
+        for service in ip_services:
+            try:
+                logger.debug(f"Trying to fetch public IP from {service}")
+                response = await client.get(service)
+                if response.status_code == 200:
+                    result["public_ip"] = response.text.strip()
+                    logger.info(f"Successfully got public IP: {result['public_ip']}")
+                    break
+            except Exception as e:
+                logger.debug(f"Failed to get IP from {service}: {e}")
+                continue
+        
+        # If we got an IP, try to get geolocation
+        if result["public_ip"]:
+            try:
+                # Use ip-api.com for geolocation (free, no key required)
+                geo_url = f"http://ip-api.com/json/{result['public_ip']}?fields=status,country,countryCode,city"
+                logger.debug(f"Fetching geolocation from ip-api.com")
+                geo_response = await client.get(geo_url)
+                
+                if geo_response.status_code == 200:
+                    geo_data = geo_response.json()
+                    if geo_data.get("status") == "success":
+                        result["country"] = geo_data.get("country")
+                        result["country_code"] = geo_data.get("countryCode")
+                        result["city"] = geo_data.get("city")
+                        
+                        # Convert country code to flag emoji
+                        if result["country_code"]:
+                            # Convert ISO country code to flag emoji
+                            # (A=🇦, B=🇧, etc. using regional indicator symbols)
+                            country_code = result["country_code"].upper()
+                            result["flag_emoji"] = "".join(chr(0x1F1E6 + ord(c) - ord('A')) for c in country_code)
+                        
+                        logger.info(f"Got geolocation: {result['country']} ({result['country_code']})")
+            except Exception as e:
+                logger.warning(f"Failed to get geolocation: {e}")
+                result["error"] = f"Geolocation failed: {str(e)}"
+        else:
+            result["error"] = "Failed to determine public IP from all services"
+    
+    return result
 
 
 @router.get("/nodes/{node_name}")

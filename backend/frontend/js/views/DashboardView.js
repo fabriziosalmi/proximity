@@ -174,7 +174,7 @@ export class DashboardView extends Component {
                                 <span class="metric-value">45%</span>
                             </div>
                             <div class="metric-item">
-                                <i data-lucide="database" class="metric-icon"></i>
+                                <i data-lucide="memory-stick" class="metric-icon"></i>
                                 <div class="metric-bar-container">
                                     <div class="metric-bar ram-bar" style="width: 62%;"></div>
                                 </div>

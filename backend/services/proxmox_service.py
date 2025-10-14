@@ -88,13 +88,41 @@ class ProxmoxService:
             raise ProxmoxError(f"Failed to get version: {e}")
 
     async def get_nodes(self) -> List[NodeInfo]:
-        """Get list of all Proxmox nodes"""
-        try:
-            client = await self._get_client()
-            nodes_data = await asyncio.to_thread(client.nodes.get)
-            return [NodeInfo(**node) for node in nodes_data]
-        except Exception as e:
-            raise ProxmoxError(f"Failed to get nodes: {e}")
+        """Get list of all Proxmox nodes with retry on connection errors"""
+        max_retries = 2
+        retry_delay = 0.5  # seconds
+        
+        for attempt in range(max_retries + 1):
+            try:
+                client = await self._get_client()
+                nodes_data = await asyncio.to_thread(client.nodes.get)
+                return [NodeInfo(**node) for node in nodes_data]
+            except Exception as e:
+                error_str = str(e).lower()
+                error_type = type(e).__name__
+                
+                # Check if it's a connection error that might be transient
+                is_connection_error = (
+                    "connection" in error_str or 
+                    "remote" in error_str or
+                    "disconnected" in error_str or
+                    error_type == "RemoteDisconnected"
+                )
+                
+                if is_connection_error and attempt < max_retries:
+                    logger.warning(
+                        f"Connection error on attempt {attempt + 1}/{max_retries + 1}: {error_type} - {e}. "
+                        f"Retrying in {retry_delay}s..."
+                    )
+                    # Reset client to force reconnection on next attempt
+                    self._proxmox = None
+                    await asyncio.sleep(retry_delay)
+                    retry_delay *= 2  # Exponential backoff
+                    continue
+                
+                # If we're here, either it's not a connection error or we've exhausted retries
+                logger.error(f"Failed to get nodes after {attempt + 1} attempt(s): {error_type} - {e}")
+                raise ProxmoxError(f"Failed to get nodes: {e}")
 
     async def get_node_status(self, node: str) -> NodeInfo:
         """Get detailed status of a specific node"""

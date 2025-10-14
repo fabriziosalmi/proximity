@@ -159,6 +159,16 @@ export async function getProxyStatus() {
 }
 
 /**
+ * Get public IP and geolocation info
+ * @returns {Promise<object>} Public network info with IP, country, flag
+ */
+export async function getPublicNetworkInfo() {
+    const response = await authFetch(`${API_BASE}/system/network/public-info`);
+    if (!response.ok) throw new Error('Failed to fetch public network info');
+    return await response.json();
+}
+
+/**
  * Get infrastructure status
  * @returns {Promise<object>} Infrastructure status
  */

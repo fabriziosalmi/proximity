@@ -12,6 +12,7 @@ import { renderAppCard, startCPUPolling } from '../components/app-card.js';
 import { authFetch, API_BASE } from '../services/api.js';
 import { loadDeployedApps } from '../services/dataService.js';
 import { getState } from '../state/appState.js';
+import networkActivityMonitor from '../services/NetworkActivityMonitor.js';
 
 export class AppsView extends Component {
     constructor() {
@@ -182,6 +183,20 @@ export class AppsView extends Component {
             if (typeof window.refreshTooltips === 'function') {
                 window.refreshTooltips(grid);
             }
+
+            // Subscribe app LEDs to network activity monitor
+            state.deployedApps.forEach(app => {
+                const vmId = `vm-${app.lxc_id}`;
+                const card = grid.querySelector(`[data-app-id="${app.id}"]`);
+                if (card) {
+                    const txLed = card.querySelector('[data-type="tx"]');
+                    const rxLed = card.querySelector('[data-type="rx"]');
+                    
+                    if (txLed && rxLed) {
+                        networkActivityMonitor.subscribe(vmId, txLed, rxLed);
+                    }
+                }
+            });
         });
     }
 
