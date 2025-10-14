@@ -155,68 +155,7 @@ export class NodesView extends Component {
         }
 
         const content = `
-            <!-- Network Architecture Info -->
-            <div class="app-card deployed" style="margin-bottom: 2rem;">
-                <div class="app-card-header">
-                    <div class="app-icon-lg">🌐</div>
-                    <div class="app-info">
-                        <h3 class="app-name">Network Architecture</h3>
-                        <p class="app-description" style="margin-top: 0.25rem; font-size: 0.75rem; opacity: 0.7;">
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Network Status LEDs - Second Row -->
-                <div class="app-connection-info">
-                    <div class="connection-item">
-                        <span class="status-led status-led-active network-led-bridge" title="Bridge Active"></span>
-                        <i data-lucide="network" class="connection-icon"></i>
-                        <span class="connection-value">Bridge: vmbr0</span>
-                    </div>
-                    <div class="connection-item">
-                        <span class="status-led status-led-pulse network-led-dhcp" title="DHCP Active"></span>
-                        <i data-lucide="wifi" class="connection-icon"></i>
-                        <span class="connection-value"> DHCP</span>
-                    </div>
-                    <div class="connection-item">
-                        <span class="status-led status-led-blink network-led-gateway" title="Network Activity (TX/RX)"></span>
-                        <i data-lucide="activity" class="connection-icon"></i>
-                        <span class="connection-value">Gateway: <span class="network-node-count">Checking...</span></span>
-                    </div>
-                    <div class="connection-item">
-                        <span class="status-led status-led-active network-led-internet" title="Internet Connected"></span>
-                        <i data-lucide="globe" class="connection-icon"></i>
-                        <span class="connection-value"> Connected</span>
-                    </div>
-                    <div class="connection-item" id="public-ip-item">
-                        <i data-lucide="globe-2" class="connection-icon"></i>
-                        <span class="connection-value"> <span class="public-ip-value">Loading...</span></span>
-                    </div>
-                    <div class="connection-item" id="country-item">
-                        <span class="country-flag" style="width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; margin-right: 0.5rem;">🌍</span>
-                        <i data-lucide="map-pin" class="connection-icon"></i>
-                        <span class="connection-value"> <span class="country-value">Loading...</span></span>
-                    </div>
-                </div>
-
-                <!-- Network Details - Third Row (styled as metrics) -->
-                <div class="app-metrics">
-                    <div class="connection-item">
-                        <i data-lucide="server" class="metric-icon"></i>
-                        <span class="metric-value">Type: Bridge</span>
-                    </div>
-                    <div class="connection-item">
-                        <i data-lucide="shield" class="metric-icon"></i>
-                        <span class="metric-value">Mode: NAT</span>
-                    </div>
-                    <div class="connection-item">
-                        <i data-lucide="zap" class="metric-icon"></i>
-                        <span class="metric-value">Status: Active</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Proxmox Nodes -->
+            <!-- Proxmox Hosts -->
             <h2 style="margin: 2rem 0 1rem 0;">Proxmox Hosts</h2>
             <div class="apps-grid deployed">
                 ${nodes.map(node => {
@@ -260,6 +199,34 @@ export class NodesView extends Component {
                                     <span class="connection-value"> ${node.ip || 'N/A'}</span>
                                 </div>
                                 
+                                <!-- Bridge Status -->
+                                <div class="connection-item">
+                                    <span class="status-led status-led-active network-led-bridge-host" title="Bridge Active"></span>
+                                    <i data-lucide="network" class="connection-icon"></i>
+                                    <span class="connection-value">Bridge: vmbr0</span>
+                                </div>
+                                
+                                <!-- DHCP Status -->
+                                <div class="connection-item">
+                                    <span class="status-led status-led-pulse network-led-dhcp-host" title="DHCP Active"></span>
+                                    <i data-lucide="wifi" class="connection-icon"></i>
+                                    <span class="connection-value">DHCP</span>
+                                </div>
+                                
+                                <!-- Gateway Status -->
+                                <div class="connection-item">
+                                    <span class="status-led status-led-blink network-led-gateway-host" title="Gateway Active"></span>
+                                    <i data-lucide="activity" class="connection-icon"></i>
+                                    <span class="connection-value">Gateway</span>
+                                </div>
+                                
+                                <!-- Internet Status -->
+                                <div class="connection-item">
+                                    <span class="status-led status-led-active network-led-internet-host" title="Internet Connected"></span>
+                                    <i data-lucide="globe" class="connection-icon"></i>
+                                    <span class="connection-value">Connected</span>
+                                </div>
+                                
                                 <!-- Network TX (Upload) with LED -->
                                 <div class="connection-item">
                                     <span class="status-led led-tx" 
@@ -290,6 +257,19 @@ export class NodesView extends Component {
                                 <div class="connection-item">
                                     <i data-lucide="box" class="connection-icon"></i>
                                     <span class="connection-value">LXCs: ${node.lxc_count || '0'}</span>
+                                </div>
+
+                                <!-- Public IP -->
+                                <div class="connection-item">
+                                    <i data-lucide="globe" class="connection-icon"></i>
+                                    <span class="connection-value"><span class="public-ip-value-host">Loading...</span></span>
+                                </div>
+                                
+                                <!-- Country/Location with flag -->
+                                <div class="connection-item">
+                                    <span class="country-flag-host" style="font-size: 1.2rem; margin-right: 0.25rem;">🌍</span>
+                                    <i data-lucide="map-pin" class="connection-icon"></i>
+                                    <span class="connection-value"><span class="country-value-host">Loading...</span></span>
                                 </div>
                             </div>
 
@@ -351,40 +331,45 @@ export class NodesView extends Component {
         try {
             const publicInfo = await getPublicNetworkInfo();
             
-            // Update Public IP
-            const publicIpEl = document.querySelector('.public-ip-value');
-            if (publicIpEl && publicInfo.public_ip) {
-                publicIpEl.textContent = publicInfo.public_ip;
-            } else if (publicIpEl) {
-                publicIpEl.textContent = 'N/A';
-            }
+            // Update Public IP in Host cards
+            const publicIpHostEls = document.querySelectorAll('.public-ip-value-host');
+            publicIpHostEls.forEach(el => {
+                if (publicInfo.public_ip) {
+                    el.textContent = publicInfo.public_ip;
+                } else {
+                    el.textContent = 'N/A';
+                }
+            });
             
-            // Update Country/Location
-            const countryEl = document.querySelector('.country-value');
-            const flagEl = document.querySelector('.country-flag');
+            // Update Country/Location in Host cards
+            const countryHostEls = document.querySelectorAll('.country-value-host');
+            const flagHostEls = document.querySelectorAll('.country-flag-host');
             
-            if (countryEl && publicInfo.country) {
-                const cityPart = publicInfo.city ? `${publicInfo.city}, ` : '';
-                countryEl.textContent = `${cityPart}${publicInfo.country}`;
-            } else if (countryEl) {
-                countryEl.textContent = 'N/A';
-            }
+            countryHostEls.forEach(el => {
+                if (publicInfo.country) {
+                    const cityPart = publicInfo.city ? `${publicInfo.city}, ` : '';
+                    el.textContent = `${cityPart}${publicInfo.country}`;
+                } else {
+                    el.textContent = 'N/A';
+                }
+            });
             
-            // Update flag emoji
-            if (flagEl && publicInfo.flag_emoji) {
-                flagEl.textContent = publicInfo.flag_emoji;
-                flagEl.title = publicInfo.country || '';
-            }
+            flagHostEls.forEach(el => {
+                if (publicInfo.flag_emoji) {
+                    el.textContent = publicInfo.flag_emoji;
+                    el.title = publicInfo.country || '';
+                }
+            });
             
         } catch (error) {
             console.error('Failed to fetch public network info:', error);
             
-            // Show error state
-            const publicIpEl = document.querySelector('.public-ip-value');
-            if (publicIpEl) publicIpEl.textContent = 'Error';
+            // Show error state in Host cards
+            const publicIpHostEls = document.querySelectorAll('.public-ip-value-host');
+            publicIpHostEls.forEach(el => el.textContent = 'Error');
             
-            const countryEl = document.querySelector('.country-value');
-            if (countryEl) countryEl.textContent = 'Error';
+            const countryHostEls = document.querySelectorAll('.country-value-host');
+            countryHostEls.forEach(el => el.textContent = 'Error');
         }
     }
 
@@ -397,39 +382,33 @@ export class NodesView extends Component {
 
         const summary = metrics.summary;
 
-        // Update Bridge LED
-        const bridgeLED = document.querySelector('.network-led-bridge');
-        if (bridgeLED) {
-            bridgeLED.className = 'status-led network-led-bridge ' + networkMonitor.getLEDClass('bridge');
-            bridgeLED.title = `Bridge: ${networkMonitor.getStatusText('bridge')}`;
-        }
+        // Update Bridge LEDs in Host cards
+        const bridgeHostLEDs = document.querySelectorAll('.network-led-bridge-host');
+        bridgeHostLEDs.forEach(led => {
+            led.className = 'status-led network-led-bridge-host ' + networkMonitor.getLEDClass('bridge');
+            led.title = `Bridge: ${networkMonitor.getStatusText('bridge')}`;
+        });
 
-        // Update DHCP LED
-        const dhcpLED = document.querySelector('.network-led-dhcp');
-        if (dhcpLED) {
-            dhcpLED.className = 'status-led network-led-dhcp ' + networkMonitor.getLEDClass('dhcp');
-            dhcpLED.title = `DHCP: ${networkMonitor.getStatusText('dhcp')}`;
-        }
+        // Update DHCP LEDs in Host cards
+        const dhcpHostLEDs = document.querySelectorAll('.network-led-dhcp-host');
+        dhcpHostLEDs.forEach(led => {
+            led.className = 'status-led network-led-dhcp-host ' + networkMonitor.getLEDClass('dhcp');
+            led.title = `DHCP: ${networkMonitor.getStatusText('dhcp')}`;
+        });
 
-        // Update Gateway LED (TX/RX activity)
-        const gatewayLED = document.querySelector('.network-led-gateway');
-        if (gatewayLED) {
-            gatewayLED.className = 'status-led network-led-gateway ' + networkMonitor.getLEDClass('gateway');
-            gatewayLED.title = `Gateway: ${networkMonitor.getStatusText('gateway')} (TX/RX Activity)`;
-        }
+        // Update Gateway LEDs in Host cards
+        const gatewayHostLEDs = document.querySelectorAll('.network-led-gateway-host');
+        gatewayHostLEDs.forEach(led => {
+            led.className = 'status-led network-led-gateway-host ' + networkMonitor.getLEDClass('gateway');
+            led.title = `Gateway: ${networkMonitor.getStatusText('gateway')}`;
+        });
 
-        // Update Internet LED
-        const internetLED = document.querySelector('.network-led-internet');
-        if (internetLED) {
-            internetLED.className = 'status-led network-led-internet ' + networkMonitor.getLEDClass('internet');
-            internetLED.title = `Internet: ${networkMonitor.getStatusText('internet')}`;
-        }
-
-        // Update node count text if exists
-        const nodeCountEl = document.querySelector('.network-node-count');
-        if (nodeCountEl) {
-            nodeCountEl.textContent = networkMonitor.getStatusText('nodes');
-        }
+        // Update Internet LEDs in Host cards
+        const internetHostLEDs = document.querySelectorAll('.network-led-internet-host');
+        internetHostLEDs.forEach(led => {
+            led.className = 'status-led network-led-internet-host ' + networkMonitor.getLEDClass('internet');
+            led.title = `Internet: ${networkMonitor.getStatusText('internet')}`;
+        });
     }
 
     /**
