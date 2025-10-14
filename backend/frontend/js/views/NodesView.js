@@ -24,16 +24,16 @@ export class NodesView extends Component {
      * @param {Object} state - Application state
      * @returns {Function} Unmount function
      */
-    async mount(container, state) {
+    mount(container, state) {
         console.group('📍 NodesView Mount');
         console.log('🔐 Auth Status:', state.isAuthenticated ? '✅ Authenticated' : '❌ Not Authenticated');
         console.log('👤 Current User:', state.currentUser?.username || 'none');
         console.log('📦 Container:', container.id, 'Empty:', !container.innerHTML.trim());
 
-        try {
-            await this.renderNodesView(container, state);
+        // Start async render WITHOUT blocking mount return
+        this.renderNodesView(container, state).then(() => {
             console.log('✅ NodesView rendered successfully');
-        } catch (error) {
+        }).catch(error => {
             console.error('❌ Error mounting Nodes view:', error);
             console.error('Stack:', error.stack);
             container.innerHTML = `
@@ -43,11 +43,11 @@ export class NodesView extends Component {
                     <p>${error.message}</p>
                 </div>
             `;
-        } finally {
+        }).finally(() => {
             console.groupEnd();
-        }
+        });
 
-        // Call parent mount
+        // Call parent mount IMMEDIATELY (sync)
         return super.mount(container, state);
     }
 

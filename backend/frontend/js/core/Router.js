@@ -10,6 +10,8 @@
  * @module core/Router
  */
 
+import { getState } from '../state/appState.js';
+
 /**
  * Router class that manages view lifecycle
  */
@@ -48,10 +50,14 @@ export class Router {
     /**
      * Navigate to a specific view
      * @param {string} viewName - Name of the view to navigate to
-     * @param {Object} state - State to pass to the view
+     * @param {Object} customState - Optional custom state (defaults to global appState)
      * @returns {Promise<void>}
      */
-    async navigateTo(viewName, state = {}) {
+    async navigateTo(viewName, customState = null) {
+        // CRITICAL FIX: Always use global appState unless custom state provided
+        // This was the ROOT CAUSE of slow loading - views were getting empty state!
+        const state = customState || getState();
+
         // Check authentication from localStorage
         const token = localStorage.getItem('token');
         const isAuthenticated = token && token !== 'null' && token !== 'undefined';
@@ -117,9 +123,20 @@ export class Router {
             // Mount the new view and store its unmount function
             try {
                 console.log(`✅ Mounting new view '${viewName}'`);
-                // CRITICAL FIX: Await mount() to support async data loading
-                // Mount happens WHILE container is still hidden
-                this._currentUnmountFn = await component.mount(container, state);
+                // CRITICAL PERFORMANCE FIX: Support both sync and async mount
+                // Sync mount = instant rendering when data already loaded
+                // Async mount = first load with data fetching
+                const mountResult = component.mount(container, state);
+
+                // Check if result is a Promise (async mount)
+                if (mountResult && typeof mountResult.then === 'function') {
+                    // Async mount - await it
+                    this._currentUnmountFn = await mountResult;
+                } else {
+                    // Sync mount - use result directly (INSTANT!)
+                    this._currentUnmountFn = mountResult;
+                }
+
                 this._currentViewName = viewName;
 
                 // Ensure unmount function is valid
@@ -300,8 +317,8 @@ export class Router {
 export const router = new Router();
 
 // Export convenience function
-export function navigateTo(viewName, state) {
-    return router.navigateTo(viewName, state);
+export function navigateTo(viewName, customState = null) {
+    return router.navigateTo(viewName, customState);
 }
 
 // Make router available globally for transition period

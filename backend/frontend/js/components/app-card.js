@@ -55,18 +55,18 @@ export function populateDeployedCard(cardElement, app) {
     // ============================================================================
     // Metadata (Node, LXC ID, Creation Date)
     // ============================================================================
-    
-    const nodeElement = cardElement.querySelector('.node-name');
+
+    const nodeElement = cardElement.querySelector('.node-value');
     if (nodeElement) {
         nodeElement.textContent = app.node || 'Unknown';
     }
-    
-    const lxcElement = cardElement.querySelector('.lxc-id');
+
+    const lxcElement = cardElement.querySelector('.lxc-id-value');
     if (lxcElement) {
         lxcElement.textContent = `LXC ${app.vmid || 'N/A'}`;
     }
-    
-    const createdElement = cardElement.querySelector('.created-date');
+
+    const createdElement = cardElement.querySelector('.date-value');
     if (createdElement) {
         createdElement.textContent = formatDate(app.created_at);
     }
@@ -180,7 +180,6 @@ export function updateResourceMetrics(cardElement, app) {
         ramBar.classList.remove('high-usage', 'critical-usage');
         if (cpuValueSpan) cpuValueSpan.textContent = '0%';
         if (ramValueSpan) ramValueSpan.textContent = '0 MB';
-        console.log(`⏸️ Metrics hidden for ${app.name} (status: ${status})`);
         return;
     }
 
@@ -225,8 +224,6 @@ export function updateResourceMetrics(cardElement, app) {
     } else if (ramPercentage >= 80) {
         ramBar.classList.add('high-usage');
     }
-
-    console.log(`📊 Metrics for ${app.name}: CPU ${cpuUsage}%, RAM ${ramUsageMB}MB/${ramMaxMB}MB (${ramPercentage.toFixed(1)}%)`);
 
     // Store app ID for polling updates
     cpuBar.setAttribute('data-app-id', app.id);
@@ -401,18 +398,13 @@ export function renderAppCard(app, container, isDeployed = false, attachEvents =
  * @returns {number} - Interval ID for cleanup
  */
 export function startCPUPolling(state) {
-    console.log('🔄 Starting resource metrics polling...');
-
     // Poll every 3 seconds
     const intervalId = setInterval(async () => {
         // Only poll if we're on the apps view
         if (state.currentView !== 'apps') {
-            console.log('⏹️ Not on apps view, stopping polling');
             clearInterval(intervalId);
             return;
         }
-
-        console.log('📊 Polling cycle started...');
 
         try {
             // Fetch updated app stats using authFetch
@@ -420,7 +412,6 @@ export function startCPUPolling(state) {
 
             if (response.ok) {
                 const apps = await response.json();
-                console.log(`✓ Fetched ${apps.length} apps from API`);
 
                 // Update metrics for all visible apps
                 apps.forEach(app => {
@@ -428,18 +419,14 @@ export function startCPUPolling(state) {
                     const ramBar = document.querySelector(`.ram-bar[data-app-id="${app.id}"]`);
 
                     if (!cpuBar || !ramBar) {
-                        console.warn(`⚠️ Bars not found for app ${app.id} (${app.name})`);
                         return;
                     }
-                    
-                    console.log(`📈 Updating metrics for ${app.name} (${app.id})`);
 
                     // Check if app is running
                     const status = app.status ? app.status.toLowerCase() : 'stopped';
                     const isRunning = status === 'running';
 
                     if (!isRunning) {
-                        console.log(`  ⏸️ App ${app.name} is ${status} - resetting bars to 0`);
                         // Hide metrics for stopped apps
                         cpuBar.style.width = '0%';
                         ramBar.style.width = '0%';
@@ -451,7 +438,6 @@ export function startCPUPolling(state) {
                         if (cpuValueSpan) cpuValueSpan.textContent = '0%';
                         if (ramValueSpan) ramValueSpan.textContent = '0 MB';
                     } else {
-                        console.log(`  ✓ App ${app.name} is running - fetching stats...`);
                         // For running apps, fetch current stats
                         fetchAndUpdateAppStats(app.id, cpuBar, ramBar);
                     }
@@ -489,18 +475,11 @@ export function startCPUPolling(state) {
  */
 async function fetchAndUpdateAppStats(appId, cpuBar, ramBar) {
     try {
-        console.log(`    🔍 Fetching stats for app ${appId}...`);
         const response = await authFetch(`${API_BASE}/apps/${appId}/stats/current`);
-        
+
         if (response.ok) {
             const stats = await response.json();
-            console.log(`    ✓ Stats received:`, {
-                cpu_percent: stats.cpu_percent,
-                mem_used_gb: stats.mem_used_gb,
-                mem_total_gb: stats.mem_total_gb,
-                cached: stats.cached
-            });
-            
+
             // Update CPU - use cpu_percent from API
             const cpuUsage = Math.round(stats.cpu_percent || 0);
             cpuBar.style.width = `${cpuUsage}%`;
@@ -531,12 +510,8 @@ async function fetchAndUpdateAppStats(appId, cpuBar, ramBar) {
             } else if (ramPercentage >= 80) {
                 ramBar.classList.add('high-usage');
             }
-            
-            console.log(`    ✓ Updated bars: CPU=${cpuUsage}%, RAM=${ramUsageMB}MB (${Math.round(ramPercentage)}%)`);
-        } else {
-            console.error(`    ❌ Stats API returned ${response.status} for app ${appId}`);
         }
     } catch (error) {
-        console.error(`    ❌ Error fetching stats for app ${appId}:`, error);
+        // Silent fail - don't spam console during polling
     }
 }

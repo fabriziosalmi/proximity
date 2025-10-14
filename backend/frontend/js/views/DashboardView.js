@@ -25,36 +25,32 @@ export class DashboardView extends Component {
      */
     mount(container, state) {
         console.log('✅ Mounting Dashboard View');
-        console.log('📦 Container isEmpty:', !container.innerHTML.trim());
-        console.log('📦 Container hasHero:', !!container.querySelector('.hero-section'));
 
         // Store state reference for refresh interval
         this._state = state;
 
-        // Generate dashboard HTML if container is empty
-        const needsHTML = !container.innerHTML.trim() || !container.querySelector('.hero-section');
-        console.log('🏗️  Needs HTML generation:', needsHTML);
-        
-        if (needsHTML) {
-            console.log('🏗️  Generating dashboard HTML...');
-            container.innerHTML = this.generateDashboardHTML();
-            console.log('✅ HTML generated, length:', container.innerHTML.length);
-            
-            // Re-initialize Lucide icons
-            if (window.lucide && window.lucide.createIcons) {
-                window.lucide.createIcons();
-                console.log('✅ Lucide icons re-initialized');
-            }
+        // ALWAYS regenerate HTML (no caching)
+        console.log('🏗️  Generating dashboard HTML...');
+        container.innerHTML = this.generateDashboardHTML();
+
+        // Re-initialize Lucide icons
+        if (window.lucide && window.lucide.createIcons) {
+            window.lucide.createIcons();
+            console.log('✅ Lucide icons re-initialized');
         }
 
-        // MOVED FROM app.js: Update hero stats and recent apps
-        this.updateHeroStats(state);
-        this.updateRecentApps(state);
+        // MOVED FROM app.js: Update hero stats and recent apps with FRESH data
+        const freshState = window.getState ? window.getState() : state;
+        this.updateHeroStats(freshState);
+        this.updateRecentApps(freshState);
+        this._state = freshState;
 
         // Optional: Auto-refresh dashboard every 30 seconds
         this._refreshInterval = this.trackInterval(() => {
-            this.updateHeroStats(this._state);
-            this.updateRecentApps(this._state);
+            const currentState = window.getState ? window.getState() : this._state;
+            this.updateHeroStats(currentState);
+            this.updateRecentApps(currentState);
+            this._state = currentState;
         }, 30000);
 
         // Call parent mount

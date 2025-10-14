@@ -26,67 +26,58 @@ export class AppsView extends Component {
      * @param {Object} state - Application state
      * @returns {Function} Unmount function
      */
-    async mount(container, state) {
-        console.time('⏱️ AppsView Total Mount Time');
-        console.log('✅ Mounting Apps View');
-
+    mount(container, state) {
         // Store state reference
         this._state = state;
 
-        // OPTIMIZATION: Only reload if state.deployedApps is empty or stale
-        // This prevents unnecessary API calls on every navigation
-        const needsReload = !state.deployedApps || state.deployedApps.length === 0;
+        // ALWAYS RELOAD: No caching for now to avoid inconsistencies
+        // Show loading state immediately
+        container.innerHTML = `
+            <div class="loading-state">
+                <div class="loading-spinner"></div>
+                <p>Loading applications...</p>
+            </div>
+        `;
 
-        if (needsReload) {
-            console.time('⏱️ API loadDeployedApps');
-            console.log('🔄 Loading deployed apps from API (first load)...');
+        // Load async WITHOUT blocking mount
+        loadDeployedApps(true).then(() => {
+            // loadDeployedApps(true) already updates global state via setState()
+            // So we just need to get fresh state
+            this._state = getState();
 
-            try {
-                const deployedApps = await loadDeployedApps(false);  // Don't trigger setState
-                console.timeEnd('⏱️ API loadDeployedApps');
-                state.deployedApps = deployedApps;
-                this._state = state;
-            } catch (error) {
-                console.timeEnd('⏱️ API loadDeployedApps');
-                console.error('❌ Failed to load apps:', error);
+            // NOW render with data
+            this.renderAppsView(container, this._state);
 
-                // Show error state
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">⚠️</div>
-                        <h2>Cannot Load Applications</h2>
-                        <p>Unable to connect to the backend server.</p>
-                        <p class="text-muted">Please make sure the backend is running.</p>
-                        <button class="btn btn-primary" onclick="window.location.reload()">
-                            <i data-lucide="refresh-cw"></i>
-                            Retry
-                        </button>
-                    </div>
-                `;
+            // Start CPU polling AFTER render
+            this._cpuPollingInterval = startCPUPolling(this._state);
 
-                if (window.lucide) {
-                    window.lucide.createIcons();
-                }
-
-                console.timeEnd('⏱️ AppsView Total Mount Time');
-                return super.mount(container, state);
+            // Update apps count badge after loading apps
+            if (typeof window.updateAppsCount === 'function') {
+                window.updateAppsCount();
             }
-        } else {
-            console.log(`⚡ Using cached apps (${state.deployedApps.length} apps) - no API call needed`);
-        }
+        }).catch(error => {
+            console.error('❌ Failed to load apps:', error);
 
-        // MOVED FROM app.js: renderAppsView() function
-        console.time('⏱️ renderAppsView');
-        this.renderAppsView(container, state);
-        console.timeEnd('⏱️ renderAppsView');
+            // Show error state
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">⚠️</div>
+                    <h2>Cannot Load Applications</h2>
+                    <p>Unable to connect to the backend server.</p>
+                    <p class="text-muted">Please make sure the backend is running.</p>
+                    <button class="btn btn-primary" onclick="window.location.reload()">
+                        <i data-lucide="refresh-cw"></i>
+                        Retry
+                    </button>
+                </div>
+            `;
 
-        // MOVED FROM app.js: Start CPU polling using imported function
-        this._cpuPollingInterval = startCPUPolling(state);
+            if (window.lucide) {
+                window.lucide.createIcons();
+            }
+        });
 
-        console.timeEnd('⏱️ AppsView Total Mount Time');
-        console.log('✅ Apps View fully loaded and rendered');
-
-        // Call parent mount
+        // Call parent mount (SYNCHRONOUS!)
         return super.mount(container, state);
     }
 
@@ -97,10 +88,8 @@ export class AppsView extends Component {
      * @param {Object} state - Application state
      */
     renderAppsView(container, state) {
+        const ENABLE_PERF_LOGS = false; // Set to true for debugging
         container.classList.remove('has-sub-nav'); // Remove old sub-nav class
-
-        console.log(`📱 renderAppsView() - deployedApps count: ${state.deployedApps?.length || 0}`);
-        console.log(`📱 deployedApps:`, state.deployedApps);
 
         // Search bar is now in the submenu - no need for it here anymore
         const content = `
@@ -113,7 +102,6 @@ export class AppsView extends Component {
         const grid = document.getElementById('allAppsGrid');
 
         if (!state.deployedApps || state.deployedApps.length === 0) {
-            console.log('📱 No apps to display - showing empty state');
             // Show empty state
             grid.innerHTML = `
                 <div class="empty-state">
@@ -124,8 +112,7 @@ export class AppsView extends Component {
                 </div>
             `;
         } else {
-            console.log(`📱 Rendering ${state.deployedApps.length} app cards`);
-            console.time('⏱️ Render Cards Loop');
+            if (ENABLE_PERF_LOGS) console.time('⏱️ Render Cards Loop');
 
             // PERFORMANCE OPTIMIZATION: Batch render all cards using DocumentFragment
             // This reduces reflows from N to 1
@@ -135,9 +122,9 @@ export class AppsView extends Component {
             for (const app of state.deployedApps) {
                 renderAppCard(app, tempContainer, true);
             }
-            console.timeEnd('⏱️ Render Cards Loop');
+            if (ENABLE_PERF_LOGS) console.timeEnd('⏱️ Render Cards Loop');
 
-            console.time('⏱️ DOM Fragment Insert');
+            if (ENABLE_PERF_LOGS) console.time('⏱️ DOM Fragment Insert');
             // Move all rendered cards to fragment
             while (tempContainer.firstChild) {
                 fragment.appendChild(tempContainer.firstChild);
@@ -145,28 +132,28 @@ export class AppsView extends Component {
 
             // Single DOM insertion (much faster!)
             grid.appendChild(fragment);
-            console.timeEnd('⏱️ DOM Fragment Insert');
-            console.log(`⚡ Batch rendered ${state.deployedApps.length} cards in single operation`);
+            if (ENABLE_PERF_LOGS) console.timeEnd('⏱️ DOM Fragment Insert');
         }
 
         // PERFORMANCE OPTIMIZATION: Event delegation at grid level
         // Instead of attaching listeners to each card, we use a single delegated listener
-        console.time('⏱️ Setup Event Delegation');
+        if (ENABLE_PERF_LOGS) console.time('⏱️ Setup Event Delegation');
         this._setupEventDelegation(grid, state);
-        console.timeEnd('⏱️ Setup Event Delegation');
+        if (ENABLE_PERF_LOGS) console.timeEnd('⏱️ Setup Event Delegation');
 
-        // PERFORMANCE CRITICAL: Pass container to scope icon/tooltip initialization
-        // This scans ONLY the apps grid instead of the entire document (100x faster!)
+        // PERFORMANCE CRITICAL: Defer icons/tooltips to next frame
+        // This makes rendering feel instant by not blocking the main thread
+        requestAnimationFrame(() => {
+            // Initialize Lucide icons ONLY in the grid
+            if (typeof window.initLucideIcons === 'function') {
+                window.initLucideIcons(grid);
+            }
 
-        // Initialize Lucide icons ONLY in the grid
-        if (typeof window.initLucideIcons === 'function') {
-            window.initLucideIcons(grid);  // Scoped to grid only!
-        }
-
-        // Refresh tooltips ONLY in the grid
-        if (typeof window.refreshTooltips === 'function') {
-            window.refreshTooltips(grid);  // Scoped to grid only!
-        }
+            // Refresh tooltips ONLY in the grid
+            if (typeof window.refreshTooltips === 'function') {
+                window.refreshTooltips(grid);
+            }
+        });
     }
 
     /**
@@ -278,18 +265,14 @@ export class AppsView extends Component {
 
         // Attach single delegated listener
         grid.addEventListener('click', this._gridClickHandler);
-        console.log('⚡ Event delegation setup complete - single listener handles all cards');
     }
 
     /**
      * Unmount apps view and cleanup
      */
     unmount() {
-        console.log('🧹 Unmounting Apps View');
-
         // Stop CPU polling by clearing the interval
         if (this._cpuPollingInterval) {
-            console.log('⏹️ Stopping CPU usage polling...');
             clearInterval(this._cpuPollingInterval);
             this._cpuPollingInterval = null;
         }
@@ -299,7 +282,6 @@ export class AppsView extends Component {
         if (grid && this._gridClickHandler) {
             grid.removeEventListener('click', this._gridClickHandler);
             this._gridClickHandler = null;
-            console.log('⏹️ Event delegation removed');
         }
 
         super.unmount();

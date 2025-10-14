@@ -31,6 +31,7 @@ import { showPromptModal } from './modals/PromptModal.js';
 import { showEditConfigModal, closeEditConfigModal } from './modals/EditConfigModal.js';
 import { showUpdateModal } from './modals/UpdateModal.js';
 import { controlApp, deleteApp, restartApp, showAppDetails, showDeletionProgress, updateDeletionProgress, hideDeletionProgress, showAppLogs, showAppVolumes } from './services/appOperations.js';
+import { loadDeployedApps, loadCatalog, updateUI, updateAppsCount } from './services/dataService.js';
 
 // Import lifecycle management system
 import { router } from './core/Router.js';
@@ -135,7 +136,8 @@ function initEventDelegation() {
     // Single click handler for the entire application
     document.body.addEventListener('click', (event) => {
         const target = event.target;
-        console.log('🖱️ Click detected on:', target.tagName, target.className);
+        // PERFORMANCE: Disabled excessive click logging (causes lag)
+        // console.log('🖱️ Click detected on:', target.tagName, target.className);
 
         // --- 1. NAVIGATION: Handle view navigation ---
         const navLink = target.closest('[data-view]:not([data-action])');
@@ -303,6 +305,13 @@ async function initializeApp() {
     //     AppState.setState({ currentView: viewName });
     // });
 
+    // STEP 4c: Update apps count badge on every view change
+    router.onViewChange(() => {
+        // Update ONLY the apps count badge (lightweight operation)
+        // updateAppsCount() is imported from dataService
+        updateAppsCount();
+    });
+
     // STEP 5: Subscribe render function to state changes
     AppState.subscribe(render);
     console.log('✅ Render function subscribed to state changes');
@@ -402,6 +411,12 @@ window.refreshInfrastructure = refreshInfrastructure;
 window.restartAppliance = restartAppliance;
 window.viewApplianceLogs = viewApplianceLogs;
 window.testNAT = testNAT;
+
+// CRITICAL: Data loading functions (called from auth-ui.js and views)
+window.loadDeployedApps = loadDeployedApps;
+window.loadCatalog = loadCatalog;
+window.updateUI = updateUI;
+window.updateAppsCount = updateAppsCount;
 
 // Expose modules for advanced usage
 window.Formatters = Formatters;

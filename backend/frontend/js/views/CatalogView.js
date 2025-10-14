@@ -23,32 +23,45 @@ export class CatalogView extends Component {
      * @param {Object} state - Application state
      * @returns {Function} Unmount function
      */
-    async mount(container, state) {
+    mount(container, state) {
         console.log('✅ Mounting Catalog View');
 
-        // Load catalog data if not already loaded
-        if (!state.catalog || !state.catalog.items || state.catalog.items.length === 0) {
-            console.log('📚 Catalog not loaded, fetching...');
-            const catalog = await loadCatalog(false, false);  // Don't trigger setState in loadCatalog
-            
-            // Use setState to properly update global state, but we need to access actual state
-            // Since we're in mount, we'll use the state parameter which is passed by reference
-            setState('catalog', catalog);
-            console.log(`📚 Catalog updated in global state, items: ${catalog?.items?.length || 0}`);
-        }
+        // Show loading state immediately
+        container.innerHTML = `
+            <div class="loading-state">
+                <div class="loading-spinner"></div>
+                <p>Loading catalog...</p>
+            </div>
+        `;
 
-        // Get fresh state for rendering
-        const currentState = getState();
-        console.log(`📚 About to render with ${currentState.catalog?.items?.length || 0} catalog items`);
-        
-        // MOVED FROM app.js: renderCatalogView() function
-        this.renderCatalogView(container, currentState);
+        // ALWAYS RELOAD: No caching for now
+        loadCatalog(true, true).then(() => {  // Force reload and update state
+            // Get fresh state for rendering
+            const currentState = getState();
+            console.log(`📚 About to render with ${currentState.catalog?.items?.length || 0} catalog items`);
 
-        // Track click events using event delegation
-        this.trackListener(container, 'click', (e) => this.handleCatalogClick(e, currentState));
+            // MOVED FROM app.js: renderCatalogView() function
+            this.renderCatalogView(container, currentState);
 
-        // Call parent mount
-        return super.mount(container, currentState);
+            // Track click events using event delegation
+            this.trackListener(container, 'click', (e) => this.handleCatalogClick(e, currentState));
+        }).catch(error => {
+            console.error('❌ Failed to load catalog:', error);
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">⚠️</div>
+                    <h2>Cannot Load Catalog</h2>
+                    <p>Unable to load the application catalog.</p>
+                    <button class="btn btn-primary" onclick="window.location.reload()">
+                        <i data-lucide="refresh-cw"></i>
+                        Retry
+                    </button>
+                </div>
+            `;
+        });
+
+        // Call parent mount IMMEDIATELY
+        return super.mount(container, state);
     }
 
     /**

@@ -33,13 +33,12 @@ export class SettingsView extends Component {
     /**
      * Called when the view is mounted/navigated to
      */
-    async mount(container, state) {
+    mount(container, state) {
         console.group('🔧 SettingsView.mount()');
         console.log('Container element:', container);
-        
-        try {
-            await this.renderSettingsView(container, state);
-        } catch (error) {
+
+        // Start async render WITHOUT blocking mount return
+        this.renderSettingsView(container, state).catch(error => {
             console.error('❌ Error in SettingsView.mount():', error);
             if (container) {
                 container.innerHTML = `
@@ -50,11 +49,11 @@ export class SettingsView extends Component {
                     </div>
                 `;
             }
-        } finally {
+        }).finally(() => {
             console.groupEnd();
-        }
-        
-        // Call parent mount and return unmount function
+        });
+
+        // Call parent mount IMMEDIATELY (sync) and return unmount function
         return super.mount(container, state);
     }
 

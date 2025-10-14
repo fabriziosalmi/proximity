@@ -265,14 +265,14 @@ function updateHeroStats() {
  */
 export function updateAppsCount() {
     const state = getState();
-    const count = state.deployedApps.length;
-    
+    const count = (state.deployedApps && state.deployedApps.length) || 0;
+
     // Update both old sidebar badge (if exists) and new nav rack badge
     const appsCountEl = document.getElementById('appsCount');
     if (appsCountEl) {
         appsCountEl.textContent = count;
     }
-    
+
     // Update new navigation badge
     if (typeof window.updateAppsCountBadge !== 'undefined') {
         window.updateAppsCountBadge(count);
