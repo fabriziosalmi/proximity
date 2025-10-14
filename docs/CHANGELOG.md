@@ -7,7 +7,6 @@
 - Implemented SafeCommandService with 10 read-only commands (logs, status, disk, processes, memory, network, images, volumes, config, system)
 - Removed dangerous `/api/v1/apps/{app_id}/exec` endpoint
 - Added comprehensive audit logging for all command executions
-- See [Security Refactoring Documentation](SECURITY_REFACTORING_SAFE_COMMANDS.md) for details
 
 ### Changed
 - **UI**: Replaced free-form command input with dropdown selector for safe commands
@@ -21,9 +20,8 @@
 - Added `openssh-wrapper` dependency for Proxmox SSH backend
 - Improved ProxmoxService connection error messages
 - New documentation:
-  - `docs/SECURITY_REFACTORING_SAFE_COMMANDS.md` - Comprehensive security guide
-  - `docs/SAFE_COMMANDS_REFERENCE.md` - Quick reference for safe commands
-  - Safe Commands section (see `docs/2_DEPLOYMENT.md` for troubleshooting)
+  - Security improvements documented in `docs/2_DEPLOYMENT.md`
+  - Safe command system integrated into application console
 
 ### Fixed
 - Fixed CORS errors when accessing from localhost vs 127.0.0.1

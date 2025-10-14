@@ -122,7 +122,7 @@ Proximity uses **standard Proxmox networking** for simplicity and reliability:
 - ✅ Better performance with host networking
 - ✅ Easier troubleshooting and debugging
 
-**[Read more →](docs/4_ARCHITECTURE.md)** | **[Network Simplification Details →](docs/NETWORK_SIMPLIFICATION.md)**
+**[Read more →](docs/4_ARCHITECTURE.md)** | **[Network Details →](docs/DOCKER_HOST_NETWORKING.md)**
 
 ### Core Components
 
@@ -134,7 +134,7 @@ Proximity uses **standard Proxmox networking** for simplicity and reliability:
 - **Modular Frontend**: ES6 modules with state management and component architecture
 
 **Network Simplification (October 2025):**  
-Proximity uses standard Proxmox networking (vmbr0 + DHCP) for simplicity and reliability. Containers use Docker's host networking mode for direct access without NAT complexity. This architectural choice significantly reduces infrastructure overhead while maintaining full functionality. See [Network Simplification Documentation](docs/NETWORK_SIMPLIFICATION.md) for details.
+Proximity uses standard Proxmox networking (vmbr0 + DHCP) for simplicity and reliability. Containers use Docker's host networking mode for direct access without NAT complexity. This architectural choice significantly reduces infrastructure overhead while maintaining full functionality. See [Docker Host Networking Documentation](docs/DOCKER_HOST_NETWORKING.md) for details.
 
 ---
 
@@ -322,8 +322,7 @@ ENCRYPTION_KEY=generate-another-secure-key
 
 ### Security & Testing
 
-- **[Security Refactoring](docs/SECURITY_REFACTORING_SAFE_COMMANDS.md)** - Safe command system documentation
-- **[Safe Commands Reference](docs/SAFE_COMMANDS_REFERENCE.md)** - Quick reference for secure container commands
+- **[Deployment Guide](docs/2_DEPLOYMENT.md)** - Security configuration and best practices
 - **[E2E Testing Guide](e2e_tests/README.md)** - End-to-end testing with Playwright and Pytest
 
 ### Feature Documentation
@@ -466,13 +465,13 @@ Proximity is built with security as a top priority:
 - ✅ **No Command Injection**: All commands are hardcoded; user input never interpolated into shell commands
 
 **October 2025 Security Update:**  
-We've completely eliminated the dangerous arbitrary command execution endpoint (`/exec`) and replaced it with a secure, predefined command system. See [Security Refactoring Documentation](docs/SECURITY_REFACTORING_SAFE_COMMANDS.md) for details.
+We've completely eliminated the dangerous arbitrary command execution endpoint (`/exec`) and replaced it with a secure, predefined command system.
 
 **Available Safe Commands:**
 
 - 📋 logs, ✅ status, 💾 disk, ⚙️ processes, 🧠 memory, 🌐 network, 🐳 images, 📦 volumes, ⚙️ config, 💻 system
 
-All commands are read-only, audited, and fully documented in the [Safe Commands Reference](docs/SAFE_COMMANDS_REFERENCE.md).
+All commands are read-only and audited for security compliance.
 
 ---
 

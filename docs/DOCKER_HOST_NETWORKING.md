@@ -290,7 +290,6 @@ Given our architecture:
 - [Docker Compose Networking](https://docs.docker.com/compose/networking/)
 - [LXC Networking](https://pve.proxmox.com/wiki/Linux_Container#pct_container_network)
 - [Proximity Architecture](4_ARCHITECTURE.md)
-- [Network Simplification](NETWORK_SIMPLIFICATION.md)
 
 ---
 
