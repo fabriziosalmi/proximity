@@ -365,7 +365,11 @@ def create_app() -> FastAPI:
     @app.get("/")
     async def read_root():
         """Serve the main UI"""
-        return FileResponse(static_dir / "index.html")
+        response = FileResponse(static_dir / "index.html")
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+        return response
 
     # Mount static file directory for all frontend assets
     app.mount("/js", StaticFiles(directory=static_dir / "js"), name="js")
