@@ -126,7 +126,8 @@ function updateUserInfoNav() {
         
         if (userInfoEl && usernameDisplayEl) {
             usernameDisplayEl.textContent = user.username || 'User';
-            userInfoEl.style.display = ''; // Show the element
+            // Keep user info hidden for now - reserved for future user profile features
+            // userInfoEl.style.display = ''; // Uncomment when implementing user profile
             
             // Initialize icon if lucide is available
             if (typeof lucide !== 'undefined') {
