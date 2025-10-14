@@ -58,11 +58,23 @@ def test_navigate_all_views(authenticated_page):
     # Apps (Deployed Apps)
     print("  → Apps")
     page.click("a.nav-rack-item[data-view='apps']")
-    # Wait for apps view to be fully loaded (data-loaded attribute)
+    
+    # PHASE 1: Wait for view shell to be visible (navigation complete)
+    # This should happen almost instantly (<1s) as the shell renders synchronously
+    print("    ⏳ Phase 1: Waiting for Apps view shell to be visible...")
+    expect(page.locator("#appsView")).to_be_visible(timeout=5000)
+    print("    ✓ Apps view shell visible (navigation succeeded)")
+    
+    # PHASE 2: Wait for data to be fully loaded
+    # This can take longer as it involves API calls and rendering
+    print("    ⏳ Phase 2: Waiting for apps data to load...")
     page.wait_for_function("""
-        () => document.getElementById('appsView')?.getAttribute('data-loaded') === 'true'
+        () => {
+            const container = document.getElementById('appsView');
+            return container && container.getAttribute('data-loaded') === 'true';
+        }
     """, timeout=30000)
-    expect(page.locator("#appsView")).to_be_visible(timeout=10000)
+    print("    ✓ Apps data fully loaded")
     print("  ✓ Apps loaded")
 
     # Nodes (Infrastructure) - May have initialization issues
@@ -143,9 +155,14 @@ def test_active_nav_indicator(authenticated_page):
     
     # Navigate to apps
     page.click("a.nav-rack-item[data-view='apps']")
-    # Wait for apps view to be fully loaded (it's async)
+    # Phase 1: Wait for view shell to be visible
+    expect(page.locator("#appsView")).to_be_visible(timeout=5000)
+    # Phase 2: Wait for apps view to be fully loaded (data)
     page.wait_for_function("""
-        () => document.getElementById('appsView')?.getAttribute('data-loaded') === 'true'
+        () => {
+            const container = document.getElementById('appsView');
+            return container && container.getAttribute('data-loaded') === 'true';
+        }
     """, timeout=30000)
     page.wait_for_timeout(500)
     
@@ -198,9 +215,14 @@ def test_page_titles_update(authenticated_page):
     
     # Navigate to apps and check title
     page.click("a.nav-rack-item[data-view='apps']")
-    # Wait for apps view to be fully loaded
+    # Phase 1: Wait for view to be visible (shell)
+    expect(page.locator("#appsView")).to_be_visible(timeout=5000)
+    # Phase 2: Wait for apps view to be fully loaded (data)
     page.wait_for_function("""
-        () => document.getElementById('appsView')?.getAttribute('data-loaded') === 'true'
+        () => {
+            const container = document.getElementById('appsView');
+            return container && container.getAttribute('data-loaded') === 'true';
+        }
     """, timeout=30000)
     page.wait_for_timeout(500)
     title = page.title()

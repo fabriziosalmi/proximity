@@ -30,23 +30,45 @@ export class AppsView extends Component {
         // Store state reference
         this._state = state;
 
-        // ALWAYS RELOAD: No caching for now to avoid inconsistencies
-        // Show loading state immediately
+        // =====================================================================
+        // PHASE 1: SYNCHRONOUS SHELL RENDER (Immediate - No Blocking)
+        // =====================================================================
+        // Render the view shell IMMEDIATELY so navigation appears instant.
+        // This satisfies E2E tests that check for view visibility.
+        console.log('⚡ AppsView: Rendering shell (synchronous)');
+        
         container.innerHTML = `
-            <div class="loading-state">
-                <div class="loading-spinner"></div>
-                <p>Loading applications...</p>
+            <div class="apps-grid deployed" id="allAppsGrid">
+                <div class="loading-state">
+                    <div class="loading-spinner"></div>
+                    <p>Loading applications...</p>
+                </div>
             </div>
         `;
 
-        // Load async WITHOUT blocking mount
+        // Mark the container as mounted but not yet loaded
+        container.setAttribute('data-loaded', 'false');
+        
+        // =====================================================================
+        // PHASE 2: ASYNCHRONOUS DATA LOADING (Non-blocking)
+        // =====================================================================
+        // Now that the shell is visible, load the actual data in the background.
+        // This happens AFTER mount() returns, so navigation is instant.
+        console.log('🔄 AppsView: Starting async data load');
+        
         loadDeployedApps(true).then(() => {
+            console.log('✅ AppsView: Data loaded, rendering cards');
+            
             // loadDeployedApps(true) already updates global state via setState()
             // So we just need to get fresh state
             this._state = getState();
 
             // NOW render with data
             this.renderAppsView(container, this._state);
+
+            // CRITICAL: Mark as fully loaded for E2E tests
+            container.setAttribute('data-loaded', 'true');
+            console.log('✅ AppsView: Marked as data-loaded=true');
 
             // Start CPU polling AFTER render
             this._cpuPollingInterval = startCPUPolling(this._state);
@@ -59,25 +81,32 @@ export class AppsView extends Component {
             console.error('❌ Failed to load apps:', error);
 
             // Show error state
-            container.innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-state-icon">⚠️</div>
-                    <h2>Cannot Load Applications</h2>
-                    <p>Unable to connect to the backend server.</p>
-                    <p class="text-muted">Please make sure the backend is running.</p>
-                    <button class="btn btn-primary" onclick="window.location.reload()">
-                        <i data-lucide="refresh-cw"></i>
-                        Retry
-                    </button>
-                </div>
-            `;
+            const grid = document.getElementById('allAppsGrid');
+            if (grid) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <h2>Cannot Load Applications</h2>
+                        <p>Unable to connect to the backend server.</p>
+                        <p class="text-muted">Please make sure the backend is running.</p>
+                        <button class="btn btn-primary" onclick="window.location.reload()">
+                            <i data-lucide="refresh-cw"></i>
+                            Retry
+                        </button>
+                    </div>
+                `;
 
-            if (window.lucide) {
-                window.lucide.createIcons();
+                if (window.lucide) {
+                    window.lucide.createIcons();
+                }
             }
+
+            // Mark as loaded even on error (prevents infinite wait in tests)
+            container.setAttribute('data-loaded', 'error');
         });
 
         // Call parent mount (SYNCHRONOUS!)
+        // This returns immediately while data loading continues in background
         return super.mount(container, state);
     }
 

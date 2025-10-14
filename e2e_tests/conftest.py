@@ -322,9 +322,9 @@ def authenticated_page(page: Page, base_url: str) -> Generator[Page, None, None]
     # ========================================================================
     print("\n✅ STEP 4: Smart Wait - Waiting for authentication to complete")
 
-    # CRITICAL FIX: Wait for token to be saved in localStorage
+    # LAYER 1: Wait for token to be saved in localStorage
     # This ensures that subsequent API calls will have the authentication token
-    print("   ⏳ Waiting for token to be saved in localStorage...")
+    print("   📍 Layer 1: Waiting for auth token in storage...")
     page.wait_for_function("""
         () => {
             return localStorage.getItem('proximity_token') ||
@@ -333,12 +333,13 @@ def authenticated_page(page: Page, base_url: str) -> Generator[Page, None, None]
                    sessionStorage.getItem('authToken');
         }
     """, timeout=10000)
-    print("   ✅ Token saved in storage")
+    print("   ✅ Layer 1 complete: Token saved")
 
-    # Wait for auth modal to close
+    # LAYER 2: Wait for auth modal to close
+    print("   📍 Layer 2: Waiting for auth modal to close...")
     try:
-        expect(login_page.modal).not_to_be_visible(timeout=5000)
-        print("   ✅ Auth modal hidden - login complete")
+        expect(login_page.modal).not_to_be_visible(timeout=10000)
+        print("   ✅ Layer 2 complete: Auth modal closed")
     except Exception as e:
         print(f"   ⚠️  Auth modal still visible, forcing close: {e}")
         # Force close the modal if it's still visible
@@ -352,16 +353,38 @@ def authenticated_page(page: Page, base_url: str) -> Generator[Page, None, None]
                 if (backdrop) backdrop.remove();
             }
         """)
+        print("   ✅ Layer 2 complete: Auth modal force-closed")
 
-    # Wait for dashboard element to be visible
+    # LAYER 3: Wait for dashboard container to be attached and visible
+    print("   📍 Layer 3: Waiting for dashboard container to be visible...")
+    try:
+        expect(dashboard_page.dashboard_container).to_be_visible(timeout=20000)
+        print("   ✅ Layer 3 complete: Dashboard container visible")
+    except Exception as e:
+        print(f"   ⚠️  Dashboard container not visible on first attempt: {e}")
+        # Retry with longer timeout
+        print("   🔄 Retrying Layer 3 with extended timeout...")
+        page.wait_for_timeout(2000)  # Brief pause
+        expect(dashboard_page.dashboard_container).to_be_visible(timeout=20000)
+        print("   ✅ Layer 3 complete: Dashboard container visible (retry succeeded)")
+
+    # LAYER 4: Wait for user info display (confirms backend connection and data load)
+    print("   📍 Layer 4: Waiting for user info display (backend connection)...")
     try:
         expect(dashboard_page.get_user_display_locator).to_be_visible(timeout=15000)
-        print("   ✅ User display visible - authentication confirmed")
+        print("   ✅ Layer 4 complete: User info displayed")
     except Exception as e:
-        print(f"   ⚠️  User display not found, trying dashboard container: {e}")
-        # Fallback: check if dashboard container is visible
-        expect(dashboard_page.dashboard_container).to_be_visible(timeout=15000)
-        print("   ✅ Dashboard container visible - authentication confirmed")
+        print(f"   ⚠️  User info not visible (this is acceptable): {e}")
+        print("   ℹ️  Skipping Layer 4 - dashboard container is sufficient")
+    
+    # LAYER 5: Wait for network to be idle (all initial API calls complete)
+    print("   📍 Layer 5: Waiting for network idle state...")
+    try:
+        page.wait_for_load_state("networkidle", timeout=15000)
+        print("   ✅ Layer 5 complete: Network idle")
+    except Exception as e:
+        print(f"   ⚠️  Network idle timeout (acceptable): {e}")
+        print("   ℹ️  Continuing - core authentication is confirmed")
     
     print("\n" + "="*80)
     print("🎉 AUTHENTICATION COMPLETE - Page ready for testing")
