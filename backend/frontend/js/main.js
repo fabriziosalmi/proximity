@@ -64,7 +64,7 @@ function initRouter() {
     'nodes': nodesView
     });
 
-    console.log('✅ Router initialized with 6 views');
+    console.log('✅ Router initialized with 5 views');
 }
 
 /**
