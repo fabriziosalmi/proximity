@@ -23,7 +23,7 @@
 - New documentation:
   - `docs/SECURITY_REFACTORING_SAFE_COMMANDS.md` - Comprehensive security guide
   - `docs/SAFE_COMMANDS_REFERENCE.md` - Quick reference for safe commands
-  - Safe Commands section in `docs/troubleshooting.md`
+  - Safe Commands section (see `docs/2_DEPLOYMENT.md` for troubleshooting)
 
 ### Fixed
 - Fixed CORS errors when accessing from localhost vs 127.0.0.1
@@ -70,10 +70,11 @@
 
 ### Documentation
 - Comprehensive documentation structure in `/docs`
-- `docs/architecture.md` - System architecture overview
-- `docs/deployment.md` - Deployment and operations guide
-- `docs/development.md` - Development and contribution guide
-- `docs/troubleshooting.md` - Common issues and solutions
+- `docs/1_INTRODUCTION.md` - Project introduction and philosophy
+- `docs/2_DEPLOYMENT.md` - Deployment and operations guide
+- `docs/3_USAGE_GUIDE.md` - User guide for all features
+- `docs/4_ARCHITECTURE.md` - System architecture overview
+- `docs/5_DEVELOPMENT.md` - Development and contribution guide
 
 ---
 
