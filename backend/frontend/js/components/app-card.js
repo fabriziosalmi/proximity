@@ -362,8 +362,9 @@ export function attachCatalogCardEvents(cardElement, app) {
  * @param {Object} app - App data
  * @param {HTMLElement} container - Container to append card to
  * @param {boolean} isDeployed - Whether this is a deployed app card
+ * @param {boolean} attachEvents - Whether to attach event listeners (default: false for delegation)
  */
-export function renderAppCard(app, container, isDeployed = false) {
+export function renderAppCard(app, container, isDeployed = false, attachEvents = false) {
     const templateId = isDeployed ? 'deployed-app-card-template' : 'catalog-app-card-template';
     const template = document.getElementById(templateId);
 
@@ -376,18 +377,21 @@ export function renderAppCard(app, container, isDeployed = false) {
     // Clone template
     const clone = template.content.cloneNode(true);
 
-    // Populate and attach events
+    // Populate card
     if (isDeployed) {
         populateDeployedCard(clone, app);
-        attachDeployedCardEvents(clone, app);
+        // PERFORMANCE: Event delegation handles clicks, no individual listeners needed
+        if (attachEvents) {
+            attachDeployedCardEvents(clone, app);
+        }
     } else {
         populateCatalogCard(clone, app);
+        // Catalog cards still need individual listeners (not as many)
         attachCatalogCardEvents(clone, app);
     }
 
     // Append to container
     container.appendChild(clone);
-    console.log(`📌 Appended ${isDeployed ? 'deployed' : 'catalog'} card for: ${app.name}`);
 }
 
 /**

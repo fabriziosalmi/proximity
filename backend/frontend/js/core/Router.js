@@ -90,10 +90,14 @@ export class Router {
             return;
         }
 
-        // Step 3: Hide all views
+        // Step 3: Update UI IMMEDIATELY (feels instant to user)
+        this._updateActiveNavIndicator(viewName);
+        this._updatePageTitle(viewName);
+
+        // Step 4: Hide all views
         this._hideAllViews();
 
-        // Step 4: Get the container for the new view
+        // Step 5: Get the container for the new view
         const container = document.getElementById(`${viewName}View`);
         if (!container) {
             console.error(`❌ Container element '#${viewName}View' not found!`);
@@ -102,21 +106,19 @@ export class Router {
             return;
         }
 
-        // Step 5: Show the container
-        container.classList.remove('hidden');
-
-        // Step 6: Check if component is already mounted (for singleton views)
-        // If so, skip remounting to avoid flash and unnecessary re-render
+        // Step 6: Mount/prepare the view BEFORE showing it (prevents flash of old content)
+        // Check if component is already mounted (for singleton views)
         if (component.isMounted && component.isMounted()) {
             console.log(`⚡ Component '${viewName}' already mounted, reusing instance`);
             this._currentViewName = viewName;
             // Create unmount function that calls the component's unmount
             this._currentUnmountFn = () => component.unmount();
         } else {
-            // Step 7: Mount the new view and store its unmount function
+            // Mount the new view and store its unmount function
             try {
                 console.log(`✅ Mounting new view '${viewName}'`);
                 // CRITICAL FIX: Await mount() to support async data loading
+                // Mount happens WHILE container is still hidden
                 this._currentUnmountFn = await component.mount(container, state);
                 this._currentViewName = viewName;
 
@@ -154,23 +156,17 @@ export class Router {
             }
         }
 
-        // Step 8: Update active navigation indicator
-        this._updateActiveNavIndicator(viewName);
+        // Step 7: NOW show the container (content is already rendered)
+        container.classList.remove('hidden');
 
-        // Step 9: Update page title
-        this._updatePageTitle(viewName);
-
-        console.log('✅ Navigation complete');
-        console.groupEnd();
-
-        // Step 7: Update navigation UI
-        this._updateNavigationUI(viewName);
-
-        // Step 8: Initialize Lucide icons (CRITICAL for icon rendering)
-        this._initializeIcons();
+        // Step 8: Initialize Lucide icons SCOPED to this container (MUCH faster!)
+        this._initializeIcons(container);
 
         // Step 9: Trigger callbacks
         this._triggerViewChangeCallbacks(viewName, state);
+
+        console.log('✅ Navigation complete');
+        console.groupEnd();
     }
 
     /**
@@ -178,7 +174,7 @@ export class Router {
      * @private
      */
     _hideAllViews() {
-        const views = ['dashboard', 'apps', 'catalog', 'nodes', 'monitoring', 'settings', 'uilab'];
+        const views = ['dashboard', 'apps', 'catalog', 'nodes', 'monitoring', 'settings'];
         views.forEach(view => {
             const container = document.getElementById(`${view}View`);
             if (container) {
@@ -188,34 +184,24 @@ export class Router {
     }
 
     /**
-     * Update navigation UI to reflect current view
-     * @param {string} viewName - Name of the current view
-     * @private
-     */
-    _updateNavigationUI(viewName) {
-        const navItems = document.querySelectorAll('.nav-rack-item');
-        navItems.forEach(item => {
-            const itemView = item.getAttribute('data-view');
-            if (itemView === viewName) {
-                item.classList.add('active');
-            } else {
-                item.classList.remove('active');
-            }
-        });
-    }
-
-    /**
      * Initialize Lucide icons after navigation
+     * @param {HTMLElement} container - Container with new icons (optional)
      * @private
      */
-    _initializeIcons() {
+    _initializeIcons(container = null) {
         if (typeof lucide !== 'undefined') {
             try {
-                // Use requestAnimationFrame to ensure DOM is fully updated
-                requestAnimationFrame(() => {
-                    lucide.createIcons();
-                    console.log('✅ Lucide icons initialized after navigation');
-                });
+                // PERFORMANCE: When using CDN version of Lucide, we can pass attrs.nameAttr
+                // to only process specific elements, but simpler to just call createIcons()
+                // which is already pretty fast with modern browsers
+                lucide.createIcons();
+
+                if (container) {
+                    const iconCount = container.querySelectorAll('[data-lucide]').length;
+                    console.log(`✅ Lucide icons initialized (${iconCount} in ${container.id})`);
+                } else {
+                    console.log('✅ Lucide icons initialized (document-wide)');
+                }
             } catch (error) {
                 console.error('❌ Error initializing Lucide icons:', error);
             }

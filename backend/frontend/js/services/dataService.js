@@ -181,19 +181,25 @@ export async function loadCatalog(force = false, updateState = true) {
  */
 function enrichDeployedAppsWithIcons() {
     const state = getState();
-    
+
     // Only run if both catalog and deployed apps are loaded
-    if (!state.catalog.items || !state.deployedApps || state.deployedApps.length === 0) {
+    // CRITICAL: Check state.catalog is not null before accessing .items
+    if (!state.catalog || !state.catalog.items || !state.deployedApps || state.deployedApps.length === 0) {
+        console.log('⏭️ Skipping icon enrichment (catalog or apps not loaded yet)');
         return;
     }
-    
+
     // Match deployed apps with catalog items to get icon URLs
+    let enrichedCount = 0;
     state.deployedApps.forEach(deployedApp => {
         const catalogItem = state.catalog.items.find(item => item.id === deployedApp.catalog_id);
         if (catalogItem && catalogItem.icon) {
             deployedApp.icon = catalogItem.icon;
+            enrichedCount++;
         }
     });
+
+    console.log(`✅ Enriched ${enrichedCount} apps with catalog icons`);
 }
 
 /**

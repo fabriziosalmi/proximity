@@ -10,23 +10,30 @@
 /**
  * Initialize Lucide icons in the DOM
  * Call this after dynamically adding new elements with data-lucide attributes
+ * @param {HTMLElement} container - Optional container to scope icon initialization
+ *
+ * NOTE: When using CDN version of Lucide, createIcons() always scans entire document.
+ * The container parameter is kept for API consistency and logging, but doesn't
+ * actually scope the search. Still much faster than the old double-call approach!
  */
-export function initLucideIcons() {
+export function initLucideIcons(container = null) {
     if (typeof lucide !== 'undefined') {
-        console.log('🎨 Initializing Lucide icons...');
+        console.time('⏱️ Init Lucide Icons');
         try {
-            // Force immediate execution
+            // CDN version of Lucide doesn't support scoped initialization
+            // But calling it once is still much faster than calling it twice!
             lucide.createIcons();
-            
-            // Also schedule for next frame to handle any race conditions
-            setTimeout(() => {
-                lucide.createIcons();
-                console.log('✅ Lucide icons initialized (delayed)');
-            }, 100);
-            
-            console.log('✅ Lucide icons initialized (immediate)');
+
+            if (container) {
+                const iconCount = container.querySelectorAll('[data-lucide]').length;
+                console.log(`✅ Lucide icons initialized (${iconCount} icons in ${container.id || 'container'})`);
+            } else {
+                console.log('✅ Lucide icons initialized (document-wide)');
+            }
+            console.timeEnd('⏱️ Init Lucide Icons');
         } catch (error) {
             console.error('❌ Error initializing Lucide icons:', error);
+            console.timeEnd('⏱️ Init Lucide Icons');
         }
     } else {
         console.warn('⚠️  Lucide library not available');

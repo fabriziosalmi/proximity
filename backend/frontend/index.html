@@ -33,7 +33,7 @@
     <script src="/js/utils/debounce.js?v=20251010-01" type="module"></script>
 
     <!-- Modular system (ES6 modules) with lifecycle management -->
-    <script src="js/main.js?v=20251014-fix02" type="module"></script>
+    <script src="js/main.js?v=20251014-perf03" type="module"></script>
 </head>
 <body>
     <!-- Power On Screen (First Run Only) -->
@@ -85,10 +85,8 @@
                         <i data-lucide="settings"></i>
                         <span>Settings</span>
                     </a>
-                        <a href="#" class="nav-rack-item" data-view="uilab" title="UI Lab">
-                            <i class="fas fa-flask"></i>
-                            <span class="nav-label">UI Lab</span>
-                        </a>                    <!-- Divider -->
+
+                    <!-- Divider -->
                     <div class="nav-rack-divider"></div>
 
                     <!-- Sound Control -->
@@ -139,9 +137,6 @@
                 
                 <!-- Settings View (Hidden by default) -->
                 <div id="settingsView" class="view hidden"></div>
-                
-                <!-- UI Lab View (Hidden by default) -->
-                <div id="uilabView" class="view hidden"></div>
             </div>
         </main>
     </div>

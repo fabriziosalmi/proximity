@@ -13,12 +13,16 @@ let tooltipTimeout = null;
 /**
  * Initialize tooltip system
  * Attaches event listeners to all elements with [data-tooltip] attribute
+ * @param {HTMLElement} container - Optional container to scope tooltip initialization (MUCH faster!)
  */
-export function initTooltips() {
-    console.log('🎯 Initializing custom tooltip system...');
+export function initTooltips(container = null) {
+    console.time('⏱️ Init Tooltips');
 
-    // Select all elements with data-tooltip attribute
-    const tooltipElements = document.querySelectorAll('[data-tooltip]');
+    // PERFORMANCE: Only query elements within the specified container
+    // This is MUCH faster than scanning the entire document
+    const tooltipElements = container
+        ? container.querySelectorAll('[data-tooltip]')
+        : document.querySelectorAll('[data-tooltip]');
 
     tooltipElements.forEach(element => {
         // Remove any existing listeners to prevent duplicates
@@ -30,7 +34,8 @@ export function initTooltips() {
         element.addEventListener('mouseleave', handleTooltipHide);
     });
 
-    console.log(`✓ Tooltip system initialized for ${tooltipElements.length} elements`);
+    console.log(`✓ Tooltip system initialized for ${tooltipElements.length} elements${container ? ` in ${container.id || 'container'}` : ' (document-wide)'}`);
+    console.timeEnd('⏱️ Init Tooltips');
 }
 
 /**
@@ -160,13 +165,14 @@ function hideTooltip() {
 /**
  * Refresh tooltips (useful when DOM is updated)
  * Call this after adding new elements with data-tooltip attributes
+ * @param {HTMLElement} container - Optional container to scope refresh (MUCH faster!)
  */
-export function refreshTooltips() {
+export function refreshTooltips(container = null) {
     // Hide any active tooltip
     hideTooltip();
 
-    // Re-initialize
-    initTooltips();
+    // Re-initialize with optional container scope
+    initTooltips(container);
 }
 
 // Export for global access if needed
