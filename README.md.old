@@ -4,7 +4,9 @@
 
 <img src="logo.png" alt="Proximity Logo" width="200"/>**Self-hosted Application Delivery Platform for Proxmox VE**
 
-Proximity is a cloud-native application delivery platform that abstracts the complexity of Proxmox VE, providing a simple, web-based interface for deploying and managing containerized applications. 
+
+
+# ProximityProximity is a cloud-native application delivery platform that abstracts the complexity of Proxmox VE, providing a simple, web-based interface for deploying and managing containerized applications. Think Heroku or Cloudron, but for your own Proxmox infrastructure.
 
 
 
