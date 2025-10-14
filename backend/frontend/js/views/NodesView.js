@@ -141,23 +141,27 @@ export class NodesView extends Component {
                     </div>
                 </div>
 
-                <!-- Network info -->
+                <!-- Network info with status LEDs -->
                 <div class="app-connection-info" style="margin-top: 1rem;">
                     <div class="connection-item">
+                        <span class="status-led status-led-active" title="Bridge Active"></span>
                         <i data-lucide="network" class="connection-icon"></i>
                         <span class="connection-value">Bridge: vmbr0</span>
                     </div>
                     <div class="connection-item">
+                        <span class="status-led status-led-pulse" title="DHCP Active"></span>
                         <i data-lucide="wifi" class="connection-icon"></i>
                         <span class="connection-value">IP: DHCP</span>
                     </div>
                     <div class="connection-item">
-                        <i data-lucide="globe" class="connection-icon"></i>
-                        <span class="connection-value">Internet: Direct</span>
+                        <span class="status-led status-led-blink" title="Network Activity (TX/RX)"></span>
+                        <i data-lucide="activity" class="connection-icon"></i>
+                        <span class="connection-value">Gateway: Active</span>
                     </div>
                     <div class="connection-item">
-                        <i data-lucide="check-circle" class="connection-icon"></i>
-                        <span class="connection-value">No complex appliance needed</span>
+                        <span class="status-led status-led-active" title="Internet Connected"></span>
+                        <i data-lucide="globe" class="connection-icon"></i>
+                        <span class="connection-value">Internet: Connected</span>
                     </div>
                 </div>
             </div>
