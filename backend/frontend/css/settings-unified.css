@@ -1,0 +1,217 @@
+/* ============================================================================
+   UNIFIED SETTINGS PAGE - One Page with Sidebar Navigation
+   ============================================================================ */
+
+/* Settings Container Layout */
+#settingsView {
+    display: flex;
+    gap: 2rem;
+    height: calc(100vh - 180px); /* Full height minus menu and margins */
+    overflow: hidden;
+}
+
+/* Sidebar Quick Navigation (Fixed) */
+.settings-quick-nav {
+    position: sticky;
+    top: 0;
+    width: 250px;
+    height: fit-content;
+    max-height: calc(100vh - 200px);
+    background: linear-gradient(135deg, rgba(24, 24, 27, 0.8), rgba(39, 39, 42, 0.6));
+    backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid var(--border-cyan);
+    border-radius: var(--radius-xl);
+    padding: 1.5rem;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(34, 211, 238, 0.05);
+    overflow-y: auto;
+    flex-shrink: 0;
+}
+
+.settings-nav-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(113, 113, 122, 0.3);
+}
+
+.settings-nav-header i {
+    width: 24px;
+    height: 24px;
+    color: #22d3ee;
+}
+
+.settings-nav-header span {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #e2e8f0;
+}
+
+/* Navigation Links */
+.settings-nav-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.settings-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    color: #94a3b8;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: 1px solid transparent;
+}
+
+.settings-nav-link i {
+    width: 18px;
+    height: 18px;
+}
+
+.settings-nav-link span {
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.settings-nav-link:hover {
+    background: rgba(34, 211, 238, 0.1);
+    color: #22d3ee;
+    border-color: rgba(34, 211, 238, 0.3);
+}
+
+.settings-nav-link.active {
+    background: #22d3ee;
+    color: #000;
+    border-color: #22d3ee;
+    box-shadow: 0 0 10px rgba(34, 211, 238, 0.4);
+}
+
+.settings-nav-link.active i {
+    color: #000;
+}
+
+/* Main Content Area (Scrollable) */
+.settings-unified-content {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+    scroll-behavior: smooth;
+}
+
+/* Settings Sections */
+.settings-section {
+    margin-bottom: 2rem;
+    scroll-margin-top: 2rem; /* Offset for smooth scroll */
+}
+
+.settings-section:last-child {
+    margin-bottom: 0;
+}
+
+/* Keep existing .app-card styles */
+.settings-card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.settings-card-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(34, 211, 238, 0.2), rgba(0, 255, 255, 0.1));
+    border-radius: 12px;
+    border: 1px solid rgba(34, 211, 238, 0.3);
+}
+
+.settings-card-icon i {
+    width: 24px;
+    height: 24px;
+    color: #22d3ee;
+}
+
+.settings-card-title h3 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #e2e8f0;
+}
+
+.settings-card-title p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #94a3b8;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    #settingsView {
+        flex-direction: column;
+        height: auto;
+    }
+
+    .settings-quick-nav {
+        position: relative;
+        width: 100%;
+        max-height: none;
+        margin-bottom: 1.5rem;
+    }
+
+    .settings-nav-links {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .settings-nav-link {
+        flex: 1;
+        min-width: 140px;
+    }
+
+    .settings-unified-content {
+        overflow-y: visible;
+    }
+}
+
+@media (max-width: 768px) {
+    .settings-nav-header span {
+        font-size: 1rem;
+    }
+
+    .settings-nav-link span {
+        display: none;
+    }
+
+    .settings-nav-link {
+        justify-content: center;
+        min-width: auto;
+        padding: 0.75rem;
+    }
+}
+
+/* Scrollbar Styling for Settings Content */
+.settings-unified-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.settings-unified-content::-webkit-scrollbar-track {
+    background: rgba(24, 24, 27, 0.3);
+    border-radius: 4px;
+}
+
+.settings-unified-content::-webkit-scrollbar-thumb {
+    background: rgba(34, 211, 238, 0.3);
+    border-radius: 4px;
+}
+
+.settings-unified-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(34, 211, 238, 0.5);
+}

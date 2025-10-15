@@ -87,12 +87,8 @@
 }
 
 .nav-rack-item:hover {
-    border-width: 1px;
-    border-color: #22d3ee;
-    color: #e2e8f0;
-    box-shadow: 0 0 15px rgba(0, 255, 255, 0.4),
-                0 4px 16px rgba(0, 0, 0, 0.3),
-                inset 0 1px 0 rgba(34, 211, 238, 0.05);
+    color: #e2e8f0; /* Change text color from gray to white */
+    /* No border on hover */
 }
 
 .nav-rack-item.active {

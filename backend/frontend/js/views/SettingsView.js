@@ -127,17 +127,17 @@ export class SettingsView extends Component {
         const content = this.generateSettingsHTML(proxmoxSettings, networkSettings, resourceSettings, appState);
 
         container.innerHTML = content;
-        container.classList.add('has-sub-nav');
+        container.classList.remove('has-sub-nav'); // Remove old sub-nav class
         container.classList.remove('hidden');
         container.style.display = 'block';
 
         // Initialize icons
         initLucideIcons();
 
-        // Setup tab switching
-        setupSettingsTabs();
+        // Setup smooth scroll for anchor links
+        this.setupSmoothScroll();
 
-        // Setup form handlers
+        // Setup form handlers (keep existing functionality)
         setupSettingsForms();
 
         // Expose testProxmoxConnection to window for onclick handler
@@ -148,33 +148,102 @@ export class SettingsView extends Component {
     }
 
     /**
-     * Generate the complete settings HTML
+     * Setup smooth scroll for internal anchor links
+     */
+    setupSmoothScroll() {
+        const navLinks = document.querySelectorAll('.settings-nav-link');
+        const sections = document.querySelectorAll('.settings-section');
+        
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetId = link.getAttribute('href').substring(1);
+                const targetSection = document.getElementById(targetId);
+                
+                if (targetSection) {
+                    // Remove active class from all links
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    // Add active class to clicked link
+                    link.classList.add('active');
+                    
+                    // Smooth scroll to section
+                    targetSection.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'start' 
+                    });
+                }
+            });
+        });
+
+        // Highlight active section on scroll (IntersectionObserver)
+        const observerOptions = {
+            root: null,
+            rootMargin: '-100px 0px -66%',
+            threshold: 0
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.getAttribute('id');
+                    navLinks.forEach(link => {
+                        link.classList.remove('active');
+                        if (link.getAttribute('href') === `#${id}`) {
+                            link.classList.add('active');
+                        }
+                    });
+                }
+            });
+        }, observerOptions);
+
+        sections.forEach(section => observer.observe(section));
+        
+        console.log('✅ Smooth scroll navigation enabled');
+    }
+
+    /**
+     * Generate the complete settings HTML - ONE PAGE with internal navigation
      */
     generateSettingsHTML(proxmoxSettings, networkSettings, resourceSettings, state) {
         return `
-        <!-- Settings Sub-Navigation -->
-        <div class="sub-nav">
-            <button class="settings-tab sub-nav-item active" data-tab="proxmox">
-                <i data-lucide="server"></i>
-                <span>Proxmox</span>
-            </button>
-            <button class="settings-tab sub-nav-item" data-tab="network">
-                <i data-lucide="network"></i>
-                <span>Network</span>
-            </button>
-            <button class="settings-tab sub-nav-item" data-tab="resources">
-                <i data-lucide="cpu"></i>
-                <span>Resources</span>
-            </button>
-            <button class="settings-tab sub-nav-item" data-tab="system">
-                <i data-lucide="info"></i>
-                <span>System</span>
-            </button>
+        <!-- Quick Navigation (Fixed Sidebar) -->
+        <div class="settings-quick-nav">
+            <div class="settings-nav-header">
+                <i data-lucide="settings"></i>
+                <span>Settings</span>
+            </div>
+            <nav class="settings-nav-links">
+                <a href="#proxmox" class="settings-nav-link">
+                    <i data-lucide="server"></i>
+                    <span>Proxmox</span>
+                </a>
+                <a href="#network" class="settings-nav-link">
+                    <i data-lucide="network"></i>
+                    <span>Network</span>
+                </a>
+                <a href="#resources" class="settings-nav-link">
+                    <i data-lucide="cpu"></i>
+                    <span>Resources</span>
+                </a>
+                <a href="#mode" class="settings-nav-link">
+                    <i data-lucide="zap"></i>
+                    <span>Proximity Mode</span>
+                </a>
+                <a href="#system" class="settings-nav-link">
+                    <i data-lucide="info"></i>
+                    <span>System Info</span>
+                </a>
+                <a href="#security" class="settings-nav-link">
+                    <i data-lucide="shield"></i>
+                    <span>Security</span>
+                </a>
+            </nav>
         </div>
 
-        <div class="settings-content">
-            <!-- Proxmox Settings -->
-            <div class="settings-panel active" id="proxmox-panel">
+        <!-- Settings Content (Scrollable) -->
+        <div class="settings-unified-content">
+            <!-- Proxmox Settings Section -->
+            <section id="proxmox" class="settings-section">
                 <div class="app-card">
                     <div class="settings-card-header">
                         <div class="settings-card-icon">
@@ -233,10 +302,10 @@ export class SettingsView extends Component {
                         <div id="proxmoxStatus" style="margin-top: 1rem;"></div>
                     </form>
                 </div>
-            </div>
+            </section>
 
-            <!-- Network Settings -->
-            <div class="settings-panel" id="network-panel">
+            <!-- Network Settings Section -->
+            <section id="network" class="settings-section">
                 <div class="app-card">
                     <div class="settings-card-header">
                         <div class="settings-card-icon">
@@ -296,10 +365,10 @@ export class SettingsView extends Component {
                         <div id="networkStatus" style="margin-top: 1rem;"></div>
                     </form>
                 </div>
-            </div>
+            </section>
 
-            <!-- Resource Settings -->
-            <div class="settings-panel" id="resources-panel">
+            <!-- Resource Settings Section -->
+            <section id="resources" class="settings-section">
                 <div class="app-card">
                     <div class="settings-card-header">
                         <div class="settings-card-icon">
@@ -346,44 +415,11 @@ export class SettingsView extends Component {
                         <div id="resourcesStatus" style="margin-top: 1rem;"></div>
                     </form>
                 </div>
-            </div>
+            </section>
 
-            <!-- System Settings -->
-            <div class="settings-panel" id="system-panel">
+            <!-- Proximity Mode Section -->
+            <section id="mode" class="settings-section">
                 <div class="app-card">
-                    <div class="settings-card-header">
-                        <div class="settings-card-icon">
-                            <i data-lucide="info"></i>
-                        </div>
-                        <div class="settings-card-title">
-                            <h3>System Information</h3>
-                            <p>Platform status and configuration details</p>
-                        </div>
-                    </div>
-                    <div class="app-meta">
-                        <div class="app-meta-item">
-                            <span>📌</span>
-                            <span>Version: ${state.systemInfo?.version || 'N/A'}</span>
-                        </div>
-                        <div class="app-meta-item">
-                            <span>🔗</span>
-                            <span>API: ${API_BASE}</span>
-                        </div>
-                    </div>
-                    <div class="app-meta" style="margin-top: 1rem;">
-                        <div class="app-meta-item">
-                            <span>🖥️</span>
-                            <span>Nodes: ${state.nodes.length}</span>
-                        </div>
-                        <div class="app-meta-item">
-                            <span>📦</span>
-                            <span>Apps: ${state.deployedApps.length}</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Proximity Mode Toggle -->
-                <div class="app-card" style="margin-top: 1.5rem;">
                     <div class="settings-card-header">
                         <div class="settings-card-icon">
                             <i data-lucide="zap"></i>
@@ -435,8 +471,46 @@ export class SettingsView extends Component {
                         </div>
                     </div>
                 </div>
+            </section>
 
-                <div class="app-card" style="margin-top: 1.5rem;">
+            <!-- System Info Section -->
+            <section id="system" class="settings-section">
+                <div class="app-card">
+                    <div class="settings-card-header">
+                        <div class="settings-card-icon">
+                            <i data-lucide="info"></i>
+                        </div>
+                        <div class="settings-card-title">
+                            <h3>System Information</h3>
+                            <p>Platform status and configuration details</p>
+                        </div>
+                    </div>
+                    <div class="app-meta">
+                        <div class="app-meta-item">
+                            <span>📌</span>
+                            <span>Version: ${state.systemInfo?.version || 'N/A'}</span>
+                        </div>
+                        <div class="app-meta-item">
+                            <span>🔗</span>
+                            <span>API: ${API_BASE}</span>
+                        </div>
+                    </div>
+                    <div class="app-meta" style="margin-top: 1rem;">
+                        <div class="app-meta-item">
+                            <span>🖥️</span>
+                            <span>Nodes: ${state.nodes.length}</span>
+                        </div>
+                        <div class="app-meta-item">
+                            <span>📦</span>
+                            <span>Apps: ${state.deployedApps.length}</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Security Section -->
+            <section id="security" class="settings-section">
+                <div class="app-card">
                     <div class="settings-card-header">
                         <div class="settings-card-icon">
                             <i data-lucide="shield"></i>
@@ -455,7 +529,7 @@ export class SettingsView extends Component {
                         </div>
                     </div>
                 </div>
-            </div>
+            </section>
         </div>
         `;
     }
