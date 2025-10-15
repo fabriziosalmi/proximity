@@ -55,7 +55,7 @@ export function showAppConsole(appId, hostname) {
 
     modalBody.innerHTML = `
         <div id="xtermContainer" style="position: relative; background: #000; border: 2px solid var(--border-cyan); border-radius: 15px; height: 92vh; padding: 0.5rem;">
-            <button onclick="closeModal()"
+            <button onclick="window.closeConsoleModal()"
                 onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'; this.style.borderColor='#ef4444'; this.style.color='#ef4444';"
                 onmouseout="this.style.background='rgba(0, 0, 0, 0.5)'; this.style.borderColor='var(--border-cyan)'; this.style.color='var(--text-secondary)';"
                 style="position: absolute; top: 0.75rem; right: 0.75rem; width: 36px; height: 36px; border-radius: var(--radius-md); background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(10px); border: 1px solid var(--border-cyan); color: var(--text-secondary); cursor: pointer; transition: var(--transition); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0; z-index: 1000; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);">✕</button>
@@ -342,6 +342,23 @@ export function closeConsoleModal() {
 
     modal.classList.remove('show');
     closeModal();
+    
+    // CRITICAL FIX: Force restore pointer events even if closeModal didn't work
+    setTimeout(() => {
+        const mainContent = document.querySelector('.app-container');
+        if (mainContent && mainContent.style.pointerEvents === 'none') {
+            console.warn('⚠️ Force restoring pointer events after console close');
+            mainContent.style.pointerEvents = '';
+        }
+        
+        // Also ensure modal-open is removed from body if no modals are open
+        const anyModalOpen = document.querySelector('.modal.show');
+        if (!anyModalOpen && document.body.classList.contains('modal-open')) {
+            console.warn('⚠️ Force removing modal-open class after console close');
+            document.body.classList.remove('modal-open');
+            document.body.style.top = '';
+        }
+    }, 100);
 }
 
 /**
@@ -382,4 +399,15 @@ if (typeof window !== 'undefined') {
     window.showAppConsole = showAppConsole;
     window.cleanupTerminal = cleanupTerminal;
     window.closeConsoleModal = closeConsoleModal;
+    
+    // Override global closeModal when console is active
+    const originalCloseModal = window.closeModal;
+    window.closeModal = function() {
+        // If terminal is active, use proper cleanup
+        if (terminalInstance) {
+            closeConsoleModal();
+        } else if (originalCloseModal) {
+            originalCloseModal();
+        }
+    };
 }

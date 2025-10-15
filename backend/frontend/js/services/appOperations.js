@@ -505,15 +505,23 @@ export function showAppLogs(appId, hostname) {
         window.openModal();
     }
     
-    // Load logs if function is available
-    if (window.loadAppLogs) {
-        window.loadAppLogs(appId);
-    }
+    // Load logs
+    loadAppLogs(appId, 'all');
+    
+    // Store cleanup function for when modal closes
+    modal._cleanupLogs = () => {
+        if (autoRefreshInterval) {
+            clearInterval(autoRefreshInterval);
+            autoRefreshInterval = null;
+            console.log('🧹 Logs auto-refresh stopped (modal closed)');
+        }
+    };
 }
 
 /**
  * Show application volumes in a modal
  * @param {string} appId - The application ID
+```
  */
 export async function showAppVolumes(appId) {
     const authFetch = getAuthFetch();
@@ -576,6 +584,194 @@ export async function showAppVolumes(appId) {
     }
 }
 
+// ============================================================================
+// LOG MANAGEMENT FUNCTIONS
+// ============================================================================
+
+let autoRefreshInterval = null;
+let currentLogType = 'all';
+
+/**
+ * Load and display app logs
+ * @param {string} appId - The application ID
+ * @param {string} logType - Type of logs to display (all, docker, system)
+ */
+export async function loadAppLogs(appId, logType = 'all') {
+    const authFetch = getAuthFetch();
+    const logsContent = document.getElementById('logsContent');
+    const timestamp = document.getElementById('logsTimestamp');
+
+    if (!logsContent) return;
+
+    currentLogType = logType;
+
+    try {
+        // Show loading state
+        logsContent.innerHTML = `
+            <div style="text-align: center; padding: 2rem; color: var(--text-tertiary);">
+                <div class="loading-spinner" style="display: inline-block; margin-bottom: 1rem;"></div>
+                <div>Loading logs...</div>
+            </div>
+        `;
+
+        // Fetch logs from API
+        const response = await authFetch(`${API_BASE}/apps/${appId}/logs`);
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to fetch logs');
+        }
+
+        // Format and display logs
+        let logs = '';
+        
+        if (logType === 'all' || logType === 'docker') {
+            if (data.docker_logs) {
+                logs += `<div style="color: #22d3ee; font-weight: bold; margin-bottom: 0.5rem;">📦 Docker Logs:</div>`;
+                logs += `<pre style="white-space: pre-wrap; word-wrap: break-word; margin-bottom: 1rem;">${escapeHtml(data.docker_logs)}</pre>`;
+            }
+        }
+
+        if (logType === 'all' || logType === 'system') {
+            if (data.system_logs) {
+                logs += `<div style="color: #fbbf24; font-weight: bold; margin-bottom: 0.5rem;">⚙️  System Logs:</div>`;
+                logs += `<pre style="white-space: pre-wrap; word-wrap: break-word;">${escapeHtml(data.system_logs)}</pre>`;
+            }
+        }
+
+        if (!logs) {
+            logs = '<div style="text-align: center; padding: 2rem; color: var(--text-tertiary);">No logs available</div>';
+        }
+
+        logsContent.innerHTML = logs;
+
+        // Update timestamp
+        if (timestamp) {
+            const now = new Date();
+            timestamp.textContent = now.toLocaleTimeString();
+        }
+
+        // Scroll to bottom
+        logsContent.scrollTop = logsContent.scrollHeight;
+
+    } catch (error) {
+        console.error('Error loading logs:', error);
+        logsContent.innerHTML = `
+            <div style="text-align: center; padding: 2rem; color: #ef4444;">
+                <div style="margin-bottom: 0.5rem;">❌ Error loading logs</div>
+                <div style="font-size: 0.875rem;">${escapeHtml(error.message)}</div>
+            </div>
+        `;
+    }
+}
+
+/**
+ * Refresh logs with a specific type
+ * @param {string} appId - The application ID
+ * @param {string} logType - Type of logs to display (all, docker, system)
+ */
+export function refreshLogs(appId, logType) {
+    // Update button states
+    const buttons = document.querySelectorAll('.btn-sm');
+    buttons.forEach(btn => {
+        btn.classList.remove('btn-secondary');
+        btn.classList.add('btn-ghost');
+    });
+    
+    // Highlight active button
+    event.target.classList.remove('btn-ghost');
+    event.target.classList.add('btn-secondary');
+    
+    // Load logs
+    loadAppLogs(appId, logType);
+}
+
+/**
+ * Toggle auto-refresh for logs
+ * @param {string} appId - The application ID
+ */
+export function toggleAutoRefresh(appId) {
+    const checkbox = document.getElementById('autoRefreshLogs');
+    
+    if (!checkbox) return;
+
+    if (checkbox.checked) {
+        // Start auto-refresh (every 5 seconds)
+        autoRefreshInterval = setInterval(() => {
+            loadAppLogs(appId, currentLogType);
+        }, 5000);
+        console.log('🔄 Auto-refresh enabled for logs');
+    } else {
+        // Stop auto-refresh
+        if (autoRefreshInterval) {
+            clearInterval(autoRefreshInterval);
+            autoRefreshInterval = null;
+        }
+        console.log('⏸️  Auto-refresh disabled for logs');
+    }
+}
+
+/**
+ * Download logs as a text file
+ * @param {string} appId - The application ID
+ */
+export async function downloadLogs(appId) {
+    const authFetch = getAuthFetch();
+    const showNotification = getNotification();
+
+    try {
+        const response = await authFetch(`${API_BASE}/apps/${appId}/logs`);
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to fetch logs');
+        }
+
+        // Combine all logs
+        let logContent = `Application Logs - ${appId}\n`;
+        logContent += `Generated: ${new Date().toLocaleString()}\n`;
+        logContent += `${'='.repeat(80)}\n\n`;
+
+        if (data.docker_logs) {
+            logContent += `DOCKER LOGS\n${'='.repeat(80)}\n`;
+            logContent += data.docker_logs + '\n\n';
+        }
+
+        if (data.system_logs) {
+            logContent += `SYSTEM LOGS\n${'='.repeat(80)}\n`;
+            logContent += data.system_logs + '\n\n';
+        }
+
+        // Create and download file
+        const blob = new Blob([logContent], { type: 'text/plain' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${appId}-logs-${Date.now()}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+
+        showNotification('Logs downloaded successfully', 'success');
+
+    } catch (error) {
+        console.error('Error downloading logs:', error);
+        showNotification('Failed to download logs', 'error');
+    }
+}
+
+/**
+ * Escape HTML to prevent XSS
+ * @param {string} text - Text to escape
+ * @returns {string} Escaped text
+ */
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 // Expose to window for backward compatibility during transition
 if (typeof window !== 'undefined') {
     window.appOperations = {
@@ -591,6 +787,16 @@ if (typeof window !== 'undefined') {
         updateDeletionProgress,
         hideDeletionProgress,
         showAppLogs,
-        showAppVolumes
+        showAppVolumes,
+        loadAppLogs,
+        refreshLogs,
+        toggleAutoRefresh,
+        downloadLogs
     };
+    
+    // Also expose individual functions for onclick handlers
+    window.loadAppLogs = loadAppLogs;
+    window.refreshLogs = refreshLogs;
+    window.toggleAutoRefresh = toggleAutoRefresh;
+    window.downloadLogs = downloadLogs;
 }

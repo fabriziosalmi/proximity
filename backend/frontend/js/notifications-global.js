@@ -67,7 +67,10 @@
             }
         }
 
-        // Get or create container
+        // Update rack notification display
+        updateRackNotification(message, type);
+
+        // Get or create container (keep toast for fallback)
         let container = document.getElementById('toast-container');
         if (!container) {
             container = document.createElement('div');
@@ -170,6 +173,43 @@
         }
     }
 
+    /**
+     * Update rack notification display
+     * @param {string} message - The notification message
+     * @param {string} type - Type of notification (success, error, warning, info)
+     */
+    function updateRackNotification(message, type = 'info') {
+        const display = document.getElementById('rackNotificationDisplay');
+        if (!display) return;
+
+        const icon = display.querySelector('.rack-notif-icon');
+        const messageEl = display.querySelector('.rack-notif-message');
+
+        // Update icon
+        const iconName = TOAST_ICONS[type] || TOAST_ICONS.info;
+        if (icon) {
+            icon.setAttribute('data-lucide', iconName);
+        }
+
+        // Update message
+        if (messageEl) {
+            messageEl.textContent = message;
+        }
+
+        // Update type class
+        display.className = `rack-notification-display notif-${type} notif-new`;
+
+        // Re-initialize Lucide icons for the new icon
+        if (window.lucide && window.lucide.createIcons) {
+            window.lucide.createIcons();
+        }
+
+        // Remove animation class after animation completes
+        setTimeout(() => {
+            display.classList.remove('notif-new');
+        }, 500);
+    }
+
     // Expose to global scope
     window.showNotification = showNotification;
     window.showSuccess = showSuccess;
@@ -177,6 +217,7 @@
     window.showWarning = showWarning;
     window.showInfo = showInfo;
     window.clearAllToasts = clearAllToasts;
+    window.updateRackNotification = updateRackNotification;
 
     // Add progress bar animation keyframe
     const style = document.createElement('style');

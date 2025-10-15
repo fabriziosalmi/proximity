@@ -81,11 +81,7 @@
                         <i data-lucide="store"></i>
                         <span>Store</span>
                     </a>
-                </div>
-                
-                <!-- CENTER SECTION: Infrastructure -->
-                <div class="nav-rack-section nav-rack-center">
-                    <a href="#" class="nav-rack-item" data-view="nodes" title="Infrastructure">
+                                        <a href="#" class="nav-rack-item" data-view="nodes" title="Infrastructure">
                         <i data-lucide="server"></i>
                         <span>Infra</span>
                     </a>
@@ -95,19 +91,30 @@
                     </a>
                 </div>
                 
-                <!-- RIGHT SECTION: Controls -->
-                <div class="nav-rack-section nav-rack-right">
+                <!-- CENTER SECTION: Infrastructure -->
+                <div class="nav-rack-section nav-rack-center">
+
                     <button class="nav-rack-item sound-toggle-btn" id="soundToggleBtn" title="Audio Settings">
                         <i data-lucide="volume-2" id="soundIcon"></i>
                     </button>
+                </div>
+                
+                <!-- RIGHT SECTION: Controls -->
+                <div class="nav-rack-section nav-rack-right">
+
                     <button class="nav-rack-item logout-btn" data-action="logout" title="Logout">
                         <i data-lucide="log-out"></i>
                     </button>
                 </div>
             </div>
             
-            <!-- Bottom decorative row (black) -->
-            <div class="nav-rack-bottom-row"></div>
+            <!-- Bottom decorative row (black) with notifications -->
+            <div class="nav-rack-bottom-row">
+                <div class="rack-notification-display" id="rackNotificationDisplay">
+                    <i data-lucide="info" class="rack-notif-icon"></i>
+                    <span class="rack-notif-message">Ready</span>
+                </div>
+            </div>
         </nav>
 
         <!-- Main Content -->
