@@ -270,13 +270,13 @@ export async function deployApp(deploymentData) {
 }
 
 /**
- * Get deployment status
+ * Get unified app status (deployment progress or current state)
  * @param {string} appId - App ID
- * @returns {Promise<object>} Deployment status
+ * @returns {Promise<object>} App status (simple or rich with progress)
  */
 export async function getDeploymentStatus(appId) {
-    const response = await authFetch(`${API_BASE}/apps/deploy/${appId}/status`);
-    if (!response.ok) throw new Error('Failed to fetch deployment status');
+    const response = await authFetch(`${API_BASE}/apps/${appId}/status`);
+    if (!response.ok) throw new Error('Failed to fetch app status');
     return await response.json();
 }
 

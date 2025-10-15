@@ -127,36 +127,29 @@ async def deploy_app(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/deploy/{app_id}/status", response_model=DeploymentStatus)
-async def get_deployment_status(
+@router.get("/{app_id}/status", response_model=DeploymentStatus)
+async def get_app_status(
     app_id: str,
     service: AppService = Depends(get_app_service)
 ):
-    """Get real-time deployment status for an application"""
+    """
+    Get unified application status.
+    
+    Returns intelligent status based on app state:
+    - For running/stopped apps: Simple status response
+    - For deploying/updating apps: Rich status with progress and current step
+    
+    This is the single source of truth for application state.
+    """
     try:
+        # First try to get detailed deployment status (for apps in transition)
         status = await service.get_deployment_status(app_id)
         return status
     except (AppServiceError, AppNotFoundError) as e:
-        logger.warning(f"Deployment status not found: {app_id}")
+        logger.warning(f"App status not found: {app_id}")
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        logger.error(f"Unexpected error getting deployment status for {app_id}: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.get("/{app_id}/deployment-status", response_model=DeploymentStatus)
-async def get_deployment_status(
-    app_id: str,
-    service: AppService = Depends(get_app_service)
-):
-    """Get deployment status for an app"""
-    try:
-        return await service.get_deployment_status(app_id)
-    except (AppServiceError, AppNotFoundError) as e:
-        logger.warning(f"Deployment status not found: {app_id}")
-        raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
-        logger.error(f"Unexpected error getting deployment status for {app_id}: {e}", exc_info=True)
+        logger.error(f"Unexpected error getting app status for {app_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 

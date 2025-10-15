@@ -317,8 +317,8 @@ export async function handleLoginSubmit(e) {
         Auth.setToken(data.access_token, data.user);
 
         // Set Sentry user context immediately after successful login
-        if (window.Sentry && data.user) {
-            Sentry.setUser({
+        if (typeof window.Sentry !== 'undefined' && typeof window.Sentry.setUser === 'function' && data.user) {
+            window.Sentry.setUser({
                 id: data.user.id,
                 username: data.user.username,
                 email: data.user.email || undefined,
@@ -517,8 +517,8 @@ export async function handleLogout(e) {
     Auth.clearToken();
 
     // Clear Sentry user context
-    if (window.Sentry) {
-        Sentry.setUser(null);
+    if (typeof window.Sentry !== 'undefined' && typeof window.Sentry.setUser === 'function') {
+        window.Sentry.setUser(null);
         console.log('✓ Sentry user context cleared');
     }
 

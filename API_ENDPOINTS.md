@@ -55,11 +55,10 @@ Base URL: `http://localhost:8765/api/v1`
 ### App Monitoring
 | Method | Endpoint | Description |
 |--------|----------|-------------|
+| GET | `/{app_id}/status` | **[UNIFIED]** Get app status (simple for running/stopped, rich with progress for deploying/updating) |
 | GET | `/{app_id}/logs` | Get app container logs |
 | GET | `/{app_id}/stats` | Get app resource statistics |
 | GET | `/{app_id}/stats/current` | Get current app stats |
-| GET | `/deploy/{app_id}/status` | Get deployment status |
-| GET | `/{app_id}/deployment-status` | Get deployment status (alternative) |
 
 ### App Commands
 | Method | Endpoint | Description |
@@ -230,6 +229,27 @@ GET /api/v1/system/nodes
 ]
 ```
 
+### Get App Status
+```bash
+GET /api/v1/apps/{app_id}/status
+
+# Simple Response (running/stopped apps)
+{
+  "status": "running",
+  "app_id": "nginx-prod"
+}
+
+# Rich Response (deploying/updating apps)
+{
+  "status": "deploying",
+  "app_id": "nginx-prod",
+  "progress": 65,
+  "current_step": "Configuring network",
+  "total_steps": 5,
+  "current_step_number": 3
+}
+```
+
 ---
 
 ## 🔒 Authentication
@@ -254,5 +274,15 @@ Authorization: Bearer {your_jwt_token}
 
 ---
 
-**Total Endpoints:** 67
-**Generated:** October 15, 2025
+**Total Endpoints:** 65 *(unified from 67)*
+**Last Updated:** October 15, 2025
+
+## 🔄 Changelog
+
+### v2.0 - API Unification (October 15, 2025)
+- ✅ **Unified App Status**: Consolidated duplicate endpoints into single `/apps/{app_id}/status`
+  - **Removed:** `GET /apps/deploy/{app_id}/status` 
+  - **Removed:** `GET /apps/{app_id}/deployment-status`
+  - **Added:** `GET /apps/{app_id}/status` (single source of truth)
+- ✅ **Backup Endpoints**: Already properly nested under `/apps/{app_id}/backups` (no changes needed)
+- 📉 Reduced endpoint count from 67 to 65 by eliminating redundancy

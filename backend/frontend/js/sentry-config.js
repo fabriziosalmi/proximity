@@ -96,6 +96,11 @@ window.addEventListener('load', () => {
 
         // Set user context when authenticated
         const setupSentryUser = () => {
+            if (typeof Sentry === 'undefined' || typeof Sentry.setUser !== 'function') {
+                console.warn('⚠️ Sentry.setUser not available');
+                return;
+            }
+            
             const token = localStorage.getItem('proximity_token');
             if (token) {
                 try {
