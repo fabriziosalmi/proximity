@@ -2207,6 +2207,20 @@ h3 { font-size: 1.5rem; font-weight: 600; }
     animation: status-pulse 2s ease-in-out infinite;
 }
 
+/* High load state - Yellow LED for apps under heavy load */
+.app-card.status-high-load .status-dot {
+    background: rgb(234, 179, 8); /* Yellow */
+    box-shadow: 0 0 10px rgba(234, 179, 8, 0.8), 0 0 6px rgba(234, 179, 8, 0.6);
+    animation: status-pulse 2s ease-in-out infinite;
+}
+
+/* Backup/Update state - Orange LED for maintenance operations */
+.app-card.status-maintenance .status-dot {
+    background: rgb(249, 115, 22); /* Orange */
+    box-shadow: 0 0 10px rgba(249, 115, 22, 0.8), 0 0 6px rgba(249, 115, 22, 0.6);
+    animation: status-pulse 1.5s ease-in-out infinite;
+}
+
 @keyframes status-pulse {
     0%, 100% {
         opacity: 1;

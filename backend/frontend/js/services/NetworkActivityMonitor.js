@@ -73,10 +73,10 @@ class NetworkActivityMonitor {
         }
 
         try {
+            const now = Date.now();
+
             // Fetch all nodes and their stats
             const nodes = await API.getNodes();
-            
-            const now = Date.now();
 
             // Process nodes
             for (const node of nodes) {
@@ -90,8 +90,28 @@ class NetworkActivityMonitor {
                 );
             }
 
-            // Note: Container stats would need a separate API endpoint
-            // Currently only monitoring node-level activity
+            // Fetch all apps and their stats
+            const apps = await API.getApps();
+            
+            // Process each app's network stats
+            for (const app of apps) {
+                const vmId = `vm-${app.lxc_id}`;
+                if (!this.subscribers.has(vmId)) continue;
+                
+                try {
+                    // Fetch individual app stats
+                    const stats = await API.getAppStats(app.id);
+                    
+                    this.updateActivity(
+                        vmId,
+                        stats.network_in || 0,
+                        stats.network_out || 0,
+                        now
+                    );
+                } catch (error) {
+                    console.warn(`Failed to fetch stats for app ${app.id}:`, error);
+                }
+            }
 
         } catch (error) {
             console.error('NetworkActivityMonitor poll error:', error);

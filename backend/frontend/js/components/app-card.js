@@ -35,20 +35,19 @@ export function populateDeployedCard(cardElement, app) {
     // Connection URL
     // ============================================================================
     
-    const urlElement = cardElement.querySelector('.connection-url');
+    const urlElement = cardElement.querySelector('.connection-link');
     const appUrl = (app.url && app.url !== 'None' && app.url !== 'null') ? app.url : null;
     
     if (urlElement) {
         if (appUrl) {
-            const urlLink = document.createElement('a');
-            urlLink.href = appUrl;
-            urlLink.textContent = appUrl;
-            urlLink.target = '_blank';
-            urlLink.className = 'connection-link';
-            urlElement.innerHTML = '';
-            urlElement.appendChild(urlLink);
+            urlElement.href = appUrl;
+            urlElement.textContent = appUrl;
+            urlElement.style.display = '';
         } else {
-            urlElement.textContent = 'No URL available';
+            urlElement.textContent = 'No URL';
+            urlElement.href = '#';
+            urlElement.style.pointerEvents = 'none';
+            urlElement.style.opacity = '0.5';
         }
     }
     
@@ -63,7 +62,7 @@ export function populateDeployedCard(cardElement, app) {
 
     const lxcElement = cardElement.querySelector('.lxc-id-value');
     if (lxcElement) {
-        lxcElement.textContent = `LXC ${app.vmid || 'N/A'}`;
+        lxcElement.textContent = `LXC ${app.lxc_id || 'N/A'}`;
     }
 
     const createdElement = cardElement.querySelector('.date-value');
@@ -72,26 +71,68 @@ export function populateDeployedCard(cardElement, app) {
     }
     
     // ============================================================================
-    // Status Indication
+    // Status Indication - Smart LED color based on app state and load
     // ============================================================================
     
     const status = app.status ? app.status.toLowerCase() : 'stopped';
     const statusElement = cardElement.querySelector('.status-indicator');
     
-    // Remove all status classes first
+    // Calculate CPU and RAM usage percentages
+    let cpuUsage = app.stats?.cpu_usage || app.cpu_usage || 0;
+    let ramUsageMB = app.stats?.memory_usage || app.memory_usage || 0;
+    let ramMaxMB = app.stats?.memory_max || app.memory_max || 1024;
+    const ramPercentage = ramMaxMB > 0 ? (ramUsageMB / ramMaxMB) * 100 : 0;
+    
+    // Determine smart status class based on priority:
+    // 1. Maintenance operations (backup, update) -> Orange LED
+    // 2. High load (CPU > 80% or RAM > 85%) while running -> Yellow LED
+    // 3. Standard states (running, stopped, error, in-progress)
+    
     if (statusElement) {
-        statusElement.classList.remove('status-running', 'status-error', 'status-in-progress', 'status-stopped');
+        // Remove all existing status classes
+        statusElement.classList.remove(
+            'status-running', 
+            'status-error', 
+            'status-in-progress', 
+            'status-stopped',
+            'status-high-load',
+            'status-maintenance'
+        );
         
-        // Apply appropriate status class
-        if (status === 'running') {
-            statusElement.classList.add('status-running');
+        // Maintenance operations have highest priority
+        const maintenanceStates = ['backing_up', 'updating', 'restoring', 'backing up', 'update in progress'];
+        const isInMaintenance = maintenanceStates.some(state => status.includes(state));
+        
+        if (isInMaintenance) {
+            // Orange LED - App is being backed up or updated
+            statusElement.classList.add('status-maintenance');
+        } else if (status === 'running') {
+            // Check if under high load
+            const isHighLoad = cpuUsage > 80 || ramPercentage > 85;
+            
+            if (isHighLoad) {
+                // Yellow LED - App running but under heavy load
+                statusElement.classList.add('status-high-load');
+            } else {
+                // Cyan LED - Normal running state
+                statusElement.classList.add('status-running');
+            }
         } else if (status === 'error' || status === 'failed') {
+            // Red LED - Error state
             statusElement.classList.add('status-error');
         } else if (status === 'creating' || status === 'starting' || status === 'stopping') {
+            // Amber LED (pulsing) - Transitional state
             statusElement.classList.add('status-in-progress');
         } else {
+            // Red LED - Stopped or unknown state
             statusElement.classList.add('status-stopped');
         }
+    }
+    
+    // Store current load state on card element for polling updates
+    if (cardElement.tagName === 'DIV') {
+        cardElement.setAttribute('data-cpu-usage', cpuUsage);
+        cardElement.setAttribute('data-ram-percentage', ramPercentage.toFixed(1));
     }
     
     // ============================================================================
@@ -509,6 +550,42 @@ async function fetchAndUpdateAppStats(appId, cpuBar, ramBar) {
                 ramBar.classList.add('critical-usage');
             } else if (ramPercentage >= 80) {
                 ramBar.classList.add('high-usage');
+            }
+            
+            // ============================================================================
+            // Update Status LED based on load
+            // ============================================================================
+            
+            // Find the app card and status indicator
+            const appCard = cpuBar.closest('.app-card');
+            const statusElement = appCard?.querySelector('.status-indicator');
+            
+            if (statusElement && appCard) {
+                // Get current status from card
+                const currentStatus = appCard.classList.contains('status-running') ? 'running' :
+                                    appCard.classList.contains('status-stopped') ? 'stopped' :
+                                    appCard.classList.contains('status-error') ? 'error' : 'running';
+                
+                // Only update LED for running apps (don't override stopped/error states)
+                if (currentStatus === 'running') {
+                    const isHighLoad = cpuUsage > 80 || ramPercentage > 85;
+                    
+                    // Check if currently in maintenance (don't override maintenance state)
+                    const isInMaintenance = statusElement.classList.contains('status-maintenance');
+                    
+                    if (!isInMaintenance) {
+                        // Remove load-related classes
+                        statusElement.classList.remove('status-running', 'status-high-load');
+                        
+                        if (isHighLoad) {
+                            // Switch to yellow LED for high load
+                            statusElement.classList.add('status-high-load');
+                        } else {
+                            // Switch back to cyan LED for normal operation
+                            statusElement.classList.add('status-running');
+                        }
+                    }
+                }
             }
         }
     } catch (error) {

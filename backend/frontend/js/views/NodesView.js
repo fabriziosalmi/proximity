@@ -155,8 +155,6 @@ export class NodesView extends Component {
         }
 
         const content = `
-            <!-- Proxmox Hosts -->
-            <h2 style="margin: 2rem 0 1rem 0;">Proxmox Hosts</h2>
             <div class="apps-grid deployed">
                 ${nodes.map(node => {
                     // Calculate percentages

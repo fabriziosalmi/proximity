@@ -174,7 +174,7 @@ async function deployApp(catalogId) {
             window.addDebugBreadcrumb('App deployment succeeded', {
                 catalog_id: catalogId,
                 hostname: hostname,
-                vmid: result.vmid
+                lxc_id: result.lxc_id
             });
         }
 
