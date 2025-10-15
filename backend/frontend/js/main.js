@@ -364,7 +364,14 @@ window.setupEventListeners = initEventDelegation; // Alias for backward compatib
 // Modal functions
 window.closeModal = () => {
     const modal = document.getElementById('deployModal');
-    if (modal) modal.style.display = 'none';
+    if (modal) {
+        // Call cleanup function if it exists (e.g., for logs auto-refresh)
+        if (modal._cleanupLogs) {
+            modal._cleanupLogs();
+            modal._cleanupLogs = null;
+        }
+        modal.style.display = 'none';
+    }
 };
 window.showAuthModal = showAuthModal;
 window.closeAuthModal = closeAuthModal;

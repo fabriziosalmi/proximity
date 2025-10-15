@@ -2051,8 +2051,8 @@ h3 { font-size: 1.5rem; font-weight: 600; }
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     opacity: 0.4;
     color: var(--text-secondary);
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
     stroke-width: 2.25;
 }
 
@@ -2936,8 +2936,8 @@ body.modal-open .app-container {
 .modal-content {
     background: var(--bg-secondary);
     backdrop-filter: blur(20px);
-    border-radius: var(--radius-xl);
-    border: 2px solid var(--border-cyan);
+    border-radius: 10px;
+    border: 2px solid rgb(0, 221, 255);
     max-width: 95vw;
     width: 95vw;
     max-height: 92vh;
@@ -3238,7 +3238,7 @@ body.modal-open .app-container {
     top: 1.5rem;
     right: 1.5rem;
     z-index: 3000;
-    display: flex;
+    display: none; /* Hide traditional toasts - using rack notifications now */
     flex-direction: column;
     gap: 0.75rem;
     pointer-events: none;
@@ -3424,8 +3424,8 @@ body.modal-open .app-container {
 }
 
 .toast-close {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
     border-radius: var(--radius-sm);
     border: none;
     background: transparent;
@@ -4596,8 +4596,8 @@ body.modal-open .app-container {
 
 .canvas-modal-header.minimized .canvas-modal-title i,
 .canvas-modal-header.minimized .canvas-btn {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
 }
 
 .canvas-modal-header.minimized .canvas-btn i {
@@ -5014,6 +5014,12 @@ body.pro-mode .pro-feature.inline-flex {
     box-sizing: border-box;
 }
 
+/* Disable modal-body scrolling when terminal is present */
+.modal-body:has(#xtermContainer) {
+    overflow: hidden;
+    padding: 0;
+}
+
 /* Override xterm default styles for better integration */
 #xtermContainer .xterm .xterm-helpers {
     position: absolute;
@@ -5360,8 +5366,8 @@ body.pro-mode .pro-feature.inline-flex {
 }
 
 .monitor-icon i {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
 }
 
 .monitor-title {
@@ -5544,8 +5550,8 @@ body.pro-mode .pro-feature.inline-flex {
 }
 
 .monitor-section-title i {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
     color: #06b6d4;
 }
 
@@ -5750,8 +5756,8 @@ body.pro-mode .pro-feature.inline-flex {
 }
 
 .dashboard-section-title i {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
     color: #06b6d4;
 }
 
@@ -6435,8 +6441,8 @@ body.pro-mode .pro-feature.inline-flex {
 }
 
 .settings-card-icon i {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
     color: var(--primary);
 }
 
@@ -6682,8 +6688,8 @@ body.pro-mode .pro-feature.inline-flex {
     }
 
     .empty-state-compact i {
-        width: 24px;
-        height: 24px;
+        width: 20px;
+        height: 20px;
         opacity: 0.6;
     }
 
@@ -7506,8 +7512,8 @@ body.pro-mode .pro-feature.inline-flex {
 }
 
 .rack-card-icon i {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
 }
 
 .rack-card.warning .rack-card-icon {

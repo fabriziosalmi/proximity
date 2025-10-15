@@ -52,6 +52,104 @@
     box-shadow: 0px 0px 3px rgb(100, 99, 99);
     height: 40px;
     background: black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 1.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+/* ============================================================================
+   RACK NOTIFICATION DISPLAY
+   ============================================================================ */
+
+.rack-notification-display {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0.875rem;
+    border-radius: 8px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: rgba(24, 24, 27, 0.6);
+    border: 1px solid rgba(113, 113, 122, 0.3);
+    color: var(--text-secondary);
+    max-width: 600px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.rack-notif-icon {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    opacity: 0.8;
+}
+
+.rack-notif-message {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Notification Type Styles */
+.rack-notification-display.notif-info {
+    background: rgba(34, 211, 238, 0.1);
+    border-color: rgba(34, 211, 238, 0.4);
+    color: #22d3ee;
+}
+
+.rack-notification-display.notif-info .rack-notif-icon {
+    color: #22d3ee;
+}
+
+.rack-notification-display.notif-success {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.4);
+    color: #10b981;
+}
+
+.rack-notification-display.notif-success .rack-notif-icon {
+    color: #10b981;
+}
+
+.rack-notification-display.notif-warning {
+    background: rgba(251, 191, 36, 0.1);
+    border-color: rgba(251, 191, 36, 0.4);
+    color: #fbbf24;
+}
+
+.rack-notification-display.notif-warning .rack-notif-icon {
+    color: #fbbf24;
+}
+
+.rack-notification-display.notif-error {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.4);
+    color: #ef4444;
+}
+
+.rack-notification-display.notif-error .rack-notif-icon {
+    color: #ef4444;
+}
+
+/* Animation for new notifications */
+@keyframes notif-pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.02);
+        opacity: 0.9;
+    }
+}
+
+.rack-notification-display.notif-new {
+    animation: notif-pulse 0.5s ease-in-out;
 }
 
 .nav-rack-content {
