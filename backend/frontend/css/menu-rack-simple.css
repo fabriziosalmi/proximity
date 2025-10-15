@@ -1,17 +1,28 @@
 /* ============================================================================
-   SIMPLE MENU RACK - Debug Version
+   MENU RACK - Exact App Card Style (Full Width, Compact Height)
    ============================================================================ */
 
 .top-nav-rack {
+    /* Exact same style as .app-card */
     background: linear-gradient(135deg, rgba(24, 24, 27, 0.8), rgba(39, 39, 42, 0.6));
     backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid #06b6d4;
-    border-radius: 16px;
+    border: 1px solid var(--border-cyan);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3),
-                0 0 15px rgba(0, 255, 255, 0.4),
                 inset 0 1px 0 rgba(34, 211, 238, 0.05);
-    margin: 1rem;
-    padding: 1rem 1.5rem;
+    
+    /* Active glow like status-running */
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.4),
+                0 4px 16px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(34, 211, 238, 0.05);
+    border-color: rgba(0, 255, 255, 0.6);
+    
+    /* Menu specific - same margins as content padding */
+    margin: 1rem 2rem; /* Match .content padding (2rem left/right, 1rem top/bottom) */
+    width: calc(100% - 4rem); /* Full width minus left+right margins (2rem * 2) */
     z-index: 1000;
 }
 
@@ -19,7 +30,9 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    padding: 0.75rem 1.5rem; /* Reduced vertical padding for compact height */
     gap: 1rem;
+    min-height: auto; /* Remove min-height for compact design */
 }
 
 .nav-rack-section {
@@ -28,27 +41,40 @@
     gap: 0.5rem;
 }
 
+/* Button items inside rack - more compact */
 .nav-rack-item {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.625rem 1rem;
+    padding: 0.5rem 0.875rem; /* Slightly reduced padding */
     background: linear-gradient(135deg, rgba(24, 24, 27, 0.8), rgba(39, 39, 42, 0.6));
     backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid #06b6d4;
+    border: 1px solid var(--border-cyan);
     border-radius: 10px;
     color: #94a3b8;
     text-decoration: none;
     cursor: pointer;
     transition: all 0.3s ease;
     white-space: nowrap;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(34, 211, 238, 0.05);
+    min-height: 36px; /* Compact height */
 }
 
-.nav-rack-item:hover,
-.nav-rack-item.active {
+.nav-rack-item:hover {
     border-color: #22d3ee;
     color: #e2e8f0;
-    box-shadow: 0 0 20px rgba(34, 211, 238, 0.5);
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.4),
+                0 4px 16px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(34, 211, 238, 0.05);
+}
+
+.nav-rack-item.active {
+    border-color: rgba(0, 255, 255, 0.6);
+    color: #e2e8f0;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.4),
+                0 4px 16px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(34, 211, 238, 0.05);
 }
 
 .nav-rack-item i {
