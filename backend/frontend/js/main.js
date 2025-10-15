@@ -44,6 +44,9 @@ import { nodesView } from './views/NodesView.js';
 // Initialize sound system
 SoundService.init();
 
+// CRITICAL: Expose SoundService immediately for top-nav-rack.js (non-module script)
+window.SoundService = SoundService;
+
 console.log('✅ Proximity modular system loaded');
 
 // Prevent multiple initializations
@@ -214,6 +217,7 @@ function initEventDelegation() {
         // --- 5. LOGOUT ---
         const logoutBtn = target.closest('[data-action="logout"]');
         if (logoutBtn) {
+            console.log('🚪 Logout button clicked!');
             event.preventDefault();
             handleLogout(event);
             return;
@@ -288,9 +292,11 @@ async function initializeApp() {
     console.log('✅ Sidebar initialized');
 
     // STEP 3.5: Initialize Top Navigation Rack
-    if (typeof initTopNavRack !== 'undefined') {
-        initTopNavRack();
+    if (typeof window.initTopNavRack === 'function') {
+        window.initTopNavRack();
         console.log('✅ Top Navigation Rack initialized');
+    } else {
+        console.error('❌ initTopNavRack not found');
     }
 
     // STEP 4: Initialize router and views
@@ -426,6 +432,7 @@ window.UI = UI;
 window.Clipboard = Clipboard;
 window.Auth = Auth; // CRITICAL: Expose Auth for E2E tests and conftest
 window.API = API;   // Also expose API for testing
+window.SoundService = SoundService; // CRITICAL: Expose SoundService for top-nav-rack.js
 
 // CRITICAL: Expose Router for navigation (replaces legacy showView)
 window.router = router;

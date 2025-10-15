@@ -13,11 +13,17 @@ function initTopNavRack() {
     const soundIcon = document.getElementById('soundIcon');
     let soundPanelOpen = false;
 
+    console.log('🔊 Sound button element:', soundToggleBtn);
+    console.log('🔊 Sound icon element:', soundIcon);
+    console.log('🔊 SoundService available:', !!window.SoundService);
+
     if (soundToggleBtn && soundIcon && window.SoundService) {
+        console.log('✅ Sound button setup starting...');
         // Set initial state from SoundService
         updateSoundButton(soundToggleBtn, soundIcon);
 
         soundToggleBtn.addEventListener('click', (e) => {
+            console.log('🔊 Sound button clicked!');
             e.preventDefault();
             e.stopPropagation();
 
@@ -28,6 +34,13 @@ function initTopNavRack() {
                 showSoundPanel(soundToggleBtn);
                 soundPanelOpen = true;
             }
+        });
+        console.log('✅ Sound button event listener attached');
+    } else {
+        console.error('❌ Sound button setup failed:', {
+            soundToggleBtn: !!soundToggleBtn,
+            soundIcon: !!soundIcon,
+            SoundService: !!window.SoundService
         });
     }
 
