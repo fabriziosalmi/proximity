@@ -28,6 +28,7 @@ export function populateDeployedCard(cardElement, app) {
     // Add data attribute for E2E tests
     const appCard = cardElement.querySelector('.app-card');
     if (appCard) {
+        console.log('[app-card] Setting data-hostname:', app.hostname, 'for app:', app.id || app.name);
         appCard.setAttribute('data-hostname', app.hostname || '');
     }
     
