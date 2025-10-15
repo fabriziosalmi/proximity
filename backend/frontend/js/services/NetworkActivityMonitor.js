@@ -61,6 +61,12 @@ class NetworkActivityMonitor {
     unsubscribe(id) {
         this.subscribers.delete(id);
         this.previousStats.delete(id);
+        
+        // Auto-stop if no subscribers left
+        if (this.subscribers.size === 0 && this.intervalId) {
+            this.stop();
+            console.log('NetworkActivityMonitor auto-stopped (no subscribers)');
+        }
     }
 
     /**
@@ -69,6 +75,11 @@ class NetworkActivityMonitor {
     async poll() {
         // Skip polling if not authenticated
         if (!isAuthenticated()) {
+            return;
+        }
+
+        // Skip polling if no subscribers
+        if (this.subscribers.size === 0) {
             return;
         }
 
@@ -110,7 +121,10 @@ class NetworkActivityMonitor {
                     );
                 } catch (error) {
                     // Silently skip if stats not available
-                    // console.warn(`Failed to fetch stats for app ${app.id}:`, error);
+                    // If 404, unsubscribe to stop retrying
+                    if (error.message && error.message.includes('404')) {
+                        this.unsubscribe(vmId);
+                    }
                 }
             }
 
