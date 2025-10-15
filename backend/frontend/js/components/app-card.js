@@ -141,6 +141,23 @@ export function populateDeployedCard(cardElement, app) {
     
     const isRunning = status === 'running';
     
+    // Update toggle-status button icon based on app status
+    const toggleBtn = cardElement.querySelector('[data-action="toggle-status"]');
+    if (toggleBtn) {
+        const icon = toggleBtn.querySelector('i[data-lucide]');
+        if (icon) {
+            if (isRunning) {
+                // App is running - show pause/stop icon
+                icon.setAttribute('data-lucide', 'pause');
+                toggleBtn.setAttribute('data-tooltip', 'Stop App');
+            } else {
+                // App is stopped - show play icon
+                icon.setAttribute('data-lucide', 'play');
+                toggleBtn.setAttribute('data-tooltip', 'Start App');
+            }
+        }
+    }
+    
     // Actions that require app to be running
     const runningOnlyActions = ['open-external', 'canvas', 'restart', 'monitoring'];
     

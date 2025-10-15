@@ -497,9 +497,11 @@ export async function initializeAuthenticatedSession() {
 export async function handleLogout(e) {
     if (e) e.preventDefault();
 
+    console.log('🚪 Logout button clicked!');
+
     // Add breadcrumb for logout
     if (window.addDebugBreadcrumb) {
-        const user = Auth.getUser();
+        const user = Auth.getUserInfo();
         window.addDebugBreadcrumb('Logout initiated', { 
             username: user?.username 
         });

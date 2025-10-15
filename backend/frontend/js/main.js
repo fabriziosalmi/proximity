@@ -30,7 +30,7 @@ import { showCloneModal } from './modals/CloneModal.js';
 import { showPromptModal } from './modals/PromptModal.js';
 import { showEditConfigModal, closeEditConfigModal } from './modals/EditConfigModal.js';
 import { showUpdateModal } from './modals/UpdateModal.js';
-import { controlApp, deleteApp, restartApp, showAppDetails, showDeletionProgress, updateDeletionProgress, hideDeletionProgress, showAppLogs, showAppVolumes } from './services/appOperations.js';
+import { controlApp, confirmDeleteApp, deleteApp, restartApp, startApp, stopApp, showAppDetails, showDeletionProgress, updateDeletionProgress, hideDeletionProgress, showAppLogs, showAppVolumes } from './services/appOperations.js';
 import { loadDeployedApps, loadCatalog, updateUI, updateAppsCount } from './services/dataService.js';
 
 // Import lifecycle management system
@@ -397,14 +397,38 @@ window.closeCanvas = closeCanvas;
 
 // App operations functions
 window.controlApp = controlApp;
+window.confirmDeleteApp = confirmDeleteApp;
 window.deleteApp = deleteApp;
 window.restartApp = restartApp;
+window.startApp = startApp;
+window.stopApp = stopApp;
 window.showAppDetails = showAppDetails;
 window.showDeletionProgress = showDeletionProgress;
 window.updateDeletionProgress = updateDeletionProgress;
 window.hideDeletionProgress = hideDeletionProgress;
 window.showAppLogs = showAppLogs;
 window.showAppVolumes = showAppVolumes;
+
+// Console functions
+window.showAppConsole = showAppConsole;
+
+// Canvas function
+window.openCanvas = openCanvas;
+
+// Backup functions
+window.showBackupModal = showBackupModal;
+
+// Update function
+window.showUpdateModal = showUpdateModal;
+
+// Monitoring function
+window.showMonitoringModal = showMonitoringModal;
+
+// Clone function
+window.showCloneModal = showCloneModal;
+
+// Edit config function
+window.showEditConfigModal = showEditConfigModal;
 
 // Utility functions (NEW!)
 window.initLucideIcons = Icons.initLucideIcons;
