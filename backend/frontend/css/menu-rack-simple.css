@@ -15,10 +15,8 @@
                 inset 0 1px 0 rgba(34, 211, 238, 0.05);
     
     /* Active glow like status-running */
-    box-shadow: 0 0 15px rgba(0, 255, 255, 0.4),
-                0 4px 16px rgba(0, 0, 0, 0.3),
-                inset 0 1px 0 rgba(34, 211, 238, 0.05);
-    border-color: rgba(0, 255, 255, 0.6);
+    /* box-shadow: 0 0 15px rgba(0, 255, 255, 0.4), 0 4px 16px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(34, 211, 238, 0.05); */
+    border-color: rgba(75, 75, 75, 0.6);
     
     /* Menu specific - same margins as content padding */
     margin: 1rem 2rem; /* Match .content padding (2rem left/right, 1rem top/bottom) */
@@ -37,6 +35,8 @@
         transparent 100%
     );
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+
+    background: linear-gradient(135deg, rgba(24, 24, 27, 0.8), rgba(39, 39, 42, 0.6));
 }
 
 .nav-rack-bottom-row {
@@ -48,16 +48,23 @@
         rgba(0, 0, 0, 0.4) 90%,
         transparent 100%
     );
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+
+    box-shadow: 0px 0px 3px rgb(100, 99, 99);
+    height: 40px;
+    background: black;
 }
 
 .nav-rack-content {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.75rem 1.5rem; /* Reduced vertical padding for compact height */
-    gap: 1rem;
-    min-height: auto; /* Remove min-height for compact design */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  gap: 1rem;
+  min-height: auto;
+  background-color: #000;
+  background-image: radial-gradient( circle at center, #151515, #000000d9 );
+  /* min-height: 12vh; */
+  margin: 0;
 }
 
 .nav-rack-section {

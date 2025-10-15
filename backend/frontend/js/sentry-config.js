@@ -14,6 +14,33 @@ window.addEventListener('load', () => {
     }
 
     try {
+        // Build integrations array based on what's available
+        const integrations = [];
+        
+        // Browser Tracing (performance monitoring)
+        if (typeof Sentry.browserTracingIntegration === 'function') {
+            integrations.push(Sentry.browserTracingIntegration());
+        } else if (typeof Sentry.BrowserTracing === 'function') {
+            integrations.push(new Sentry.BrowserTracing());
+        } else {
+            console.warn('⚠️ Sentry Browser Tracing not available');
+        }
+        
+        // Session Replay
+        if (typeof Sentry.replayIntegration === 'function') {
+            integrations.push(Sentry.replayIntegration({
+                maskAllText: true,
+                blockAllMedia: true,
+            }));
+        } else if (typeof Sentry.Replay === 'function') {
+            integrations.push(new Sentry.Replay({
+                maskAllText: true,
+                blockAllMedia: true,
+            }));
+        } else {
+            console.warn('⚠️ Sentry Replay not available');
+        }
+        
         // Initialize Sentry
         Sentry.init({
             dsn: "https://dbee00d4782d131ab54ffe60b16d969b@o149725.ingest.us.sentry.io/4510189390266368",
@@ -21,14 +48,8 @@ window.addEventListener('load', () => {
             // Send default PII (IP addresses, user agent)
             sendDefaultPii: true,
             
-            // Performance Monitoring
-            integrations: [
-                Sentry.browserTracingIntegration(),
-                Sentry.replayIntegration({
-                    maskAllText: true,
-                    blockAllMedia: true,
-                }),
-            ],
+            // Add integrations
+            integrations: integrations,
             
             // Performance Monitoring - Sample Rate
             tracesSampleRate: 1.0, // Capture 100% of transactions for performance monitoring
