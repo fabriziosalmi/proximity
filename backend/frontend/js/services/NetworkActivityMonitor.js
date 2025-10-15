@@ -109,12 +109,16 @@ class NetworkActivityMonitor {
                         now
                     );
                 } catch (error) {
-                    console.warn(`Failed to fetch stats for app ${app.id}:`, error);
+                    // Silently skip if stats not available
+                    // console.warn(`Failed to fetch stats for app ${app.id}:`, error);
                 }
             }
 
         } catch (error) {
-            console.error('NetworkActivityMonitor poll error:', error);
+            // Only log non-network errors
+            if (error.message && !error.message.includes('NetworkError') && !error.message.includes('fetch')) {
+                console.error('NetworkActivityMonitor poll error:', error);
+            }
         }
     }
 
