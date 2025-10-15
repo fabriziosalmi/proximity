@@ -605,6 +605,8 @@ export async function loadAppLogs(appId, logType = 'all') {
 
     currentLogType = logType;
 
+    console.log(`📄 Loading logs for app: ${appId}, type: ${logType}`);
+
     try {
         // Show loading state
         logsContent.innerHTML = `
@@ -615,7 +617,10 @@ export async function loadAppLogs(appId, logType = 'all') {
         `;
 
         // Fetch logs from API
-        const response = await authFetch(`${API_BASE}/apps/${appId}/logs`);
+        const url = `${API_BASE}/apps/${appId}/logs`;
+        console.log(`📡 Fetching logs from: ${url}`);
+        
+        const response = await authFetch(url);
         const data = await response.json();
 
         if (!response.ok) {

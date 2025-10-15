@@ -2,6 +2,15 @@
    MENU RACK - Exact App Card Style (Full Width, Compact Height)
    ============================================================================ */
 
+/* Custom LCD Font */
+@font-face {
+    font-family: 'Doto Rounded';
+    src: url('/assets/fonts/Doto_Rounded-Black.ttf') format('truetype');
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+}
+
 .top-nav-rack {
     /* Exact same style as .app-card */
     background: linear-gradient(135deg, rgba(24, 24, 27, 0.8), rgba(39, 39, 42, 0.6));
@@ -61,32 +70,59 @@
 }
 
 /* ============================================================================
-   RACK NOTIFICATION DISPLAY
+   RACK NOTIFICATION DISPLAY - LCD Style (Newhaven Display inspired)
    ============================================================================ */
 
 .rack-notification-display {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.375rem 0.875rem;
-    border-radius: 8px;
-    font-size: 0.8125rem;
-    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-family: 'Doto Rounded', 'Courier New', 'Consolas', monospace;
+    font-size: 0.875rem;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    background: rgba(24, 24, 27, 0.6);
-    border: 1px solid rgba(113, 113, 122, 0.3);
-    color: var(--text-secondary);
+    
+    /* LCD Green background */
+    background: linear-gradient(180deg, #9ac94e 0%, #7db13a 100%);
+    border: 2px solid #5a8029;
+    color: #1a3310;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.15);
+    
+    /* LCD pixel grid effect */
+    box-shadow: 
+        inset 0 1px 2px rgba(255, 255, 255, 0.3),
+        inset 0 -1px 2px rgba(0, 0, 0, 0.2),
+        0 2px 4px rgba(0, 0, 0, 0.3);
+    
     max-width: 600px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    position: relative;
+    
+    /* Subtle scanline effect */
+    background-image: 
+        linear-gradient(180deg, #9ac94e 0%, #7db13a 100%),
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 2px,
+            rgba(0, 0, 0, 0.03) 2px,
+            rgba(0, 0, 0, 0.03) 4px
+        );
+    background-blend-mode: normal;
 }
 
 .rack-notif-icon {
     width: 14px;
     height: 14px;
     flex-shrink: 0;
-    opacity: 0.8;
+    filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.2));
+    color: #1a3310;
 }
 
 .rack-notif-message {
@@ -95,58 +131,72 @@
     text-overflow: ellipsis;
 }
 
-/* Notification Type Styles */
+/* Notification Type Styles - LCD color variations */
 .rack-notification-display.notif-info {
-    background: rgba(34, 211, 238, 0.1);
-    border-color: rgba(34, 211, 238, 0.4);
-    color: #22d3ee;
+    /* Cyan-Green LCD */
+    background: linear-gradient(180deg, #6dd5db 0%, #4fb3bb 100%);
+    border-color: #2d7983;
+    color: #0a2f33;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .rack-notification-display.notif-info .rack-notif-icon {
-    color: #22d3ee;
+    color: #0a2f33;
 }
 
 .rack-notification-display.notif-success {
-    background: rgba(16, 185, 129, 0.1);
-    border-color: rgba(16, 185, 129, 0.4);
-    color: #10b981;
+    /* Bright Green LCD */
+    background: linear-gradient(180deg, #9ac94e 0%, #7db13a 100%);
+    border-color: #5a8029;
+    color: #1a3310;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 .rack-notification-display.notif-success .rack-notif-icon {
-    color: #10b981;
+    color: #1a3310;
 }
 
 .rack-notification-display.notif-warning {
-    background: rgba(251, 191, 36, 0.1);
-    border-color: rgba(251, 191, 36, 0.4);
-    color: #fbbf24;
+    /* Amber LCD */
+    background: linear-gradient(180deg, #ffd666 0%, #ffb84d 100%);
+    border-color: #cc8800;
+    color: #4d3300;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
 .rack-notification-display.notif-warning .rack-notif-icon {
-    color: #fbbf24;
+    color: #4d3300;
 }
 
 .rack-notification-display.notif-error {
-    background: rgba(239, 68, 68, 0.1);
-    border-color: rgba(239, 68, 68, 0.4);
-    color: #ef4444;
+    /* Red LCD */
+    background: linear-gradient(180deg, #ff6b6b 0%, #ee5555 100%);
+    border-color: #cc0000;
+    color: #330000;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .rack-notification-display.notif-error .rack-notif-icon {
-    color: #ef4444;
+    color: #330000;
 }
 
-/* Animation for new notifications */
+/* Animation for new notifications - subtle glow */
 @keyframes notif-pulse {
     0%, 100% {
-        transform: scale(1);
-        opacity: 1;
+        box-shadow: 
+            inset 0 1px 2px rgba(255, 255, 255, 0.3),
+            inset 0 -1px 2px rgba(0, 0, 0, 0.2),
+            0 2px 4px rgba(0, 0, 0, 0.3);
     }
     50% {
-        transform: scale(1.02);
-        opacity: 0.9;
+        box-shadow: 
+            inset 0 1px 2px rgba(255, 255, 255, 0.4),
+            inset 0 -1px 2px rgba(0, 0, 0, 0.15),
+            0 2px 8px rgba(0, 0, 0, 0.4),
+            0 0 12px rgba(154, 201, 78, 0.4);
     }
 }
+
 
 .rack-notification-display.notif-new {
     animation: notif-pulse 0.5s ease-in-out;
