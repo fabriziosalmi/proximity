@@ -4,20 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Proximity - App Delivery Platform</title>
-    
-    <!-- Sentry Error Tracking -->
-    <script
-        src="https://js.sentry-cdn.com/dbee00d4782d131ab54ffe60b16d969b.min.js"
-        crossorigin="anonymous"
-    ></script>
-    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..900&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/styles.css?v=20251014-democard">
-    <link rel="stylesheet" href="/css/menu-rack-simple.css?v=1">
-    <link rel="stylesheet" href="/css/tablet-responsive.css?v=20251014-democard">
+    <link rel="stylesheet" href="css/styles.css?v=demo-1760459902">
+    <link rel="stylesheet" href="/css/top-nav-rack.css?v=demo-1760459902">
+    <link rel="stylesheet" href="/css/tablet-responsive.css?v=demo-1760459902">
     <!-- Xterm.js Terminal -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
     <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
@@ -26,23 +19,20 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
-    <!-- Sentry Configuration -->
-    <script src="/js/sentry-config.js?v=20251014-sentry"></script>
-
     <!-- Top Navigation Rack -->
-    <script src="/js/top-nav-rack.js?v=20251014-hideuser"></script>
+    <script src="/js/top-nav-rack.js?v=demo-1760459902"></script>
 
     <!-- Toast Notifications System -->
-    <script src="/js/notifications-global.js?v=20251014-nohealth"></script>
+    <script src="/js/notifications-global.js?v=demo-1760459902"></script>
 
     <!-- Form Validation System -->
-    <script src="/js/validation-global.js?v=20251014-nohealth"></script>
+    <script src="/js/validation-global.js?v=demo-1760459902"></script>
 
     <!-- Debounce Utility -->
-    <script src="/js/utils/debounce.js?v=20251014-nohealth" type="module"></script>
+    <script src="/js/utils/debounce.js?v=demo-1760459902" type="module"></script>
 
     <!-- Modular system (ES6 modules) with lifecycle management -->
-    <script src="js/main.js?v=20251014-democard" type="module"></script>
+    <script src="js/main.js?v=demo-1760459902" type="module"></script>
 </head>
 <body>
     <!-- Power On Screen (First Run Only) -->
@@ -59,11 +49,16 @@
     </div>
 
     <div class="app-container">
-        <!-- Main Menu Rack (3 Sections: Left, Center, Right) -->
+        <!-- Top Navigation Rack -->
         <nav class="top-nav-rack">
             <div class="nav-rack-content">
-                <!-- LEFT SECTION: Main Navigation -->
-                <div class="nav-rack-section nav-rack-left">
+                <!-- Logo Section -->
+                <div class="nav-logo">
+                    <span class="logo-text">Proximity</span>
+                </div>
+                
+                <!-- Main Navigation -->
+                <div class="nav-rack-items">
                     <a href="#" class="nav-rack-item active" data-view="dashboard" title="Dashboard">
                         <i data-lucide="layout-dashboard"></i>
                         <span>Dashboard</span>
@@ -77,10 +72,6 @@
                         <i data-lucide="store"></i>
                         <span>Store</span>
                     </a>
-                </div>
-                
-                <!-- CENTER SECTION: Infrastructure -->
-                <div class="nav-rack-section nav-rack-center">
                     <a href="#" class="nav-rack-item" data-view="nodes" title="Infrastructure">
                         <i data-lucide="server"></i>
                         <span>Infra</span>
@@ -89,16 +80,32 @@
                         <i data-lucide="settings"></i>
                         <span>Settings</span>
                     </a>
-                </div>
-                
-                <!-- RIGHT SECTION: Controls -->
-                <div class="nav-rack-section nav-rack-right">
+
+                    <!-- Divider -->
+                    <div class="nav-rack-divider"></div>
+
+                    <!-- Sound Control -->
                     <button class="nav-rack-item sound-toggle-btn" id="soundToggleBtn" title="Audio Settings">
                         <i data-lucide="volume-2" id="soundIcon"></i>
                     </button>
+
+                    <!-- User Info (Hidden when not authenticated) -->
+                    <div class="nav-rack-item user-info" id="userInfo" style="display: none;" title="Current User">
+                        <i data-lucide="user"></i>
+                        <span id="usernameDisplay"></span>
+                    </div>
+
+                    <!-- Logout -->
                     <button class="nav-rack-item logout-btn" data-action="logout" title="Logout">
                         <i data-lucide="log-out"></i>
                     </button>
+                </div>
+            </div>
+
+            <!-- Dynamic Submenu - Appears seamlessly below top bar -->
+            <div class="nav-submenu" id="navSubmenu" style="display: none;">
+                <div class="nav-submenu-content" id="navSubmenuContent">
+                    <!-- Dynamic submenu items will be inserted here -->
                 </div>
             </div>
         </nav>
@@ -120,6 +127,7 @@
                 <!-- Nodes View (Hidden by default) -->
                 <div id="nodesView" class="view hidden"></div>
                 
+                <!-- Monitoring View (Hidden by default) -->
                 
                 <!-- Settings View (Hidden by default) -->
                 <div id="settingsView" class="view hidden"></div>
@@ -241,7 +249,7 @@
                     <button class="action-icon pro-feature" data-action="edit-config" data-tooltip="Edit Resources">
                         <i data-lucide="sliders"></i>
                     </button>
-                    <button class="action-icon danger" data-action="delete" data-tooltip="Delete App">
+                    <button class="action-icon danger" data-tooltip="Delete App">
                         <i data-lucide="trash-2"></i>
                     </button>
                 </div>
@@ -268,16 +276,6 @@
                     <i data-lucide="clock" class="connection-icon"></i>
                     <span class="connection-value date-value"></span>
                 </div>
-                <div class="connection-item">
-                    <span class="status-led led-tx" data-type="tx" title="TX - Network Upload"></span>
-                    <i data-lucide="upload" class="connection-icon"></i>
-                    <span class="connection-value">TX</span>
-                </div>
-                <div class="connection-item">
-                    <span class="status-led led-rx" data-type="rx" title="RX - Network Download"></span>
-                    <i data-lucide="download" class="connection-icon"></i>
-                    <span class="connection-value">RX</span>
-                </div>
             </div>
 
             <!-- Resource Metrics: CPU and RAM Usage -->
@@ -290,7 +288,7 @@
                     <span class="metric-value cpu-value">0%</span>
                 </div>
                 <div class="metric-item">
-                    <i data-lucide="memory-stick" class="metric-icon"></i>
+                    <i data-lucide="database" class="metric-icon"></i>
                     <div class="metric-bar-container">
                         <div class="metric-bar ram-bar"></div>
                     </div>
