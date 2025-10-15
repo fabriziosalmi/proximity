@@ -1,0 +1,72 @@
+/* ============================================================================
+   SIMPLE MENU RACK - Debug Version
+   ============================================================================ */
+
+.top-nav-rack {
+    background: linear-gradient(135deg, rgba(24, 24, 27, 0.8), rgba(39, 39, 42, 0.6));
+    backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid #06b6d4;
+    border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3),
+                0 0 15px rgba(0, 255, 255, 0.4),
+                inset 0 1px 0 rgba(34, 211, 238, 0.05);
+    margin: 1rem;
+    padding: 1rem 1.5rem;
+    z-index: 1000;
+}
+
+.nav-rack-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.nav-rack-section {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.nav-rack-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1rem;
+    background: linear-gradient(135deg, rgba(24, 24, 27, 0.8), rgba(39, 39, 42, 0.6));
+    backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid #06b6d4;
+    border-radius: 10px;
+    color: #94a3b8;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.nav-rack-item:hover,
+.nav-rack-item.active {
+    border-color: #22d3ee;
+    color: #e2e8f0;
+    box-shadow: 0 0 20px rgba(34, 211, 238, 0.5);
+}
+
+.nav-rack-item i {
+    width: 18px;
+    height: 18px;
+}
+
+.nav-rack-item span:not(.nav-badge) {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.nav-badge {
+    background: #22d3ee;
+    color: #000;
+    padding: 0.125rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    margin-left: 0.25rem;
+}

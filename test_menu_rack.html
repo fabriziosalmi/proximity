@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Menu Rack</title>
+    <link rel="stylesheet" href="backend/frontend/css/styles.css">
+    <link rel="stylesheet" href="backend/frontend/css/top-nav-rack.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Main Menu Rack -->
+        <nav class="top-nav-rack">
+            <div class="nav-rack-content">
+                <div class="nav-rack-items">
+                    <a href="#" class="nav-rack-item active" data-view="dashboard" title="Dashboard">
+                        <i data-lucide="layout-dashboard"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="#" class="nav-rack-item" data-view="apps" title="My Apps">
+                        <i data-lucide="package"></i>
+                        <span>Apps</span>
+                        <span class="nav-badge" style="background: var(--cyan-bright); color: #000; padding: 0.125rem 0.5rem; border-radius: 12px; font-size: 0.75rem; font-weight: 700; margin-left: 0.5rem;">3</span>
+                    </a>
+                    <a href="#" class="nav-rack-item" data-view="catalog" title="App Store">
+                        <i data-lucide="store"></i>
+                        <span>Store</span>
+                    </a>
+                    <a href="#" class="nav-rack-item" data-view="nodes" title="Infrastructure">
+                        <i data-lucide="server"></i>
+                        <span>Infra</span>
+                    </a>
+                    <a href="#" class="nav-rack-item" data-view="settings" title="Settings">
+                        <i data-lucide="settings"></i>
+                        <span>Settings</span>
+                    </a>
+                    
+                    <!-- Divider -->
+                    <div class="nav-rack-divider"></div>
+                    
+                    <!-- Sound Control -->
+                    <button class="nav-rack-item sound-toggle-btn" id="soundToggleBtn" title="Audio Settings">
+                        <i data-lucide="volume-2" id="soundIcon"></i>
+                    </button>
+                    
+                    <!-- Logout -->
+                    <button class="nav-rack-item logout-btn" data-action="logout" title="Logout">
+                        <i data-lucide="log-out"></i>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="content" style="padding: 2rem;">
+                <h1 style="color: var(--text-primary);">Menu Rack Test</h1>
+                <p style="color: var(--text-secondary);">Il menu rack dovrebbe essere visibile sopra con 5 pulsanti centrati.</p>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>
