@@ -39,8 +39,8 @@ class SafeCommand(str, Enum):
 class NodeInfo(BaseModel):
     """Proxmox node information"""
     node: str
-    status: str
-    type: str
+    status: str = "unknown"  # Default to unknown if not provided
+    type: str = "node"  # Default to node type
     uptime: Optional[int] = None
     maxcpu: Optional[int] = None
     maxmem: Optional[int] = None
