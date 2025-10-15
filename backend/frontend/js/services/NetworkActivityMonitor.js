@@ -5,6 +5,9 @@
  * visual LED animations based on actual network traffic.
  */
 
+import * as API from './api.js';
+import { isAuthenticated } from './api.js';
+
 class NetworkActivityMonitor {
     constructor(pollInterval = 2500) { // 2.5 seconds
         this.pollInterval = pollInterval;
@@ -64,10 +67,14 @@ class NetworkActivityMonitor {
      * Poll network statistics and update LEDs
      */
     async poll() {
+        // Skip polling if not authenticated
+        if (!isAuthenticated()) {
+            return;
+        }
+
         try {
             // Fetch all nodes and their stats
-            const nodes = await window.api.getNodes();
-            const containers = await window.api.getContainers();
+            const nodes = await API.getNodes();
             
             const now = Date.now();
 
@@ -83,18 +90,8 @@ class NetworkActivityMonitor {
                 );
             }
 
-            // Process containers
-            for (const container of containers) {
-                const id = `vm-${container.vmid}`;
-                if (!this.subscribers.has(id)) continue;
-                
-                this.updateActivity(
-                    id,
-                    container.netin || 0,
-                    container.netout || 0,
-                    now
-                );
-            }
+            // Note: Container stats would need a separate API endpoint
+            // Currently only monitoring node-level activity
 
         } catch (error) {
             console.error('NetworkActivityMonitor poll error:', error);

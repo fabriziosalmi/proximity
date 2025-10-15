@@ -203,7 +203,7 @@ export class NodesView extends Component {
                                 <div class="connection-item">
                                     <span class="status-led status-led-active network-led-bridge-host" title="Bridge Active"></span>
                                     <i data-lucide="network" class="connection-icon"></i>
-                                    <span class="connection-value">Bridge: vmbr0</span>
+                                    <span class="connection-value"> vmbr0</span>
                                 </div>
                                 
                                 <!-- DHCP Status -->
@@ -211,20 +211,6 @@ export class NodesView extends Component {
                                     <span class="status-led status-led-pulse network-led-dhcp-host" title="DHCP Active"></span>
                                     <i data-lucide="wifi" class="connection-icon"></i>
                                     <span class="connection-value">DHCP</span>
-                                </div>
-                                
-                                <!-- Gateway Status -->
-                                <div class="connection-item">
-                                    <span class="status-led status-led-blink network-led-gateway-host" title="Gateway Active"></span>
-                                    <i data-lucide="activity" class="connection-icon"></i>
-                                    <span class="connection-value">Gateway</span>
-                                </div>
-                                
-                                <!-- Internet Status -->
-                                <div class="connection-item">
-                                    <span class="status-led status-led-active network-led-internet-host" title="Internet Connected"></span>
-                                    <i data-lucide="globe" class="connection-icon"></i>
-                                    <span class="connection-value">Connected</span>
                                 </div>
                                 
                                 <!-- Network TX (Upload) with LED -->
@@ -267,7 +253,6 @@ export class NodesView extends Component {
                                 
                                 <!-- Country/Location with flag -->
                                 <div class="connection-item">
-                                    <span class="country-flag-host" style="font-size: 1.2rem; margin-right: 0.25rem;">🌍</span>
                                     <i data-lucide="map-pin" class="connection-icon"></i>
                                     <span class="connection-value"><span class="country-value-host">Loading...</span></span>
                                 </div>
