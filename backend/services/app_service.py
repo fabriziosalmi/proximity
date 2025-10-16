@@ -4,6 +4,7 @@ import logging
 import os
 import tempfile
 import yaml
+import sentry_sdk
 from datetime import datetime, UTC
 from typing import List, Dict, Any, Optional
 from pathlib import Path
@@ -13,7 +14,7 @@ from sqlalchemy.orm import Session
 from models.database import App as DBApp, DeploymentLog as DBDeploymentLog, get_db
 from models.schemas import (
     App, AppCreate, AppUpdate, AppStatus, AppCatalogItem, 
-    DeploymentStatus, DeploymentLog, CatalogResponse
+    DeploymentStatus, DeploymentLog, CatalogResponse, LXCStatus
 )
 from services.proxmox_service import ProxmoxService, ProxmoxError
 from core.config import settings
@@ -27,6 +28,7 @@ from core.exceptions import (
     DatabaseError,
     ValidationError
 )
+
 
 logger = logging.getLogger(__name__)
 
@@ -82,6 +84,30 @@ class AppService:
     def port_manager(self):
         """Get port manager instance"""
         return self._port_manager
+    
+    def _capture_error_to_sentry(
+        self, 
+        exception: Exception, 
+        context: Dict[str, Any],
+        level: str = "error"
+    ):
+        """
+        Helper to capture errors to Sentry with consistent context.
+        
+        Args:
+            exception: The exception to capture
+            context: Additional context (app_id, vmid, operation, etc.)
+            level: Sentry level (error, warning, fatal)
+        """
+        try:
+            sentry_sdk.capture_exception(
+                exception,
+                contexts={"app_operation": context},
+                level=level
+            )
+        except Exception as sentry_error:
+            # Don't let Sentry errors break the application
+            logger.warning(f"Failed to send error to Sentry: {sentry_error}")
 
     def _db_app_to_schema(self, db_app: DBApp) -> App:
         """Convert database App model to Pydantic schema"""
@@ -439,6 +465,16 @@ class AppService:
             # Wait a bit for container to start
             await asyncio.sleep(2)
             
+            # Ensure Docker daemon is running
+            await self.proxmox_service.execute_in_container(
+                app.node, app.lxc_id,
+                "rc-service docker status || rc-service docker start",
+                allow_nonzero_exit=True
+            )
+            
+            # Wait for Docker to be ready
+            await asyncio.sleep(2)
+            
             # Start Docker Compose
             await self.proxmox_service.execute_in_container(
                 app.node, app.lxc_id,
@@ -458,6 +494,19 @@ class AppService:
             
         except ProxmoxError as e:
             logger.error(f"Proxmox error starting app {app_id}: {e}", extra={"app_id": app_id})
+            
+            # Capture to Sentry
+            self._capture_error_to_sentry(
+                e,
+                context={
+                    "operation": "start_app",
+                    "app_id": app_id,
+                    "vmid": app.lxc_id,
+                    "node": app.node,
+                    "error_type": "proxmox_start_failed"
+                }
+            )
+            
             # Update error status
             db_app = self.db.query(DBApp).filter(DBApp.id == app_id).first()
             if db_app:
@@ -514,6 +563,19 @@ class AppService:
             
         except ProxmoxError as e:
             logger.error(f"Proxmox error stopping app {app_id}: {e}", extra={"app_id": app_id})
+            
+            # Capture to Sentry
+            self._capture_error_to_sentry(
+                e,
+                context={
+                    "operation": "stop_app",
+                    "app_id": app_id,
+                    "vmid": app.lxc_id,
+                    "node": app.node,
+                    "error_type": "proxmox_stop_failed"
+                }
+            )
+            
             # Update error status
             db_app = self.db.query(DBApp).filter(DBApp.id == app_id).first()
             if db_app:
@@ -561,10 +623,15 @@ class AppService:
                 logger.info(f"Stopping app {app_id} before deletion")
                 try:
                     await self.stop_app(app_id)
+                    # Wait for container to fully stop before destroying
+                    logger.info(f"Waiting for container {app.lxc_id} to fully stop...")
+                    await asyncio.sleep(5)
                 except Exception as stop_error:
                     error_msg = f"Failed to stop container: {str(stop_error)}"
                     logger.warning(error_msg, extra={"app_id": app_id})
                     errors.append(error_msg)
+                    # Wait anyway in case it's partially stopped
+                    await asyncio.sleep(3)
             
             # Release allocated ports
             try:
@@ -591,11 +658,54 @@ class AppService:
             
             # Delete LXC container
             try:
+                # Double-check container status before destroying
+                try:
+                    lxc_status = await self.proxmox_service.get_lxc_status(app.node, app.lxc_id)
+                    if lxc_status.status == LXCStatus.RUNNING:
+                        logger.warning(f"Container {app.lxc_id} still running, forcing stop...")
+                        await self.proxmox_service.stop_lxc(app.node, app.lxc_id, force=True)
+                        
+                        # Wait for container to actually stop (poll with timeout)
+                        max_wait = 15  # seconds
+                        waited = 0
+                        while waited < max_wait:
+                            await asyncio.sleep(2)
+                            waited += 2
+                            try:
+                                status = await self.proxmox_service.get_lxc_status(app.node, app.lxc_id)
+                                if status.status == LXCStatus.STOPPED:
+                                    logger.info(f"Container {app.lxc_id} stopped successfully")
+                                    break
+                            except Exception:
+                                # Container might be in transition, continue waiting
+                                pass
+                        
+                        if waited >= max_wait:
+                            logger.warning(f"Container {app.lxc_id} did not stop within {max_wait}s, attempting destroy anyway")
+                            
+                except Exception as status_check_error:
+                    logger.warning(f"Could not check container status: {status_check_error}")
+                
+                # Now destroy
                 await self.proxmox_service.destroy_lxc(app.node, app.lxc_id)
                 logger.info(f"Destroyed LXC container {app.lxc_id} on node {app.node}")
             except ProxmoxError as pve_error:
                 error_msg = f"Failed to destroy container: {str(pve_error)}"
                 logger.error(error_msg, extra={"app_id": app_id, "vmid": app.lxc_id})
+                
+                # Send to Sentry for critical infrastructure errors
+                self._capture_error_to_sentry(
+                    pve_error,
+                    context={
+                        "operation": "delete_app",
+                        "app_id": app_id,
+                        "hostname": app.hostname,
+                        "vmid": app.lxc_id,
+                        "node": app.node,
+                        "error_type": "proxmox_destroy_failed"
+                    }
+                )
+                
                 errors.append(error_msg)
                 # Don't raise here, try to clean up database anyway
             
@@ -1208,6 +1318,21 @@ class AppService:
             await self._log_deployment(app_id, "error", f"Proxmox error during deployment: {e}")
             logger.error(f"Proxmox error deploying {app_id}: {e}", extra={"app_id": app_id, "vmid": locals().get('vmid'), "node": locals().get('target_node')})
             
+            # Capture to Sentry - deployment failures are critical
+            self._capture_error_to_sentry(
+                e,
+                context={
+                    "operation": "deploy_app",
+                    "app_id": app_id,
+                    "catalog_id": app_data.catalog_id,
+                    "hostname": app_data.hostname,
+                    "vmid": locals().get('vmid'),
+                    "node": locals().get('target_node'),
+                    "error_type": "proxmox_deployment_failed"
+                },
+                level="error"
+            )
+            
             await self._cleanup_failed_deployment(app_id, locals().get('vmid'), locals().get('target_node'))
             raise AppDeploymentError(
                 f"Deployment failed due to Proxmox error: {str(e)}",
@@ -1220,6 +1345,17 @@ class AppService:
             deployment_status.error = f"Database error: {str(e)}"
             await self._log_deployment(app_id, "error", f"Database error during deployment: {e}")
             logger.error(f"Database error deploying {app_id}: {e}", extra={"app_id": app_id})
+            
+            # Capture to Sentry
+            self._capture_error_to_sentry(
+                e,
+                context={
+                    "operation": "deploy_app",
+                    "app_id": app_id,
+                    "catalog_id": app_data.catalog_id,
+                    "error_type": "database_deployment_failed"
+                }
+            )
             
             await self._cleanup_failed_deployment(app_id, locals().get('vmid'), locals().get('target_node'))
             raise AppDeploymentError(
@@ -1236,6 +1372,21 @@ class AppService:
                 f"Unexpected error deploying {app_id}: {e}",
                 extra={"app_id": app_id, "vmid": locals().get('vmid'), "node": locals().get('target_node')},
                 exc_info=True
+            )
+            
+            # Capture to Sentry - unexpected errors are critical
+            self._capture_error_to_sentry(
+                e,
+                context={
+                    "operation": "deploy_app",
+                    "app_id": app_id,
+                    "catalog_id": app_data.catalog_id,
+                    "hostname": app_data.hostname,
+                    "vmid": locals().get('vmid'),
+                    "node": locals().get('target_node'),
+                    "error_type": "unexpected_deployment_error"
+                },
+                level="error"
             )
             
             await self._cleanup_failed_deployment(app_id, locals().get('vmid'), locals().get('target_node'))
@@ -1335,6 +1486,16 @@ COMPOSE_EOF
             
             # Pull images
             logger.info(f"Pulling Docker images for LXC {vmid}...")
+            
+            # Ensure Docker daemon is running before pulling
+            await self.proxmox_service.execute_in_container(
+                node, vmid,
+                "rc-service docker status || rc-service docker start",
+                allow_nonzero_exit=True,
+                timeout=30
+            )
+            await asyncio.sleep(2)
+            
             await self.proxmox_service.execute_in_container(
                 node, vmid,
                 "cd /root && docker compose pull",
@@ -1533,6 +1694,16 @@ COMPOSE_EOF
             # PHASE 2: PERFORM UPDATE
             # ============================================================
             logger.info(f"🚀 Backup successful, proceeding with update for '{app.hostname}'")
+
+            # Ensure Docker daemon is running
+            logger.info(f"🐳 Ensuring Docker daemon is running...")
+            await self.proxmox_service.execute_in_container(
+                node=app.node,
+                vmid=app.lxc_id,
+                command="rc-service docker status || rc-service docker start",
+                allow_nonzero_exit=True
+            )
+            await asyncio.sleep(2)
 
             # Pull latest images
             logger.info(f"📥 Pulling latest images...")

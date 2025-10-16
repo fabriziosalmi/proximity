@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import sentry_sdk
 from typing import List, Dict, Any, Optional, Union
 from proxmoxer import ProxmoxAPI
 from proxmoxer.core import ResourceException
