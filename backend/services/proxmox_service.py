@@ -1377,3 +1377,7 @@ proxmox_service = ProxmoxService()
 
 # Singleton instance
 proxmox_service = ProxmoxService()
+
+
+# Singleton instance
+proxmox_service = ProxmoxService()

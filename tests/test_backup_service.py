@@ -41,7 +41,7 @@ class TestBackupServiceCreate:
 
         # Mock Proxmox service
         mock_proxmox = AsyncMock()
-        mock_proxmox.create_vzdump.return_value = "UPID:testnode:00001234:00000000:00000000:vzdump:100:user@pam:"
+        mock_proxmox.create_vzdump = AsyncMock(return_value="UPID:testnode:00001234:00000000:00000000:vzdump:100:user@pam:")
         mock_proxmox_class.return_value = mock_proxmox
 
         # Create backup service
@@ -138,7 +138,7 @@ class TestBackupServiceCreate:
         db_session.commit()
 
         mock_proxmox = AsyncMock()
-        mock_proxmox.create_vzdump.return_value = "UPID:task"
+        mock_proxmox.create_vzdump = AsyncMock(return_value="UPID:task")
         mock_proxmox_class.return_value = mock_proxmox
 
         backup_service = BackupService(db_session, mock_proxmox)

@@ -20,12 +20,13 @@ class TestFullDeploymentWorkflow:
     """Test complete application deployment workflow."""
 
     @pytest.mark.timeout(60)  # 60 seconds timeout
-    @patch('services.proxmox_service.proxmox_service')
+    @patch('services.app_service.ProxmoxService')
     @patch('services.app_service.get_app_service')
-    def test_complete_app_lifecycle(self, mock_app_service, mock_proxmox, client, auth_headers):
+    def test_complete_app_lifecycle(self, mock_get_service, mock_proxmox_class, client, auth_headers):
         """Test full lifecycle: deploy -> start -> stop -> restart -> delete."""
 
         # Mock Proxmox service
+        mock_proxmox = AsyncMock()
         mock_proxmox.get_next_vmid = AsyncMock(return_value=100)
         mock_proxmox.create_lxc = AsyncMock(return_value={"task": "UPID:test"})
         mock_proxmox.start_lxc = AsyncMock(return_value="UPID:test")
@@ -35,6 +36,7 @@ class TestFullDeploymentWorkflow:
             "vmid": 100,
             "status": "running"
         })
+        mock_proxmox_class.return_value = mock_proxmox
 
         # 1. Deploy app
         deploy_response = client.post(
