@@ -584,3 +584,9 @@ export async function updateSystemInfo(updates) {
     if (!response.ok) throw new Error('Failed to update system info');
     return await response.json();
 }
+
+// Expose API_BASE and authFetch to window for backward compatibility with non-module scripts
+if (typeof window !== 'undefined') {
+    window.API_BASE = API_BASE;
+    window.authFetch = authFetch;
+}

@@ -9,7 +9,22 @@
 // Note: These are accessed via window.* for now during transition
 // TODO: Convert to ES6 imports when those modules are created
 
-const API_BASE = window.API_BASE || '/api';
+/**
+ * Get API_BASE from window (set by api.js module)
+ * Falls back to localhost if not available
+ */
+function getApiBase() {
+    if (window.API_BASE) {
+        return window.API_BASE;
+    }
+    // Fallback: construct it dynamically (same logic as api.js)
+    const protocol = window.location.protocol;
+    const hostname = window.location.hostname;
+    const port = window.location.port || '8765';
+    return `${protocol}//${hostname}:${port}/api/v1`;
+}
+
+const API_BASE = getApiBase();
 
 /**
  * Get authFetch function (will be properly imported later)
@@ -145,6 +160,11 @@ export async function deleteApp(appId, appName) {
     const authFetch = getAuthFetch();
     const showNotification = getNotification();
     
+    // Close the confirmation modal first
+    if (window.closeModal) {
+        window.closeModal();
+    }
+    
     // Add breadcrumb for deletion start
     if (window.addDebugBreadcrumb) {
         window.addDebugBreadcrumb('App deletion started', {
@@ -198,6 +218,24 @@ export async function deleteApp(appId, appName) {
         }
         
         showNotification('Application deleted successfully', 'success');
+        
+        // CRITICAL: Reload apps list to reflect deletion
+        if (window.loadDeployedApps) {
+            await window.loadDeployedApps();
+        }
+        
+        // CRITICAL: Update UI to reflect changes
+        if (window.updateUI) {
+            window.updateUI();
+        }
+        
+        // If we're on the apps view, re-render it
+        if (window.router && window.router.currentView === 'apps') {
+            const currentState = window.getState ? window.getState() : {};
+            if (window.router.views.apps) {
+                window.router.views.apps.render(currentState);
+            }
+        }
         
         return true;
         
