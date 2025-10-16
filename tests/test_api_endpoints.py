@@ -162,22 +162,26 @@ class TestAuthEndpoints:
 class TestSystemEndpoints:
     """Test system endpoints."""
 
-    @patch('services.proxmox_service.proxmox_service')
-    def test_get_system_info(self, mock_proxmox, client, auth_headers):
+    @patch('services.app_service.ProxmoxService')
+    def test_get_system_info(self, mock_proxmox_class, client, auth_headers):
         """Test getting system info."""
+        mock_proxmox = AsyncMock()
         mock_proxmox.get_nodes = AsyncMock(return_value=[])
+        mock_proxmox_class.return_value = mock_proxmox
 
         response = client.get("/api/v1/system/info", headers=auth_headers)
 
         # May return 200 or error depending on setup
         assert response.status_code in [200, 502, 500]
 
-    @patch('services.proxmox_service.proxmox_service')
-    def test_get_nodes(self, mock_proxmox, client, auth_headers):
+    @patch('services.app_service.ProxmoxService')
+    def test_get_nodes(self, mock_proxmox_class, client, auth_headers):
         """Test getting Proxmox nodes."""
+        mock_proxmox = AsyncMock()
         mock_proxmox.get_nodes = AsyncMock(return_value=[
             {"node": "testnode", "status": "online"}
         ])
+        mock_proxmox_class.return_value = mock_proxmox
 
         response = client.get("/api/v1/system/nodes", headers=auth_headers)
 

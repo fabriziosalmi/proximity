@@ -1,24 +1,56 @@
-Perfetto. Traduciamo questa visione galattica in una **"Master Task List" sequenziale e attuabile**.
+# 🎯 Proximity: The Ultimate Master Plan
 
-Questo documento sarà la nostra "Bibbia" per tutto lo sviluppo futuro, dal fix di oggi all'ultima bomba. Ogni Epic è un mondo, ma lo scomponiamo in task concreti.
+**Status:** 🔴 EPIC 0 IN PROGRESS  
+**Current Focus:** OPERAZIONE STABILITÀ TOTALE  
+**Last Updated:** October 16, 2025
 
 ---
 
-### **Proximity: The Ultimate Master Plan (dalla Stabilità alla Gloria Eterna)**
+## 🚨 EPIC 0: "OPERAZIONE STABILITÀ TOTALE" (CURRENT - TOP PRIORITY)
 
-#### **EPIC 0: "OPERAZIONE STABILITÀ TOTALE" (La Priorità Assoluta)**
-*   **Rationale:** Non si costruisce un grattacielo su fondamenta di sabbia. Dobbiamo avere fiducia al 150% nella codebase attuale prima di aggiungere un solo `div` nuovo.
-*   **Subtasks:**
-    1.  `[ ]` **FIX-BACKEND-TESTS:** Raggiungere e mantenere il **100% pass rate** sulla suite `pytest tests/`.
-        *   Risolvere i fallimenti rimanenti (Clone/Config).
-        *   Eliminare tutti i warning critici (`RuntimeWarning`).
-    2.  `[ ]` **STABILIZE-E2E-TESTS:** Rendere la suite `Playwright` affidabile.
-        *   Risolvere i `TargetClosedError` e i problemi di `Auth/Login`.
-        *   Far passare i test di navigazione principali.
-    3.  `[ ]` **IMPLEMENT-CRITICAL-E2E-TESTS:** Scrivere e far passare i test E2E per i flussi fondamentali che risultano scoperti.
-        *   `test_full_app_deploy_manage_delete_workflow`.
-        *   Test completi per `Backup/Restore` e `Update`.
-    4.  `[ ]` **CREATE-REAL-INTEGRATION-TESTS:** Creare e far passare una mini-suite di test che interagisce con un **vero Proxmox** per validare il `ProxmoxService`.
+**Rationale:** Non si costruisce un grattacielo su fondamenta di sabbia. Dobbiamo avere fiducia al 150% nella codebase attuale prima di aggiungere un solo `div` nuovo.
+
+**📚 Full Documentation:** See `EPIC_0_MASTER_PLAN.md` for complete details  
+**⚡ Quick Reference:** See `EPIC_0_QUICK_REFERENCE.md` for commands  
+**🔧 Automation:** Use `./epic0_quick_start.sh` for quick testing
+
+### Core Objectives:
+1. ✅ **100% Backend Test Pass Rate** (259/259 tests)
+2. ✅ **100% E2E Test Reliability** (Zero flaky tests)
+3. ✅ **Complete Critical Flow Coverage**
+4. ✅ **Real Proxmox Integration Validation**
+
+### Progress Tracking:
+- [ ] **PILLAR 1:** Backend Test Perfection
+  - [ ] Fix Clone/Config tests (test_app_clone_config.py)
+  - [ ] Eliminate RuntimeWarnings (async/await issues)
+  - [ ] Achieve 100% pass rate (259/259)
+  
+- [ ] **PILLAR 2:** E2E Test Reliability
+  - [ ] Eliminate TargetClosedError
+  - [ ] Strengthen Auth Fixture (7-layer wait strategy)
+  - [ ] Fix Navigation Test Stability
+  
+- [ ] **PILLAR 3:** Critical Flow Coverage
+  - [ ] Create test_full_lifecycle.py
+  - [ ] Create test_backup_restore.py
+  - [ ] Create test_app_update.py
+  
+- [ ] **PILLAR 4:** Real Integration Validation
+  - [ ] Create tests/integration/test_proxmox_real.py
+  - [ ] Setup test environment
+  - [ ] Run against dev Proxmox instance
+
+### Success Criteria:
+```
+✅ 259/259 backend tests passing, 0 warnings
+✅ 100% E2E pass rate on critical flows
+✅ 10 consecutive full test runs with 0 failures
+✅ Proxmox integration tests passing
+✅ Complete documentation generated
+```
+
+**⚠️ BLOCCO ASSOLUTO:** No new features until EPIC 0 is 100% complete!
 
 ---
 
