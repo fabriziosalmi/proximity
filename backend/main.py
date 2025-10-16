@@ -460,6 +460,16 @@ def create_app() -> FastAPI:
         """Serve the main UI"""
         return FileResponse(static_dir / "index.html")
 
+    @app.get("/favicon.ico")
+    async def serve_favicon():
+        """Serve the favicon"""
+        return FileResponse(static_dir / "favicon.ico", media_type="image/x-icon")
+
+    @app.get("/logo.png")
+    async def serve_logo():
+        """Serve the Proximity logo"""
+        return FileResponse(static_dir / "logo.png", media_type="image/png")
+
     # Mount static file directory for all frontend assets
     app.mount("/js", StaticFiles(directory=static_dir / "js"), name="js")
     app.mount("/css", StaticFiles(directory=static_dir / "css"), name="css")

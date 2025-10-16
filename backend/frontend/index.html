@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Proximity - App Delivery Platform</title>
     
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+    
     <!-- Sentry Error Tracking -->
     <script
         src="https://js.sentry-cdn.com/dbee00d4782d131ab54ffe60b16d969b.min.js"
@@ -62,8 +66,13 @@
     <div class="app-container">
         <!-- Main Menu Rack (3 Sections: Left, Center, Right) -->
         <nav class="top-nav-rack">
-            <!-- Top decorative row (gray) -->
-            <div class="nav-rack-top-row"></div>
+            <!-- Top decorative row (gray) with Proximity branding -->
+            <div class="nav-rack-top-row">
+                <div class="proximity-brand">
+                    <a href="https://github.com/fabriziosalmi/proximity" target="_blank"><img src="/logo.png" alt="Proximity Logo" class="proximity-logo"></a>
+                    <span class="proximity-text">PROXIMITY</span>
+                </div>
+            </div>
             
             <div class="nav-rack-content">
                 <!-- LEFT SECTION: Main Navigation -->
@@ -101,7 +110,6 @@
                 
                 <!-- RIGHT SECTION: Controls -->
                 <div class="nav-rack-section nav-rack-right">
-
                     <button class="nav-rack-item logout-btn" data-action="logout" title="Logout">
                         <i data-lucide="log-out"></i>
                     </button>
