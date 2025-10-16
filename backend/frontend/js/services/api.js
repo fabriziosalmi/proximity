@@ -5,8 +5,20 @@
  * Handles all HTTP requests to the backend API.
  */
 
-export const API_BASE = 'http://localhost:8765/api/v1';
+// Dynamically determine API base URL based on where the page is loaded from
+// This allows Proximity to work on localhost, LAN IPs, or any network location
+const getApiBase = () => {
+    // Use the same host/port where the frontend was loaded from
+    const protocol = window.location.protocol; // http: or https:
+    const hostname = window.location.hostname; // localhost, 192.168.x.x, etc.
+    const port = window.location.port || '8765'; // Use current port or default to 8765
+    return `${protocol}//${hostname}:${port}/api/v1`;
+};
+
+export const API_BASE = getApiBase();
 const TOKEN_KEY = 'proximity_token';
+
+console.log('🌐 API_BASE configured as:', API_BASE);
 
 /**
  * Get authentication token from localStorage
