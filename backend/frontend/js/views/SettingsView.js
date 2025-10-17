@@ -69,6 +69,9 @@ export class SettingsView extends Component {
         }
 
         container.classList.remove('has-sub-nav');
+        
+        // Add the settings view class for flex layout
+        container.id = 'settingsView';
 
         // Load settings data
         showLoading('Loading settings...');
