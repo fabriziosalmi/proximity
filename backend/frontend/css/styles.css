@@ -2848,8 +2848,14 @@ a.connection-value:hover::after {
 }
 
 .meta-badge i[data-lucide] {
-    width: 14px;
-    height: 14px;
+    width: 20px !important;
+    height: 20px !important;
+    font-size: 20px !important;
+}
+
+.meta-badge svg {
+    width: 20px !important;
+    height: 20px !important;
 }
 
 /* Modal */
