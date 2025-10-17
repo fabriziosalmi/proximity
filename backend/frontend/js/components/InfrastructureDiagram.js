@@ -453,15 +453,15 @@ export class InfrastructureDiagram {
             });
         });
 
-        // Proxmox host click handler - navigate to hosts view
+        // Proxmox host click handler - navigate to nodes view
         const proxmoxHost = document.querySelector('#proxmox-host');
         if (proxmoxHost) {
             proxmoxHost.style.cursor = 'pointer';
             proxmoxHost.addEventListener('click', (e) => {
                 e.stopPropagation();
-                console.log('🖥️  Navigating to hosts page');
+                console.log('🖥️  Navigating to nodes page');
                 if (window.router) {
-                    window.router.navigateTo('hosts');
+                    window.router.navigateTo('nodes');
                 }
             });
 
