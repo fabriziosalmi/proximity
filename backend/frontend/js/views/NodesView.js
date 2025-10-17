@@ -121,12 +121,19 @@ export class NodesView extends Component {
                     </div>
                     <h3 class="empty-title">Failed to Load Nodes</h3>
                     <p class="empty-message">${error}</p>
-                    <button class="btn btn-primary" onclick="window.location.reload()">
+                    <button class="btn btn-primary" data-action="retry-nodes">
                         <i data-lucide="refresh-cw"></i>
                         Retry
                     </button>
                 </div>
             `;
+
+            // Add event listener for retry button
+            const retryBtn = container.querySelector('[data-action="retry-nodes"]');
+            if (retryBtn) {
+                retryBtn.addEventListener('click', () => window.location.reload());
+            }
+
             if (window.lucide && window.lucide.createIcons) {
                 window.lucide.createIcons();
             }
