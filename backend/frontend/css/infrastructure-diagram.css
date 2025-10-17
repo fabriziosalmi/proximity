@@ -24,52 +24,73 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid rgba(0, 245, 255, 0.1);
+    margin-bottom: 24px;
+    padding-bottom: 18px;
+    border-bottom: 2px solid rgba(0, 245, 255, 0.12);
+    gap: 16px;
 }
 
 .diagram-header h3 {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     color: #00f5ff;
-    font-size: 18px;
-    font-weight: 600;
+    font-size: 19px;
+    font-weight: 700;
     margin: 0;
+    letter-spacing: -0.3px;
 }
 
 .diagram-header svg {
     color: #00f5ff;
+    flex-shrink: 0;
 }
 
 /* Stats */
 .diagram-stats {
     display: flex;
-    gap: 20px;
-    font-size: 13px;
+    gap: 14px;
+    font-size: 12px;
+    flex-wrap: wrap;
+    align-items: center;
 }
 
 .diagram-stats .stat {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     color: #9ca3af;
-    padding: 6px 12px;
-    background: rgba(0, 245, 255, 0.05);
-    border-radius: 6px;
-    border: 1px solid rgba(0, 245, 255, 0.1);
+    padding: 8px 14px;
+    background: rgba(0, 245, 255, 0.06);
+    border-radius: 8px;
+    border: 1px solid rgba(0, 245, 255, 0.12);
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+.diagram-stats .stat:hover {
+    background: rgba(0, 245, 255, 0.1);
+    border-color: rgba(0, 245, 255, 0.2);
+    color: #d1d5db;
 }
 
 .diagram-stats .stat strong {
     color: #00f5ff;
     font-weight: 700;
+    min-width: 24px;
+    text-align: center;
 }
 
 .diagram-stats .stat.running {
     color: #4ade80;
-    background: rgba(74, 222, 128, 0.05);
-    border-color: rgba(74, 222, 128, 0.1);
+    background: rgba(74, 222, 128, 0.08);
+    border-color: rgba(74, 222, 128, 0.15);
+}
+
+.diagram-stats .stat.running:hover {
+    background: rgba(74, 222, 128, 0.12);
+    border-color: rgba(74, 222, 128, 0.25);
 }
 
 .diagram-stats .stat.running strong {
@@ -93,15 +114,29 @@
 .network-device {
     cursor: pointer;
     transition: all 0.3s ease;
+    opacity: 0.87;
+}
+
+.network-device:hover {
+    opacity: 1;
 }
 
 .network-device:hover rect {
-    opacity: 0.25 !important;
-    stroke-width: 2.5;
+    opacity: 0.28 !important;
+    stroke-width: 2.5 !important;
+    filter: brightness(1.15);
+}
+
+.network-device:hover text {
+    filter: brightness(1.2);
 }
 
 .external-device {
     opacity: 0.85;
+}
+
+.external-device:hover {
+    opacity: 1;
 }
 
 .controlled-device {
@@ -115,7 +150,17 @@
 }
 
 .proxmox-host:hover {
-    filter: drop-shadow(0 0 8px rgba(0, 245, 255, 0.4));
+    opacity: 1 !important;
+    filter: drop-shadow(0 0 14px rgba(0, 245, 255, 0.6)) drop-shadow(0 0 6px rgba(0, 245, 255, 0.3));
+}
+
+.proxmox-host:hover rect {
+    opacity: 0.25 !important;
+    stroke-width: 2.5 !important;
+}
+
+.proxmox-host:hover text {
+    filter: brightness(1.2);
 }
 
 .proxmox-host rect {
@@ -149,15 +194,27 @@
 
 .app-node:hover {
     opacity: 1;
-    filter: drop-shadow(0 0 8px rgba(0, 245, 255, 0.5));
+    filter: drop-shadow(0 0 12px rgba(0, 245, 255, 0.7)) drop-shadow(0 0 4px rgba(0, 245, 255, 0.4));
 }
 
 .app-node rect {
     transition: all 0.3s ease;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
 
 .app-node:hover rect {
-    opacity: 0.25;
+    stroke-width: 3 !important;
+    opacity: 0.28;
+    filter: brightness(1.1);
+}
+
+.app-node text {
+    transition: all 0.3s ease;
+}
+
+.app-node:hover text {
+    filter: brightness(1.15);
 }
 
 /* Truncate text */
@@ -172,54 +229,60 @@
 }
 
 /* Legend */
+/* Legend Section */
 .diagram-legend {
     display: flex;
-    gap: 24px;
+    gap: 32px;
     justify-content: center;
-    margin-top: 16px;
-    padding-top: 16px;
-    border-top: 1px solid rgba(0, 245, 255, 0.1);
     flex-wrap: wrap;
-}
-
-.legend-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    color: #d1d5db;
-}
-
-/* Legend Sections */
-.diagram-legend {
-    display: flex;
-    gap: 30px;
-    flex-wrap: wrap;
+    margin-top: 20px;
+    padding: 16px 12px;
+    border-top: 2px solid rgba(0, 245, 255, 0.15);
+    background: rgba(0, 245, 255, 0.02);
+    border-radius: 8px;
 }
 
 .legend-section {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
+    padding: 0 8px;
 }
 
 .legend-title {
-    font-size: 12px;
-    font-weight: 600;
+    font-size: 11px;
+    font-weight: 700;
     color: #00f5ff;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-bottom: 1px solid rgba(0, 245, 255, 0.2);
-    padding-bottom: 6px;
-    margin-bottom: 4px;
+    letter-spacing: 0.8px;
+    border-bottom: 2px solid rgba(0, 245, 255, 0.2);
+    padding-bottom: 8px;
+    margin-bottom: 6px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    color: #d1d5db;
+    transition: all 0.2s ease;
+    padding: 4px 6px;
+    border-radius: 4px;
+}
+
+.legend-item:hover {
+    color: #e5e7eb;
+    background: rgba(0, 245, 255, 0.05);
 }
 
 .legend-box {
-    width: 16px;
-    height: 16px;
-    border-radius: 4px;
+    width: 18px;
+    height: 18px;
+    border-radius: 6px;
     border: 2px solid currentColor;
     flex-shrink: 0;
+    transition: all 0.2s ease;
 }
 
 .legend-box.running {
@@ -240,41 +303,133 @@
     color: #ef4444;
 }
 
-/* Responsive */
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .infrastructure-diagram {
+        padding: 14px;
+        max-height: calc(100vh - 160px);
+    }
+
+    .diagram-header {
+        gap: 12px;
+    }
+
+    .diagram-stats {
+        gap: 12px;
+        font-size: 11px;
+    }
+
+    .diagram-stats .stat {
+        padding: 6px 10px;
+    }
+}
+
 @media (max-width: 768px) {
     .infrastructure-diagram {
-        padding: 16px;
-        margin: 16px 0;
+        padding: 12px;
+        margin: 12px 0;
+        border-radius: 10px;
     }
 
     .diagram-header {
         flex-direction: column;
         align-items: flex-start;
         gap: 12px;
+        border-bottom: 1px solid rgba(0, 245, 255, 0.1);
+        padding-bottom: 12px;
+        margin-bottom: 14px;
     }
 
     .diagram-header h3 {
         font-size: 16px;
+        font-weight: 600;
+    }
+
+    .diagram-header h3 svg {
+        width: 18px;
+        height: 18px;
     }
 
     .diagram-stats {
         width: 100%;
-        gap: 10px;
+        gap: 8px;
         flex-wrap: wrap;
+        font-size: 11px;
     }
 
     .diagram-stats .stat {
-        flex: 1;
-        min-width: 100px;
-        justify-content: center;
+        flex: 0 1 calc(50% - 4px);
+        padding: 6px 10px;
+        font-size: 11px;
     }
 
     .diagram-canvas {
-        min-height: 300px;
+        min-height: 250px;
+        max-height: 400px;
+    }
+
+    .diagram-legend {
+        gap: 16px;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        margin-top: 12px;
+        padding: 12px;
+    }
+
+    .legend-section {
+        flex: 0 0 calc(50% - 8px);
+    }
+
+    .legend-title {
+        font-size: 10px;
+    }
+
+    .legend-item {
+        font-size: 11px;
+        gap: 8px;
+    }
+
+    .legend-box {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .infrastructure-diagram {
+        padding: 10px;
+        margin: 8px 0;
+    }
+
+    .diagram-header h3 {
+        font-size: 14px;
+    }
+
+    .diagram-stats .stat {
+        flex: 0 1 100%;
+        font-size: 10px;
+        padding: 5px 8px;
+    }
+
+    .diagram-canvas {
+        min-height: 200px;
     }
 
     .diagram-legend {
         gap: 12px;
+        padding: 10px;
+    }
+
+    .legend-section {
+        flex: 0 0 100%;
+    }
+
+    .legend-title {
+        font-size: 9px;
+    }
+
+    .legend-item {
+        font-size: 10px;
     }
 }
 
@@ -367,6 +522,8 @@
 .connection-line {
     animation: data-flow 3s linear infinite;
     stroke-dasharray: 8, 8;
+    opacity: 0.6 !important; /* Improved visibility */
+    transition: opacity 0.3s ease, stroke-width 0.3s ease;
 }
 
 /* Proxmox host ambient glow */
