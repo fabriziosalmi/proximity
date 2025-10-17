@@ -258,12 +258,36 @@ export class InfrastructureDiagram {
      * @param {Array} apps - Apps array
      */
     init(systemStatus, apps) {
-        const html = this.generateDiagram(systemStatus, apps);
-        const container = document.getElementById(this.containerId);
-        if (container) {
+        try {
+            const html = this.generateDiagram(systemStatus, apps);
+            const container = document.getElementById(this.containerId);
+            if (!container) {
+                console.warn('⚠️  Infrastructure diagram container not found');
+                return;
+            }
+            
             container.innerHTML = html;
-            this.renderApps(apps);
+            this.renderApps(apps || []);
             this.attachEventListeners();
+            console.log('✅ Infrastructure diagram initialized');
+        } catch (error) {
+            console.error('❌ Error initializing infrastructure diagram:', error);
+            const container = document.getElementById(this.containerId);
+            if (container) {
+                container.innerHTML = `
+                    <div class="infrastructure-diagram">
+                        <div class="diagram-header">
+                            <h3>Infrastructure Overview</h3>
+                        </div>
+                        <div style="padding: 20px; text-align: center; color: #9ca3af;">
+                            <p>Unable to load infrastructure diagram</p>
+                            <p style="font-size: 12px; opacity: 0.7; margin-top: 10px;">
+                                Check browser console for details
+                            </p>
+                        </div>
+                    </div>
+                `;
+            }
         }
     }
 
