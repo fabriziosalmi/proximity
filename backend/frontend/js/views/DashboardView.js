@@ -1,9 +1,10 @@
 /**
  * Dashboard View Component
  *
- * Displays a clean, static dashboard with hero section and quick action buttons.
- * Includes infrastructure diagram showing Proxmox host and deployed apps.
- * Focus on "My Apps" page for full application management.
+ * Displays the Living Infrastructure Atlas - a dynamic, real-time visualization
+ * of the entire homelab infrastructure from internet connection to app containers.
+ * Features interactive drill-down navigation, live status indicators, and
+ * animated data flow visualization.
  *
  * @module views/DashboardView
  */
@@ -16,44 +17,71 @@ export class DashboardView extends Component {
     constructor() {
         super();
         this.infraDiagram = new InfrastructureDiagram();
+        this.refreshInterval = null;
     }
 
     /**
-     * Mount the dashboard view
+     * Mount the dashboard view with Living Infrastructure Atlas
      * @param {HTMLElement} container - View container
      * @param {Object} state - Application state
      * @returns {Function} Unmount function
      */
     mount(container, state) {
-        console.log('✅ Mounting Dashboard View (Static)');
+        console.log('✅ Mounting Living Infrastructure Atlas Dashboard');
 
-        // ALWAYS regenerate HTML (no caching)
-        console.log('🏗️  Generating dashboard HTML...');
+        // Generate and render dashboard HTML
         container.innerHTML = this.generateDashboardHTML();
 
-        // Re-initialize Lucide icons
+        // Re-initialize Lucide icons if available
         if (window.lucide && window.lucide.createIcons) {
             window.lucide.createIcons();
-            console.log('✅ Lucide icons re-initialized');
         }
 
-        // Load and render infrastructure diagram
+        // Load and render infrastructure diagram with real data
         this.loadInfrastructureDiagram();
 
-        // Call parent mount
+        // Set up auto-refresh (every 10 seconds)
+        this.setupAutoRefresh();
+
+        // Setup global event listeners for app actions
+        this.setupEventListeners();
+
         return super.mount(container, state);
     }
 
     /**
-     * Load infrastructure data and render diagram
+     * Setup event listeners for app interactions
+     */
+    setupEventListeners() {
+        // Listen for app open events from diagram
+        window.addEventListener('appOpen', (event) => {
+            console.log('🚀 App open requested:', event.detail.appId);
+            // Handler can be extended based on app shell capabilities
+        });
+    }
+
+    /**
+     * Setup auto-refresh of infrastructure data
+     */
+    setupAutoRefresh() {
+        // Refresh every 10 seconds to keep dashboard live
+        this.refreshInterval = setInterval(() => {
+            console.log('🔄 Auto-refreshing infrastructure data...');
+            this.loadInfrastructureDiagram();
+        }, 10000);
+    }
+
+    /**
+     * Load infrastructure data from multiple API endpoints and render diagram
      */
     async loadInfrastructureDiagram() {
         try {
-            // Fetch system status and apps data
+            // Fetch data in parallel from all endpoints
             let status = null;
             let apps = [];
+            let networkStatus = null;
 
-            // Fetch system information with auth
+            // Fetch system information
             try {
                 const statusResponse = await authFetch(`${API_BASE}/system/info`);
                 if (statusResponse.ok) {
@@ -66,7 +94,7 @@ export class DashboardView extends Component {
                 console.warn('⚠️  Could not load system info:', e.message);
             }
 
-            // Fetch all apps with auth
+            // Fetch all apps
             try {
                 const appsResponse = await authFetch(`${API_BASE}/apps`);
                 if (appsResponse.ok) {
@@ -80,18 +108,32 @@ export class DashboardView extends Component {
                 console.warn('⚠️  Could not load apps:', e.message);
             }
 
-            console.log('📊 Infrastructure data ready (system info:', !!status, 'apps:', apps.length, ')');
+            // Optional: Fetch network status if available
+            try {
+                const networkResponse = await authFetch(`${API_BASE}/system/network`);
+                if (networkResponse.ok) {
+                    networkStatus = await networkResponse.json();
+                    console.log('✅ Network status loaded');
+                }
+            } catch (e) {
+                console.warn('⚠️  Network status not available:', e.message);
+            }
 
-            // Initialize diagram with whatever data we have
-            this.infraDiagram.init(status, apps);
+            console.log('📊 Infrastructure data ready:', {
+                system: !!status,
+                apps: apps.length,
+                network: !!networkStatus
+            });
+
+            // Initialize diagram with all available data
+            this.infraDiagram.init(status, apps, networkStatus);
 
         } catch (error) {
             console.error('❌ Error loading infrastructure diagram:', error);
-            // Still initialize diagram with empty data as fallback
+            // Initialize with empty/default data as fallback
             this.infraDiagram.init(null, []);
         }
     }
-
 
     /**
      * Generate dashboard HTML structure
@@ -99,7 +141,7 @@ export class DashboardView extends Component {
      */
     generateDashboardHTML() {
         return `
-            <!-- Infrastructure Diagram Section -->
+            <!-- Living Infrastructure Atlas Container -->
             <div id="infrastructure-diagram"></div>
         `;
     }
@@ -108,7 +150,14 @@ export class DashboardView extends Component {
      * Unmount dashboard and cleanup
      */
     unmount() {
-        console.log('🧹 Unmounting Dashboard View');
+        console.log('🧹 Unmounting Living Infrastructure Atlas Dashboard');
+        
+        // Clean up auto-refresh interval
+        if (this.refreshInterval) {
+            clearInterval(this.refreshInterval);
+            this.refreshInterval = null;
+        }
+
         super.unmount();
     }
 }
