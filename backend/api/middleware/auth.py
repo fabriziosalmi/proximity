@@ -78,7 +78,12 @@ async def get_current_user(
         "username": token_data.username,
         "email": getattr(user, "email", None),  # Include email if available
         "role": token_data.role,
+        "ip_address": request.client.host if request.client else None,
     })
+    
+    # Add additional Sentry tags for better filtering
+    sentry_sdk.set_tag("user_role", token_data.role)
+    sentry_sdk.set_tag("authenticated", "true")
 
     return token_data
 

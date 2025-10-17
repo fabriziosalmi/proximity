@@ -4,12 +4,17 @@ Pytest configuration and fixtures for Proximity tests.
 
 import pytest
 import sys
+import os
 import warnings
 from pathlib import Path
 from unittest.mock import Mock, AsyncMock
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import StaticPool
+
+# Configure Sentry to use development environment for tests
+# This way test exceptions go to development stream, not production
+os.environ['SENTRY_ENVIRONMENT'] = 'development'
 
 # Suppress external library deprecation warnings
 # These warnings come from third-party libraries (SQLAlchemy, jose-jwt, httpx)
