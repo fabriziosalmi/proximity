@@ -17,7 +17,7 @@ export class InfrastructureDiagram {
     }
 
     /**
-     * Generate the infrastructure diagram HTML
+     * Generate the infrastructure diagram HTML with full network topology
      * @param {Object} systemStatus - System status data
      * @param {Array} apps - Array of deployed apps
      * @returns {string} HTML diagram
@@ -28,31 +28,21 @@ export class InfrastructureDiagram {
         const activeApps = apps?.filter(app => app.status === 'running').length || 0;
         const totalApps = apps?.length || 0;
 
-        // Calculate optimal dimensions based on number of apps
-        let viewBoxHeight = 600;
-        let scale = 1;
+        // Calculate optimal viewBox height based on number of apps
+        let viewBoxHeight = 700;
         
         if (totalApps > 0) {
             // Calculate grid dimensions
             const appsPerColumn = 3;
-            const cols = Math.ceil(totalApps / appsPerColumn);
-            const spacing = 120;
-            
-            // Adjust viewBox height based on rows
             const rows = Math.ceil(totalApps / appsPerColumn);
-            viewBoxHeight = Math.max(600, 300 + rows * spacing + 100);
+            const spacing = 100;
             
-            // Calculate scale to fit on screen
-            // Screen height - header - padding - stats
-            const availableHeight = window.innerHeight - 200;
-            scale = Math.min(1, availableHeight / viewBoxHeight);
-            
-            // Ensure scale is at least 0.5 for readability
-            scale = Math.max(0.5, scale);
+            // Adjust viewBox height to fit content
+            viewBoxHeight = Math.max(700, 400 + rows * spacing);
         }
 
         return `
-            <div class="infrastructure-diagram" style="--diagram-scale: ${scale};">
+            <div class="infrastructure-diagram">>
                 <!-- Title -->
                 <div class="diagram-header">
                     <h3>
@@ -71,8 +61,17 @@ export class InfrastructureDiagram {
                 </div>
 
                 <!-- SVG Canvas -->
-                <svg id="diagram-canvas" class="diagram-canvas" preserveAspectRatio="xMidYMid meet" viewBox="0 0 1000 ${viewBoxHeight}">
+                <svg id="diagram-canvas" class="diagram-canvas" preserveAspectRatio="xMidYMid meet" viewBox="0 0 1200 ${viewBoxHeight}">
                     <defs>
+                        <!-- Gradients for different device types -->
+                        <linearGradient id="grad-gateway" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#6d28d9;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="grad-switch" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ec4899;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#be185d;stop-opacity:1" />
+                        </linearGradient>
                         <linearGradient id="grad-proxmox" x1="0%" y1="0%" x2="100%" y2="100%">
                             <stop offset="0%" style="stop-color:#00f5ff;stop-opacity:1" />
                             <stop offset="100%" style="stop-color:#00d4ff;stop-opacity:1" />
@@ -85,6 +84,12 @@ export class InfrastructureDiagram {
                             <stop offset="0%" style="stop-color:#6b7280;stop-opacity:1" />
                             <stop offset="100%" style="stop-color:#4b5563;stop-opacity:1" />
                         </linearGradient>
+                        <linearGradient id="grad-external" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#f59e0b;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#d97706;stop-opacity:1" />
+                        </linearGradient>
+                        
+                        <!-- Filters -->
                         <filter id="glow">
                             <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
                             <feMerge>
@@ -95,51 +100,91 @@ export class InfrastructureDiagram {
                         <filter id="shadow">
                             <feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.3"/>
                         </filter>
+                        
+                        <!-- Dashed line pattern for external devices -->
+                        <pattern id="dashed-line" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(0)">
+                            <line x1="0" y1="0" x2="4" y2="0" stroke="currentColor" stroke-width="2"/>
+                        </pattern>
                     </defs>
 
                     <!-- Background -->
-                    <rect width="1000" height="${viewBoxHeight}" fill="#0f1419" opacity="0.5" rx="8"/>
+                    <rect width="1200" height="${viewBoxHeight}" fill="#0f1419" opacity="0.5" rx="8"/>
 
-                    <!-- Grid -->
-                    <g class="grid" opacity="0.1">
-                        <line x1="0" y1="0" x2="1000" y2="0" stroke="#00f5ff"/>
-                        <line x1="0" y1="${viewBoxHeight}" x2="1000" y2="${viewBoxHeight}" stroke="#00f5ff"/>
-                        <line x1="0" y1="0" x2="0" y2="${viewBoxHeight}" stroke="#00f5ff"/>
-                        <line x1="1000" y1="0" x2="1000" y2="${viewBoxHeight}" stroke="#00f5ff"/>
-                    </g>
-
-                    <!-- Proxmox Host (Center) -->
-                    <g id="proxmox-host" class="proxmox-host" filter="url(#shadow)">
-                        <rect x="350" y="200" width="300" height="200" rx="12" fill="url(#grad-proxmox)" opacity="0.2" stroke="url(#grad-proxmox)" stroke-width="2"/>
-                        <text x="500" y="250" text-anchor="middle" fill="#00f5ff" font-size="24" font-weight="bold">${proxmoxHost}</text>
-                        <text x="500" y="280" text-anchor="middle" fill="#00f5ff" font-size="14" opacity="0.8">Hypervisor</text>
-                        <text x="500" y="310" text-anchor="middle" fill="#00f5ff" font-size="12" opacity="0.6">${nodeCount} ${nodeCount === 1 ? 'Node' : 'Nodes'}</text>
-                    </g>
-
-                    <!-- Apps Container (Right side) -->
-                    <g id="apps-container" class="apps-container">
-                        <!-- Apps will be rendered here -->
-                    </g>
-
-                    <!-- Network Lines -->
+                    <!-- Network Lines Container -->
                     <g id="network-lines" class="network-lines">
                         <!-- Connection lines will be rendered here -->
+                    </g>
+
+                    <!-- LAYER 1: Gateway/Modem (Top Left) -->
+                    <g id="gateway" class="network-device external-device" filter="url(#shadow)">
+                        <rect x="50" y="30" width="160" height="100" rx="8" fill="url(#grad-gateway)" opacity="0.2" stroke="url(#grad-gateway)" stroke-width="2"/>
+                        <circle cx="80" cy="55" r="4" fill="#8b5cf6" opacity="0.8"/>
+                        <circle cx="100" cy="55" r="4" fill="#8b5cf6" opacity="0.8"/>
+                        <circle cx="120" cy="55" r="4" fill="#8b5cf6" opacity="0.8"/>
+                        <circle cx="140" cy="55" r="4" fill="#8b5cf6" opacity="0.8"/>
+                        <text x="130" y="85" text-anchor="middle" fill="#8b5cf6" font-size="11" font-weight="bold">Gateway</text>
+                        <text x="130" y="100" text-anchor="middle" fill="#a78bfa" font-size="9">Modem/Router</text>
+                    </g>
+
+                    <!-- LAYER 2: Network Switch (Top Center) -->
+                    <g id="switch" class="network-device external-device" filter="url(#shadow)">
+                        <rect x="300" y="30" width="160" height="100" rx="8" fill="url(#grad-switch)" opacity="0.2" stroke="url(#grad-switch)" stroke-width="2"/>
+                        <circle cx="330" cy="55" r="4" fill="#ec4899" opacity="0.8"/>
+                        <circle cx="350" cy="55" r="4" fill="#ec4899" opacity="0.8"/>
+                        <circle cx="370" cy="55" r="4" fill="#ec4899" opacity="0.8"/>
+                        <circle cx="390" cy="55" r="4" fill="#ec4899" opacity="0.8"/>
+                        <circle cx="410" cy="55" r="4" fill="#ec4899" opacity="0.8"/>
+                        <text x="380" y="85" text-anchor="middle" fill="#ec4899" font-size="11" font-weight="bold">Network</text>
+                        <text x="380" y="100" text-anchor="middle" fill="#f472b6" font-size="9">Switch/AP</text>
+                    </g>
+
+                    <!-- LAYER 3: Proxmox Host (Center) -->
+                    <g id="proxmox-host" class="proxmox-host controlled-device" filter="url(#shadow)">
+                        <rect x="350" y="250" width="300" height="180" rx="12" fill="url(#grad-proxmox)" opacity="0.2" stroke="url(#grad-proxmox)" stroke-width="2"/>
+                        <text x="500" y="300" text-anchor="middle" fill="#00f5ff" font-size="22" font-weight="bold">${proxmoxHost}</text>
+                        <text x="500" y="330" text-anchor="middle" fill="#00f5ff" font-size="13" opacity="0.8">Hypervisor</text>
+                        <text x="500" y="350" text-anchor="middle" fill="#00f5ff" font-size="11" opacity="0.6">${nodeCount} ${nodeCount === 1 ? 'Node' : 'Nodes'}</text>
+                        <rect x="360" y="365" width="280" height="1" fill="#00f5ff" opacity="0.3"/>
+                        <text x="500" y="405" text-anchor="middle" fill="#7dd3fc" font-size="9" opacity="0.7">Managed by Proximity</text>
+                    </g>
+
+                    <!-- LAYER 4: LXC Apps Container (Right side) -->
+                    <g id="apps-container" class="apps-container">
+                        <!-- Apps will be rendered here -->
                     </g>
                 </svg>
 
                 <!-- Legend -->
                 <div class="diagram-legend">
-                    <div class="legend-item">
-                        <div class="legend-box running"></div>
-                        <span>Running</span>
+                    <div class="legend-section">
+                        <div class="legend-title">Apps Status</div>
+                        <div class="legend-item">
+                            <div class="legend-box running"></div>
+                            <span>Running</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-box stopped"></div>
+                            <span>Stopped</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-box error"></div>
+                            <span>Error</span>
+                        </div>
                     </div>
-                    <div class="legend-item">
-                        <div class="legend-box stopped"></div>
-                        <span>Stopped</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-box error"></div>
-                        <span>Error</span>
+                    <div class="legend-section">
+                        <div class="legend-title">Network Devices</div>
+                        <div class="legend-item">
+                            <div class="legend-box" style="background: linear-gradient(135deg, #00f5ff, #00d4ff);"></div>
+                            <span>Managed (Proximity)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-box" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9); opacity: 0.6;"></div>
+                            <span>Gateway/Modem</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-box" style="background: linear-gradient(135deg, #ec4899, #be185d); opacity: 0.6;"></div>
+                            <span>Network Switch/AP</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -159,13 +204,21 @@ export class InfrastructureDiagram {
         
         if (!appsContainer || !networkLines) return;
 
-        // Clear existing apps
+        // Clear existing apps and connections
         appsContainer.innerHTML = '';
         networkLines.innerHTML = '';
 
+        // Add network topology connections (Gateway -> Switch -> Proxmox)
+        networkLines.innerHTML = `
+            <!-- Gateway to Switch -->
+            <line x1="210" y1="80" x2="300" y2="80" stroke="#c084fc" stroke-width="2" opacity="0.6" class="connection-line"/>
+            <!-- Switch to Proxmox -->
+            <line x1="460" y1="130" x2="500" y2="250" stroke="#f472b6" stroke-width="2" opacity="0.6" class="connection-line"/>
+        `;
+
         if (!apps || apps.length === 0) {
             appsContainer.innerHTML = `
-                <text x="800" y="300" text-anchor="middle" fill="#6b7280" font-size="14">
+                <text x="800" y="350" text-anchor="middle" fill="#6b7280" font-size="14">
                     No applications deployed
                 </text>
             `;
@@ -174,11 +227,11 @@ export class InfrastructureDiagram {
 
         // Calculate grid layout for apps
         const appsPerColumn = 3;
-        const startX = 700;
-        const startY = 150;
-        const boxWidth = 220;
-        const boxHeight = 100;
-        const spacing = 120;
+        const startX = 850;
+        const startY = 240;
+        const boxWidth = 200;
+        const boxHeight = 90;
+        const spacing = 110;
 
         apps.forEach((app, index) => {
             const row = index % appsPerColumn;
@@ -191,8 +244,8 @@ export class InfrastructureDiagram {
 
             // Connection line from Proxmox to App
             networkLines.innerHTML += `
-                <line x1="650" y1="300" x2="${x}" y2="${y + boxHeight / 2}" 
-                      stroke="${statusColor}" stroke-width="2" opacity="0.5" class="connection-line"/>
+                <line x1="650" y1="340" x2="${x}" y2="${y + boxHeight / 2}" 
+                      stroke="${statusColor}" stroke-width="2" opacity="0.4" class="connection-line" stroke-dasharray="5,5"/>
             `;
 
             // App box
@@ -204,25 +257,25 @@ export class InfrastructureDiagram {
                           stroke="${statusColor}" stroke-width="2" filter="url(#shadow)"/>
                     
                     <!-- Status indicator -->
-                    <circle cx="${x + boxWidth - 15}" cy="${y + 12}" r="6" fill="${statusColor}" opacity="0.8"/>
+                    <circle cx="${x + boxWidth - 12}" cy="${y + 10}" r="5" fill="${statusColor}" opacity="0.9"/>
                     
                     <!-- App name -->
-                    <text x="${x + boxWidth / 2}" y="${y + 30}" text-anchor="middle" 
-                          fill="#e0e7ff" font-size="13" font-weight="bold" class="truncate">
-                        ${this.truncateText(app.hostname || app.name, 20)}
+                    <text x="${x + boxWidth / 2}" y="${y + 28}" text-anchor="middle" 
+                          fill="#e0e7ff" font-size="12" font-weight="bold" class="truncate">
+                        ${this.truncateText(app.hostname || app.name, 18)}
                     </text>
                     
                     <!-- Status badge -->
-                    <rect x="${x + 8}" y="${y + 40}" width="${boxWidth - 16}" height="18" 
-                          rx="3" fill="${statusColor}" opacity="0.2"/>
-                    <text x="${x + boxWidth / 2}" y="${y + 52}" text-anchor="middle" 
-                          fill="${statusColor}" font-size="11" font-weight="600">
+                    <rect x="${x + 6}" y="${y + 35}" width="${boxWidth - 12}" height="16" 
+                          rx="3" fill="${statusColor}" opacity="0.15"/>
+                    <text x="${x + boxWidth / 2}" y="${y + 47}" text-anchor="middle" 
+                          fill="${statusColor}" font-size="10" font-weight="600">
                         ${this.formatStatus(app.status)}
                     </text>
                     
                     <!-- LXC ID -->
-                    <text x="${x + 8}" y="${y + boxHeight - 8}" fill="#9ca3af" font-size="10">
-                        LXC #${app.lxc_id}
+                    <text x="${x + 6}" y="${y + boxHeight - 4}" fill="#9ca3af" font-size="9">
+                        #${app.lxc_id}
                     </text>
                 </g>
             `;

@@ -499,11 +499,11 @@ h3 { font-size: 1.5rem; font-weight: 600; }
 .main-content {
     flex: 1;
     margin-left: 0; /* No sidebar anymore - full width */
-    min-height: 100vh;
+    height: 100vh;
     background: var(--bg-primary);
     width: 100%;
-    padding: 1rem;
-    overflow-y: auto;
+    padding: 0.5rem;
+    overflow: hidden;
     /* Remove old sidebar transition */
 }
 

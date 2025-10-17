@@ -7,14 +7,15 @@
     background: linear-gradient(135deg, rgba(15, 20, 25, 0.8), rgba(30, 40, 50, 0.6));
     border: 1px solid rgba(0, 245, 255, 0.2);
     border-radius: 12px;
-    padding: 24px;
-    margin: 0 auto;
+    padding: 12px;
+    margin: 0;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     position: relative;
-    overflow: visible;
+    overflow: hidden;
     width: 100%;
     max-width: 100%;
-    height: fit-content;
+    height: auto;
+    max-height: calc(100vh - 180px);
     --diagram-scale: 1;
 }
 
@@ -78,15 +79,14 @@
 /* SVG Canvas */
 .diagram-canvas {
     width: 100%;
-    height: auto;
+    height: 100%;
+    max-height: calc(100vh - 220px);
     background: radial-gradient(circle at 50% 50%, rgba(0, 245, 255, 0.02), rgba(0, 245, 255, 0.01));
     border-radius: 8px;
     border: 1px solid rgba(0, 245, 255, 0.1);
-    margin: 16px 0;
+    margin: 8px 0;
     display: block;
-    transform: scale(var(--diagram-scale, 1));
-    transform-origin: top center;
-    transition: transform 0.3s ease;
+    object-fit: contain;
 }
 
 /* Proxmox Host */
@@ -171,11 +171,36 @@
     color: #d1d5db;
 }
 
+/* Legend Sections */
+.diagram-legend {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.legend-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.legend-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #00f5ff;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid rgba(0, 245, 255, 0.2);
+    padding-bottom: 6px;
+    margin-bottom: 4px;
+}
+
 .legend-box {
     width: 16px;
     height: 16px;
     border-radius: 4px;
     border: 2px solid currentColor;
+    flex-shrink: 0;
 }
 
 .legend-box.running {
@@ -264,21 +289,13 @@
 /* Responsive design */
 @media (max-width: 1024px) {
     .infrastructure-diagram {
-        margin: 0;
-        padding: 16px;
-        --diagram-scale: 0.85;
-    }
-
-    .diagram-canvas {
-        margin: 12px 0;
+        padding: 10px;
     }
 }
 
 @media (max-width: 768px) {
     .infrastructure-diagram {
-        margin: 0;
-        padding: 12px;
-        --diagram-scale: 0.65;
+        padding: 8px;
     }
 
     .diagram-header {
@@ -290,36 +307,6 @@
     .diagram-stats {
         flex-wrap: wrap;
         gap: 12px;
-    }
-
-    .diagram-canvas {
-        margin: 8px 0;
-    }
-}
-
-@media (max-height: 900px) and (orientation: landscape) {
-    .infrastructure-diagram {
-        --diagram-scale: 0.8;
-    }
-}
-
-@media (max-height: 700px) and (orientation: landscape) {
-    .infrastructure-diagram {
-        --diagram-scale: 0.65;
-    }
-}
-
-@media (max-height: 600px) and (orientation: landscape) {
-    .infrastructure-diagram {
-        --diagram-scale: 0.55;
-        padding: 12px;
-    }
-
-    .diagram-header h3 {
-        font-size: 16px;
-    }
-
-    .diagram-stats {
         font-size: 12px;
     }
 }
