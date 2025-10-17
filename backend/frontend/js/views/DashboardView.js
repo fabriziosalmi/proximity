@@ -10,6 +10,7 @@
 
 import { Component } from '../core/Component.js';
 import { InfrastructureDiagram } from '../components/InfrastructureDiagram.js';
+import { authFetch, API_BASE } from '../services/api.js';
 
 export class DashboardView extends Component {
     constructor() {
@@ -49,28 +50,48 @@ export class DashboardView extends Component {
     async loadInfrastructureDiagram() {
         try {
             // Fetch system status and apps data
-            const [statusResponse, appsResponse] = await Promise.all([
-                fetch('/api/v1/system/status/initial'),
-                fetch('/api/v1/apps')
-            ]);
+            let status = null;
+            let apps = [];
 
-            if (!statusResponse.ok || !appsResponse.ok) {
-                console.warn('Could not load infrastructure data');
-                return;
+            // Fetch system information with auth
+            try {
+                const statusResponse = await authFetch(`${API_BASE}/system/info`);
+                if (statusResponse.ok) {
+                    status = await statusResponse.json();
+                    console.log('✅ System info loaded:', status);
+                } else {
+                    console.warn('⚠️  System info returned status:', statusResponse.status);
+                }
+            } catch (e) {
+                console.warn('⚠️  Could not load system info:', e.message);
             }
 
-            const status = await statusResponse.json();
-            const apps = await appsResponse.json();
+            // Fetch all apps with auth
+            try {
+                const appsResponse = await authFetch(`${API_BASE}/apps`);
+                if (appsResponse.ok) {
+                    const appsData = await appsResponse.json();
+                    apps = Array.isArray(appsData) ? appsData : [];
+                    console.log('✅ Apps loaded:', apps.length, 'apps');
+                } else {
+                    console.warn('⚠️  Apps endpoint returned status:', appsResponse.status);
+                }
+            } catch (e) {
+                console.warn('⚠️  Could not load apps:', e.message);
+            }
 
-            console.log('📊 Infrastructure data loaded');
+            console.log('📊 Infrastructure data ready (system info:', !!status, 'apps:', apps.length, ')');
 
-            // Initialize diagram with real data
+            // Initialize diagram with whatever data we have
             this.infraDiagram.init(status, apps);
 
         } catch (error) {
-            console.warn('Error loading infrastructure diagram:', error);
+            console.error('❌ Error loading infrastructure diagram:', error);
+            // Still initialize diagram with empty data as fallback
+            this.infraDiagram.init(null, []);
         }
     }
+
 
     /**
      * Generate dashboard HTML structure
