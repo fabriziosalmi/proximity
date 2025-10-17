@@ -22,14 +22,15 @@
     position: relative;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3),
                 inset 0 1px 0 rgba(34, 211, 238, 0.05);
-    
+
     /* Active glow like status-running */
     /* box-shadow: 0 0 15px rgba(0, 255, 255, 0.4), 0 4px 16px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(34, 211, 238, 0.05); */
     border-color: rgba(75, 75, 75, 0.6);
-    
-    /* Menu specific - same margins as content padding */
-    margin: 1rem 2rem; /* Match .content padding (2rem left/right, 1rem top/bottom) */
-    width: calc(100% - 4rem); /* Full width minus left+right margins (2rem * 2) */
+
+    /* Menu specific - match content inner width (accounting for content padding) */
+    box-sizing: border-box; /* Include border in width calculation */
+    margin: 1rem 2rem; /* 1rem top/bottom, 2rem left/right to match .content padding */
+    width: calc(100% - 4rem); /* Full width minus left+right margins */
     z-index: 1000;
 }
 
@@ -149,10 +150,16 @@
     width: 100%;
 }
 
-/* Notification Type Styles - Colored glowing text on black */
+/* Notification Type Styles - Colored glowing text with gradient edges */
 .rack-notification-display.notif-info {
-    /* Cyan glow (default) */
-    background: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
+    /* Cyan glow with gradient edges: black -> cyan -> black (darker) */
+    background: linear-gradient(90deg,
+        #000000 0%,
+        rgba(0, 25, 25, 0.6) 20%,
+        rgba(0, 35, 35, 0.7) 50%,
+        rgba(0, 25, 25, 0.6) 80%,
+        #000000 100%
+    );
     color: #00ffff;
     text-shadow:
         0 0 8px rgba(0, 255, 255, 0.8),
@@ -166,8 +173,14 @@
 }
 
 .rack-notification-display.notif-success {
-    /* Green glow */
-    background: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
+    /* Green glow with gradient edges: black -> green -> black */
+    background: linear-gradient(90deg,
+        #000000 0%,
+        rgba(0, 40, 0, 0.8) 20%,
+        rgba(0, 50, 0, 0.9) 50%,
+        rgba(0, 40, 0, 0.8) 80%,
+        #000000 100%
+    );
     color: #00ff00;
     text-shadow:
         0 0 8px rgba(0, 255, 0, 0.8),
@@ -181,8 +194,14 @@
 }
 
 .rack-notification-display.notif-warning {
-    /* Amber/Orange glow */
-    background: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
+    /* Amber/Orange glow with gradient edges: black -> orange -> black */
+    background: linear-gradient(90deg,
+        #000000 0%,
+        rgba(50, 30, 0, 0.8) 20%,
+        rgba(60, 40, 0, 0.9) 50%,
+        rgba(50, 30, 0, 0.8) 80%,
+        #000000 100%
+    );
     color: #ffaa00;
     text-shadow:
         0 0 8px rgba(255, 170, 0, 0.8),
@@ -196,8 +215,14 @@
 }
 
 .rack-notification-display.notif-error {
-    /* Red glow */
-    background: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
+    /* Red glow with gradient edges: black -> red -> black */
+    background: linear-gradient(90deg,
+        #000000 0%,
+        rgba(40, 0, 0, 0.8) 20%,
+        rgba(50, 0, 0, 0.9) 50%,
+        rgba(40, 0, 0, 0.8) 80%,
+        #000000 100%
+    );
     color: #ff0000;
     text-shadow:
         0 0 8px rgba(255, 0, 0, 0.8),
@@ -273,8 +298,14 @@
 
 /* Idle animation state - thinking effect */
 .rack-notification-display.rack-idle {
-    /* Black LCD/VFD display background (same as active notifications) */
-    background: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
+    /* Cyan gradient background with edges fading to black (darker) */
+    background: linear-gradient(90deg,
+        #000000 0%,
+        rgba(0, 25, 25, 0.6) 20%,
+        rgba(0, 35, 35, 0.7) 50%,
+        rgba(0, 25, 25, 0.6) 80%,
+        #000000 100%
+    );
     border: none;
 
     /* Cyan glowing text (same as info notifications) */
@@ -290,7 +321,7 @@
         inset 0 -1px 1px rgba(0, 0, 0, 0.8),
         inset 0 0 30px rgba(0, 0, 0, 0.5);
 
-    animation: idle-glow 2s ease-in-out infinite;
+    animation: idle-glow 1s ease-in-out infinite;
 }
 
 @keyframes idle-glow {
