@@ -367,10 +367,12 @@ class TestAppServiceUpdate:
                 await app_service.update_app("test-app", user_id=1)
 
                 # Verify docker commands were called in correct order
+                # Now includes Docker service status check before pull
                 calls = app_service.proxmox_service.execute_in_container.call_args_list
-                assert len(calls) == 2
-                assert "docker compose pull" in calls[0].kwargs['command']
-                assert "docker compose up -d --remove-orphans" in calls[1].kwargs['command']
+                assert len(calls) == 3
+                assert "docker status" in calls[0].kwargs['command']
+                assert "docker compose pull" in calls[1].kwargs['command']
+                assert "docker compose up -d --remove-orphans" in calls[2].kwargs['command']
 
     @pytest.mark.asyncio
     async def test_update_app_handles_failed_health_check(self, app_service, db_session):

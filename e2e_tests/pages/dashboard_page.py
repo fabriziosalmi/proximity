@@ -527,3 +527,37 @@ class DashboardPage(BasePage):
         """
         status = self.get_app_status(hostname)
         return "running" in status.lower()
+    
+    def delete_app(self, hostname: str, timeout: int = 60000) -> None:
+        """
+        Delete an app by hostname with confirmation.
+        
+        This is a convenience method that combines clicking delete,
+        confirming the action, and waiting for the app to be removed.
+        
+        Args:
+            hostname: Hostname of the app to delete
+            timeout: Maximum time to wait for deletion (milliseconds)
+            
+        Example:
+            >>> dashboard_page.delete_app("nginx-test")
+        """
+        logger.info(f"🗑️  Deleting app: {hostname}")
+        
+        try:
+            # Step 1: Click delete button
+            self.click_app_action(hostname, "delete")
+            logger.info("✓ Delete button clicked")
+            
+            # Step 2: Wait for confirmation dialog and confirm
+            self.page.wait_for_timeout(500)  # Brief pause for dialog animation
+            self.confirm_delete_app()
+            logger.info("✓ Deletion confirmed")
+            
+            # Step 3: Wait for app to be removed from the dashboard
+            self.wait_for_app_hidden(hostname, timeout=timeout)
+            logger.info(f"✅ App {hostname} successfully deleted")
+            
+        except Exception as e:
+            logger.error(f"❌ Failed to delete app {hostname}: {e}")
+            raise

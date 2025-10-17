@@ -245,10 +245,10 @@
             window.lucide.createIcons();
         }
 
-        // Remove animation class after animation completes
+        // Remove animation class after fade-in completes (300ms)
         setTimeout(() => {
             display.classList.remove('notif-new');
-        }, 500);
+        }, 300);
 
         // Clear existing auto-dismiss timeout
         if (rackNotificationTimeout) {
@@ -262,11 +262,12 @@
                 // Fade out
                 display.classList.add('notif-fadeout');
 
+                // Remove after fade-out completes (400ms)
                 setTimeout(() => {
                     display.classList.remove('notif-visible', 'notif-fadeout');
                     // Start idle animation after dismiss
                     startIdleAnimation();
-                }, 300);
+                }, 400);
             }, duration);
         }
     }
