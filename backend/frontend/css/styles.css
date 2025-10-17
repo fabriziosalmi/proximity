@@ -502,6 +502,7 @@ h3 { font-size: 1.5rem; font-weight: 600; }
     min-height: 100vh;
     background: var(--bg-primary);
     width: 100%;
+    padding: 2rem;
     /* Remove old sidebar transition */
 }
 

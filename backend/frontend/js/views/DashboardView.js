@@ -99,36 +99,6 @@ export class DashboardView extends Component {
      */
     generateDashboardHTML() {
         return `
-            <!-- Hero Section -->
-            <div class="hero-section">
-                <div class="hero-content">
-                    <div class="hero-badge">
-                        <i data-lucide="zap"></i>
-                        <span>Next-Gen Application Platform</span>
-                    </div>
-                    <h1 class="hero-title">Welcome to Proximity</h1>
-                    <p class="hero-description">
-                        Deploy, manage, and scale your applications effortlessly across your Proxmox infrastructure.
-                        Experience the future of container orchestration with an intuitive interface designed for developers.
-                    </p>
-
-                    <div class="hero-actions">
-                        <button class="btn btn-primary btn-lg" data-view="apps">
-                            <i data-lucide="package"></i>
-                            My Applications
-                        </button>
-                        <button class="btn btn-primary btn-lg" data-view="catalog">
-                            <i data-lucide="rocket"></i>
-                            Deploy New App
-                        </button>
-                    </div>
-                </div>
-                    <div class="hero-visual">
-                    <div class="hero-grid-bg"></div>
-                    <div class="hero-glow"></div>
-                </div>
-            </div>
-
             <!-- Infrastructure Diagram Section -->
             <div id="infrastructure-diagram"></div>
         `;
