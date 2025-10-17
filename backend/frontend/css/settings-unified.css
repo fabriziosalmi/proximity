@@ -37,20 +37,22 @@
     align-items: center;
     gap: 0.75rem;
     margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid rgba(113, 113, 122, 0.3);
+    padding-bottom: 1.25rem;
+    border-bottom: 2px solid rgba(34, 211, 238, 0.3);
 }
 
 .settings-nav-header i {
     width: 24px;
     height: 24px;
     color: #22d3ee;
+    filter: drop-shadow(0 0 4px rgba(34, 211, 238, 0.5));
 }
 
 .settings-nav-header span {
-    font-size: 1.25rem;
-    font-weight: 600;
+    font-size: 1.3rem;
+    font-weight: 700;
     color: #e2e8f0;
+    text-shadow: 0 0 10px rgba(34, 211, 238, 0.3);
 }
 
 /* Navigation Links */
@@ -64,40 +66,72 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.75rem 1rem;
+    padding: 0.85rem 1.1rem;
     color: #94a3b8;
     text-decoration: none;
-    border-radius: 8px;
-    transition: all 0.3s ease;
+    border-radius: 10px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
     border: 1px solid transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.settings-nav-link::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 3px;
+    background: #22d3ee;
+    transform: translateX(-3px);
+    transition: transform 0.3s ease;
 }
 
 .settings-nav-link i {
     width: 18px;
     height: 18px;
+    transition: transform 0.3s ease;
 }
 
 .settings-nav-link span {
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     font-weight: 500;
 }
 
 .settings-nav-link:hover {
-    background: rgba(34, 211, 238, 0.1);
+    background: rgba(34, 211, 238, 0.15);
     color: #22d3ee;
-    border-color: rgba(34, 211, 238, 0.3);
+    border-color: rgba(34, 211, 238, 0.4);
+    transform: translateX(4px);
+}
+
+.settings-nav-link:hover::before {
+    transform: translateX(0);
+}
+
+.settings-nav-link:hover i {
+    transform: scale(1.1);
 }
 
 .settings-nav-link.active {
-    background: #22d3ee;
+    background: linear-gradient(135deg, #22d3ee, #06b6d4);
     color: #000;
     border-color: #22d3ee;
-    box-shadow: 0 0 10px rgba(34, 211, 238, 0.4);
+    box-shadow: 0 0 15px rgba(34, 211, 238, 0.5),
+                0 4px 12px rgba(0, 0, 0, 0.3);
+    transform: translateX(4px);
+    font-weight: 600;
+}
+
+.settings-nav-link.active::before {
+    transform: translateX(0);
 }
 
 .settings-nav-link.active i {
     color: #000;
+    transform: scale(1.1);
 }
 
 /* Main Content Area (Scrollable) */
@@ -119,24 +153,39 @@
 
 /* Settings Sections */
 .settings-section {
-    margin-bottom: 2rem;
-    scroll-margin-top: 2rem; /* Offset for smooth scroll */
+    margin-bottom: 2.5rem;
+    scroll-margin-top: 1.5rem; /* Offset for smooth scroll */
+    animation: fadeInUp 0.4s ease-out;
 }
 
 .settings-section:last-child {
-    margin-bottom: 0;
+    margin-bottom: 1rem;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Settings Cards - Lighter style, integrated with content area */
 .settings-section .app-card {
-    background: rgba(24, 24, 27, 0.3);
-    border: 1px solid rgba(113, 113, 122, 0.2);
-    box-shadow: none;
+    background: rgba(24, 24, 27, 0.5);
+    border: 1px solid rgba(113, 113, 122, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
 }
 
 .settings-section .app-card:hover {
-    background: rgba(24, 24, 27, 0.4);
-    border-color: rgba(34, 211, 238, 0.3);
+    background: rgba(24, 24, 27, 0.7);
+    border-color: rgba(34, 211, 238, 0.5);
+    box-shadow: 0 4px 16px rgba(34, 211, 238, 0.15);
+    transform: translateY(-2px);
 }
 
 /* Keep existing .app-card styles */
@@ -148,33 +197,46 @@
 }
 
 .settings-card-icon {
-    width: 48px;
-    height: 48px;
+    width: 52px;
+    height: 52px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, rgba(34, 211, 238, 0.2), rgba(0, 255, 255, 0.1));
-    border-radius: 12px;
-    border: 1px solid rgba(34, 211, 238, 0.3);
+    background: linear-gradient(135deg, rgba(34, 211, 238, 0.25), rgba(0, 255, 255, 0.15));
+    border-radius: 14px;
+    border: 2px solid rgba(34, 211, 238, 0.4);
+    box-shadow: 0 0 15px rgba(34, 211, 238, 0.2),
+                inset 0 0 15px rgba(34, 211, 238, 0.1);
+    transition: all 0.3s ease;
+}
+
+.settings-section .app-card:hover .settings-card-icon {
+    transform: rotate(5deg) scale(1.05);
+    box-shadow: 0 0 20px rgba(34, 211, 238, 0.4),
+                inset 0 0 20px rgba(34, 211, 238, 0.2);
 }
 
 .settings-card-icon i {
-    width: 24px;
-    height: 24px;
+    width: 26px;
+    height: 26px;
     color: #22d3ee;
+    filter: drop-shadow(0 0 6px rgba(34, 211, 238, 0.6));
 }
 
 .settings-card-title h3 {
-    margin: 0 0 0.25rem 0;
-    font-size: 1.25rem;
-    font-weight: 600;
+    margin: 0 0 0.35rem 0;
+    font-size: 1.4rem;
+    font-weight: 700;
     color: #e2e8f0;
+    letter-spacing: -0.02em;
+    text-shadow: 0 0 10px rgba(34, 211, 238, 0.2);
 }
 
 .settings-card-title p {
     margin: 0;
-    font-size: 0.875rem;
+    font-size: 0.9rem;
     color: #94a3b8;
+    line-height: 1.4;
 }
 
 /* Responsive Design */
@@ -182,17 +244,20 @@
     #settingsView {
         flex-direction: column;
         height: auto;
+        max-height: none;
         gap: 0;
     }
 
     .settings-quick-nav {
         position: relative;
         width: 100%;
+        height: auto;
         max-height: none;
         margin-bottom: 0;
         border-radius: var(--radius-xl) var(--radius-xl) 0 0; /* Round top corners */
         border-right: 1px solid var(--border-cyan);
         border-bottom: none;
+        padding: 1.5rem;
     }
 
     .settings-unified-content {
@@ -200,6 +265,8 @@
         border-left: 1px solid var(--border-cyan);
         border-top: none;
         overflow-y: visible;
+        height: auto;
+        padding: 2rem 1.5rem;
     }
 
     .settings-nav-links {
@@ -231,19 +298,40 @@
 
 /* Scrollbar Styling for Settings Content */
 .settings-unified-content::-webkit-scrollbar {
-    width: 8px;
+    width: 10px;
 }
 
 .settings-unified-content::-webkit-scrollbar-track {
-    background: rgba(24, 24, 27, 0.3);
-    border-radius: 4px;
+    background: rgba(24, 24, 27, 0.5);
+    border-radius: 5px;
+    margin: 4px 0;
 }
 
 .settings-unified-content::-webkit-scrollbar-thumb {
-    background: rgba(34, 211, 238, 0.3);
-    border-radius: 4px;
+    background: linear-gradient(135deg, rgba(34, 211, 238, 0.4), rgba(6, 182, 212, 0.4));
+    border-radius: 5px;
+    border: 2px solid rgba(24, 24, 27, 0.5);
 }
 
 .settings-unified-content::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, rgba(34, 211, 238, 0.6), rgba(6, 182, 212, 0.6));
+}
+
+/* Scrollbar Styling for Settings Sidebar */
+.settings-quick-nav::-webkit-scrollbar {
+    width: 6px;
+}
+
+.settings-quick-nav::-webkit-scrollbar-track {
+    background: rgba(24, 24, 27, 0.3);
+    border-radius: 3px;
+}
+
+.settings-quick-nav::-webkit-scrollbar-thumb {
+    background: rgba(34, 211, 238, 0.3);
+    border-radius: 3px;
+}
+
+.settings-quick-nav::-webkit-scrollbar-thumb:hover {
     background: rgba(34, 211, 238, 0.5);
 }
