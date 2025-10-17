@@ -1,5 +1,5 @@
 {
-  "version": "2.8.0",
+  "version": "2.9.0",
   "last_updated": "2025-10-17",
   "description": "Proximity App Catalog - Self-hosted Docker applications",
   "apps": [
@@ -129,7 +129,12 @@
     "peertube.json",
     "jellyseerr.json",
     "nzbget.json",
-    "searxng.json"
+    "searxng.json",
+    "directus.json",
+    "penpot.json",
+    "budibase.json",
+    "tooljet.json",
+    "chatwoot.json"
   ],
   "categories": [
     "AI",
