@@ -117,35 +117,65 @@ export class InfrastructureDiagram {
 
                     <!-- LAYER 1: Gateway/Modem (Top Left) -->
                     <g id="gateway" class="network-device external-device" filter="url(#shadow)">
-                        <rect x="50" y="30" width="160" height="100" rx="8" fill="url(#grad-gateway)" opacity="0.2" stroke="url(#grad-gateway)" stroke-width="2"/>
+                        <rect x="50" y="30" width="180" height="120" rx="8" fill="url(#grad-gateway)" opacity="0.2" stroke="url(#grad-gateway)" stroke-width="2"/>
                         <circle cx="80" cy="55" r="4" fill="#8b5cf6" opacity="0.8"/>
                         <circle cx="100" cy="55" r="4" fill="#8b5cf6" opacity="0.8"/>
                         <circle cx="120" cy="55" r="4" fill="#8b5cf6" opacity="0.8"/>
                         <circle cx="140" cy="55" r="4" fill="#8b5cf6" opacity="0.8"/>
-                        <text x="130" y="85" text-anchor="middle" fill="#8b5cf6" font-size="11" font-weight="bold">Gateway</text>
-                        <text x="130" y="100" text-anchor="middle" fill="#a78bfa" font-size="9">Modem/Router</text>
+                        <text x="140" y="85" text-anchor="middle" fill="#8b5cf6" font-size="11" font-weight="bold">Gateway</text>
+                        <text x="140" y="100" text-anchor="middle" fill="#a78bfa" font-size="9">Modem/Router</text>
+                        
+                        <!-- Info tooltips -->
+                        <rect x="60" y="105" width="160" height="40" rx="4" fill="#1f2937" opacity="0.8" stroke="#8b5cf6" stroke-width="1" opacity="0.5"/>
+                        <text x="65" y="118" fill="#a78bfa" font-size="8">WAN Interface</text>
+                        <text x="65" y="130" fill="#8b5cf6" font-size="7">IPv4 • DNS • NAT</text>
+                        <text x="65" y="140" fill="#8b5cf6" font-size="7">Entry Point</text>
                     </g>
 
                     <!-- LAYER 2: Network Switch (Top Center) -->
                     <g id="switch" class="network-device external-device" filter="url(#shadow)">
-                        <rect x="300" y="30" width="160" height="100" rx="8" fill="url(#grad-switch)" opacity="0.2" stroke="url(#grad-switch)" stroke-width="2"/>
+                        <rect x="280" y="30" width="180" height="120" rx="8" fill="url(#grad-switch)" opacity="0.2" stroke="url(#grad-switch)" stroke-width="2"/>
+                        <circle cx="310" cy="55" r="4" fill="#ec4899" opacity="0.8"/>
                         <circle cx="330" cy="55" r="4" fill="#ec4899" opacity="0.8"/>
                         <circle cx="350" cy="55" r="4" fill="#ec4899" opacity="0.8"/>
                         <circle cx="370" cy="55" r="4" fill="#ec4899" opacity="0.8"/>
                         <circle cx="390" cy="55" r="4" fill="#ec4899" opacity="0.8"/>
-                        <circle cx="410" cy="55" r="4" fill="#ec4899" opacity="0.8"/>
-                        <text x="380" y="85" text-anchor="middle" fill="#ec4899" font-size="11" font-weight="bold">Network</text>
-                        <text x="380" y="100" text-anchor="middle" fill="#f472b6" font-size="9">Switch/AP</text>
+                        <text x="370" y="85" text-anchor="middle" fill="#ec4899" font-size="11" font-weight="bold">Network</text>
+                        <text x="370" y="100" text-anchor="middle" fill="#f472b6" font-size="9">Switch/AP</text>
+                        
+                        <!-- Info tooltips -->
+                        <rect x="290" y="105" width="160" height="40" rx="4" fill="#1f2937" opacity="0.8" stroke="#ec4899" stroke-width="1" opacity="0.5"/>
+                        <text x="295" y="118" fill="#f472b6" font-size="8">LAN Distribution</text>
+                        <text x="295" y="130" fill="#ec4899" font-size="7">5+ Ports • Gigabit</text>
+                        <text x="295" y="140" fill="#ec4899" font-size="7">VLAN Ready</text>
                     </g>
 
                     <!-- LAYER 3: Proxmox Host (Center) -->
                     <g id="proxmox-host" class="proxmox-host controlled-device" filter="url(#shadow)">
-                        <rect x="350" y="250" width="300" height="180" rx="12" fill="url(#grad-proxmox)" opacity="0.2" stroke="url(#grad-proxmox)" stroke-width="2"/>
-                        <text x="500" y="300" text-anchor="middle" fill="#00f5ff" font-size="22" font-weight="bold">${proxmoxHost}</text>
-                        <text x="500" y="330" text-anchor="middle" fill="#00f5ff" font-size="13" opacity="0.8">Hypervisor</text>
-                        <text x="500" y="350" text-anchor="middle" fill="#00f5ff" font-size="11" opacity="0.6">${nodeCount} ${nodeCount === 1 ? 'Node' : 'Nodes'}</text>
-                        <rect x="360" y="365" width="280" height="1" fill="#00f5ff" opacity="0.3"/>
-                        <text x="500" y="405" text-anchor="middle" fill="#7dd3fc" font-size="9" opacity="0.7">Managed by Proximity</text>
+                        <rect x="320" y="240" width="360" height="210" rx="12" fill="url(#grad-proxmox)" opacity="0.2" stroke="url(#grad-proxmox)" stroke-width="2"/>
+                        <text x="500" y="295" text-anchor="middle" fill="#00f5ff" font-size="20" font-weight="bold">${proxmoxHost}</text>
+                        <text x="500" y="320" text-anchor="middle" fill="#00f5ff" font-size="12" opacity="0.8">Hypervisor</text>
+                        <text x="500" y="335" text-anchor="middle" fill="#7dd3fc" font-size="10" opacity="0.6">${nodeCount} ${nodeCount === 1 ? 'Node' : 'Nodes'}</text>
+                        
+                        <!-- System Info Box -->
+                        <rect x="330" y="345" width="340" height="95" rx="6" fill="#0f1419" opacity="0.6" stroke="#00f5ff" stroke-width="1" opacity="0.3"/>
+                        <text x="340" y="360" fill="#00f5ff" font-size="9" font-weight="bold">System Resources</text>
+                        
+                        <!-- CPU Info -->
+                        <circle cx="345" cy="375" r="2" fill="#4ade80"/>
+                        <text x="355" y="378" fill="#d1d5db" font-size="8">CPU: Computing</text>
+                        
+                        <!-- Memory Info -->
+                        <circle cx="345" cy="390" r="2" fill="#3b82f6"/>
+                        <text x="355" y="393" fill="#d1d5db" font-size="8">Memory: Running</text>
+                        
+                        <!-- Containers -->
+                        <circle cx="345" cy="405" r="2" fill="#ec4899"/>
+                        <text x="355" y="408" fill="#d1d5db" font-size="8">Containers: LXC</text>
+                        
+                        <!-- Status Line -->
+                        <line x1="330" y1="420" x2="670" y2="420" stroke="#00f5ff" stroke-width="1" opacity="0.2"/>
+                        <text x="500" y="433" text-anchor="middle" fill="#7dd3fc" font-size="8" opacity="0.7">Managed by Proximity</text>
                     </g>
 
                     <!-- LAYER 4: LXC Apps Container (Right side) -->
@@ -229,9 +259,9 @@ export class InfrastructureDiagram {
         const appsPerColumn = 3;
         const startX = 850;
         const startY = 240;
-        const boxWidth = 200;
-        const boxHeight = 90;
-        const spacing = 110;
+        const boxWidth = 220;
+        const boxHeight = 110;
+        const spacing = 120;
 
         apps.forEach((app, index) => {
             const row = index % appsPerColumn;
@@ -244,39 +274,60 @@ export class InfrastructureDiagram {
 
             // Connection line from Proxmox to App
             networkLines.innerHTML += `
-                <line x1="650" y1="340" x2="${x}" y2="${y + boxHeight / 2}" 
+                <line x1="680" y1="350" x2="${x + boxWidth/2}" y2="${y}" 
                       stroke="${statusColor}" stroke-width="2" opacity="0.4" class="connection-line" stroke-dasharray="5,5"/>
             `;
 
-            // App box
+            // App box with enhanced info
             appsContainer.innerHTML += `
                 <g class="app-node" data-app-id="${app.id}">
-                    <!-- Box -->
+                    <!-- Main Box -->
                     <rect x="${x}" y="${y}" width="${boxWidth}" height="${boxHeight}" 
-                          rx="8" fill="url(${gradient})" opacity="0.15" 
+                          rx="8" fill="url(${gradient})" opacity="0.12" 
                           stroke="${statusColor}" stroke-width="2" filter="url(#shadow)"/>
                     
-                    <!-- Status indicator -->
-                    <circle cx="${x + boxWidth - 12}" cy="${y + 10}" r="5" fill="${statusColor}" opacity="0.9"/>
+                    <!-- Top bar with status -->
+                    <rect x="${x}" y="${y}" width="${boxWidth}" height="25" 
+                          rx="8" fill="${statusColor}" opacity="0.1"/>
                     
-                    <!-- App name -->
-                    <text x="${x + boxWidth / 2}" y="${y + 28}" text-anchor="middle" 
-                          fill="#e0e7ff" font-size="12" font-weight="bold" class="truncate">
-                        ${this.truncateText(app.hostname || app.name, 18)}
+                    <!-- Status indicator -->
+                    <circle cx="${x + boxWidth - 12}" cy="${y + 12}" r="5" fill="${statusColor}" opacity="0.9"/>
+                    
+                    <!-- App name (hostname) -->
+                    <text x="${x + 8}" y="${y + 18}" 
+                          fill="#e0e7ff" font-size="12" font-weight="bold">
+                        ${this.truncateText(app.hostname || app.name, 20)}
                     </text>
                     
-                    <!-- Status badge -->
-                    <rect x="${x + 6}" y="${y + 35}" width="${boxWidth - 12}" height="16" 
-                          rx="3" fill="${statusColor}" opacity="0.15"/>
-                    <text x="${x + boxWidth / 2}" y="${y + 47}" text-anchor="middle" 
-                          fill="${statusColor}" font-size="10" font-weight="600">
+                    <!-- Status -->
+                    <rect x="${x + 6}" y="${y + 28}" width="${boxWidth - 12}" height="15" 
+                          rx="2" fill="${statusColor}" opacity="0.15"/>
+                    <text x="${x + boxWidth / 2}" y="${y + 38}" text-anchor="middle" 
+                          fill="${statusColor}" font-size="9" font-weight="600">
                         ${this.formatStatus(app.status)}
                     </text>
                     
-                    <!-- LXC ID -->
-                    <text x="${x + 6}" y="${y + boxHeight - 4}" fill="#9ca3af" font-size="9">
-                        #${app.lxc_id}
+                    <!-- Container Info -->
+                    <text x="${x + 8}" y="${y + 58}" fill="#9ca3af" font-size="8">
+                        Container: ${this.truncateText(app.lxc_id || 'N/A', 12)}
                     </text>
+                    
+                    <!-- Node Info -->
+                    <text x="${x + 8}" y="${y + 70}" fill="#9ca3af" font-size="8">
+                        Node: ${this.truncateText(app.node || 'pve', 12)}
+                    </text>
+                    
+                    <!-- Network -->
+                    <text x="${x + 8}" y="${y + 82}" fill="#9ca3af" font-size="8">
+                        Net: ${app.ip || '10.x.x.x'}
+                    </text>
+                    
+                    <!-- Port Info if available -->
+                    ${app.port ? `
+                    <text x="${x + 8}" y="${y + 94}" fill="#00f5ff" font-size="8" font-weight="bold">
+                        Port: ${app.port}
+                    </text>
+                    ` : ''}
                 </g>
             `;
         });
@@ -330,10 +381,12 @@ export class InfrastructureDiagram {
 
     /**
      * Initialize diagram with data
+     * Supports system status, apps, and optional network status
      * @param {Object} systemStatus - System status
      * @param {Array} apps - Apps array
+     * @param {Object} networkStatus - Optional network status
      */
-    init(systemStatus, apps) {
+    init(systemStatus, apps, networkStatus) {
         try {
             const html = this.generateDiagram(systemStatus, apps);
             const container = document.getElementById(this.containerId);
@@ -345,7 +398,7 @@ export class InfrastructureDiagram {
             container.innerHTML = html;
             this.renderApps(apps || []);
             this.attachEventListeners();
-            console.log('✅ Infrastructure diagram initialized');
+            console.log('✅ Infrastructure diagram initialized (live, interactive)');
         } catch (error) {
             console.error('❌ Error initializing infrastructure diagram:', error);
             const container = document.getElementById(this.containerId);
@@ -369,25 +422,126 @@ export class InfrastructureDiagram {
 
     /**
      * Attach interactive event listeners
+     * Enables hover effects, click actions, and drill-down navigation
      */
     attachEventListeners() {
+        const canvas = document.getElementById('diagram-canvas');
+        if (!canvas) return;
+
+        // App node interactions
         const appNodes = document.querySelectorAll('.app-node');
         appNodes.forEach(node => {
-            node.addEventListener('click', () => {
+            // Click handler - open app in canvas
+            node.addEventListener('click', (e) => {
                 const appId = node.dataset.appId;
-                if (appId) {
-                    // Could navigate to app details or trigger action
-                    console.log('Clicked app:', appId);
+                if (appId && window.ProximityRouter) {
+                    e.stopPropagation();
+                    console.log('🚀 Opening app canvas:', appId);
+                    // Navigate to app detail view
+                    window.ProximityRouter.navigateTo('apps');
+                    // Could also trigger openCanvas(appId) if available
+                    this.triggerAppOpen(appId);
                 }
             });
 
+            // Hover effects - highlight node and its connectors
             node.addEventListener('mouseenter', () => {
                 node.style.opacity = '1';
+                node.style.filter = 'drop-shadow(0 0 12px rgba(0, 245, 255, 0.6))';
+                this.highlightConnectors(node);
             });
 
             node.addEventListener('mouseleave', () => {
                 node.style.opacity = '0.8';
+                node.style.filter = 'drop-shadow(0 0 8px rgba(0, 245, 255, 0.3))';
+                this.unhighlightConnectors(node);
             });
         });
+
+        // Proxmox host click handler - navigate to infra view
+        const proxmoxHost = document.querySelector('#proxmox-host');
+        if (proxmoxHost) {
+            proxmoxHost.style.cursor = 'pointer';
+            proxmoxHost.addEventListener('click', (e) => {
+                e.stopPropagation();
+                console.log('🖥️  Navigating to Proxmox Infra view');
+                if (window.ProximityRouter) {
+                    window.ProximityRouter.navigateTo('infra');
+                }
+            });
+
+            proxmoxHost.addEventListener('mouseenter', () => {
+                proxmoxHost.style.opacity = '1';
+                proxmoxHost.style.filter = 'drop-shadow(0 0 16px rgba(0, 245, 255, 0.8))';
+            });
+
+            proxmoxHost.addEventListener('mouseleave', () => {
+                proxmoxHost.style.opacity = '0.9';
+                proxmoxHost.style.filter = 'drop-shadow(0 0 8px rgba(0, 245, 255, 0.4))';
+            });
+        }
+
+        // Gateway/Network nodes - informational (future: could open network modal)
+        ['gateway', 'switch'].forEach(nodeId => {
+            const node = document.querySelector(`#${nodeId}`);
+            if (node) {
+                node.style.cursor = 'pointer';
+                node.addEventListener('mouseenter', () => {
+                    node.style.opacity = '1';
+                    node.style.filter = 'drop-shadow(0 0 12px rgba(0, 245, 255, 0.5))';
+                });
+
+                node.addEventListener('mouseleave', () => {
+                    node.style.opacity = '0.85';
+                    node.style.filter = 'drop-shadow(0 0 6px rgba(0, 245, 255, 0.2))';
+                });
+            }
+        });
+    }
+
+    /**
+     * Highlight connectors when hovering over app node
+     * @param {Element} node - App node element
+     */
+    highlightConnectors(node) {
+        const canvas = document.getElementById('diagram-canvas');
+        if (!canvas) return;
+
+        const connections = canvas.querySelectorAll('.connection-line');
+        connections.forEach(line => {
+            // Add highlight to all connections for visual feedback
+            line.style.opacity = '0.9';
+            line.style.strokeWidth = '3';
+        });
+    }
+
+    /**
+     * Unhighlight connectors
+     * @param {Element} node - App node element
+     */
+    unhighlightConnectors(node) {
+        const canvas = document.getElementById('diagram-canvas');
+        if (!canvas) return;
+
+        const connections = canvas.querySelectorAll('.connection-line');
+        connections.forEach(line => {
+            line.style.opacity = '0.4';
+            line.style.strokeWidth = '2';
+        });
+    }
+
+    /**
+     * Trigger app open action
+     * @param {string} appId - App ID to open
+     */
+    triggerAppOpen(appId) {
+        // Emit custom event that can be caught by app shell
+        const event = new CustomEvent('appOpen', { detail: { appId } });
+        window.dispatchEvent(event);
+
+        // Try to find and open app in canvas if possible
+        if (typeof window.openCanvas === 'function') {
+            window.openCanvas({ id: appId });
+        }
     }
 }
