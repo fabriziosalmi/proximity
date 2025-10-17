@@ -607,9 +607,46 @@ class AppService:
     
     async def restart_app(self, app_id: str) -> App:
         """Restart an application"""
-        await self.stop_app(app_id)
-        await asyncio.sleep(2)
-        return await self.start_app(app_id)
+        app = await self.get_app(app_id)
+
+        try:
+            # Stop the application
+            await self.stop_app(app_id)
+
+            # Wait for container to fully stop (poll with timeout)
+            logger.info(f"Waiting for container {app.lxc_id} to fully stop...")
+            max_wait = 15  # seconds
+            waited = 0
+
+            while waited < max_wait:
+                await asyncio.sleep(2)
+                waited += 2
+
+                try:
+                    lxc_status = await self.proxmox_service.get_lxc_status(app.node, app.lxc_id)
+                    if lxc_status.status == LXCStatus.STOPPED:
+                        logger.info(f"Container {app.lxc_id} stopped successfully, starting now...")
+                        break
+                except Exception as e:
+                    # Container might be in transition, continue waiting
+                    logger.debug(f"Status check error (continuing): {e}")
+                    pass
+
+            if waited >= max_wait:
+                logger.warning(f"Container {app.lxc_id} did not stop within {max_wait}s, attempting start anyway")
+
+            # Additional safety wait
+            await asyncio.sleep(1)
+
+            # Start the application
+            return await self.start_app(app_id)
+
+        except Exception as e:
+            logger.error(f"Error restarting app {app_id}: {e}", extra={"app_id": app_id}, exc_info=True)
+            raise AppOperationError(
+                f"Failed to restart application: {str(e)}",
+                details={"app_id": app_id, "operation": "restart"}
+            ) from e
     
     async def delete_app(self, app_id: str) -> None:
         """Delete an application and its LXC container"""
