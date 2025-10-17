@@ -128,7 +128,7 @@
     let idleAnimationInterval = null;
 
     /**
-     * Start idle animation (thinking effect with asterisks)
+     * Start idle animation (bold wave effect on PROXIMITY text)
      */
     function startIdleAnimation() {
         const display = document.getElementById('rackNotificationDisplay');
@@ -145,31 +145,43 @@
         // Set base class
         display.className = 'rack-notification-display rack-idle';
 
-        let frame = 0;
-        const frames = [
-            '∗ PROXIMITY ∗',
-            '• PROXIMITY •',
-            '◦ PROXIMITY ◦',
-            '∘ PROXIMITY ∘',
-            '· PROXIMITY ·',
-            '  PROXIMITY  ',
-            '· PROXIMITY ·',
-            '∘ PROXIMITY ∘',
-            '◦ PROXIMITY ◦',
-            '• PROXIMITY •'
-        ];
+        const text = 'PROXIMITY';
+        let boldIndex = 0;
 
-        // Set initial frame
+        // Set initial state
         if (messageEl) {
-            messageEl.textContent = frames[0];
+            messageEl.innerHTML = createBoldWaveHTML(text, boldIndex);
+            // Center text alignment
+            messageEl.style.textAlign = 'center';
+            messageEl.style.width = '100%';
         }
 
         idleAnimationInterval = setInterval(() => {
             if (messageEl) {
-                frame = (frame + 1) % frames.length;
-                messageEl.textContent = frames[frame];
+                boldIndex = (boldIndex + 1) % (text.length + 3); // +3 for pause at end
+                messageEl.innerHTML = createBoldWaveHTML(text, boldIndex);
             }
-        }, 400);
+        }, 200);
+    }
+
+    /**
+     * Create HTML with one character bold
+     */
+    function createBoldWaveHTML(text, boldIndex) {
+        if (boldIndex >= text.length) {
+            // Pause - show all normal
+            return text;
+        }
+
+        let html = '';
+        for (let i = 0; i < text.length; i++) {
+            if (i === boldIndex) {
+                html += `<span style="font-weight: 900; filter: brightness(1.5);">${text[i]}</span>`;
+            } else {
+                html += text[i];
+            }
+        }
+        return html;
     }
 
     /**
@@ -185,8 +197,16 @@
         if (!display) return;
 
         const icon = display.querySelector('.rack-notif-icon');
+        const messageEl = display.querySelector('.rack-notif-message');
+
         if (icon) {
             icon.style.display = '';
+        }
+
+        // Reset text alignment
+        if (messageEl) {
+            messageEl.style.textAlign = '';
+            messageEl.style.width = '';
         }
     }
 
