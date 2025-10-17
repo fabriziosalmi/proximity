@@ -428,16 +428,14 @@ export class InfrastructureDiagram {
         // App node interactions
         const appNodes = document.querySelectorAll('.app-node');
         appNodes.forEach(node => {
-            // Click handler - open app in canvas
+            // Click handler - navigate to apps page
             node.addEventListener('click', (e) => {
                 const appId = node.dataset.appId;
                 if (appId && window.router) {
                     e.stopPropagation();
-                    console.log('🚀 Opening app canvas:', appId);
-                    // Navigate to apps view to show the app
+                    console.log('🚀 Navigating to apps page');
+                    // Navigate to apps view
                     window.router.navigateTo('apps');
-                    // Could also trigger openCanvas(appId) if available
-                    this.triggerAppOpen(appId);
                 }
             });
 
@@ -455,15 +453,15 @@ export class InfrastructureDiagram {
             });
         });
 
-        // Proxmox host click handler - navigate to infra view
+        // Proxmox host click handler - navigate to hosts view
         const proxmoxHost = document.querySelector('#proxmox-host');
         if (proxmoxHost) {
             proxmoxHost.style.cursor = 'pointer';
             proxmoxHost.addEventListener('click', (e) => {
                 e.stopPropagation();
-                console.log('🖥️  Navigating to Proxmox Infra view');
+                console.log('🖥️  Navigating to hosts page');
                 if (window.router) {
-                    window.router.navigateTo('infra');
+                    window.router.navigateTo('hosts');
                 }
             });
 
@@ -478,22 +476,44 @@ export class InfrastructureDiagram {
             });
         }
 
-        // Gateway/Network nodes - informational (future: could open network modal)
-        ['gateway', 'switch'].forEach(nodeId => {
-            const node = document.querySelector(`#${nodeId}`);
-            if (node) {
-                node.style.cursor = 'pointer';
-                node.addEventListener('mouseenter', () => {
-                    node.style.opacity = '1';
-                    node.style.filter = 'drop-shadow(0 0 12px rgba(0, 245, 255, 0.5))';
-                });
+        // Gateway/Network nodes - Gateway opens in new tab, Switch is informational
+        const gatewayNode = document.querySelector('#gateway');
+        if (gatewayNode) {
+            gatewayNode.style.cursor = 'pointer';
+            gatewayNode.addEventListener('click', (e) => {
+                e.stopPropagation();
+                console.log('🌐 Opening Gateway in new tab');
+                // Open gateway at IP:80 in new tab
+                // Default to 192.168.1.1 if not available
+                const gatewayIp = '192.168.1.1'; // Could be made dynamic from system data
+                window.open(`http://${gatewayIp}:80`, '_blank');
+            });
 
-                node.addEventListener('mouseleave', () => {
-                    node.style.opacity = '0.85';
-                    node.style.filter = 'drop-shadow(0 0 6px rgba(0, 245, 255, 0.2))';
-                });
-            }
-        });
+            gatewayNode.addEventListener('mouseenter', () => {
+                gatewayNode.style.opacity = '1';
+                gatewayNode.style.filter = 'drop-shadow(0 0 12px rgba(0, 245, 255, 0.5))';
+            });
+
+            gatewayNode.addEventListener('mouseleave', () => {
+                gatewayNode.style.opacity = '0.85';
+                gatewayNode.style.filter = 'drop-shadow(0 0 6px rgba(0, 245, 255, 0.2))';
+            });
+        }
+
+        // Network Switch - informational (no action for now)
+        const switchNode = document.querySelector('#switch');
+        if (switchNode) {
+            switchNode.style.cursor = 'default';
+            switchNode.addEventListener('mouseenter', () => {
+                switchNode.style.opacity = '1';
+                switchNode.style.filter = 'drop-shadow(0 0 12px rgba(0, 245, 255, 0.5))';
+            });
+
+            switchNode.addEventListener('mouseleave', () => {
+                switchNode.style.opacity = '0.85';
+                switchNode.style.filter = 'drop-shadow(0 0 6px rgba(0, 245, 255, 0.2))';
+            });
+        }
     }
 
     /**
@@ -526,19 +546,5 @@ export class InfrastructureDiagram {
             line.style.strokeWidth = '2';
         });
     }
-
-    /**
-     * Trigger app open action
-     * @param {string} appId - App ID to open
-     */
-    triggerAppOpen(appId) {
-        // Emit custom event that can be caught by app shell
-        const event = new CustomEvent('appOpen', { detail: { appId } });
-        window.dispatchEvent(event);
-
-        // Try to find and open app in canvas if possible
-        if (typeof window.openCanvas === 'function') {
-            window.openCanvas({ id: appId });
-        }
-    }
 }
+
