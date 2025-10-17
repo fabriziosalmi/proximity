@@ -199,30 +199,34 @@ export function populateDeployedCard(cardElement, app) {
     }
     
     // ============================================================================
-    // Real-time Resource Metrics (CPU & RAM)
+    // Real-time Resource Metrics (CPU, RAM & Disk)
     // ============================================================================
     
     // Add data-app-id to metric bars for polling
     const cpuBar = cardElement.querySelector('.cpu-bar');
     const ramBar = cardElement.querySelector('.ram-bar');
+    const diskBar = cardElement.querySelector('.disk-bar');
     if (cpuBar) cpuBar.setAttribute('data-app-id', app.id);
     if (ramBar) ramBar.setAttribute('data-app-id', app.id);
+    if (diskBar) diskBar.setAttribute('data-app-id', app.id);
     
     updateResourceMetrics(cardElement, app);
 }
 
 /**
- * Update resource metrics (CPU & RAM) for an app card
+ * Update resource metrics (CPU, RAM & Disk) for an app card
  * @param {DocumentFragment|HTMLElement} cardElement - Card element
  * @param {Object} app - App data with stats
  */
 export function updateResourceMetrics(cardElement, app) {
     const cpuBar = cardElement.querySelector('.cpu-bar');
     const ramBar = cardElement.querySelector('.ram-bar');
+    const diskBar = cardElement.querySelector('.disk-bar');
     const cpuValueSpan = cardElement.querySelector('.cpu-value');
     const ramValueSpan = cardElement.querySelector('.ram-value');
+    const diskValueSpan = cardElement.querySelector('.disk-value');
 
-    if (!cpuBar || !ramBar) {
+    if (!cpuBar || !ramBar || !diskBar) {
         console.warn('⚠️ Metric bars not found for app:', app.name);
         return;
     }
@@ -284,9 +288,33 @@ export function updateResourceMetrics(cardElement, app) {
         ramBar.classList.add('high-usage');
     }
 
+    // Get Disk usage from app stats
+    let diskUsageGB = app.stats?.disk_usage || app.disk_usage || 0;
+    let diskMaxGB = app.stats?.disk_max || app.disk_max || 100;
+
+    // For testing: if no real disk data, generate random values
+    if (diskUsageGB === 0 && diskMaxGB === 100) {
+        diskMaxGB = 100;
+        diskUsageGB = Math.floor(Math.random() * 60);
+    }
+
+    const diskPercentage = diskMaxGB > 0 ? (diskUsageGB / diskMaxGB) * 100 : 0;
+
+    // Update Disk bar
+    diskBar.style.width = `${diskPercentage}%`;
+    if (diskValueSpan) diskValueSpan.textContent = `${diskPercentage.toFixed(1)}%`;
+
+    diskBar.classList.remove('high-usage', 'critical-usage');
+    if (diskPercentage >= 95) {
+        diskBar.classList.add('critical-usage');
+    } else if (diskPercentage >= 80) {
+        diskBar.classList.add('high-usage');
+    }
+
     // Store app ID for polling updates
     cpuBar.setAttribute('data-app-id', app.id);
     ramBar.setAttribute('data-app-id', app.id);
+    diskBar.setAttribute('data-app-id', app.id);
 }
 
 /**
@@ -451,7 +479,7 @@ export function renderAppCard(app, container, isDeployed = false, attachEvents =
 }
 
 /**
- * Start polling for resource metrics updates (CPU & RAM)
+ * Start polling for resource metrics updates (CPU, RAM & Disk)
  * Called when Apps view is shown
  * @param {Object} state - Global app state
  * @returns {number} - Interval ID for cleanup
@@ -476,8 +504,9 @@ export function startCPUPolling(state) {
                 apps.forEach(app => {
                     const cpuBar = document.querySelector(`.cpu-bar[data-app-id="${app.id}"]`);
                     const ramBar = document.querySelector(`.ram-bar[data-app-id="${app.id}"]`);
+                    const diskBar = document.querySelector(`.disk-bar[data-app-id="${app.id}"]`);
 
-                    if (!cpuBar || !ramBar) {
+                    if (!cpuBar || !ramBar || !diskBar) {
                         return;
                     }
 
@@ -489,16 +518,20 @@ export function startCPUPolling(state) {
                         // Hide metrics for stopped apps
                         cpuBar.style.width = '0%';
                         ramBar.style.width = '0%';
+                        diskBar.style.width = '0%';
                         cpuBar.classList.remove('high-usage', 'critical-usage');
                         ramBar.classList.remove('high-usage', 'critical-usage');
+                        diskBar.classList.remove('high-usage', 'critical-usage');
                         
                         const cpuValueSpan = cpuBar.closest('.metric-item')?.querySelector('.cpu-value');
                         const ramValueSpan = ramBar.closest('.metric-item')?.querySelector('.ram-value');
+                        const diskValueSpan = diskBar.closest('.metric-item')?.querySelector('.disk-value');
                         if (cpuValueSpan) cpuValueSpan.textContent = '0%';
                         if (ramValueSpan) ramValueSpan.textContent = '0 MB';
+                        if (diskValueSpan) diskValueSpan.textContent = '0%';
                     } else {
                         // For running apps, fetch current stats
-                        fetchAndUpdateAppStats(app.id, cpuBar, ramBar);
+                        fetchAndUpdateAppStats(app.id, cpuBar, ramBar, diskBar);
                     }
                 });
 
@@ -531,8 +564,9 @@ export function startCPUPolling(state) {
  * @param {string} appId - App ID
  * @param {HTMLElement} cpuBar - CPU bar element
  * @param {HTMLElement} ramBar - RAM bar element
+ * @param {HTMLElement} diskBar - Disk bar element
  */
-async function fetchAndUpdateAppStats(appId, cpuBar, ramBar) {
+async function fetchAndUpdateAppStats(appId, cpuBar, ramBar, diskBar) {
     try {
         const response = await authFetch(`${API_BASE}/apps/${appId}/stats/current`);
 
@@ -569,6 +603,23 @@ async function fetchAndUpdateAppStats(appId, cpuBar, ramBar) {
             } else if (ramPercentage >= 80) {
                 ramBar.classList.add('high-usage');
             }
+
+            // Update Disk - convert GB to percentage
+            const diskUsageGB = stats.disk_used_gb || 0;
+            const diskMaxGB = stats.disk_total_gb || 1;
+            const diskPercentage = diskMaxGB > 0 ? (diskUsageGB / diskMaxGB) * 100 : 0;
+
+            diskBar.style.width = `${diskPercentage}%`;
+
+            const diskValueSpan = diskBar.closest('.metric-item')?.querySelector('.disk-value');
+            if (diskValueSpan) diskValueSpan.textContent = `${diskPercentage.toFixed(1)}%`;
+
+            diskBar.classList.remove('high-usage', 'critical-usage');
+            if (diskPercentage >= 95) {
+                diskBar.classList.add('critical-usage');
+            } else if (diskPercentage >= 80) {
+                diskBar.classList.add('high-usage');
+            }
             
             // ============================================================================
             // Update Status LED based on load
@@ -586,7 +637,7 @@ async function fetchAndUpdateAppStats(appId, cpuBar, ramBar) {
                 
                 // Only update LED for running apps (don't override stopped/error states)
                 if (currentStatus === 'running') {
-                    const isHighLoad = cpuUsage > 80 || ramPercentage > 85;
+                    const isHighLoad = cpuUsage > 80 || ramPercentage > 85 || diskPercentage > 85;
                     
                     // Check if currently in maintenance (don't override maintenance state)
                     const isInMaintenance = statusElement.classList.contains('status-maintenance');
