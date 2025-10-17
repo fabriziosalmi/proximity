@@ -359,7 +359,7 @@
 }
 
 /* Status indicator animations based on status */
-.app-node circle:last-of-type {
+.status-indicator {
     animation: status-pulse 2s infinite;
 }
 
