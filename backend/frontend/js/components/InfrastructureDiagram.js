@@ -290,8 +290,8 @@ export class InfrastructureDiagram {
                     <rect x="${x}" y="${y}" width="${boxWidth}" height="25" 
                           rx="8" fill="${statusColor}" opacity="0.1"/>
                     
-                    <!-- Status indicator -->
-                    <circle cx="${x + boxWidth - 12}" cy="${y + 12}" r="5" fill="${statusColor}" opacity="0.9"/>
+                    <!-- Status indicator (animated pulse) -->
+                    <circle class="status-indicator" cx="${x + boxWidth - 12}" cy="${y + 12}" r="5" fill="${statusColor}" opacity="0.9"/>
                     
                     <!-- App name (hostname) -->
                     <text x="${x + 8}" y="${y + 18}" 
@@ -434,11 +434,11 @@ export class InfrastructureDiagram {
             // Click handler - open app in canvas
             node.addEventListener('click', (e) => {
                 const appId = node.dataset.appId;
-                if (appId && window.ProximityRouter) {
+                if (appId && window.router) {
                     e.stopPropagation();
                     console.log('🚀 Opening app canvas:', appId);
-                    // Navigate to app detail view
-                    window.ProximityRouter.navigateTo('apps');
+                    // Navigate to apps view to show the app
+                    window.router.navigateTo('apps');
                     // Could also trigger openCanvas(appId) if available
                     this.triggerAppOpen(appId);
                 }
@@ -465,8 +465,8 @@ export class InfrastructureDiagram {
             proxmoxHost.addEventListener('click', (e) => {
                 e.stopPropagation();
                 console.log('🖥️  Navigating to Proxmox Infra view');
-                if (window.ProximityRouter) {
-                    window.ProximityRouter.navigateTo('infra');
+                if (window.router) {
+                    window.router.navigateTo('infra');
                 }
             });
 
