@@ -117,6 +117,7 @@ function createIconElement(config, appName) {
 
 /**
  * Render app icon into container element
+ * Priority: Local icons > External URL > Category icon > Emoji fallback
  * @param {HTMLElement} iconContainer - Container element for icon
  * @param {Object} app - App data with name/id and optional icon URL
  */
@@ -124,33 +125,89 @@ export function renderAppIcon(iconContainer, app) {
     // Clear existing content
     iconContainer.innerHTML = '';
 
+    // Get app identifier (lowercase, no spaces for filename matching)
+    const appId = (app.id || app.name || '').toLowerCase().replace(/\s+/g, '-');
+    
     // Get fallback icon (emoji or SVG)
     const fallbackIcon = getAppIcon(app.name || app.id);
 
-    // If app has custom icon URL from catalog
-    if (app.icon) {
+    // Priority 1: Try local icon first (SVG or PNG)
+    const localIconPaths = [
+        `/icons/${appId}.svg`,
+        `/icons/${appId}.png`
+    ];
+    
+    let iconLoaded = false;
+    
+    // Try local icons first
+    const tryLocalIcon = (index = 0) => {
+        if (index >= localIconPaths.length) {
+            // Local icons failed, try external URL if available
+            if (app.icon && !app.icon.startsWith('/icons/')) {
+                tryExternalIcon();
+            } else {
+                // No external URL, use fallback
+                useFallbackIcon();
+            }
+            return;
+        }
+        
+        const img = document.createElement('img');
+        img.src = localIconPaths[index];
+        img.alt = app.name || app.id;
+        img.style.width = '75%';
+        img.style.height = '75%';
+        img.style.objectFit = 'contain';
+        
+        img.onload = function() {
+            if (!iconLoaded) {
+                iconLoaded = true;
+                iconContainer.innerHTML = '';
+                iconContainer.appendChild(img);
+            }
+        };
+        
+        img.onerror = function() {
+            // Try next local path
+            tryLocalIcon(index + 1);
+        };
+        
+        // Start loading (don't append yet, wait for onload)
+    };
+    
+    // Try external icon URL
+    const tryExternalIcon = () => {
         const img = document.createElement('img');
         img.src = app.icon;
         img.alt = app.name || app.id;
         img.style.width = '75%';
         img.style.height = '75%';
         img.style.objectFit = 'contain';
-
-        // Fallback to emoji/SVG on error
-        img.onerror = function() {
-            this.style.display = 'none';
-            if (typeof fallbackIcon === 'string') {
-                iconContainer.insertAdjacentHTML('beforeend', fallbackIcon);
+        
+        img.onload = function() {
+            if (!iconLoaded) {
+                iconLoaded = true;
+                iconContainer.innerHTML = '';
+                iconContainer.appendChild(img);
             }
         };
-
-        iconContainer.appendChild(img);
-    } else {
-        // Use fallback icon directly
-        if (typeof fallbackIcon === 'string') {
+        
+        img.onerror = function() {
+            // External icon failed, use fallback
+            useFallbackIcon();
+        };
+    };
+    
+    // Use fallback icon (category icon or emoji)
+    const useFallbackIcon = () => {
+        if (!iconLoaded && typeof fallbackIcon === 'string') {
+            iconLoaded = true;
             iconContainer.innerHTML = fallbackIcon;
         }
-    }
+    };
+    
+    // Start the icon loading cascade
+    tryLocalIcon();
 }
 
 /**
