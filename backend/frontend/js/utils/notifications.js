@@ -70,57 +70,9 @@ export function showNotification(message, type = 'info', duration = 5000, title 
         }
     }
 
-    // Get or create container
-    let container = document.getElementById('toast-container');
-    if (!container) {
-        container = document.createElement('div');
-        container.id = 'toast-container';
-        container.className = 'toast-container';
-        document.body.appendChild(container);
-    }
-
-    // Create toast element
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-
-    const iconName = TOAST_ICONS[type] || TOAST_ICONS.info;
-    const toastTitle = title || TOAST_TITLES[type] || TOAST_TITLES.info;
-
-    // Build toast HTML
-    toast.innerHTML = `
-        <div class="toast-icon">
-            <i data-lucide="${iconName}"></i>
-        </div>
-        <div class="toast-content">
-            <div class="toast-title">${toastTitle}</div>
-            <div class="toast-message">${message}</div>
-        </div>
-        <button class="toast-close" aria-label="Close notification">×</button>
-        ${duration > 0 ? '<div class="toast-progress"></div>' : ''}
-    `;
-
-    // Add close button handler
-    const closeBtn = toast.querySelector('.toast-close');
-    closeBtn.addEventListener('click', () => removeToast(toast));
-
-    // Add to container
-    container.appendChild(toast);
-
-    // Initialize Lucide icons for the new toast
-    if (window.lucide) {
-        window.lucide.createIcons();
-    }
-
-    // Auto-dismiss with progress bar animation
-    if (duration > 0) {
-        const progressBar = toast.querySelector('.toast-progress');
-        if (progressBar) {
-            // Animate progress bar
-            progressBar.style.animation = `toastProgress ${duration}ms linear`;
-        }
-
-        // Schedule removal
-        setTimeout(() => removeToast(toast), duration);
+    // Update rack notification display (ONLY THIS, no toast popup)
+    if (window.updateRackNotification) {
+        window.updateRackNotification(message, type, duration);
     }
 
     // Log to console for debugging
@@ -133,7 +85,8 @@ export function showNotification(message, type = 'info', duration = 5000, title 
         console.log(logPrefix, message);
     }
 
-    return toast;
+    // Return null since we're not creating a toast element anymore
+    return null;
 }
 
 /**

@@ -67,59 +67,8 @@
             }
         }
 
-        // Update rack notification display
-        updateRackNotification(message, type);
-
-        // Get or create container (keep toast for fallback)
-        let container = document.getElementById('toast-container');
-        if (!container) {
-            container = document.createElement('div');
-            container.id = 'toast-container';
-            container.className = 'toast-container';
-            document.body.appendChild(container);
-        }
-
-        // Create toast element
-        const toast = document.createElement('div');
-        toast.className = `toast toast-${type}`;
-
-        const iconName = TOAST_ICONS[type] || TOAST_ICONS.info;
-        const toastTitle = title || TOAST_TITLES[type] || TOAST_TITLES.info;
-
-        // Build toast HTML
-        toast.innerHTML = `
-            <div class="toast-icon">
-                <i data-lucide="${iconName}"></i>
-            </div>
-            <div class="toast-content">
-                <div class="toast-title">${toastTitle}</div>
-                <div class="toast-message">${message}</div>
-            </div>
-            <button class="toast-close" aria-label="Close notification">×</button>
-            ${duration > 0 ? '<div class="toast-progress"></div>' : ''}
-        `;
-
-        // Add close button handler
-        const closeBtn = toast.querySelector('.toast-close');
-        closeBtn.addEventListener('click', () => removeToast(toast));
-
-        // Add to container
-        container.appendChild(toast);
-
-        // Initialize Lucide icons for the new toast
-        if (window.lucide) {
-            window.lucide.createIcons();
-        }
-
-        // Auto-dismiss with progress bar animation
-        if (duration > 0) {
-            const progressBar = toast.querySelector('.toast-progress');
-            if (progressBar) {
-                progressBar.style.animation = `toastProgress ${duration}ms linear`;
-            }
-
-            setTimeout(() => removeToast(toast), duration);
-        }
+        // Update rack notification display (ONLY THIS, no toast popup)
+        updateRackNotification(message, type, duration);
 
         // Log to console for debugging
         const logPrefix = `[${type.toUpperCase()}]`;
@@ -131,7 +80,8 @@
             console.log(logPrefix, message);
         }
 
-        return toast;
+        // Return null since we're not creating a toast element anymore
+        return null;
     }
 
     /**
@@ -173,14 +123,85 @@
         }
     }
 
+    // Store current auto-dismiss timeout
+    let rackNotificationTimeout = null;
+    let idleAnimationInterval = null;
+
+    /**
+     * Start idle animation (thinking effect with asterisks)
+     */
+    function startIdleAnimation() {
+        const display = document.getElementById('rackNotificationDisplay');
+        if (!display) return;
+
+        const icon = display.querySelector('.rack-notif-icon');
+        const messageEl = display.querySelector('.rack-notif-message');
+
+        // Hide icon during idle animation
+        if (icon) {
+            icon.style.display = 'none';
+        }
+
+        // Set base class
+        display.className = 'rack-notification-display rack-idle';
+
+        let frame = 0;
+        const frames = [
+            '∗ PROXIMITY ∗',
+            '• PROXIMITY •',
+            '◦ PROXIMITY ◦',
+            '∘ PROXIMITY ∘',
+            '· PROXIMITY ·',
+            '  PROXIMITY  ',
+            '· PROXIMITY ·',
+            '∘ PROXIMITY ∘',
+            '◦ PROXIMITY ◦',
+            '• PROXIMITY •'
+        ];
+
+        // Set initial frame
+        if (messageEl) {
+            messageEl.textContent = frames[0];
+        }
+
+        idleAnimationInterval = setInterval(() => {
+            if (messageEl) {
+                frame = (frame + 1) % frames.length;
+                messageEl.textContent = frames[frame];
+            }
+        }, 400);
+    }
+
+    /**
+     * Stop idle animation
+     */
+    function stopIdleAnimation() {
+        if (idleAnimationInterval) {
+            clearInterval(idleAnimationInterval);
+            idleAnimationInterval = null;
+        }
+
+        const display = document.getElementById('rackNotificationDisplay');
+        if (!display) return;
+
+        const icon = display.querySelector('.rack-notif-icon');
+        if (icon) {
+            icon.style.display = '';
+        }
+    }
+
     /**
      * Update rack notification display
      * @param {string} message - The notification message
      * @param {string} type - Type of notification (success, error, warning, info)
+     * @param {number} duration - Duration in ms before auto-dismiss (0 = no auto-dismiss)
      */
-    function updateRackNotification(message, type = 'info') {
+    function updateRackNotification(message, type = 'info', duration = 5000) {
         const display = document.getElementById('rackNotificationDisplay');
         if (!display) return;
+
+        // Stop idle animation when showing notification
+        stopIdleAnimation();
 
         const icon = display.querySelector('.rack-notif-icon');
         const messageEl = display.querySelector('.rack-notif-message');
@@ -196,8 +217,8 @@
             messageEl.textContent = message;
         }
 
-        // Update type class
-        display.className = `rack-notification-display notif-${type} notif-new`;
+        // Update type class and make visible
+        display.className = `rack-notification-display notif-${type} notif-new notif-visible`;
 
         // Re-initialize Lucide icons for the new icon
         if (window.lucide && window.lucide.createIcons) {
@@ -208,6 +229,26 @@
         setTimeout(() => {
             display.classList.remove('notif-new');
         }, 500);
+
+        // Clear existing auto-dismiss timeout
+        if (rackNotificationTimeout) {
+            clearTimeout(rackNotificationTimeout);
+            rackNotificationTimeout = null;
+        }
+
+        // Set auto-dismiss (if duration > 0)
+        if (duration > 0) {
+            rackNotificationTimeout = setTimeout(() => {
+                // Fade out
+                display.classList.add('notif-fadeout');
+
+                setTimeout(() => {
+                    display.classList.remove('notif-visible', 'notif-fadeout');
+                    // Start idle animation after dismiss
+                    startIdleAnimation();
+                }, 300);
+            }, duration);
+        }
     }
 
     // Expose to global scope
@@ -218,6 +259,8 @@
     window.showInfo = showInfo;
     window.clearAllToasts = clearAllToasts;
     window.updateRackNotification = updateRackNotification;
+    window.startIdleAnimation = startIdleAnimation;
+    window.stopIdleAnimation = stopIdleAnimation;
 
     // Add progress bar animation keyframe
     const style = document.createElement('style');

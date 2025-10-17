@@ -104,7 +104,15 @@ function initTopNavRack() {
         window.lucide.createIcons();
         console.log('✓ Top Navigation Rack icons initialized');
     }
-    
+
+    // Start idle animation for rack notification display
+    if (window.startIdleAnimation) {
+        setTimeout(() => {
+            window.startIdleAnimation();
+            console.log('✓ Idle animation started for rack notification display');
+        }, 1000); // Delay 1 second to let initial messages show
+    }
+
     console.log('✓ Top Navigation Rack initialized');
 }
 

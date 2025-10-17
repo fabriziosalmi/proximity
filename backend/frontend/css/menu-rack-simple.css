@@ -81,53 +81,58 @@
 .rack-notification-display {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
+    gap: 0.75rem;
+    padding: 0.625rem 1.25rem;
+    border-radius: 0; /* No border radius for embedded look */
     font-family: 'Doto Rounded', 'Courier New', 'Consolas', monospace;
     font-size: 0.875rem;
     font-weight: 900;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    
-    /* LCD Green background */
-    background: linear-gradient(180deg, #9ac94e 0%, #7db13a 100%);
-    border: 2px solid #5a8029;
-    color: #1a3310;
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.15);
-    
-    /* LCD pixel grid effect */
-    box-shadow: 
-        inset 0 1px 2px rgba(255, 255, 255, 0.3),
-        inset 0 -1px 2px rgba(0, 0, 0, 0.2),
-        0 2px 4px rgba(0, 0, 0, 0.3);
-    
+
+    /* Black LCD/VFD display background */
+    background: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
+    border: none; /* Remove borders for seamless integration */
+
+    /* Cyan glowing text */
+    color: #00ffff;
+    text-shadow:
+        0 0 8px rgba(0, 255, 255, 0.8),
+        0 0 16px rgba(0, 255, 255, 0.4),
+        0 1px 2px rgba(0, 0, 0, 0.8);
+
+    /* Glass/screen effect */
+    box-shadow:
+        inset 0 1px 1px rgba(255, 255, 255, 0.05),
+        inset 0 -1px 1px rgba(0, 0, 0, 0.8),
+        inset 0 0 30px rgba(0, 0, 0, 0.5);
+
     max-width: 600px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     position: relative;
-    
-    /* Subtle scanline effect */
-    background-image: 
-        linear-gradient(180deg, #9ac94e 0%, #7db13a 100%),
+
+    /* Subtle scanline effect for LCD/CRT look */
+    background-image:
+        linear-gradient(180deg, #0a0a0a 0%, #000000 100%),
         repeating-linear-gradient(
             0deg,
             transparent,
             transparent 2px,
-            rgba(0, 0, 0, 0.03) 2px,
-            rgba(0, 0, 0, 0.03) 4px
+            rgba(0, 255, 255, 0.02) 2px,
+            rgba(0, 255, 255, 0.02) 4px
         );
     background-blend-mode: normal;
 }
 
 .rack-notif-icon {
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
     flex-shrink: 0;
-    filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.2));
-    color: #1a3310;
+    color: #00ffff;
+    filter: drop-shadow(0 0 6px rgba(0, 255, 255, 0.8));
 }
 
 .rack-notif-message {
@@ -136,75 +141,137 @@
     text-overflow: ellipsis;
 }
 
-/* Notification Type Styles - LCD color variations */
+/* Notification Type Styles - Colored glowing text on black */
 .rack-notification-display.notif-info {
-    /* Cyan-Green LCD */
+    /* Cyan glow (default) */
+    background: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
+    color: #00ffff;
+    text-shadow:
+        0 0 8px rgba(0, 255, 255, 0.8),
+        0 0 16px rgba(0, 255, 255, 0.4),
+        0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.rack-notification-display.notif-info .rack-notif-icon {
+    color: #00ffff;
+    filter: drop-shadow(0 0 6px rgba(0, 255, 255, 0.8));
+}
+
+.rack-notification-display.notif-success {
+    /* Green glow */
+    background: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
+    color: #00ff00;
+    text-shadow:
+        0 0 8px rgba(0, 255, 0, 0.8),
+        0 0 16px rgba(0, 255, 0, 0.4),
+        0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.rack-notification-display.notif-success .rack-notif-icon {
+    color: #00ff00;
+    filter: drop-shadow(0 0 6px rgba(0, 255, 0, 0.8));
+}
+
+.rack-notification-display.notif-warning {
+    /* Amber/Orange glow */
+    background: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
+    color: #ffaa00;
+    text-shadow:
+        0 0 8px rgba(255, 170, 0, 0.8),
+        0 0 16px rgba(255, 170, 0, 0.4),
+        0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.rack-notification-display.notif-warning .rack-notif-icon {
+    color: #ffaa00;
+    filter: drop-shadow(0 0 6px rgba(255, 170, 0, 0.8));
+}
+
+.rack-notification-display.notif-error {
+    /* Red glow */
+    background: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
+    color: #ff0000;
+    text-shadow:
+        0 0 8px rgba(255, 0, 0, 0.8),
+        0 0 16px rgba(255, 0, 0, 0.4),
+        0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.rack-notification-display.notif-error .rack-notif-icon {
+    color: #ff0000;
+    filter: drop-shadow(0 0 6px rgba(255, 0, 0, 0.8));
+}
+
+/* Animation for new notifications - intense glow pulse */
+@keyframes notif-pulse {
+    0%, 100% {
+        box-shadow:
+            inset 0 1px 1px rgba(255, 255, 255, 0.05),
+            inset 0 -1px 1px rgba(0, 0, 0, 0.8),
+            inset 0 0 30px rgba(0, 0, 0, 0.5);
+        filter: brightness(1);
+    }
+    50% {
+        box-shadow:
+            inset 0 1px 1px rgba(255, 255, 255, 0.1),
+            inset 0 -1px 1px rgba(0, 0, 0, 0.6),
+            inset 0 0 30px rgba(0, 0, 0, 0.5),
+            0 0 20px currentColor;
+        filter: brightness(1.2);
+    }
+}
+
+.rack-notification-display.notif-new {
+    animation: notif-pulse 0.6s ease-in-out;
+}
+
+/* Visible notification state */
+.rack-notification-display.notif-visible {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Fade out animation */
+.rack-notification-display.notif-fadeout {
+    animation: notif-fadeout 0.3s ease-out forwards;
+}
+
+@keyframes notif-fadeout {
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+    to {
+        opacity: 0.3;
+        transform: scale(0.95);
+    }
+}
+
+/* Idle animation state - thinking effect */
+.rack-notification-display.rack-idle {
+    /* Blue-ish LCD like "thinking" mode */
     background: linear-gradient(180deg, #6dd5db 0%, #4fb3bb 100%);
     border-color: #2d7983;
     color: #0a2f33;
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
+    opacity: 0.85;
+    animation: idle-glow 2s ease-in-out infinite;
 }
 
-.rack-notification-display.notif-info .rack-notif-icon {
-    color: #0a2f33;
-}
-
-.rack-notification-display.notif-success {
-    /* Bright Green LCD */
-    background: linear-gradient(180deg, #9ac94e 0%, #7db13a 100%);
-    border-color: #5a8029;
-    color: #1a3310;
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.15);
-}
-
-.rack-notification-display.notif-success .rack-notif-icon {
-    color: #1a3310;
-}
-
-.rack-notification-display.notif-warning {
-    /* Amber LCD */
-    background: linear-gradient(180deg, #ffd666 0%, #ffb84d 100%);
-    border-color: #cc8800;
-    color: #4d3300;
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
-}
-
-.rack-notification-display.notif-warning .rack-notif-icon {
-    color: #4d3300;
-}
-
-.rack-notification-display.notif-error {
-    /* Red LCD */
-    background: linear-gradient(180deg, #ff6b6b 0%, #ee5555 100%);
-    border-color: #cc0000;
-    color: #330000;
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
-}
-
-.rack-notification-display.notif-error .rack-notif-icon {
-    color: #330000;
-}
-
-/* Animation for new notifications - subtle glow */
-@keyframes notif-pulse {
+@keyframes idle-glow {
     0%, 100% {
-        box-shadow: 
+        box-shadow:
             inset 0 1px 2px rgba(255, 255, 255, 0.3),
             inset 0 -1px 2px rgba(0, 0, 0, 0.2),
             0 2px 4px rgba(0, 0, 0, 0.3);
     }
     50% {
-        box-shadow: 
+        box-shadow:
             inset 0 1px 2px rgba(255, 255, 255, 0.4),
             inset 0 -1px 2px rgba(0, 0, 0, 0.15),
-            0 2px 8px rgba(0, 0, 0, 0.4),
-            0 0 12px rgba(154, 201, 78, 0.4);
+            0 2px 6px rgba(0, 0, 0, 0.35),
+            0 0 8px rgba(109, 213, 219, 0.3);
     }
-}
-
-
-.rack-notification-display.notif-new {
-    animation: notif-pulse 0.5s ease-in-out;
 }
 
 .nav-rack-content {
