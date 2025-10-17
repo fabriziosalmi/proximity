@@ -1,62 +1,47 @@
 # 🎉 Nuove App Aggiunte al Catalogo Proximity
 
 ## Data: 17 Ottobre 2025
-**Versione catalogo aggiornata**: 2.5.0 → 2.6.0
-**Totale app nel catalogo**: 118 → 128 (+10 app)
+**Versione catalogo aggiornata**: 2.6.0 → 2.8.0
+**Totale app nel catalogo**: 120 → 127 (+7 app)
 
 ---
 
-## ✅ Le 10 Nuove App Aggiunte
+## ✅ Le 7 Nuove App Aggiunte (Versione 2.8.0)
 
-### 1. **Appwrite** (Development)
-- **Descrizione**: Backend as a Service platform per applicazioni web e mobile
-- **Uso**: Sviluppo di applicazioni senza server
-- **File**: `appwrite.json`
+### 1. **Firefly III** (Finance)
+- **Descrizione**: Gestore finanziario open source con dashboard interattive
+- **Uso**: Tenere traccia di budget personali e contabilità familiare
+- **File**: `firefly-iii.json`
 
-### 2. **Dockge** (DevOps)
-- **Descrizione**: Interfaccia moderna per gestire stack Docker Compose
-- **Uso**: Gestione e organizzazione di container Docker
-- **File**: `dockge.json`
+### 2. **Papermerge** (Document Management)
+- **Descrizione**: Sistema DMS con OCR integrato per archiviare documenti digitalizzati
+- **Uso**: Digitalizzazione e classificazione di documenti cartacei
+- **File**: `papermerge.json`
 
-### 3. **Cachet** (Monitoring)
-- **Descrizione**: Sistema per pagine di stato self-hosted
-- **Uso**: Monitoraggio dello stato dei servizi
-- **File**: `cachet.json`
+### 3. **Snipe-IT** (IT Asset Management)
+- **Descrizione**: Gestione inventario IT con tracciamento licenze e assegnazioni
+- **Uso**: Organizzare asset aziendali e storico manutenzione
+- **File**: `snipe-it.json`
 
-### 4. **Gatus** (Monitoring)
-- **Descrizione**: Pagina di stato automatizzata e monitoraggio uptime
-- **Uso**: Dashboard di monitoraggio dello stato dei servizi
-- **File**: `gatus.json`
+### 4. **PeerTube** (Media)
+- **Descrizione**: Piattaforma video decentralizzata compatibile ActivityPub
+- **Uso**: Self-hosting di canali video federati
+- **File**: `peertube.json`
 
-### 5. **LibrePhotos** (Media)
-- **Descrizione**: Gestione foto self-hosted con supporto ML
-- **Uso**: Organizzazione e gestione della libreria fotografica personale
-- **File**: `librephotos.json`
+### 5. **Jellyseerr** (Media Requests)
+- **Descrizione**: Interfaccia moderna per richieste di contenuti Plex/Emby/Jellyfin
+- **Uso**: Gestione richieste utenti e automazione download
+- **File**: `jellyseerr.json`
 
-### 6. **Blocky** (Networking)
-- **Descrizione**: DNS proxy veloce e leggero come ad-blocker
-- **Uso**: Blocco pubblicità a livello di rete domestica
-- **File**: `blocky.json`
+### 6. **NZBGet** (Automation)
+- **Descrizione**: Downloader Usenet leggero con queue management avanzato
+- **Uso**: Automazione dei download NZB con integrazione post-processing
+- **File**: `nzbget.json`
 
-### 7. **Bitmagnet** (Media)
-- **Descrizione**: Indicizzatore BitTorrent self-hosted e crawler DHT
-- **Uso**: Ricerca e indicizzazione di torrent
-- **File**: `bitmagnet.json`
-
-### 8. **LinkAce** (Productivity)
-- **Descrizione**: Bookmark manager e archivio di link personali
-- **Uso**: Organizzazione e catalogazione di link web
-- **File**: `linkace.json`
-
-### 9. **Homebox** (Productivity)
-- **Descrizione**: Sistema di inventario e organizzazione domestica
-- **Uso**: Catalogazione di oggetti personali e inventari
-- **File**: `homebox.json`
-
-### 10. **OliveTin** (DevOps)
-- **Descrizione**: Interfaccia web per esecuzione sicura di comandi shell
-- **Uso**: Automazione e gestione di task di sistema
-- **File**: `olivetin.json`
+### 7. **SearXNG** (Search)
+- **Descrizione**: Metamotore di ricerca che aggrega molteplici sorgenti senza tracking
+- **Uso**: Ricerca privata e personalizzabile
+- **File**: `searxng.json`
 
 ---
 
@@ -64,29 +49,61 @@
 
 | Metrica | Valore |
 |---------|--------|
-| **App Totali Prima** | 118 |
-| **App Totali Adesso** | 128 |
-| **App Aggiunte** | 10 |
-| **Versione Catalogo** | 2.6.0 |
+| **App Totali Prima** | 120 |
+| **App Totali Adesso** | 127 |
+| **App Aggiunte** | 7 |
+| **Versione Catalogo** | 2.8.0 |
 | **Data Ultimo Aggiornamento** | 2025-10-17 |
 
 ---
 
 ## 🔍 Categorie Coperte dalle Nuove App
 
-- **Development**: Appwrite
-- **DevOps**: Dockge, OliveTin
-- **Monitoring**: Cachet, Gatus
-- **Media**: LibrePhotos, Bitmagnet
-- **Networking**: Blocky
-- **Productivity**: LinkAce, Homebox
+- **Finance & Office**: Firefly III, Papermerge
+- **IT & Operations**: Snipe-IT, NZBGet
+- **Media & Entertainment**: PeerTube, Jellyseerr
+- **Search & Privacy**: SearXNG
+
+---
+
+## ♻️ Storico aggiornamento 2.6.0 (10 app)
+
+### Appwrite (Development)
+- Backend as a Service per app web/mobile — `appwrite.json`
+
+### Dockge (DevOps)
+- Interfaccia moderna per orchestrare stack Docker — `dockge.json`
+
+### Cachet (Monitoring)
+- Pagine di stato personalizzabili con metriche uptime — `cachet.json`
+
+### Gatus (Monitoring)
+- Monitoraggio uptime con alerting automatico — `gatus.json`
+
+### LibrePhotos (Media)
+- Gestione foto con ML per tagging e riconoscimento — `librephotos.json`
+
+### Blocky (Networking)
+- DNS proxy con filtro pubblicità e parental control — `blocky.json`
+
+### Bitmagnet (Media)
+- Crawler DHT e indicizzatore torrent — `bitmagnet.json`
+
+### LinkAce (Productivity)
+- Archivio link con tagging e automazioni — `linkace.json`
+
+### Homebox (Productivity)
+- Inventario domestico con allegati e scadenze — `homebox.json`
+
+### OliveTin (DevOps)
+- Interfaccia web sicura per eseguire comandi — `olivetin.json`
 
 ---
 
 ## 📝 Note
 
-- Tutte le app sono state cercate su GitHub con il keyword **selfhosted**
-- Sono state scelte solo le app con il maggior numero di stelle e community più attiva
-- Ogni app ha una configurazione Docker Compose completa e pronta all'uso
-- L'indice è stato automaticamente aggiornato con le nuove app
+- Tutti gli stack sono stati validati con parsing JSON automatico (`backend/catalog/apps/*.json`)
+- App selezionate con priorità a progetti attivi e comunità solide
+- Ogni manifest include servizi dipendenti (database, cache) e volumi persistenti
+- L'indice del catalogo è stato aggiornato e versionato insieme alle nuove app
 
