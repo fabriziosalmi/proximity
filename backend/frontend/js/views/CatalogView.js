@@ -53,12 +53,22 @@ export class CatalogView extends Component {
                     <div class="empty-state-icon">⚠️</div>
                     <h2>Cannot Load Catalog</h2>
                     <p>Unable to load the application catalog.</p>
-                    <button class="btn btn-primary" onclick="window.location.reload()">
+                    <button class="btn btn-primary" data-action="retry-catalog">
                         <i data-lucide="refresh-cw"></i>
                         Retry
                     </button>
                 </div>
             `;
+
+            // Add event listener for retry button
+            const retryBtn = container.querySelector('[data-action="retry-catalog"]');
+            if (retryBtn) {
+                retryBtn.addEventListener('click', () => window.location.reload());
+            }
+
+            if (window.lucide) {
+                window.lucide.createIcons();
+            }
         });
 
         // Call parent mount IMMEDIATELY

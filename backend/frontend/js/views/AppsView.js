@@ -90,12 +90,18 @@ export class AppsView extends Component {
                         <h2>Cannot Load Applications</h2>
                         <p>Unable to connect to the backend server.</p>
                         <p class="text-muted">Please make sure the backend is running.</p>
-                        <button class="btn btn-primary" onclick="window.location.reload()">
+                        <button class="btn btn-primary" data-action="retry-load">
                             <i data-lucide="refresh-cw"></i>
                             Retry
                         </button>
                     </div>
                 `;
+
+                // Add event listener for retry button
+                const retryBtn = grid.querySelector('[data-action="retry-load"]');
+                if (retryBtn) {
+                    retryBtn.addEventListener('click', () => window.location.reload());
+                }
 
                 if (window.lucide) {
                     window.lucide.createIcons();
@@ -138,9 +144,15 @@ export class AppsView extends Component {
                     <div class="empty-icon">📦</div>
                     <h3 class="empty-title">No applications deployed</h3>
                     <p class="empty-message">Start by deploying an application from the catalog.</p>
-                    <button class="btn btn-primary" onclick="window.router.navigateTo('catalog')">Browse Catalog</button>
+                    <button class="btn btn-primary" data-action="browse-catalog">Browse Catalog</button>
                 </div>
             `;
+
+            // Add event listener for browse catalog button
+            const catalogBtn = grid.querySelector('[data-action="browse-catalog"]');
+            if (catalogBtn) {
+                catalogBtn.addEventListener('click', () => window.router.navigateTo('catalog'));
+            }
         } else {
             if (ENABLE_PERF_LOGS) console.time('⏱️ Render Cards Loop');
 

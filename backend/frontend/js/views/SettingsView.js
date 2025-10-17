@@ -143,8 +143,13 @@ export class SettingsView extends Component {
         // Setup form handlers (keep existing functionality)
         setupSettingsForms();
 
-        // Expose testProxmoxConnection to window for onclick handler
-        window.testProxmoxConnection = testProxmoxConnection;
+        // Setup test proxmox connection button event listener
+        const testProxmoxBtn = container.querySelector('[data-action="test-proxmox"]');
+        if (testProxmoxBtn) {
+            testProxmoxBtn.addEventListener('click', () => testProxmoxConnection());
+        }
+
+        // Expose handleModeToggle to window for onchange handler (will be refactored later)
         window.handleModeToggle = handleModeToggle;
 
         console.log('✅ Settings view rendered successfully');
@@ -284,7 +289,7 @@ export class SettingsView extends Component {
                         </div>
 
                         <div class="form-actions">
-                            <button type="button" class="btn btn-secondary" onclick="testProxmoxConnection()">
+                            <button type="button" class="btn btn-secondary" data-action="test-proxmox">
                                 <i data-lucide="check-circle"></i>
                                 <span>Test Connection</span>
                             </button>
@@ -476,11 +481,10 @@ export class SettingsView extends Component {
      */
     unmount() {
         console.log('🔧 SettingsView.unmount()');
-        
+
         // Clean up window functions
-        delete window.testProxmoxConnection;
         delete window.handleModeToggle;
-        
+
         // Call parent unmount
         super.unmount();
     }
