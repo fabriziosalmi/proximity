@@ -21,7 +21,7 @@
           "PAPERMERGE__DB__USER": "papermerge",
           "PAPERMERGE__DB__PASSWORD": "papermerge",
           "PAPERMERGE__REDIS__HOST": "papermerge_redis"
-        ],
+        },
         "volumes": [
           "papermerge_data:/app/data",
           "papermerge_media:/app/media"
