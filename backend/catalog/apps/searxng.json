@@ -16,7 +16,7 @@
         ],
         "environment": {
           "SEARXNG_BASE_URL": "http://localhost:8082"
-        ],
+        },
         "volumes": [
           "searxng_settings:/etc/searxng"
         ]

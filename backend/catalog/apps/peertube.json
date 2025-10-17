@@ -22,7 +22,7 @@
           "POSTGRES_PASSWORD": "peertube",
           "REDIS_HOST": "peertube_redis",
           "PEERTUBE_REDIS_AUTH": ""
-        ],
+        },
         "volumes": [
           "peertube_data:/data",
           "peertube_config:/config"
