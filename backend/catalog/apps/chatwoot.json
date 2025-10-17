@@ -1,0 +1,91 @@
+{
+  "id": "chatwoot",
+  "name": "Chatwoot",
+  "description": "Open-source customer engagement suite",
+  "version": "latest",
+  "icon": "https://cdn.simpleicons.org/chatwoot/1F93F3",
+  "category": "Communication",
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "chatwoot": {
+        "image": "chatwoot/chatwoot:latest",
+        "restart": "unless-stopped",
+        "ports": [
+          "3001:3000"
+        ],
+        "environment": {
+          "RAILS_ENV": "production",
+          "NODE_ENV": "production",
+          "SECRET_KEY_BASE": "change_me_secret",
+          "FRONTEND_URL": "http://localhost:3001",
+          "INSTALLATION_ENV": "docker",
+          "POSTGRES_HOST": "chatwoot_postgres",
+          "POSTGRES_PORT": "5432",
+          "POSTGRES_USERNAME": "chatwoot",
+          "POSTGRES_PASSWORD": "chatwoot",
+          "POSTGRES_DATABASE": "chatwoot_production",
+          "REDIS_URL": "redis://chatwoot_redis:6379/1",
+          "MAILER_SENDER_EMAIL": "notifications@example.com",
+          "MAILER_INBOUND_EMAIL_DOMAIN": "example.com",
+          "ACTIVE_STORAGE_SERVICE": "local",
+          "DEFAULT_LOCALE": "en"
+        },
+        "volumes": [
+          "chatwoot_storage:/app/storage"
+        ],
+        "depends_on": [
+          "chatwoot_postgres",
+          "chatwoot_redis"
+        ]
+      },
+      "chatwoot-worker": {
+        "image": "chatwoot/chatwoot:latest",
+        "restart": "unless-stopped",
+        "command": "bundle exec sidekiq",
+        "environment": {
+          "RAILS_ENV": "production",
+          "NODE_ENV": "production",
+          "SECRET_KEY_BASE": "change_me_secret",
+          "INSTALLATION_ENV": "docker",
+          "POSTGRES_HOST": "chatwoot_postgres",
+          "POSTGRES_PORT": "5432",
+          "POSTGRES_USERNAME": "chatwoot",
+          "POSTGRES_PASSWORD": "chatwoot",
+          "POSTGRES_DATABASE": "chatwoot_production",
+          "REDIS_URL": "redis://chatwoot_redis:6379/1"
+        },
+        "volumes": [
+          "chatwoot_storage:/app/storage"
+        ],
+        "depends_on": [
+          "chatwoot_postgres",
+          "chatwoot_redis"
+        ]
+      },
+      "chatwoot_postgres": {
+        "image": "postgres:15-alpine",
+        "environment": {
+          "POSTGRES_DB": "chatwoot_production",
+          "POSTGRES_USER": "chatwoot",
+          "POSTGRES_PASSWORD": "chatwoot"
+        },
+        "volumes": [
+          "chatwoot_db_data:/var/lib/postgresql/data"
+        ]
+      },
+      "chatwoot_redis": {
+        "image": "redis:7-alpine",
+        "command": "redis-server --appendonly yes",
+        "volumes": [
+          "chatwoot_redis_data:/data"
+        ]
+      }
+    },
+    "volumes": {
+      "chatwoot_storage": null,
+      "chatwoot_db_data": null,
+      "chatwoot_redis_data": null
+    }
+  }
+}

@@ -1,47 +1,37 @@
 # 🎉 Nuove App Aggiunte al Catalogo Proximity
 
 ## Data: 17 Ottobre 2025
-**Versione catalogo aggiornata**: 2.6.0 → 2.8.0
-**Totale app nel catalogo**: 120 → 127 (+7 app)
+**Versione catalogo aggiornata**: 2.8.0 → 2.9.0
+**Totale app nel catalogo**: 127 → 132 (+5 app)
 
 ---
 
-## ✅ Le 7 Nuove App Aggiunte (Versione 2.8.0)
+## ✅ Le 5 Nuove App Aggiunte (Versione 2.9.0)
 
-### 1. **Firefly III** (Finance)
-- **Descrizione**: Gestore finanziario open source con dashboard interattive
-- **Uso**: Tenere traccia di budget personali e contabilità familiare
-- **File**: `firefly-iii.json`
+### 1. **Directus** (Development)
+- **Descrizione**: Data platform headless per trasformare qualsiasi database in API e dashboard
+- **Uso**: Creare backend low-code e pannelli amministrativi
+- **File**: `directus.json`
 
-### 2. **Papermerge** (Document Management)
-- **Descrizione**: Sistema DMS con OCR integrato per archiviare documenti digitalizzati
-- **Uso**: Digitalizzazione e classificazione di documenti cartacei
-- **File**: `papermerge.json`
+### 2. **Penpot** (Design Collaboration)
+- **Descrizione**: Suite di design collaborativo cross-platform con editor vettoriale
+- **Uso**: Co-design di interfacce e prototipi condivisi
+- **File**: `penpot.json`
 
-### 3. **Snipe-IT** (IT Asset Management)
-- **Descrizione**: Gestione inventario IT con tracciamento licenze e assegnazioni
-- **Uso**: Organizzare asset aziendali e storico manutenzione
-- **File**: `snipe-it.json`
+### 3. **Budibase** (Low-code)
+- **Descrizione**: Builder low-code per strumenti interni con integrazioni dati
+- **Uso**: Creare dashboard e workflow aziendali in pochi clic
+- **File**: `budibase.json`
 
-### 4. **PeerTube** (Media)
-- **Descrizione**: Piattaforma video decentralizzata compatibile ActivityPub
-- **Uso**: Self-hosting di canali video federati
-- **File**: `peertube.json`
+### 4. **ToolJet** (Low-code)
+- **Descrizione**: Piattaforma low-code estensibile per app interne multi-source
+- **Uso**: Assemblare rapidamente app su dati SQL/REST/GraphQL
+- **File**: `tooljet.json`
 
-### 5. **Jellyseerr** (Media Requests)
-- **Descrizione**: Interfaccia moderna per richieste di contenuti Plex/Emby/Jellyfin
-- **Uso**: Gestione richieste utenti e automazione download
-- **File**: `jellyseerr.json`
-
-### 6. **NZBGet** (Automation)
-- **Descrizione**: Downloader Usenet leggero con queue management avanzato
-- **Uso**: Automazione dei download NZB con integrazione post-processing
-- **File**: `nzbget.json`
-
-### 7. **SearXNG** (Search)
-- **Descrizione**: Metamotore di ricerca che aggrega molteplici sorgenti senza tracking
-- **Uso**: Ricerca privata e personalizzabile
-- **File**: `searxng.json`
+### 5. **Chatwoot** (Communication)
+- **Descrizione**: Suite open-source per assistenza clienti omnicanale
+- **Uso**: Gestire chat, email e social in un’unica inbox condivisa
+- **File**: `chatwoot.json`
 
 ---
 
@@ -49,24 +39,48 @@
 
 | Metrica | Valore |
 |---------|--------|
-| **App Totali Prima** | 120 |
-| **App Totali Adesso** | 127 |
-| **App Aggiunte** | 7 |
-| **Versione Catalogo** | 2.8.0 |
+| **App Totali Prima** | 127 |
+| **App Totali Adesso** | 132 |
+| **App Aggiunte** | 5 |
+| **Versione Catalogo** | 2.9.0 |
 | **Data Ultimo Aggiornamento** | 2025-10-17 |
 
 ---
 
 ## 🔍 Categorie Coperte dalle Nuove App
 
-- **Finance & Office**: Firefly III, Papermerge
-- **IT & Operations**: Snipe-IT, NZBGet
-- **Media & Entertainment**: PeerTube, Jellyseerr
-- **Search & Privacy**: SearXNG
+- **Low-code & Data**: Directus, Budibase, ToolJet
+- **Design & Collaboration**: Penpot
+- **Customer Support**: Chatwoot
 
 ---
 
-## ♻️ Storico aggiornamento 2.6.0 (10 app)
+## ♻️ Storico aggiornamenti precedenti
+
+### Versione 2.8.0 (7 app)
+
+#### Firefly III (Finance)
+- Gestore finanziario open source con dashboard interattive — `firefly-iii.json`
+
+#### Papermerge (Document Management)
+- Sistema DMS con OCR integrato per archiviare documenti digitalizzati — `papermerge.json`
+
+#### Snipe-IT (IT Asset Management)
+- Gestione inventario IT con tracciamento licenze e assegnazioni — `snipe-it.json`
+
+#### PeerTube (Media)
+- Piattaforma video decentralizzata compatibile ActivityPub — `peertube.json`
+
+#### Jellyseerr (Media Requests)
+- Interfaccia moderna per richieste di contenuti Plex/Emby/Jellyfin — `jellyseerr.json`
+
+#### NZBGet (Automation)
+- Downloader Usenet leggero con queue management avanzato — `nzbget.json`
+
+#### SearXNG (Search)
+- Metamotore di ricerca che aggrega molteplici sorgenti senza tracking — `searxng.json`
+
+### Versione 2.6.0 (10 app)
 
 ### Appwrite (Development)
 - Backend as a Service per app web/mobile — `appwrite.json`
