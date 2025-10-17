@@ -8,10 +8,12 @@
     border: 1px solid rgba(0, 245, 255, 0.2);
     border-radius: 12px;
     padding: 24px;
-    margin: 24px 0;
+    margin: 24px auto;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     position: relative;
-    overflow: hidden;
+    overflow: visible;
+    width: 100%;
+    max-width: 1200px;
 }
 
 /* Header */
@@ -75,11 +77,12 @@
 .diagram-canvas {
     width: 100%;
     height: auto;
-    min-height: 400px;
+    min-height: 500px;
     background: radial-gradient(circle at 50% 50%, rgba(0, 245, 255, 0.02), rgba(0, 245, 255, 0.01));
     border-radius: 8px;
     border: 1px solid rgba(0, 245, 255, 0.1);
     margin: 16px 0;
+    display: block;
 }
 
 /* Proxmox Host */
@@ -251,5 +254,40 @@
 
     .diagram-canvas {
         background: radial-gradient(circle at 50% 50%, rgba(0, 245, 255, 0.03), rgba(0, 0, 0, 0.1));
+    }
+}
+
+/* Responsive design */
+@media (max-width: 1024px) {
+    .infrastructure-diagram {
+        margin: 16px auto;
+        padding: 16px;
+        max-width: 100%;
+    }
+
+    .diagram-canvas {
+        min-height: 400px;
+    }
+}
+
+@media (max-width: 768px) {
+    .infrastructure-diagram {
+        margin: 12px auto;
+        padding: 12px;
+    }
+
+    .diagram-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .diagram-stats {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .diagram-canvas {
+        min-height: 300px;
     }
 }
