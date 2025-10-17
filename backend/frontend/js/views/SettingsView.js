@@ -232,14 +232,6 @@ export class SettingsView extends Component {
                     <i data-lucide="zap"></i>
                     <span>Proximity Mode</span>
                 </a>
-                <a href="#system" class="settings-nav-link">
-                    <i data-lucide="info"></i>
-                    <span>System Info</span>
-                </a>
-                <a href="#security" class="settings-nav-link">
-                    <i data-lucide="shield"></i>
-                    <span>Security</span>
-                </a>
             </nav>
         </div>
 
@@ -471,64 +463,6 @@ export class SettingsView extends Component {
                                 <li>Edit resource configurations</li>
                                 <li>Full professional control</li>
                             </ul>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- System Info Section -->
-            <section id="system" class="settings-section">
-                <div class="app-card">
-                    <div class="settings-card-header">
-                        <div class="settings-card-icon">
-                            <i data-lucide="info"></i>
-                        </div>
-                        <div class="settings-card-title">
-                            <h3>System Information</h3>
-                            <p>Platform status and configuration details</p>
-                        </div>
-                    </div>
-                    <div class="app-meta">
-                        <div class="app-meta-item">
-                            <span>📌</span>
-                            <span>Version: ${state.systemInfo?.version || 'N/A'}</span>
-                        </div>
-                        <div class="app-meta-item">
-                            <span>🔗</span>
-                            <span>API: ${API_BASE}</span>
-                        </div>
-                    </div>
-                    <div class="app-meta" style="margin-top: 1rem;">
-                        <div class="app-meta-item">
-                            <span>🖥️</span>
-                            <span>Nodes: ${state.nodes.length}</span>
-                        </div>
-                        <div class="app-meta-item">
-                            <span>📦</span>
-                            <span>Apps: ${state.deployedApps.length}</span>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Security Section -->
-            <section id="security" class="settings-section">
-                <div class="app-card">
-                    <div class="settings-card-header">
-                        <div class="settings-card-icon">
-                            <i data-lucide="shield"></i>
-                        </div>
-                        <div class="settings-card-title">
-                            <h3>Security</h3>
-                            <p>Authentication and access control settings</p>
-                        </div>
-                    </div>
-
-                    <div class="alert info">
-                        <span class="alert-icon">🔐</span>
-                        <div class="alert-content">
-                            <div class="alert-title">Authentication Enabled</div>
-                            <div class="alert-message">All API endpoints are protected with JWT authentication. Sensitive data is encrypted at rest.</div>
                         </div>
                     </div>
                 </div>
