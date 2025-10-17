@@ -8,12 +8,14 @@
     border: 1px solid rgba(0, 245, 255, 0.2);
     border-radius: 12px;
     padding: 24px;
-    margin: 24px auto;
+    margin: 0 auto;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     position: relative;
     overflow: visible;
     width: 100%;
-    max-width: 1200px;
+    max-width: 100%;
+    height: fit-content;
+    --diagram-scale: 1;
 }
 
 /* Header */
@@ -77,12 +79,14 @@
 .diagram-canvas {
     width: 100%;
     height: auto;
-    min-height: 500px;
     background: radial-gradient(circle at 50% 50%, rgba(0, 245, 255, 0.02), rgba(0, 245, 255, 0.01));
     border-radius: 8px;
     border: 1px solid rgba(0, 245, 255, 0.1);
     margin: 16px 0;
     display: block;
+    transform: scale(var(--diagram-scale, 1));
+    transform-origin: top center;
+    transition: transform 0.3s ease;
 }
 
 /* Proxmox Host */
@@ -260,20 +264,21 @@
 /* Responsive design */
 @media (max-width: 1024px) {
     .infrastructure-diagram {
-        margin: 16px auto;
+        margin: 0;
         padding: 16px;
-        max-width: 100%;
+        --diagram-scale: 0.85;
     }
 
     .diagram-canvas {
-        min-height: 400px;
+        margin: 12px 0;
     }
 }
 
 @media (max-width: 768px) {
     .infrastructure-diagram {
-        margin: 12px auto;
+        margin: 0;
         padding: 12px;
+        --diagram-scale: 0.65;
     }
 
     .diagram-header {
@@ -288,6 +293,33 @@
     }
 
     .diagram-canvas {
-        min-height: 300px;
+        margin: 8px 0;
+    }
+}
+
+@media (max-height: 900px) and (orientation: landscape) {
+    .infrastructure-diagram {
+        --diagram-scale: 0.8;
+    }
+}
+
+@media (max-height: 700px) and (orientation: landscape) {
+    .infrastructure-diagram {
+        --diagram-scale: 0.65;
+    }
+}
+
+@media (max-height: 600px) and (orientation: landscape) {
+    .infrastructure-diagram {
+        --diagram-scale: 0.55;
+        padding: 12px;
+    }
+
+    .diagram-header h3 {
+        font-size: 16px;
+    }
+
+    .diagram-stats {
+        font-size: 12px;
     }
 }

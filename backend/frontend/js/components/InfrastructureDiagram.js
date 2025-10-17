@@ -28,8 +28,31 @@ export class InfrastructureDiagram {
         const activeApps = apps?.filter(app => app.status === 'running').length || 0;
         const totalApps = apps?.length || 0;
 
+        // Calculate optimal dimensions based on number of apps
+        let viewBoxHeight = 600;
+        let scale = 1;
+        
+        if (totalApps > 0) {
+            // Calculate grid dimensions
+            const appsPerColumn = 3;
+            const cols = Math.ceil(totalApps / appsPerColumn);
+            const spacing = 120;
+            
+            // Adjust viewBox height based on rows
+            const rows = Math.ceil(totalApps / appsPerColumn);
+            viewBoxHeight = Math.max(600, 300 + rows * spacing + 100);
+            
+            // Calculate scale to fit on screen
+            // Screen height - header - padding - stats
+            const availableHeight = window.innerHeight - 200;
+            scale = Math.min(1, availableHeight / viewBoxHeight);
+            
+            // Ensure scale is at least 0.5 for readability
+            scale = Math.max(0.5, scale);
+        }
+
         return `
-            <div class="infrastructure-diagram">
+            <div class="infrastructure-diagram" style="--diagram-scale: ${scale};">
                 <!-- Title -->
                 <div class="diagram-header">
                     <h3>
@@ -48,7 +71,7 @@ export class InfrastructureDiagram {
                 </div>
 
                 <!-- SVG Canvas -->
-                <svg id="diagram-canvas" class="diagram-canvas" preserveAspectRatio="xMidYMid meet" viewBox="0 0 1000 600">
+                <svg id="diagram-canvas" class="diagram-canvas" preserveAspectRatio="xMidYMid meet" viewBox="0 0 1000 ${viewBoxHeight}">
                     <defs>
                         <linearGradient id="grad-proxmox" x1="0%" y1="0%" x2="100%" y2="100%">
                             <stop offset="0%" style="stop-color:#00f5ff;stop-opacity:1" />
@@ -75,14 +98,14 @@ export class InfrastructureDiagram {
                     </defs>
 
                     <!-- Background -->
-                    <rect width="1000" height="600" fill="#0f1419" opacity="0.5" rx="8"/>
+                    <rect width="1000" height="${viewBoxHeight}" fill="#0f1419" opacity="0.5" rx="8"/>
 
                     <!-- Grid -->
                     <g class="grid" opacity="0.1">
                         <line x1="0" y1="0" x2="1000" y2="0" stroke="#00f5ff"/>
-                        <line x1="0" y1="600" x2="1000" y2="600" stroke="#00f5ff"/>
-                        <line x1="0" y1="0" x2="0" y2="600" stroke="#00f5ff"/>
-                        <line x1="1000" y1="0" x2="1000" y2="600" stroke="#00f5ff"/>
+                        <line x1="0" y1="${viewBoxHeight}" x2="1000" y2="${viewBoxHeight}" stroke="#00f5ff"/>
+                        <line x1="0" y1="0" x2="0" y2="${viewBoxHeight}" stroke="#00f5ff"/>
+                        <line x1="1000" y1="0" x2="1000" y2="${viewBoxHeight}" stroke="#00f5ff"/>
                     </g>
 
                     <!-- Proxmox Host (Center) -->
