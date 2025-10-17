@@ -55,8 +55,8 @@
 
 .nav-rack-bottom-row {
     height: 40px;
-    background: linear-gradient(90deg, 
-        transparent 0%, 
+    background: linear-gradient(90deg,
+        transparent 0%,
         rgba(0, 0, 0, 0.4) 10%,
         rgba(0, 0, 0, 0.8) 50%,
         rgba(0, 0, 0, 0.4) 90%,
@@ -68,7 +68,7 @@
     background: black;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: center; /* Center the LCD display */
     padding: 0 1.5rem;
     position: relative;
     overflow: hidden;
@@ -85,7 +85,7 @@
     padding: 0.625rem 1.25rem;
     border-radius: 0; /* No border radius for embedded look */
     font-family: 'Doto Rounded', 'Courier New', 'Consolas', monospace;
-    font-size: 0.875rem;
+    font-size: 0.9375rem; /* Slightly larger: 0.875rem -> 0.9375rem */
     font-weight: 900;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -102,13 +102,15 @@
         0 0 16px rgba(0, 255, 255, 0.4),
         0 1px 2px rgba(0, 0, 0, 0.8);
 
-    /* Glass/screen effect */
+    /* Glass/screen effect - no external glow */
     box-shadow:
         inset 0 1px 1px rgba(255, 255, 255, 0.05),
         inset 0 -1px 1px rgba(0, 0, 0, 0.8),
         inset 0 0 30px rgba(0, 0, 0, 0.5);
 
-    max-width: 600px;
+    /* Fixed width - 40% of container */
+    min-width: 40%;
+    max-width: 40%;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -139,6 +141,12 @@
     flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+/* Center text when idle */
+.rack-notification-display.rack-idle .rack-notif-message {
+    text-align: center;
+    width: 100%;
 }
 
 /* Notification Type Styles - Colored glowing text on black */
@@ -202,8 +210,90 @@
     filter: drop-shadow(0 0 6px rgba(255, 0, 0, 0.8));
 }
 
-/* Animation for new notifications - intense glow pulse */
-@keyframes notif-pulse {
+/* Animation for new notifications - scroll in from right, buzz, stay visible */
+@keyframes notif-scroll-in {
+    0% {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    40% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    45% {
+        transform: translateX(-3px);
+    }
+    50% {
+        transform: translateX(3px);
+    }
+    55% {
+        transform: translateX(-3px);
+    }
+    60% {
+        transform: translateX(3px);
+    }
+    65% {
+        transform: translateX(-2px);
+    }
+    70% {
+        transform: translateX(2px);
+    }
+    75%, 100% {
+        transform: translateX(0);
+        opacity: 1;
+        filter: brightness(1);
+    }
+}
+
+.rack-notification-display.notif-new {
+    animation: notif-scroll-in 1.2s ease-out;
+}
+
+/* Visible notification state */
+.rack-notification-display.notif-visible {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Fade out animation - scroll down and fade */
+.rack-notification-display.notif-fadeout {
+    animation: notif-scroll-out 0.5s ease-in forwards;
+}
+
+@keyframes notif-scroll-out {
+    0% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+}
+
+/* Idle animation state - thinking effect */
+.rack-notification-display.rack-idle {
+    /* Black LCD/VFD display background (same as active notifications) */
+    background: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
+    border: none;
+
+    /* Cyan glowing text (same as info notifications) */
+    color: #00ffff;
+    text-shadow:
+        0 0 8px rgba(0, 255, 255, 0.8),
+        0 0 16px rgba(0, 255, 255, 0.4),
+        0 1px 2px rgba(0, 0, 0, 0.8);
+
+    /* Glass/screen effect */
+    box-shadow:
+        inset 0 1px 1px rgba(255, 255, 255, 0.05),
+        inset 0 -1px 1px rgba(0, 0, 0, 0.8),
+        inset 0 0 30px rgba(0, 0, 0, 0.5);
+
+    animation: idle-glow 2s ease-in-out infinite;
+}
+
+@keyframes idle-glow {
     0%, 100% {
         box-shadow:
             inset 0 1px 1px rgba(255, 255, 255, 0.05),
@@ -215,62 +305,8 @@
         box-shadow:
             inset 0 1px 1px rgba(255, 255, 255, 0.1),
             inset 0 -1px 1px rgba(0, 0, 0, 0.6),
-            inset 0 0 30px rgba(0, 0, 0, 0.5),
-            0 0 20px currentColor;
-        filter: brightness(1.2);
-    }
-}
-
-.rack-notification-display.notif-new {
-    animation: notif-pulse 0.6s ease-in-out;
-}
-
-/* Visible notification state */
-.rack-notification-display.notif-visible {
-    opacity: 1;
-    transform: scale(1);
-}
-
-/* Fade out animation */
-.rack-notification-display.notif-fadeout {
-    animation: notif-fadeout 0.3s ease-out forwards;
-}
-
-@keyframes notif-fadeout {
-    from {
-        opacity: 1;
-        transform: scale(1);
-    }
-    to {
-        opacity: 0.3;
-        transform: scale(0.95);
-    }
-}
-
-/* Idle animation state - thinking effect */
-.rack-notification-display.rack-idle {
-    /* Blue-ish LCD like "thinking" mode */
-    background: linear-gradient(180deg, #6dd5db 0%, #4fb3bb 100%);
-    border-color: #2d7983;
-    color: #0a2f33;
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
-    opacity: 0.85;
-    animation: idle-glow 2s ease-in-out infinite;
-}
-
-@keyframes idle-glow {
-    0%, 100% {
-        box-shadow:
-            inset 0 1px 2px rgba(255, 255, 255, 0.3),
-            inset 0 -1px 2px rgba(0, 0, 0, 0.2),
-            0 2px 4px rgba(0, 0, 0, 0.3);
-    }
-    50% {
-        box-shadow:
-            inset 0 1px 2px rgba(255, 255, 255, 0.4),
-            inset 0 -1px 2px rgba(0, 0, 0, 0.15),
-            0 2px 6px rgba(0, 0, 0, 0.35),
-            0 0 8px rgba(109, 213, 219, 0.3);
+            inset 0 0 30px rgba(0, 0, 0, 0.5);
+        filter: brightness(1.1);
     }
 }
 
