@@ -1,0 +1,383 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.13.7, pytest-8.3.4, pluggy-1.5.0 -- /opt/homebrew/opt/python@3.13/bin/python3.13
+cachedir: .pytest_cache
+rootdir: /Users/fab/GitHub/proximity
+configfile: pytest.ini
+plugins: xdist-3.8.0, timeout-2.4.0, anyio-4.8.0, cov-6.2.1, mock-3.14.1, rerunfailures-16.0.1, base-url-2.1.0, playwright-0.7.1, asyncio-1.0.0, Faker-33.3.1, requests-mock-1.12.1
+asyncio: mode=Mode.STRICT, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+collecting ... collected 259 items
+
+tests/test_api_endpoints.py::TestHealthEndpoints::test_health_check PASSED [  0%]
+tests/test_api_endpoints.py::TestHealthEndpoints::test_api_root PASSED   [  0%]
+tests/test_api_endpoints.py::TestAuthEndpoints::test_register_user_success PASSED [  1%]
+tests/test_api_endpoints.py::TestAuthEndpoints::test_register_duplicate_user PASSED [  1%]
+tests/test_api_endpoints.py::TestAuthEndpoints::test_login_success PASSED [  1%]
+tests/test_api_endpoints.py::TestAuthEndpoints::test_login_wrong_password PASSED [  2%]
+tests/test_api_endpoints.py::TestAuthEndpoints::test_get_current_user PASSED [  2%]
+tests/test_api_endpoints.py::TestAuthEndpoints::test_get_current_user_unauthorized PASSED [  3%]
+tests/test_api_endpoints.py::TestAuthEndpoints::test_logout PASSED       [  3%]
+tests/test_api_endpoints.py::TestSystemEndpoints::test_get_system_info PASSED [  3%]
+tests/test_api_endpoints.py::TestSystemEndpoints::test_get_nodes PASSED  [  4%]
+tests/test_api_endpoints.py::TestSystemEndpoints::test_get_system_info_unauthorized PASSED [  4%]
+tests/test_api_endpoints.py::TestAppEndpoints::test_get_catalog PASSED   [  5%]
+tests/test_api_endpoints.py::TestAppEndpoints::test_list_apps PASSED     [  5%]
+tests/test_api_endpoints.py::TestAppEndpoints::test_list_apps_unauthorized PASSED [  5%]
+tests/test_api_endpoints.py::TestAppEndpoints::test_deploy_app PASSED    [  6%]
+tests/test_api_endpoints.py::TestSettingsEndpoints::test_get_proxmox_settings_unauthorized PASSED [  6%]
+tests/test_api_endpoints.py::TestSettingsEndpoints::test_get_proxmox_settings_admin PASSED [  6%]
+tests/test_api_endpoints.py::TestCORSAndOptions::test_options_request PASSED [  7%]
+tests/test_api_endpoints.py::TestCORSAndOptions::test_cors_headers PASSED [  7%]
+tests/test_app_clone_config.py::TestCloneApp::test_clone_app_success PASSED [  8%]
+tests/test_app_clone_config.py::TestCloneApp::test_clone_app_source_not_found PASSED [  8%]
+tests/test_app_clone_config.py::TestCloneApp::test_clone_app_duplicate_hostname PASSED [  8%]
+tests/test_app_clone_config.py::TestCloneApp::test_clone_app_proxmox_failure_cleanup PASSED [  9%]
+tests/test_app_clone_config.py::TestCloneApp::test_clone_app_copies_all_properties PASSED [  9%]
+tests/test_app_clone_config.py::TestUpdateAppConfig::test_update_cpu_cores PASSED [ 10%]
+tests/test_app_clone_config.py::TestUpdateAppConfig::test_update_memory PASSED [ 10%]
+tests/test_app_clone_config.py::TestUpdateAppConfig::test_update_disk_size PASSED [ 10%]
+tests/test_app_clone_config.py::TestUpdateAppConfig::test_update_multiple_resources PASSED [ 11%]
+tests/test_app_clone_config.py::TestUpdateAppConfig::test_update_no_parameters_raises_error PASSED [ 11%]
+tests/test_app_clone_config.py::TestUpdateAppConfig::test_update_app_not_found PASSED [ 11%]
+tests/test_app_clone_config.py::TestUpdateAppConfig::test_update_stopped_app_no_restart PASSED [ 12%]
+tests/test_app_clone_config.py::TestUpdateAppConfig::test_update_failure_attempts_restart PASSED [ 12%]
+tests/test_app_service.py::TestAppService::test_get_catalog PASSED       [ 13%]
+tests/test_app_service.py::TestAppService::test_get_catalog_item PASSED  [ 13%]
+tests/test_app_service.py::TestAppService::test_get_all_apps_empty PASSED [ 13%]
+tests/test_app_service.py::TestAppService::test_deploy_app_success PASSED [ 14%]
+tests/test_app_service.py::TestAppService::test_get_app_success PASSED   [ 14%]
+tests/test_app_service.py::TestAppService::test_get_app_not_found PASSED [ 15%]
+tests/test_app_service.py::TestAppService::test_start_app PASSED         [ 15%]
+tests/test_app_service.py::TestAppService::test_stop_app PASSED          [ 15%]
+tests/test_app_service.py::TestAppService::test_restart_app PASSED       [ 16%]
+tests/test_app_service.py::TestAppService::test_delete_app_success PASSED [ 16%]
+tests/test_app_service.py::TestAppService::test_deployment_with_proxy PASSED [ 16%]
+tests/test_app_service.py::TestAppService::test_deployment_cleanup_on_failure PASSED [ 17%]
+tests/test_app_service.py::TestAppServiceUpdate::test_update_app_creates_pre_update_backup PASSED [ 17%]
+tests/test_app_service.py::TestAppServiceUpdate::test_update_app_aborts_if_backup_fails PASSED [ 18%]
+tests/test_app_service.py::TestAppServiceUpdate::test_update_app_runs_pull_and_up_commands FAILED [ 18%]
+tests/test_app_service.py::TestAppServiceUpdate::test_update_app_handles_failed_health_check PASSED [ 18%]
+tests/test_app_service.py::TestAppServiceCatalog::test_catalog_loads_from_files PASSED [ 19%]
+tests/test_app_service.py::TestAppServiceCatalog::test_catalog_item_has_required_fields PASSED [ 19%]
+tests/test_auth_service.py::TestAuthService::test_create_access_token PASSED [ 20%]
+tests/test_auth_service.py::TestAuthService::test_verify_token_success PASSED [ 20%]
+tests/test_auth_service.py::TestAuthService::test_verify_token_expired PASSED [ 20%]
+tests/test_auth_service.py::TestAuthService::test_verify_token_invalid PASSED [ 21%]
+tests/test_auth_service.py::TestAuthService::test_authenticate_user_success PASSED [ 21%]
+tests/test_auth_service.py::TestAuthService::test_authenticate_user_wrong_password PASSED [ 22%]
+tests/test_auth_service.py::TestAuthService::test_authenticate_user_not_found PASSED [ 22%]
+tests/test_auth_service.py::TestAuthService::test_authenticate_inactive_user PASSED [ 22%]
+tests/test_auth_service.py::TestAuthService::test_create_user_success PASSED [ 23%]
+tests/test_auth_service.py::TestAuthService::test_create_user_duplicate_username PASSED [ 23%]
+tests/test_auth_service.py::TestAuthService::test_create_user_duplicate_email PASSED [ 23%]
+tests/test_auth_service.py::TestAuthService::test_create_user_without_email PASSED [ 24%]
+tests/test_auth_service.py::TestAuthService::test_change_password_success PASSED [ 24%]
+tests/test_auth_service.py::TestAuthService::test_change_password_wrong_old_password PASSED [ 25%]
+tests/test_auth_service.py::TestAuthService::test_log_audit PASSED       [ 25%]
+tests/test_auth_service.py::TestPasswordHashing::test_hash_password PASSED [ 25%]
+tests/test_auth_service.py::TestPasswordHashing::test_verify_password_correct PASSED [ 26%]
+tests/test_auth_service.py::TestPasswordHashing::test_verify_password_incorrect PASSED [ 26%]
+tests/test_auth_service.py::TestPasswordHashing::test_password_hash_unique PASSED [ 27%]
+tests/test_auth_service.py::TestTokenDataExtraction::test_token_contains_all_fields PASSED [ 27%]
+tests/test_auth_service.py::TestTokenDataExtraction::test_token_missing_fields PASSED [ 27%]
+tests/test_backup_api.py::TestBackupAPICreate::test_create_backup_success PASSED [ 28%]
+tests/test_backup_api.py::TestBackupAPICreate::test_create_backup_unauthorized PASSED [ 28%]
+tests/test_backup_api.py::TestBackupAPICreate::test_create_backup_app_not_found PASSED [ 28%]
+tests/test_backup_api.py::TestBackupAPICreate::test_create_backup_invalid_compression PASSED [ 29%]
+tests/test_backup_api.py::TestBackupAPIList::test_list_backups_success PASSED [ 29%]
+tests/test_backup_api.py::TestBackupAPIList::test_list_backups_empty PASSED [ 30%]
+tests/test_backup_api.py::TestBackupAPIList::test_list_backups_app_not_found PASSED [ 30%]
+tests/test_backup_api.py::TestBackupAPIGet::test_get_backup_success PASSED [ 30%]
+tests/test_backup_api.py::TestBackupAPIGet::test_get_backup_not_found PASSED [ 31%]
+tests/test_backup_api.py::TestBackupAPIRestore::test_restore_backup_success PASSED [ 31%]
+tests/test_backup_api.py::TestBackupAPIRestore::test_restore_backup_not_available PASSED [ 32%]
+tests/test_backup_api.py::TestBackupAPIDelete::test_delete_backup_success PASSED [ 32%]
+tests/test_backup_api.py::TestBackupAPIDelete::test_delete_backup_not_found PASSED [ 32%]
+tests/test_backup_api.py::TestBackupAPIPermissions::test_user_can_only_access_own_backups PASSED [ 33%]
+tests/test_backup_model.py::TestBackupModel::test_create_backup PASSED   [ 33%]
+tests/test_backup_model.py::TestBackupModel::test_backup_app_relationship PASSED [ 33%]
+tests/test_backup_model.py::TestBackupModel::test_backup_cascade_delete PASSED [ 34%]
+tests/test_backup_model.py::TestBackupModel::test_backup_status_transitions PASSED [ 34%]
+tests/test_backup_model.py::TestBackupModel::test_backup_with_error PASSED [ 35%]
+tests/test_backup_model.py::TestBackupModel::test_backup_requires_app_id PASSED [ 35%]
+tests/test_backup_model.py::TestBackupModel::test_backup_requires_filename PASSED [ 35%]
+tests/test_backup_model.py::TestBackupModel::test_backup_requires_status PASSED [ 36%]
+tests/test_backup_model.py::TestBackupModel::test_backup_default_storage_name PASSED [ 36%]
+tests/test_backup_model.py::TestBackupModel::test_backup_default_backup_type PASSED [ 37%]
+tests/test_backup_model.py::TestBackupModel::test_multiple_backups_for_app PASSED [ 37%]
+tests/test_backup_model.py::TestBackupModel::test_backup_representation PASSED [ 37%]
+tests/test_backup_model.py::TestBackupModel::test_backup_foreign_key_constraint PASSED [ 38%]
+tests/test_backup_model.py::TestBackupModel::test_backup_query_by_status PASSED [ 38%]
+tests/test_backup_model.py::TestBackupModel::test_backup_order_by_created_at PASSED [ 38%]
+tests/test_backup_service.py::TestBackupServiceCreate::test_create_backup_success PASSED [ 39%]
+tests/test_backup_service.py::TestBackupServiceCreate::test_create_backup_app_not_found PASSED [ 39%]
+tests/test_backup_service.py::TestBackupServiceCreate::test_create_backup_proxmox_failure PASSED [ 40%]
+tests/test_backup_service.py::TestBackupServiceCreate::test_create_backup_with_custom_compression PASSED [ 40%]
+tests/test_backup_service.py::TestBackupServiceList::test_list_backups_for_app PASSED [ 40%]
+tests/test_backup_service.py::TestBackupServiceList::test_list_backups_empty PASSED [ 41%]
+tests/test_backup_service.py::TestBackupServiceList::test_list_backups_ordered_by_created_at PASSED [ 41%]
+tests/test_backup_service.py::TestBackupServiceGet::test_get_backup_success PASSED [ 42%]
+tests/test_backup_service.py::TestBackupServiceGet::test_get_backup_not_found PASSED [ 42%]
+tests/test_backup_service.py::TestBackupServiceRestore::test_restore_backup_success PASSED [ 42%]
+tests/test_backup_service.py::TestBackupServiceRestore::test_restore_backup_not_available PASSED [ 43%]
+tests/test_backup_service.py::TestBackupServiceRestore::test_restore_failure_restarts_container PASSED [ 43%]
+tests/test_backup_service.py::TestBackupServiceDelete::test_delete_backup_success PASSED [ 44%]
+tests/test_backup_service.py::TestBackupServiceDelete::test_delete_backup_not_found PASSED [ 44%]
+tests/test_backup_service.py::TestBackupServicePolling::test_poll_backup_completion_success PASSED [ 44%]
+tests/test_backup_service.py::TestBackupServicePolling::test_poll_backup_completion_failed PASSED [ 45%]
+tests/test_catalog_service.py::TestCatalogLoading::test_load_catalog_from_individual_files PASSED [ 45%]
+tests/test_catalog_service.py::TestCatalogLoading::test_load_catalog_with_default_items PASSED [ 45%]
+tests/test_catalog_service.py::TestCatalogLoading::test_catalog_caching PASSED [ 46%]
+tests/test_catalog_service.py::TestCatalogLoading::test_get_catalog_item_by_id PASSED [ 46%]
+tests/test_catalog_service.py::TestCatalogLoading::test_get_nonexistent_catalog_item PASSED [ 47%]
+tests/test_catalog_service.py::TestCatalogItems::test_catalog_item_has_required_fields PASSED [ 47%]
+tests/test_catalog_service.py::TestCatalogItems::test_catalog_categories PASSED [ 47%]
+tests/test_catalog_service.py::TestCatalogItems::test_catalog_docker_compose_format PASSED [ 48%]
+tests/test_catalog_service.py::TestCatalogItems::test_catalog_ports_format PASSED [ 48%]
+tests/test_catalog_service.py::TestCatalogItems::test_catalog_resource_requirements PASSED [ 49%]
+tests/test_catalog_service.py::TestCatalogFiltering::test_filter_by_category PASSED [ 49%]
+tests/test_catalog_service.py::TestCatalogFiltering::test_search_by_name PASSED [ 49%]
+tests/test_catalog_service.py::TestCatalogEnvironmentVariables::test_catalog_default_environment PASSED [ 50%]
+tests/test_catalog_service.py::TestCatalogEnvironmentVariables::test_merge_environment_variables PASSED [ 50%]
+tests/test_catalog_service.py::TestCatalogVersioning::test_catalog_item_version PASSED [ 50%]
+tests/test_catalog_service.py::TestCatalogErrorHandling::test_invalid_catalog_json PASSED [ 51%]
+tests/test_catalog_service.py::TestCatalogErrorHandling::test_missing_catalog_file PASSED [ 51%]
+tests/test_catalog_service.py::TestCatalogTotalCount::test_total_matches_items_count PASSED [ 52%]
+tests/test_database_models.py::TestUserModel::test_create_user PASSED    [ 52%]
+tests/test_database_models.py::TestUserModel::test_user_unique_username PASSED [ 52%]
+tests/test_database_models.py::TestUserModel::test_user_unique_email PASSED [ 53%]
+tests/test_database_models.py::TestUserModel::test_user_password_hashing PASSED [ 53%]
+tests/test_database_models.py::TestUserModel::test_user_password_verification PASSED [ 54%]
+tests/test_database_models.py::TestUserModel::test_user_without_email PASSED [ 54%]
+tests/test_database_models.py::TestUserModel::test_user_role_default PASSED [ 54%]
+tests/test_database_models.py::TestUserModel::test_user_is_active_default PASSED [ 55%]
+tests/test_database_models.py::TestUserModel::test_user_representation PASSED [ 55%]
+tests/test_database_models.py::TestAppModel::test_create_app PASSED      [ 55%]
+tests/test_database_models.py::TestAppModel::test_app_unique_hostname PASSED [ 56%]
+tests/test_database_models.py::TestAppModel::test_app_unique_lxc_id PASSED [ 56%]
+tests/test_database_models.py::TestAppModel::test_app_without_owner PASSED [ 57%]
+tests/test_database_models.py::TestAppModel::test_app_user_relationship PASSED [ 57%]
+tests/test_database_models.py::TestAppModel::test_app_cascade_delete_logs PASSED [ 57%]
+tests/test_database_models.py::TestAppModel::test_app_json_fields_default PASSED [ 58%]
+tests/test_database_models.py::TestAppModel::test_app_updated_at_auto_update PASSED [ 58%]
+tests/test_database_models.py::TestAppModel::test_app_representation PASSED [ 59%]
+tests/test_database_models.py::TestDeploymentLogModel::test_create_deployment_log PASSED [ 59%]
+tests/test_database_models.py::TestDeploymentLogModel::test_deployment_log_levels PASSED [ 59%]
+tests/test_database_models.py::TestDeploymentLogModel::test_deployment_log_app_relationship PASSED [ 60%]
+tests/test_database_models.py::TestDeploymentLogModel::test_deployment_log_representation PASSED [ 60%]
+tests/test_database_models.py::TestAuditLogModel::test_create_audit_log PASSED [ 61%]
+tests/test_database_models.py::TestAuditLogModel::test_audit_log_without_user PASSED [ 61%]
+tests/test_database_models.py::TestAuditLogModel::test_audit_log_actions PASSED [ 61%]
+tests/test_database_models.py::TestAuditLogModel::test_audit_log_representation PASSED [ 62%]
+tests/test_database_models.py::TestDatabaseConstraints::test_cascade_delete_user_apps PASSED [ 62%]
+tests/test_database_models.py::TestDatabaseConstraints::test_app_requires_catalog_id PASSED [ 62%]
+tests/test_database_models.py::TestDatabaseConstraints::test_app_requires_lxc_id PASSED [ 63%]
+tests/test_database_transactions.py::TestTransactionAtomicity::test_deploy_app_rollback_on_proxmox_error PASSED [ 63%]
+tests/test_database_transactions.py::TestTransactionAtomicity::test_delete_app_rollback_on_error PASSED [ 64%]
+tests/test_database_transactions.py::TestTransactionIsolation::test_concurrent_user_creation PASSED [ 64%]
+tests/test_database_transactions.py::TestTransactionIsolation::test_app_hostname_uniqueness_enforced PASSED [ 64%]
+tests/test_database_transactions.py::TestTransactionIsolation::test_lxc_id_uniqueness_enforced PASSED [ 65%]
+tests/test_database_transactions.py::TestTransactionConsistency::test_app_status_consistency PASSED [ 65%]
+tests/test_database_transactions.py::TestTransactionConsistency::test_app_status_consistency_on_error PASSED [ 66%]
+tests/test_database_transactions.py::TestTransactionConsistency::test_user_cascade_delete_consistency PASSED [ 66%]
+tests/test_database_transactions.py::TestTransactionDurability::test_deployed_app_persists PASSED [ 66%]
+tests/test_database_transactions.py::TestTransactionDurability::test_updated_app_status_persists PASSED [ 67%]
+tests/test_database_transactions.py::TestTransactionDurability::test_deleted_app_removal_persists PASSED [ 67%]
+tests/test_database_transactions.py::TestMultipleOperations::test_deploy_start_stop_delete_sequence PASSED [ 67%]
+tests/test_database_transactions.py::TestMultipleOperations::test_multiple_apps_independent_transactions PASSED [ 68%]
+tests/test_database_transactions.py::TestRollbackScenarios::test_rollback_reverts_changes PASSED [ 68%]
+tests/test_database_transactions.py::TestRollbackScenarios::test_rollback_after_integrity_error PASSED [ 69%]
+tests/test_error_handling.py::TestAuthenticationErrors::test_login_with_invalid_credentials PASSED [ 69%]
+tests/test_error_handling.py::TestAuthenticationErrors::test_login_with_inactive_user PASSED [ 69%]
+tests/test_error_handling.py::TestAuthenticationErrors::test_register_with_duplicate_username PASSED [ 70%]
+tests/test_error_handling.py::TestAuthenticationErrors::test_register_with_duplicate_email PASSED [ 70%]
+tests/test_error_handling.py::TestAuthenticationErrors::test_access_protected_route_without_token PASSED [ 71%]
+tests/test_error_handling.py::TestAuthenticationErrors::test_access_protected_route_with_invalid_token PASSED [ 71%]
+tests/test_error_handling.py::TestAuthenticationErrors::test_access_protected_route_with_expired_token PASSED [ 71%]
+tests/test_error_handling.py::TestAuthenticationErrors::test_password_change_with_wrong_old_password PASSED [ 72%]
+tests/test_error_handling.py::TestAppServiceErrors::test_get_nonexistent_app PASSED [ 72%]
+tests/test_error_handling.py::TestAppServiceErrors::test_deploy_app_with_duplicate_id PASSED [ 72%]
+tests/test_error_handling.py::TestAppServiceErrors::test_deploy_app_with_invalid_catalog_id PASSED [ 73%]
+tests/test_error_handling.py::TestAppServiceErrors::test_start_app_proxmox_failure PASSED [ 73%]
+tests/test_error_handling.py::TestAppServiceErrors::test_stop_app_proxmox_failure PASSED [ 74%]
+tests/test_error_handling.py::TestAppServiceErrors::test_delete_nonexistent_app PASSED [ 74%]
+tests/test_error_handling.py::TestAppServiceErrors::test_deployment_with_network_failure PASSED [ 74%]
+tests/test_error_handling.py::TestProxmoxServiceErrors::test_connection_failure PASSED [ 75%]
+tests/test_error_handling.py::TestProxmoxServiceErrors::test_lxc_creation_failure PASSED [ 75%]
+tests/test_error_handling.py::TestProxmoxServiceErrors::test_lxc_start_failure PASSED [ 76%]
+tests/test_error_handling.py::TestAPIEndpointErrors::test_invalid_json_payload PASSED [ 76%]
+tests/test_error_handling.py::TestAPIEndpointErrors::test_missing_required_fields PASSED [ 76%]
+tests/test_error_handling.py::TestAPIEndpointErrors::test_invalid_field_types PASSED [ 77%]
+tests/test_error_handling.py::TestAPIEndpointErrors::test_admin_only_endpoint_as_user PASSED [ 77%]
+tests/test_error_handling.py::TestAPIEndpointErrors::test_nonexistent_endpoint PASSED [ 77%]
+tests/test_error_handling.py::TestEdgeCases::test_very_long_username PASSED [ 78%]
+tests/test_error_handling.py::TestEdgeCases::test_empty_password PASSED  [ 78%]
+tests/test_error_handling.py::TestEdgeCases::test_special_characters_in_hostname PASSED [ 79%]
+tests/test_error_handling.py::TestEdgeCases::test_very_large_config_json PASSED [ 79%]
+tests/test_error_handling.py::TestEdgeCases::test_null_values_in_optional_fields PASSED [ 79%]
+tests/test_error_handling.py::TestEdgeCases::test_concurrent_deployments_same_hostname PASSED [ 80%]
+tests/test_error_handling.py::TestEdgeCases::test_unicode_in_app_name PASSED [ 80%]
+tests/test_error_handling.py::TestEdgeCases::test_max_vmid_value PASSED  [ 81%]
+tests/test_integration.py::TestFullDeploymentWorkflow::test_complete_app_lifecycle PASSED [ 81%]
+tests/test_integration.py::TestAuthenticationWorkflow::test_register_login_access_logout PASSED [ 81%]
+tests/test_integration.py::TestCatalogBrowsing::test_browse_catalog_and_get_details PASSED [ 82%]
+tests/test_integration.py::TestSystemMonitoring::test_monitor_system_resources PASSED [ 82%]
+tests/test_integration.py::TestErrorHandling::test_authentication_errors PASSED [ 83%]
+tests/test_integration.py::TestErrorHandling::test_resource_not_found PASSED [ 83%]
+tests/test_integration.py::TestErrorHandling::test_invalid_input PASSED  [ 83%]
+tests/test_integration.py::TestCORS::test_cors_preflight PASSED          [ 84%]
+tests/test_integration.py::TestCORS::test_cors_headers_present PASSED    [ 84%]
+tests/test_integration.py::TestDataConsistency::test_user_data_consistency PASSED [ 84%]
+tests/test_monitoring_service.py::TestMonitoringService::test_get_current_app_stats_success PASSED [ 85%]
+tests/test_monitoring_service.py::TestMonitoringService::test_get_current_app_stats_uses_cache PASSED [ 85%]
+tests/test_monitoring_service.py::TestMonitoringService::test_get_current_app_stats_cache_expires PASSED [ 86%]
+tests/test_monitoring_service.py::TestMonitoringService::test_get_current_app_stats_handles_proxmox_error PASSED [ 86%]
+tests/test_monitoring_service.py::TestMonitoringService::test_clear_cache_single_entry PASSED [ 86%]
+tests/test_monitoring_service.py::TestMonitoringService::test_clear_cache_all_entries PASSED [ 87%]
+tests/test_monitoring_service.py::TestMonitoringService::test_get_cache_stats PASSED [ 87%]
+tests/test_monitoring_service.py::TestMonitoringService::test_concurrent_requests_same_app PASSED [ 88%]
+tests/test_monitoring_service.py::TestMonitoringService::test_zero_values_handled_correctly PASSED [ 88%]
+tests/test_port_manager.py::TestPortManagerService::test_assign_first_ports PASSED [ 88%]
+tests/test_port_manager.py::TestPortManagerService::test_sequential_port_allocation PASSED [ 89%]
+tests/test_port_manager.py::TestPortManagerService::test_skip_used_ports PASSED [ 89%]
+tests/test_port_manager.py::TestPortManagerService::test_release_ports_for_app PASSED [ 89%]
+tests/test_port_manager.py::TestPortManagerService::test_release_ports_nonexistent_app PASSED [ 90%]
+tests/test_port_manager.py::TestPortManagerService::test_get_port_usage_stats PASSED [ 90%]
+tests/test_port_manager.py::TestPortManagerService::test_port_exhaustion_error PASSED [ 91%]
+tests/test_port_manager.py::TestPortManagerService::test_multiple_apps_unique_ports PASSED [ 91%]
+tests/test_port_manager.py::TestPortManagerService::test_ports_not_reused_immediately PASSED [ 91%]
+tests/test_proxmox_service.py::TestProxmoxService::test_connection_success PASSED [ 92%]
+tests/test_proxmox_service.py::TestProxmoxService::test_get_nodes PASSED [ 92%]
+tests/test_proxmox_service.py::TestProxmoxService::test_get_next_vmid PASSED [ 93%]
+tests/test_proxmox_service.py::TestProxmoxService::test_create_lxc_success PASSED [ 93%]
+tests/test_proxmox_service.py::TestProxmoxService::test_start_lxc PASSED [ 93%]
+tests/test_proxmox_service.py::TestProxmoxService::test_stop_lxc PASSED  [ 94%]
+tests/test_proxmox_service.py::TestProxmoxService::test_destroy_lxc PASSED [ 94%]
+tests/test_proxmox_service.py::TestProxmoxService::test_get_lxc_status PASSED [ 94%]
+tests/test_proxmox_service.py::TestProxmoxService::test_connection_failure PASSED [ 95%]
+tests/test_proxmox_service.py::TestProxmoxService::test_lxc_already_exists PASSED [ 95%]
+tests/test_proxmox_service.py::TestProxmoxServiceSSH::test_execute_in_container PASSED [ 96%]
+tests/test_proxmox_service.py::TestProxmoxServiceSSH::test_setup_docker_in_alpine PASSED [ 96%]
+tests/test_proxmox_service.py::TestProxmoxServiceNetwork::test_get_lxc_ip PASSED [ 96%]
+tests/test_proxmox_service.py::TestProxmoxServiceNetwork::test_network_config_creation PASSED [ 97%]
+tests/test_reverse_proxy_manager.py::TestReverseProxyManagerCaddyConfig::test_generate_caddy_config_port_based PASSED [ 97%]
+tests/test_reverse_proxy_manager.py::TestReverseProxyManagerCaddyConfig::test_generate_caddy_config_different_ports PASSED [ 98%]
+tests/test_reverse_proxy_manager.py::TestReverseProxyManagerCaddyConfig::test_header_stripping_is_specific_to_iframe_port PASSED [ 98%]
+tests/test_reverse_proxy_manager.py::TestReverseProxyManagerCaddyConfig::test_config_includes_proxy_headers PASSED [ 98%]
+tests/test_reverse_proxy_manager.py::TestReverseProxyManagerCaddyConfig::test_config_format_is_valid_caddyfile_syntax PASSED [ 99%]
+tests/test_reverse_proxy_manager.py::TestReverseProxyManagerCaddyConfig::test_multiple_apps_have_unique_ports PASSED [ 99%]
+tests/test_reverse_proxy_manager.py::TestReverseProxyManagerCaddyConfig::test_port_based_urls_generation PASSED [100%]
+
+=================================== FAILURES ===================================
+________ TestAppServiceUpdate.test_update_app_runs_pull_and_up_commands ________
+
+self = <tests.test_app_service.TestAppServiceUpdate object at 0x116239220>
+app_service = <services.app_service.AppService object at 0x117e6d310>
+db_session = <sqlalchemy.orm.session.Session object at 0x1200a3770>
+
+    @pytest.mark.asyncio
+    async def test_update_app_runs_pull_and_up_commands(self, app_service, db_session):
+        """Test that update runs docker compose pull and up commands."""
+        # Create test app
+        from models.database import Backup as DBBackup
+        db_app = DBApp(
+            id="test-app",
+            catalog_id="nginx",
+            name="Test App",
+            hostname="test-app",
+            status="running",
+            lxc_id=100,
+            node="testnode",
+            url="http://10.20.0.100:80"
+        )
+        db_session.add(db_app)
+        db_session.commit()
+    
+        # Mock BackupService
+        with patch('services.backup_service.BackupService') as MockBackupService:
+            mock_backup = DBBackup(
+                app_id="test-app",
+                filename="test-backup.tar.zst",
+                storage_name="local",
+                status="available",
+                size_bytes=100000000
+            )
+            db_session.add(mock_backup)
+            db_session.commit()
+    
+            mock_backup_service = AsyncMock()
+            mock_backup_service.create_backup = AsyncMock(return_value=mock_backup)
+            MockBackupService.return_value = mock_backup_service
+    
+            # Mock Docker commands
+            app_service.proxmox_service.execute_in_container = AsyncMock(return_value="success")
+    
+            # Mock health check
+            with patch('httpx.AsyncClient') as mock_client:
+                mock_response = MagicMock()
+                mock_response.status_code = 200
+                mock_client.return_value.__aenter__.return_value.get = AsyncMock(return_value=mock_response)
+    
+                await app_service.update_app("test-app", user_id=1)
+    
+                # Verify docker commands were called in correct order
+                calls = app_service.proxmox_service.execute_in_container.call_args_list
+>               assert len(calls) == 2
+E               AssertionError: assert 3 == 2
+E                +  where 3 = len([call(node='testnode', vmid=100, command='rc-service docker status || rc-service docker start', allow_nonzero_exit=True),\n call(node='testnode', vmid=100, command='cd /root && docker compose pull'),\n call(node='testnode', vmid=100, command='cd /root && docker compose up -d --remove-orphans')])
+
+tests/test_app_service.py:371: AssertionError
+================================ tests coverage ================================
+_______________ coverage: platform darwin, python 3.13.7-final-0 _______________
+
+Name                                                 Stmts   Miss  Cover   Missing
+----------------------------------------------------------------------------------
+backend/__init__.py                                      0      0   100%
+backend/api/__init__.py                                  0      0   100%
+backend/api/endpoints/__init__.py                        0      0   100%
+backend/api/endpoints/apps.py                          270    195    28%   41-43, 46-51, 65-67, 83, 86, 89-91, 105-107, 119-127, 144-153, 163-170, 180-204, 216-224, 234-253, 262-286, 302-344, 377-474, 488, 511-534, 579-595, 626-641, 675-687
+backend/api/endpoints/auth.py                           46      9    80%   179-197, 214-232
+backend/api/endpoints/backups.py                        80     16    80%   101-107, 145-146, 183, 195-196, 238, 261, 267-268, 308, 327-328
+backend/api/endpoints/settings.py                       89     37    58%   102-138, 154, 171-189, 203, 219-236, 253-257, 277-290, 305-317
+backend/api/endpoints/system.py                        335    256    24%   20, 29-39, 67-72, 91, 97, 99, 105-112, 123-128, 140, 151, 159-228, 248-309, 318-325, 334-341, 349-368, 374, 403-416, 433-453, 462-502, 523-563, 571-635, 649-675, 713-790, 801-852
+backend/api/endpoints/test.py                           19      6    68%   37-44, 54, 67-71
+backend/api/middleware/__init__.py                       0      0   100%
+backend/api/middleware/auth.py                          52     16    69%   45, 63-64, 94, 140, 165-180
+backend/check_db_schema.py                              56     56     0%   9-92
+backend/core/__init__.py                                 0      0   100%
+backend/core/config.py                                  62     13    79%   83-84, 88-91, 95-101
+backend/core/exceptions.py                              93      0   100%
+backend/core/security.py                                42     26    38%   29-54, 71-93, 137-140
+backend/diagnose_network.py                            108    108     0%   7-188
+backend/main.py                                        231    135    42%   33-34, 86, 104-281, 309, 317-318, 325-326, 341-342, 388-389, 461, 466, 471, 481-485, 490-494, 521
+backend/migrate_db.py                                   20     20     0%   11-40
+backend/models/__init__.py                               0      0   100%
+backend/models/database.py                             113      6    95%   36-40, 45, 194
+backend/models/schemas.py                              232      9    96%   126, 128, 146-149, 224, 231, 319
+backend/services/__init__.py                             0      0   100%
+backend/services/app_service.py                        821    235    71%   75-76, 81, 108-110, 141, 146, 174-177, 189-207, 211-218, 360, 363-364, 401-409, 416-432, 436-441, 445, 448-449, 451-452, 520-534, 589-603, 628-633, 644-646, 666-671, 677-680, 684-694, 716-718, 723-724, 729-746, 757, 770, 783-800, 906-913, 983-984, 989-990, 1054, 1114-1115, 1256-1258, 1262-1267, 1277-1290, 1297-1298, 1381-1398, 1442-1443, 1451-1454, 1485-1486, 1562-1576, 1606-1611, 1615-1620, 1624-1645, 1676, 1712-1717, 1720, 1793-1801, 1809-1813, 1831-1832
+backend/services/auth_service.py                        76      1    99%   80
+backend/services/backup_service.py                     122     11    91%   167, 218-219, 243, 263-264, 283, 288, 304-306, 326
+backend/services/caddy_service.py                      170    132    22%   39-44, 48-51, 60-114, 123-161, 187-214, 218-263, 267-319, 335-366, 370-374, 378-409, 413-429, 433-456, 460-493, 510-511
+backend/services/cleanup_service.py                    194    163    16%   35-48, 51, 64-69, 73-77, 80, 92-98, 107-129, 138-165, 174-189, 201-219, 228-243, 252-267, 276-309, 313-322, 326-340, 344-352, 356, 393-400
+backend/services/command_service.py                    133    111    17%   39, 64-84, 100-111, 127-138, 154-165, 181-192, 208-219, 235-246, 262-273, 289-300, 316-327, 336, 357-360
+backend/services/console_security.py                    68     68     0%   12-187
+backend/services/encryption_service.py                  62     30    52%   43, 76-84, 96-104, 117-123, 136-146
+backend/services/monitoring_service.py                  77     11    86%   133-136, 237-241, 267-271
+backend/services/network_appliance_orchestrator.py     727    727     0%   55-1631
+backend/services/network_manager.py                    324    324     0%   16-813
+backend/services/network_manager_v2.py                 296    296     0%   16-689
+backend/services/port_manager.py                        68     14    79%   92, 105, 117-119, 173, 195-197, 239-244
+backend/services/proxmox_service.py                    618    379    39%   44-70, 75-81, 85-89, 101-126, 136-137, 144-145, 171-173, 176-177, 198-208, 224-228, 260-265, 304-306, 312-321, 334-336, 342, 376-379, 390-391, 408-409, 424-450, 456-457, 465-466, 526, 536-542, 560-566, 599-656, 660-666, 670-678, 694-712, 726-746, 764-768, 771, 775-778, 785, 791-792, 796-814, 835-837, 851-938, 948-1053, 1084-1086, 1090-1091, 1116, 1128-1132, 1157-1160, 1186-1207, 1223-1256, 1280-1301, 1318-1333, 1337-1347, 1351-1372
+backend/services/reverse_proxy_manager.py              162    126    22%   115-165, 188-229, 241-275, 284, 293, 305, 328, 343-362, 376-383, 495-510, 519-542, 554-573
+backend/services/reverse_proxy_manager_old.py          161    161     0%   36-519
+backend/services/scheduler_service.py                  104    104     0%   10-250
+backend/services/settings_service.py                    99     72    27%   49-58, 80-110, 123-136, 140-146, 156-162, 180-191, 195, 208-217, 221
+backend/services/template_service.py                   154    154     0%   8-318
+----------------------------------------------------------------------------------
+TOTAL                                                 6284   4027    36%
+=========================== short test summary info ============================
+FAILED tests/test_app_service.py::TestAppServiceUpdate::test_update_app_runs_pull_and_up_commands
+================== 1 failed, 258 passed in 420.16s (0:07:00) ===================
+Sentry is attempting to send 2 pending events
+Waiting up to 2 seconds
+Press Ctrl-C to quit

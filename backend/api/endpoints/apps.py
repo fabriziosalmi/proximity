@@ -425,8 +425,8 @@ async def execute_safe_command(
         # Audit log the command execution
         try:
             audit_entry = AuditLog(
-                user_id=current_user.get("id"),
-                username=current_user.get("username", "unknown"),
+                user_id=current_user.user_id,
+                username=current_user.username,
                 action="execute_safe_command",
                 resource_type="app",
                 resource_id=app_id,
@@ -445,7 +445,7 @@ async def execute_safe_command(
             db.add(audit_entry)
             db.commit()
             logger.info(
-                f"User '{current_user.get('username')}' executed command '{command_name.value}' "
+                f"User '{current_user.username}' executed command '{command_name.value}' "
                 f"on app '{app_id}' (LXC {app.lxc_id})"
             )
         except Exception as audit_error:
@@ -509,10 +509,10 @@ async def update_app(
     Returns 202 Accepted as update is asynchronous.
     """
     try:
-        logger.info(f"User {current_user.get('username')} initiated update for app {app_id}")
+        logger.info(f"User {current_user.username} initiated update for app {app_id}")
 
         # Call the update_app method (which is async and comprehensive)
-        updated_app = await service.update_app(app_id, current_user.get("id"))
+        updated_app = await service.update_app(app_id, current_user.user_id)
 
         return {
             "message": "Update completed successfully",
