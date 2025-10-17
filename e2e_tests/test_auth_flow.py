@@ -218,8 +218,14 @@ def test_invalid_login(page: Page, base_url: str):
     
     # Assert - Verify error message content
     print("📋 Step 4: Verifying error message content")
-    error_message = login_page.get_text(login_page.LOGIN_ERROR)
-    assert error_message != "", "Expected error message for invalid login"
+    # Use Playwright's text_content with explicit wait to ensure text is loaded
+    error_message = login_page.login_error.text_content()
+    if not error_message:
+        # Retry once if empty
+        page.wait_for_timeout(500)
+        error_message = login_page.login_error.text_content()
+    
+    assert error_message and error_message.strip() != "", "Expected error message for invalid login"
     assert any(keyword in error_message.lower() for keyword in ["invalid", "incorrect", "failed", "error", "not found"]), \
         f"Error message should indicate failure: {error_message}"
     print(f"✓ Error message received: {error_message}")
