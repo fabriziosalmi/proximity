@@ -39,13 +39,44 @@ def _sentry_before_send(event, hint):
         "name": config_settings.APP_NAME,
         "version": config_settings.APP_VERSION,
         "debug_mode": config_settings.DEBUG,
+        "environment": config_settings.SENTRY_ENVIRONMENT or "auto-detected",
     }
     
     # Add Proxmox context (without sensitive data)
     event["contexts"]["proxmox"] = {
         "host": config_settings.PROXMOX_HOST,
         "port": config_settings.PROXMOX_PORT,
+        "verify_ssl": config_settings.PROXMOX_VERIFY_SSL,
     }
+    
+    # Add database context
+    event["contexts"]["database"] = {
+        "url_scheme": config_settings.DATABASE_URL.split("://")[0] if config_settings.DATABASE_URL else "unknown",
+    }
+    
+    # Extract exception information for better debugging
+    if "exception" in hint:
+        exc = hint["exception"]
+        event.setdefault("extra", {})
+        event["extra"]["exception_type"] = type(exc).__name__
+        event["extra"]["exception_module"] = type(exc).__module__
+        
+        # Add custom exception attributes if available
+        if hasattr(exc, "__dict__"):
+            custom_attrs = {k: str(v) for k, v in exc.__dict__.items() 
+                          if not k.startswith("_") and k not in ["args", "with_traceback"]}
+            if custom_attrs:
+                event["extra"]["exception_attributes"] = custom_attrs
+    
+    # Add request context if available
+    if "request" in event.get("contexts", {}):
+        request_ctx = event["contexts"]["request"]
+        event.setdefault("extra", {})
+        # Add useful request information
+        if "url" in request_ctx:
+            event["extra"]["request_path"] = request_ctx["url"]
+        if "method" in request_ctx:
+            event["extra"]["request_method"] = request_ctx["method"]
     
     return event
 
@@ -56,10 +87,25 @@ if config_settings.SENTRY_DSN:
     environment = config_settings.SENTRY_ENVIRONMENT
     if not environment:
         hostname = socket.gethostname()
-        environment = "development" if hostname in ["localhost", "127.0.0.1"] or "local" in hostname else "production"
+        # Default to development for local/test environments
+        if hostname in ["localhost", "127.0.0.1"] or "local" in hostname.lower() or "test" in hostname.lower():
+            environment = "development"
+        else:
+            environment = "production"
     
     # Use APP_VERSION as release if not explicitly set
     release = config_settings.SENTRY_RELEASE or config_settings.APP_VERSION
+    
+    # Determine sampling rates based on environment
+    if environment == "development":
+        traces_sample_rate = 1.0  # 100% of transactions in development
+        error_sample_rate = 1.0   # 100% of errors in development
+    elif environment == "production":
+        traces_sample_rate = 0.1  # 10% of transactions in production
+        error_sample_rate = 1.0   # 100% of errors in production
+    else:
+        traces_sample_rate = 0.5  # 50% for other environments
+        error_sample_rate = 1.0   # 100% of errors
     
     sentry_sdk.init(
         dsn=config_settings.SENTRY_DSN,
@@ -68,20 +114,30 @@ if config_settings.SENTRY_DSN:
         integrations=[
             FastApiIntegration(
                 transaction_style="endpoint",  # Group transactions by route
-                failed_request_status_codes={500, 502, 503, 504},  # Set instead of list (fixes deprecation warning)
+                failed_request_status_codes={500, 502, 503, 504},
             ),
             LoggingIntegration(
                 level=logging.INFO,  # Capture info and above
                 event_level=logging.ERROR  # Send events for ERROR and above
             ),
         ],
-        traces_sample_rate=1.0 if environment == "development" else 0.1,  # 100% in dev, 10% in prod
+        traces_sample_rate=traces_sample_rate,
+        sample_rate=error_sample_rate,  # Error sampling rate
         profiles_sample_rate=0.0,  # Disable profiling for now
         send_default_pii=False,  # Don't send personally identifiable information
         before_send=_sentry_before_send,  # Custom event processor
+        attach_stacktrace=True,  # Attach stack traces to all messages
+        max_breadcrumbs=50,  # Keep more breadcrumbs for better debugging (default is 100)
+        debug=environment == "development",  # Enable debug output in development
     )
     
+    # Set user context for non-authenticated requests
+    sentry_sdk.set_tag("app_name", config_settings.APP_NAME)
+    sentry_sdk.set_tag("app_version", config_settings.APP_VERSION)
+    
     print(f"✓ Sentry initialized (environment={environment}, release={release})")
+    print(f"  - Traces sample rate: {traces_sample_rate * 100}%")
+    print(f"  - Error sample rate: {error_sample_rate * 100}%")
 else:
     print("ℹ️  Sentry disabled (no SENTRY_DSN configured)")
 
@@ -315,6 +371,17 @@ def create_app() -> FastAPI:
     @app.exception_handler(ProxmoxError)
     async def proxmox_exception_handler(request: Request, exc: ProxmoxError):
         logger.error(f"Proxmox error: {exc}")
+        
+        # Add Sentry context for Proxmox errors
+        with sentry_sdk.push_scope() as scope:
+            scope.set_tag("error_type", "proxmox")
+            scope.set_context("proxmox_error", {
+                "error_message": str(exc),
+                "request_path": request.url.path,
+                "request_method": request.method,
+            })
+            sentry_sdk.capture_exception(exc)
+        
         return JSONResponse(
             status_code=502,
             content={"success": False, "error": "Proxmox API error", "details": str(exc)}
@@ -323,6 +390,17 @@ def create_app() -> FastAPI:
     @app.exception_handler(AppServiceError)
     async def app_service_exception_handler(request: Request, exc: AppServiceError):
         logger.error(f"App service error: {exc}")
+        
+        # Add Sentry context for App Service errors
+        with sentry_sdk.push_scope() as scope:
+            scope.set_tag("error_type", "app_service")
+            scope.set_context("app_service_error", {
+                "error_message": str(exc),
+                "request_path": request.url.path,
+                "request_method": request.method,
+            })
+            sentry_sdk.capture_exception(exc)
+        
         return JSONResponse(
             status_code=400,
             content={"success": False, "error": "Application service error", "details": str(exc)}
@@ -330,6 +408,19 @@ def create_app() -> FastAPI:
     
     @app.exception_handler(HTTPException)
     async def http_exception_handler(request: Request, exc: HTTPException):
+        # Only capture 5xx errors to Sentry, not 4xx client errors
+        if exc.status_code >= 500:
+            with sentry_sdk.push_scope() as scope:
+                scope.set_tag("error_type", "http_exception")
+                scope.set_tag("status_code", exc.status_code)
+                scope.set_context("http_error", {
+                    "status_code": exc.status_code,
+                    "detail": exc.detail,
+                    "request_path": request.url.path,
+                    "request_method": request.method,
+                })
+                sentry_sdk.capture_exception(exc)
+        
         return JSONResponse(
             status_code=exc.status_code,
             content={"detail": exc.detail},
@@ -339,6 +430,24 @@ def create_app() -> FastAPI:
     @app.exception_handler(Exception)
     async def general_exception_handler(request: Request, exc: Exception):
         logger.error(f"Unhandled exception: {exc}", exc_info=True)
+        
+        # Capture unhandled exceptions with full context
+        with sentry_sdk.push_scope() as scope:
+            scope.set_tag("error_type", "unhandled")
+            scope.set_context("unhandled_exception", {
+                "exception_type": type(exc).__name__,
+                "exception_module": type(exc).__module__,
+                "error_message": str(exc),
+                "request_path": request.url.path,
+                "request_method": request.method,
+                "request_url": str(request.url),
+            })
+            # Add query parameters if present
+            if request.query_params:
+                scope.set_context("query_params", dict(request.query_params))
+            
+            sentry_sdk.capture_exception(exc)
+        
         return JSONResponse(
             status_code=500,
             content={"success": False, "error": "Internal server error"}
