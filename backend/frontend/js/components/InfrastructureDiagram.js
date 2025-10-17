@@ -42,7 +42,7 @@ export class InfrastructureDiagram {
         }
 
         return `
-            <div class="infrastructure-diagram">>
+            <div class="infrastructure-diagram">
                 <!-- Title -->
                 <div class="diagram-header">
                     <h3>
@@ -259,9 +259,9 @@ export class InfrastructureDiagram {
         const appsPerColumn = 3;
         const startX = 850;
         const startY = 240;
-        const boxWidth = 220;
-        const boxHeight = 110;
-        const spacing = 120;
+        const boxWidth = 240;  // Increased from 220 for better readability
+        const boxHeight = 125; // Increased from 110
+        const spacing = 130;   // Adjusted for new size
 
         apps.forEach((app, index) => {
             const row = index % appsPerColumn;
@@ -275,59 +275,56 @@ export class InfrastructureDiagram {
             // Connection line from Proxmox to App
             networkLines.innerHTML += `
                 <line x1="680" y1="350" x2="${x + boxWidth/2}" y2="${y}" 
-                      stroke="${statusColor}" stroke-width="2" opacity="0.4" class="connection-line" stroke-dasharray="5,5"/>
+                      stroke="${statusColor}" stroke-width="2" opacity="0.6" class="connection-line" stroke-dasharray="5,5"/>
             `;
 
-            // App box with enhanced info
+            // App box with enhanced info and better typography
             appsContainer.innerHTML += `
-                <g class="app-node" data-app-id="${app.id}">
-                    <!-- Main Box -->
+                <g class="app-node" data-app-id="${app.id}" title="${app.hostname || app.name}">
+                    <!-- Main Box Background -->
                     <rect x="${x}" y="${y}" width="${boxWidth}" height="${boxHeight}" 
                           rx="8" fill="url(${gradient})" opacity="0.12" 
                           stroke="${statusColor}" stroke-width="2" filter="url(#shadow)"/>
                     
-                    <!-- Top bar with status -->
-                    <rect x="${x}" y="${y}" width="${boxWidth}" height="25" 
-                          rx="8" fill="${statusColor}" opacity="0.1"/>
+                    <!-- Top bar with status indicator -->
+                    <rect x="${x}" y="${y}" width="${boxWidth}" height="28" 
+                          rx="8" fill="${statusColor}" opacity="0.15"/>
                     
                     <!-- Status indicator (animated pulse) -->
-                    <circle class="status-indicator" cx="${x + boxWidth - 12}" cy="${y + 12}" r="5" fill="${statusColor}" opacity="0.9"/>
+                    <circle class="status-indicator" cx="${x + boxWidth - 14}" cy="${y + 14}" r="6" fill="${statusColor}" opacity="0.95"/>
                     
-                    <!-- App name (hostname) -->
-                    <text x="${x + 8}" y="${y + 18}" 
-                          fill="#e0e7ff" font-size="12" font-weight="bold">
-                        ${this.truncateText(app.hostname || app.name, 20)}
+                    <!-- App name (hostname) - Primary Info -->
+                    <text x="${x + 10}" y="${y + 20}" 
+                          fill="#e5e7eb" font-size="13" font-weight="600" font-family="monospace">
+                        ${this.truncateText(app.hostname || app.name, 18)}
                     </text>
                     
-                    <!-- Status -->
-                    <rect x="${x + 6}" y="${y + 28}" width="${boxWidth - 12}" height="15" 
-                          rx="2" fill="${statusColor}" opacity="0.15"/>
-                    <text x="${x + boxWidth / 2}" y="${y + 38}" text-anchor="middle" 
-                          fill="${statusColor}" font-size="9" font-weight="600">
+                    <!-- Status label -->
+                    <text x="${x + 10}" y="${y + 42}" fill="${statusColor}" font-size="10" font-weight="600">
                         ${this.formatStatus(app.status)}
                     </text>
                     
-                    <!-- Container Info -->
-                    <text x="${x + 8}" y="${y + 58}" fill="#9ca3af" font-size="8">
-                        Container: ${this.truncateText(app.lxc_id || 'N/A', 12)}
+                    <!-- Divider line -->
+                    <line x1="${x + 8}" y1="${y + 48}" x2="${x + boxWidth - 8}" y2="${y + 48}" 
+                          stroke="rgba(0, 245, 255, 0.1)" stroke-width="1"/>
+                    
+                    <!-- Container ID with icon -->
+                    <text x="${x + 10}" y="${y + 63}" fill="#9ca3af" font-size="8" font-family="monospace">
+                        🔹 ${this.truncateText(app.lxc_id || 'N/A', 14)}
                     </text>
                     
-                    <!-- Node Info -->
-                    <text x="${x + 8}" y="${y + 70}" fill="#9ca3af" font-size="8">
-                        Node: ${this.truncateText(app.node || 'pve', 12)}
+                    <!-- Node assignment with icon -->
+                    <text x="${x + 10}" y="${y + 76}" fill="#9ca3af" font-size="8" font-family="monospace">
+                        🖥️ ${this.truncateText(app.node || 'pve', 14)}
                     </text>
                     
-                    <!-- Network -->
-                    <text x="${x + 8}" y="${y + 82}" fill="#9ca3af" font-size="8">
-                        Net: ${app.ip || '10.x.x.x'}
+                    <!-- Network address with icon -->
+                    <text x="${x + 10}" y="${y + 89}" fill="#00f5ff" font-size="8" font-weight="500" font-family="monospace">
+                        📡 ${app.ip || '10.x.x.x'}
                     </text>
                     
-                    <!-- Port Info if available -->
-                    ${app.port ? `
-                    <text x="${x + 8}" y="${y + 94}" fill="#00f5ff" font-size="8" font-weight="bold">
-                        Port: ${app.port}
-                    </text>
-                    ` : ''}
+                    <!-- Port info if available -->
+                    ${app.port ? `<text x="${x + 10}" y="${y + 102}" fill="#fbbf24" font-size="8" font-weight="600" font-family="monospace">🔌 :${app.port}</text>` : ''}
                 </g>
             `;
         });
