@@ -128,6 +128,7 @@ async def get_nodes(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+
 @router.get("/network/metrics")
 async def get_network_metrics(
     proxmox: ProxmoxService = Depends(lambda: proxmox_service)
@@ -135,6 +136,25 @@ async def get_network_metrics(
     """
     Get real-time network metrics for all Proxmox nodes.
     Returns bridge status, network stats, and connectivity info.
+    """
+    return await _get_network_data(proxmox)
+
+
+@router.get("/network")
+async def get_network(
+    proxmox: ProxmoxService = Depends(lambda: proxmox_service)
+):
+    """
+    Alias for /network/metrics endpoint.
+    Get real-time network metrics for all Proxmox nodes.
+    """
+    return await _get_network_data(proxmox)
+
+
+async def _get_network_data(proxmox: ProxmoxService):
+    """
+    Internal function to fetch network metrics.
+    Shared by both /network and /network/metrics endpoints.
     """
     try:
         logger.debug("Fetching nodes for network metrics...")

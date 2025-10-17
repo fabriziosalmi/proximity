@@ -16,13 +16,8 @@
  * @module searchService
  */
 
-/**
- * Get current app state
- * @returns {Object} State object with deployedApps and catalog
- */
-function getState() {
-    return window.state || { deployedApps: [], catalog: { items: [] } };
-}
+import { getState } from '../state/appState.js';
+import { renderAppCard } from '../components/app-card.js';
 
 /**
  * Get debounce utility
@@ -39,14 +34,6 @@ function initIcons() {
     if (window.initLucideIcons) {
         window.initLucideIcons();
     }
-}
-
-/**
- * Get renderAppCard function
- * @returns {Function} Card rendering function
- */
-function getRenderCard() {
-    return window.renderAppCard || (() => {});
 }
 
 /**
@@ -113,15 +100,29 @@ function _searchCatalogInternal(query) {
                 </div>
                 <h3 class="empty-title">No matches found</h3>
                 <p class="empty-message">Try adjusting your search or category filter</p>
-                <button class="btn btn-secondary" onclick="window.searchService.clearCatalogSearch()">Clear Search</button>
+                <button class="btn btn-secondary" id="catalogClearSearchBtn">Clear Search</button>
             </div>
         `;
+        // Add event listener for clear button
+        setTimeout(() => {
+            const clearSearchBtn = document.getElementById('catalogClearSearchBtn');
+            if (clearSearchBtn) {
+                clearSearchBtn.addEventListener('click', () => {
+                    const searchInput = document.getElementById('catalogSearchInput');
+                    const clearBtn = document.getElementById('catalogClearSearch');
+                    const resultsCount = document.getElementById('catalogResultsCount');
+                    if (searchInput) searchInput.value = '';
+                    if (clearBtn) clearBtn.style.display = 'none';
+                    if (resultsCount) resultsCount.style.display = 'none';
+                    _searchCatalogInternal('');
+                });
+            }
+        }, 0);
     } else {
-        // Clear grid and render using template cloning
+        // Clear grid and render using imported function
         grid.innerHTML = '';
-        const renderCard = getRenderCard();
         for (const app of filtered) {
-            renderCard(app, grid, false);
+            renderAppCard(app, grid, false);
         }
     }
 
@@ -257,15 +258,29 @@ function _searchAppsInternal(query) {
                 </div>
                 <h3 class="empty-title">No matches found</h3>
                 <p class="empty-message">Try adjusting your search or filter</p>
-                <button class="btn btn-secondary" onclick="window.searchService.clearAppsSearch()">Clear Search</button>
+                <button class="btn btn-secondary" id="appsClearSearchBtn">Clear Search</button>
             </div>
         `;
+        // Add event listener for clear button
+        setTimeout(() => {
+            const clearSearchBtn = document.getElementById('appsClearSearchBtn');
+            if (clearSearchBtn) {
+                clearSearchBtn.addEventListener('click', () => {
+                    const searchInput = document.getElementById('appsSearchInput');
+                    const clearBtn = document.getElementById('appsClearSearch');
+                    const resultsCount = document.getElementById('appsResultsCount');
+                    if (searchInput) searchInput.value = '';
+                    if (clearBtn) clearBtn.style.display = 'none';
+                    if (resultsCount) resultsCount.style.display = 'none';
+                    _searchAppsInternal('');
+                });
+            }
+        }, 0);
     } else {
-        // Clear grid and render using template cloning
+        // Clear grid and render using imported function
         grid.innerHTML = '';
-        const renderCard = getRenderCard();
         for (const app of filtered) {
-            renderCard(app, grid, true);
+            renderAppCard(app, grid, true);
         }
     }
 

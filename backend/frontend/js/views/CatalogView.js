@@ -11,6 +11,7 @@ import { Component } from '../core/Component.js';
 import { renderAppCard } from '../components/app-card.js';
 import { loadCatalog } from '../services/dataService.js';
 import { getState, setState } from '../state/appState.js';
+import { searchCatalog, clearCatalogSearch } from '../services/searchService.js';
 
 export class CatalogView extends Component {
     constructor() {
@@ -90,9 +91,8 @@ export class CatalogView extends Component {
                         class="search-input"
                         id="catalogSearchInput"
                         placeholder="Search applications by name, description, or category..."
-                        oninput="searchCatalog(this.value)"
                     />
-                    <button class="search-clear" id="catalogClearSearch" onclick="clearCatalogSearch()" style="display: none;">
+                    <button class="search-clear" id="catalogClearSearch" style="display: none;">
                         <i data-lucide="x"></i>
                     </button>
                 </div>
@@ -103,6 +103,22 @@ export class CatalogView extends Component {
         `;
 
         container.innerHTML = content;
+
+        // Setup search event listeners
+        const searchInput = document.getElementById('catalogSearchInput');
+        const clearBtn = document.getElementById('catalogClearSearch');
+        
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                searchCatalog(e.target.value);
+            });
+        }
+        
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => {
+                clearCatalogSearch();
+            });
+        }
 
         // Render catalog app cards using imported renderAppCard function
         let grid = document.getElementById('catalogGrid');
