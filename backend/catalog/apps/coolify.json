@@ -1,0 +1,27 @@
+{
+  "id": "coolify",
+  "name": "Coolify",
+  "description": "An open-source and self-hostable alternative to Heroku, Netlify, and Vercel.",
+  "version": "latest",
+  "icon": "https://cdn.simpleicons.org/coolify/ED225D",
+  "category": "DevOps",
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "coolify": {
+        "image": "coollabsio/coolify:latest",
+        "restart": "unless-stopped",
+        "ports": [
+          "3000:3000"
+        ],
+        "volumes": [
+          "/var/run/docker.sock:/var/run/docker.sock",
+          "coolify_data:/app/data"
+        ]
+      }
+    },
+    "volumes": {
+      "coolify_data": null
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "id": "metube",
+  "name": "MeTube",
+  "description": "A web GUI for youtube-dl (or yt-dlp) with playlist support.",
+  "version": "latest",
+  "icon": "https://cdn.simpleicons.org/youtube/FF0000",
+  "category": "Media",
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "metube": {
+        "image": "alexta69/metube:latest",
+        "restart": "unless-stopped",
+        "ports": [
+          "8081:8081"
+        ],
+        "volumes": [
+          "metube_downloads:/downloads"
+        ]
+      }
+    },
+    "volumes": {
+      "metube_downloads": null
+    }
+  }
+}

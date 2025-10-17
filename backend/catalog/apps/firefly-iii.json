@@ -1,0 +1,51 @@
+{
+  "id": "firefly-iii",
+  "name": "Firefly III",
+  "description": "Self-hosted personal finance manager",
+  "version": "latest",
+  "icon": "https://cdn.simpleicons.org/fireflyiii/F05A24",
+  "category": "Business",
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "firefly": {
+        "image": "fireflyiii/core:latest",
+        "restart": "unless-stopped",
+        "ports": [
+          "8088:8080"
+        ],
+        "environment": {
+          "APP_KEY": "base64:change_me",
+          "APP_URL": "http://localhost:8088",
+          "DB_CONNECTION": "pgsql",
+          "DB_HOST": "firefly_db",
+          "DB_PORT": "5432",
+          "DB_DATABASE": "firefly",
+          "DB_USERNAME": "firefly",
+          "DB_PASSWORD": "firefly"
+        },
+        "volumes": [
+          "firefly_uploads:/var/www/html/storage/upload"
+        ],
+        "depends_on": [
+          "firefly_db"
+        ]
+      },
+      "firefly_db": {
+        "image": "postgres:15-alpine",
+        "environment": {
+          "POSTGRES_DB": "firefly",
+          "POSTGRES_USER": "firefly",
+          "POSTGRES_PASSWORD": "firefly"
+        },
+        "volumes": [
+          "firefly_db_data:/var/lib/postgresql/data"
+        ]
+      }
+    },
+    "volumes": {
+      "firefly_uploads": null,
+      "firefly_db_data": null
+    }
+  }
+}

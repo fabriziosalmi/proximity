@@ -1,0 +1,56 @@
+{
+  "id": "peertube",
+  "name": "PeerTube",
+  "description": "Decentralized video hosting platform",
+  "version": "latest",
+  "icon": "https://cdn.simpleicons.org/peertube/F1680D",
+  "category": "Media",
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "peertube": {
+        "image": "chocobozzz/peertube:latest",
+        "restart": "unless-stopped",
+        "ports": [
+          "9000:9000",
+          "1935:1935"
+        ],
+        "environment": {
+          "PEERTUBE_WEBSERVER_HOSTNAME": "your-domain",
+          "POSTGRES_DB": "peertube",
+          "POSTGRES_USER": "peertube",
+          "POSTGRES_PASSWORD": "peertube",
+          "REDIS_HOST": "peertube_redis",
+          "PEERTUBE_REDIS_AUTH": ""
+        ],
+        "volumes": [
+          "peertube_data:/data",
+          "peertube_config:/config"
+        ],
+        "depends_on": [
+          "peertube_db",
+          "peertube_redis"
+        ]
+      },
+      "peertube_db": {
+        "image": "postgres:15-alpine",
+        "environment": {
+          "POSTGRES_DB": "peertube",
+          "POSTGRES_USER": "peertube",
+          "POSTGRES_PASSWORD": "peertube"
+        },
+        "volumes": [
+          "peertube_db_data:/var/lib/postgresql/data"
+        ]
+      },
+      "peertube_redis": {
+        "image": "redis:7-alpine"
+      }
+    },
+    "volumes": {
+      "peertube_data": null,
+      "peertube_config": null,
+      "peertube_db_data": null
+    }
+  }
+}

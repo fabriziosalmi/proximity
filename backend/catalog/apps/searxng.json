@@ -1,0 +1,29 @@
+{
+  "id": "searxng",
+  "name": "SearXNG",
+  "description": "Self-hosted metasearch engine aggregating results from multiple sources",
+  "version": "latest",
+  "icon": "https://cdn.simpleicons.org/search/4B5563",
+  "category": "Utilities",
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "searxng": {
+        "image": "searxng/searxng:latest",
+        "restart": "unless-stopped",
+        "ports": [
+          "8082:8080"
+        ],
+        "environment": {
+          "SEARXNG_BASE_URL": "http://localhost:8082"
+        ],
+        "volumes": [
+          "searxng_settings:/etc/searxng"
+        ]
+      }
+    },
+    "volumes": {
+      "searxng_settings": null
+    }
+  }
+}

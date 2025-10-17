@@ -1,0 +1,31 @@
+{
+  "id": "gatus",
+  "name": "Gatus",
+  "description": "Automated developer-oriented status page and uptime monitoring",
+  "version": "latest",
+  "icon": "https://cdn.simpleicons.org/statuspage/4CAF50",
+  "category": "Monitoring",
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "gatus": {
+        "image": "twin/gatus:latest",
+        "restart": "unless-stopped",
+        "ports": [
+          "8080:8080"
+        ],
+        "volumes": [
+          "gatus_config:/etc/gatus",
+          "gatus_data:/var/lib/gatus"
+        ],
+        "environment": {
+          "GATUS_CONFIG_PATH": "/etc/gatus/config.yaml"
+        }
+      }
+    },
+    "volumes": {
+      "gatus_config": null,
+      "gatus_data": null
+    }
+  }
+}

@@ -2842,7 +2842,7 @@ a.connection-value:hover::after {
     background: rgba(82, 82, 91, 0.25);
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
-    font-size: 0.70rem;
+    font-size: 0.85rem;
     font-weight: 500;
     color: var(--text-tertiary);
 }

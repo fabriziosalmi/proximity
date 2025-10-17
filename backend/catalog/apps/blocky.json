@@ -1,0 +1,33 @@
+{
+  "id": "blocky",
+  "name": "Blocky",
+  "description": "Fast and lightweight DNS proxy as ad-blocker for local network",
+  "version": "latest",
+  "icon": "https://cdn.simpleicons.org/pihole/96060C",
+  "category": "Networking",
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "blocky": {
+        "image": "spx01/blocky:latest",
+        "restart": "unless-stopped",
+        "ports": [
+          "53:53/tcp",
+          "53:53/udp",
+          "4000:4000/tcp"
+        ],
+        "volumes": [
+          "blocky_config:/app/config",
+          "blocky_data:/app/data"
+        ],
+        "environment": {
+          "TZ": "UTC"
+        }
+      }
+    },
+    "volumes": {
+      "blocky_config": null,
+      "blocky_data": null
+    }
+  }
+}
