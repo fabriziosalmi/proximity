@@ -1,0 +1,30 @@
+{
+  "id": "dockge",
+  "name": "Dockge",
+  "description": "A fancy, easy-to-use and reactive Docker Compose stack manager",
+  "version": "latest",
+  "icon": "https://cdn.simpleicons.org/docker/2496ED",
+  "category": "DevOps",
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "dockge": {
+        "image": "louislam/dockge:latest",
+        "restart": "unless-stopped",
+        "ports": [
+          "5001:5001"
+        ],
+        "volumes": [
+          "/var/run/docker.sock:/var/run/docker.sock",
+          "dockge_data:/opt/dockge/data"
+        ],
+        "environment": {
+          "DOCKGE_STACKS_DIR": "/opt/dockge/stacks"
+        }
+      }
+    },
+    "volumes": {
+      "dockge_data": null
+    }
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "id": "papermerge",
+  "name": "Papermerge",
+  "description": "Open source document management system for scanned documents",
+  "version": "latest",
+  "icon": "https://cdn.simpleicons.org/document/2563EB",
+  "category": "Productivity",
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "papermerge": {
+        "image": "papermerge/papermerge:latest",
+        "restart": "unless-stopped",
+        "ports": [
+          "8001:8000"
+        ],
+        "environment": {
+          "PAPERMERGE__DB__TYPE": "postgres",
+          "PAPERMERGE__DB__HOST": "papermerge_db",
+          "PAPERMERGE__DB__NAME": "papermerge",
+          "PAPERMERGE__DB__USER": "papermerge",
+          "PAPERMERGE__DB__PASSWORD": "papermerge",
+          "PAPERMERGE__REDIS__HOST": "papermerge_redis"
+        ],
+        "volumes": [
+          "papermerge_data:/app/data",
+          "papermerge_media:/app/media"
+        ],
+        "depends_on": [
+          "papermerge_db",
+          "papermerge_redis"
+        ]
+      },
+      "papermerge_db": {
+        "image": "postgres:15-alpine",
+        "environment": {
+          "POSTGRES_DB": "papermerge",
+          "POSTGRES_USER": "papermerge",
+          "POSTGRES_PASSWORD": "papermerge"
+        },
+        "volumes": [
+          "papermerge_db_data:/var/lib/postgresql/data"
+        ]
+      },
+      "papermerge_redis": {
+        "image": "redis:7-alpine"
+      }
+    },
+    "volumes": {
+      "papermerge_data": null,
+      "papermerge_media": null,
+      "papermerge_db_data": null
+    }
+  }
+}

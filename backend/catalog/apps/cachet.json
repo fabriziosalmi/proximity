@@ -1,0 +1,60 @@
+{
+  "id": "cachet",
+  "name": "Cachet",
+  "description": "Open-source, self-hosted status page system",
+  "version": "latest",
+  "icon": "https://cdn.simpleicons.org/statuspage/FF6D00",
+  "category": "Monitoring",
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "cachet": {
+        "image": "cachethq/cachet:latest",
+        "environment": {
+          "APP_ENV": "production",
+          "APP_DEBUG": "false",
+          "APP_URL": "http://localhost",
+          "APP_KEY": "change_me",
+          "DB_DRIVER": "mysql",
+          "DB_HOST": "mysql",
+          "DB_PORT": "3306",
+          "DB_DATABASE": "cachet",
+          "DB_USERNAME": "cachet",
+          "DB_PASSWORD": "cachet",
+          "REDIS_DRIVER": "redis",
+          "REDIS_HOST": "redis",
+          "REDIS_PORT": "6379"
+        },
+        "ports": [
+          "8000:8000"
+        ],
+        "volumes": [
+          "cachet_storage:/var/www/html/storage"
+        ],
+        "depends_on": [
+          "mysql",
+          "redis"
+        ]
+      },
+      "mysql": {
+        "image": "mysql:8.0",
+        "environment": {
+          "MYSQL_ROOT_PASSWORD": "rootpassword",
+          "MYSQL_DATABASE": "cachet",
+          "MYSQL_USER": "cachet",
+          "MYSQL_PASSWORD": "cachet"
+        },
+        "volumes": [
+          "cachet_mysql:/var/lib/mysql"
+        ]
+      },
+      "redis": {
+        "image": "redis:7-alpine"
+      }
+    },
+    "volumes": {
+      "cachet_storage": null,
+      "cachet_mysql": null
+    }
+  }
+}

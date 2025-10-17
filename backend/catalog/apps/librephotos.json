@@ -1,0 +1,48 @@
+{
+  "id": "librephotos",
+  "name": "LibrePhotos",
+  "description": "Self-hosted open source photo management service",
+  "version": "latest",
+  "icon": "https://cdn.simpleicons.org/photos/4285F4",
+  "category": "Media",
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "librephotos": {
+        "image": "librephotos/librephotos:latest",
+        "restart": "unless-stopped",
+        "ports": [
+          "3000:3000"
+        ],
+        "volumes": [
+          "librephotos_data:/data",
+          "librephotos_photos:/photos:ro"
+        ],
+        "environment": {
+          "DEBUG": "false",
+          "MAPBOX_API_KEY": "",
+          "ALLOW_ADMIN_SIGNUP": "false"
+        },
+        "depends_on": [
+          "librephotos_postgres"
+        ]
+      },
+      "librephotos_postgres": {
+        "image": "postgres:15-alpine",
+        "environment": {
+          "POSTGRES_DB": "librephotos",
+          "POSTGRES_USER": "librephotos",
+          "POSTGRES_PASSWORD": "librephotos"
+        },
+        "volumes": [
+          "librephotos_postgres_data:/var/lib/postgresql/data"
+        ]
+      }
+    },
+    "volumes": {
+      "librephotos_data": null,
+      "librephotos_photos": null,
+      "librephotos_postgres_data": null
+    }
+  }
+}

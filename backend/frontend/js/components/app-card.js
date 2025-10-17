@@ -407,7 +407,7 @@ export function populateCatalogCard(cardElement, app) {
     cardElement.querySelector('.app-name').textContent = app.name || 'Unknown';
     cardElement.querySelector('.category-badge').textContent = app.category || 'Other';
     cardElement.querySelector('.app-description-compact').textContent = app.description || 'No description available';
-    cardElement.querySelector('.cpu-value').textContent = `${app.min_cpu || 1} vCPU`;
+    cardElement.querySelector('.cpu-value').textContent = `${app.min_cpu || 1}`;
     cardElement.querySelector('.memory-value').textContent = `${app.min_memory || 512}MB`;
 }
 
