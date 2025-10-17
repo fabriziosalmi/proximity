@@ -1,0 +1,255 @@
+/**
+ * Infrastructure Diagram Styles
+ * SVG-based infrastructure visualization with cyber aesthetic
+ */
+
+.infrastructure-diagram {
+    background: linear-gradient(135deg, rgba(15, 20, 25, 0.8), rgba(30, 40, 50, 0.6));
+    border: 1px solid rgba(0, 245, 255, 0.2);
+    border-radius: 12px;
+    padding: 24px;
+    margin: 24px 0;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Header */
+.diagram-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(0, 245, 255, 0.1);
+}
+
+.diagram-header h3 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #00f5ff;
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.diagram-header svg {
+    color: #00f5ff;
+}
+
+/* Stats */
+.diagram-stats {
+    display: flex;
+    gap: 20px;
+    font-size: 13px;
+}
+
+.diagram-stats .stat {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #9ca3af;
+    padding: 6px 12px;
+    background: rgba(0, 245, 255, 0.05);
+    border-radius: 6px;
+    border: 1px solid rgba(0, 245, 255, 0.1);
+}
+
+.diagram-stats .stat strong {
+    color: #00f5ff;
+    font-weight: 700;
+}
+
+.diagram-stats .stat.running {
+    color: #4ade80;
+    background: rgba(74, 222, 128, 0.05);
+    border-color: rgba(74, 222, 128, 0.1);
+}
+
+.diagram-stats .stat.running strong {
+    color: #4ade80;
+}
+
+/* SVG Canvas */
+.diagram-canvas {
+    width: 100%;
+    height: auto;
+    min-height: 400px;
+    background: radial-gradient(circle at 50% 50%, rgba(0, 245, 255, 0.02), rgba(0, 245, 255, 0.01));
+    border-radius: 8px;
+    border: 1px solid rgba(0, 245, 255, 0.1);
+    margin: 16px 0;
+}
+
+/* Proxmox Host */
+.proxmox-host {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.proxmox-host:hover {
+    filter: brightness(1.2);
+}
+
+.proxmox-host rect {
+    transition: all 0.3s ease;
+}
+
+.proxmox-host:hover rect {
+    stroke-width: 3;
+    opacity: 0.3;
+}
+
+/* Network Lines */
+.connection-line {
+    stroke-dasharray: 5, 5;
+    animation: dashflow 0.5s linear infinite;
+    filter: drop-shadow(0 0 2px rgba(0, 245, 255, 0.5));
+}
+
+@keyframes dashflow {
+    to {
+        stroke-dashoffset: -10;
+    }
+}
+
+/* App Nodes */
+.app-node {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    opacity: 0.9;
+}
+
+.app-node:hover {
+    opacity: 1;
+    filter: drop-shadow(0 0 8px rgba(0, 245, 255, 0.5));
+}
+
+.app-node rect {
+    transition: all 0.3s ease;
+}
+
+.app-node:hover rect {
+    opacity: 0.25;
+}
+
+/* Truncate text */
+.truncate {
+    text-anchor: middle;
+    word-wrap: break-word;
+}
+
+/* Grid */
+.grid {
+    opacity: 0.05;
+}
+
+/* Legend */
+.diagram-legend {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(0, 245, 255, 0.1);
+    flex-wrap: wrap;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #d1d5db;
+}
+
+.legend-box {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    border: 2px solid currentColor;
+}
+
+.legend-box.running {
+    background: rgba(74, 222, 128, 0.3);
+    border-color: #4ade80;
+    color: #4ade80;
+}
+
+.legend-box.stopped {
+    background: rgba(107, 114, 128, 0.3);
+    border-color: #6b7280;
+    color: #6b7280;
+}
+
+.legend-box.error {
+    background: rgba(239, 68, 68, 0.3);
+    border-color: #ef4444;
+    color: #ef4444;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .infrastructure-diagram {
+        padding: 16px;
+        margin: 16px 0;
+    }
+
+    .diagram-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .diagram-header h3 {
+        font-size: 16px;
+    }
+
+    .diagram-stats {
+        width: 100%;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .diagram-stats .stat {
+        flex: 1;
+        min-width: 100px;
+        justify-content: center;
+    }
+
+    .diagram-canvas {
+        min-height: 300px;
+    }
+
+    .diagram-legend {
+        gap: 12px;
+    }
+}
+
+/* Animation for page load */
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.infrastructure-diagram {
+    animation: slideInUp 0.6s ease;
+}
+
+/* Dark mode optimizations */
+@media (prefers-color-scheme: dark) {
+    .infrastructure-diagram {
+        background: linear-gradient(135deg, rgba(15, 20, 25, 0.95), rgba(30, 40, 50, 0.8));
+    }
+
+    .diagram-canvas {
+        background: radial-gradient(circle at 50% 50%, rgba(0, 245, 255, 0.03), rgba(0, 0, 0, 0.1));
+    }
+}

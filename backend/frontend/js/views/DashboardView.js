@@ -2,17 +2,19 @@
  * Dashboard View Component
  *
  * Displays a clean, static dashboard with hero section and quick action buttons.
- * Removed dynamic app loading for improved performance and cleaner layout.
+ * Includes infrastructure diagram showing Proxmox host and deployed apps.
  * Focus on "My Apps" page for full application management.
  *
  * @module views/DashboardView
  */
 
 import { Component } from '../core/Component.js';
+import { InfrastructureDiagram } from '../components/InfrastructureDiagram.js';
 
 export class DashboardView extends Component {
     constructor() {
         super();
+        this.infraDiagram = new InfrastructureDiagram();
     }
 
     /**
@@ -34,8 +36,40 @@ export class DashboardView extends Component {
             console.log('✅ Lucide icons re-initialized');
         }
 
+        // Load and render infrastructure diagram
+        this.loadInfrastructureDiagram();
+
         // Call parent mount
         return super.mount(container, state);
+    }
+
+    /**
+     * Load infrastructure data and render diagram
+     */
+    async loadInfrastructureDiagram() {
+        try {
+            // Fetch system status and apps data
+            const [statusResponse, appsResponse] = await Promise.all([
+                fetch('/api/v1/system/status/initial'),
+                fetch('/api/v1/apps')
+            ]);
+
+            if (!statusResponse.ok || !appsResponse.ok) {
+                console.warn('Could not load infrastructure data');
+                return;
+            }
+
+            const status = await statusResponse.json();
+            const apps = await appsResponse.json();
+
+            console.log('📊 Infrastructure data loaded');
+
+            // Initialize diagram with real data
+            this.infraDiagram.init(status, apps);
+
+        } catch (error) {
+            console.warn('Error loading infrastructure diagram:', error);
+        }
     }
 
     /**
@@ -68,11 +102,14 @@ export class DashboardView extends Component {
                         </button>
                     </div>
                 </div>
-                <div class="hero-visual">
+                    <div class="hero-visual">
                     <div class="hero-grid-bg"></div>
                     <div class="hero-glow"></div>
                 </div>
             </div>
+
+            <!-- Infrastructure Diagram Section -->
+            <div id="infrastructure-diagram"></div>
 
             <!-- App Card Example Section -->
             <div class="dashboard-section">
