@@ -23,6 +23,7 @@ from pages import LoginPage, StorePage, AppsPage
 def test_full_app_lifecycle(
     page: Page,
     unique_user: dict,
+    proxmox_host: dict,  # Ensure a Proxmox host exists
     base_url: str
 ):
     """
@@ -41,6 +42,7 @@ def test_full_app_lifecycle(
     Args:
         page: Playwright Page fixture
         unique_user: Unique user fixture with credentials
+        proxmox_host: Proxmox host fixture (ensures host exists)
         base_url: Frontend base URL fixture
     """
     

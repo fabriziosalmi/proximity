@@ -74,6 +74,10 @@ class LoginPage:
         Returns:
             self for chaining
         """
+        # Wait for page to be fully loaded and hydrated
+        self.page.wait_for_load_state("networkidle")
+        self.page.wait_for_timeout(1000)  # Wait for Svelte hydration
+        
         # Wait for form to be ready
         username_input = self.page.locator(self.USERNAME_INPUT).first
         password_input = self.page.locator(self.PASSWORD_INPUT).first
