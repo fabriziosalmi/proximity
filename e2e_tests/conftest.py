@@ -14,9 +14,8 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-# Import additional fixtures
 # Note: pytest-playwright is automatically loaded via plugin discovery
-pytest_plugins = ['fixtures.deployed_app']
+# Additional fixtures (deployed_app) are loaded via root-level conftest.py
 
 
 # ============================================================================

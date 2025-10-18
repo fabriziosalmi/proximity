@@ -1,0 +1,264 @@
+<script lang="ts">
+	/**
+	 * My Apps - Manage deployed applications
+	 */
+	import { onMount, onDestroy } from 'svelte';
+	import { Loader2, Server, PlayCircle, StopCircle, RotateCw, Trash2, FileText } from 'lucide-svelte';
+	import { myAppsStore, hasDeployingApps } from '$lib/stores/apps';
+	import { toasts } from '$lib/stores/toast';
+	import RackCard from '$lib/components/RackCard.svelte';
+
+	let actionInProgress: Record<string, boolean> = {};
+
+	onMount(() => {
+		// Start polling for real-time updates
+		myAppsStore.startPolling(5000);
+	});
+
+	onDestroy(() => {
+		// Stop polling when leaving the page
+		myAppsStore.stopPolling();
+	});
+
+	async function handleAction(appId: string, appName: string, action: 'start' | 'stop' | 'restart' | 'delete') {
+		// Set action in progress
+		actionInProgress[appId] = true;
+		actionInProgress = { ...actionInProgress };
+
+		const actionLabels = {
+			start: 'Starting',
+			stop: 'Stopping',
+			restart: 'Restarting',
+			delete: 'Deleting'
+		};
+
+		toasts.info(`${actionLabels[action]} ${appName}...`, 2000);
+
+		const result = await myAppsStore.performAction(appId, action);
+
+		// Clear action in progress
+		actionInProgress[appId] = false;
+		actionInProgress = { ...actionInProgress };
+
+		if (result.success) {
+			if (action === 'delete') {
+				toasts.success(`${appName} deleted successfully`, 5000);
+			} else {
+				toasts.success(`${appName} ${action} command sent`, 5000);
+			}
+		} else {
+			toasts.error(result.error || `Failed to ${action} ${appName}`, 7000);
+		}
+	}
+
+	async function handleViewLogs(appId: string, appName: string) {
+		toasts.info('Log viewer coming soon!', 3000);
+		// TODO: Implement log viewer modal
+	}
+
+	function handleRefresh() {
+		myAppsStore.fetchApps();
+		toasts.info('Refreshing apps...', 2000);
+	}
+</script>
+
+<svelte:head>
+	<title>My Apps - Proximity</title>
+</svelte:head>
+
+<div class="min-h-screen bg-rack-darker p-6">
+	<!-- Header -->
+	<div class="mb-8">
+		<div class="flex items-center justify-between">
+			<div>
+				<h1 class="mb-2 text-4xl font-bold text-white">My Apps</h1>
+				<p class="text-gray-400">Manage your deployed applications</p>
+			</div>
+			<button
+				on:click={handleRefresh}
+				disabled={$myAppsStore.loading}
+				class="flex items-center gap-2 rounded-lg bg-rack-primary/10 px-4 py-2 text-rack-primary transition-colors hover:bg-rack-primary/20 disabled:opacity-50"
+			>
+				<RotateCw class="h-4 w-4" />
+				Refresh
+			</button>
+		</div>
+
+		<!-- Real-time status indicator -->
+		{#if $hasDeployingApps}
+			<div
+				class="mt-4 flex items-center gap-2 rounded-lg border border-yellow-500/50 bg-yellow-500/10 px-4 py-2 text-yellow-400"
+			>
+				<Loader2 class="h-4 w-4 animate-spin" />
+				<span class="text-sm">Deployments in progress - updates every 5 seconds</span>
+			</div>
+		{/if}
+
+		{#if $myAppsStore.lastUpdated}
+			<p class="mt-2 text-xs text-gray-500">
+				Last updated: {$myAppsStore.lastUpdated.toLocaleTimeString()}
+			</p>
+		{/if}
+	</div>
+
+	<!-- Loading state -->
+	{#if $myAppsStore.loading && $myAppsStore.apps.length === 0}
+		<div class="flex h-64 items-center justify-center">
+			<div class="text-center">
+				<Loader2 class="mx-auto h-12 w-12 animate-spin text-rack-primary" />
+				<p class="mt-4 text-gray-400">Loading your apps...</p>
+			</div>
+		</div>
+	{:else if $myAppsStore.error}
+		<!-- Error state -->
+		<div
+			class="rounded-lg border border-red-500/50 bg-red-500/10 p-8 text-center text-red-400"
+		>
+			<p class="mb-4">{$myAppsStore.error}</p>
+			<button
+				on:click={handleRefresh}
+				class="rounded-lg bg-red-500/20 px-6 py-2 transition-colors hover:bg-red-500/30"
+			>
+				Try Again
+			</button>
+		</div>
+	{:else if $myAppsStore.apps.length === 0}
+		<!-- Empty state -->
+		<div class="flex h-64 items-center justify-center rounded-lg border-2 border-dashed border-rack-primary/30 bg-rack-light/50">
+			<div class="text-center">
+				<Server class="mx-auto h-16 w-16 text-gray-500" />
+				<p class="mt-4 text-lg text-gray-400">No deployed apps yet</p>
+				<p class="mt-2 text-sm text-gray-500">
+					Visit the <a href="/store" class="text-rack-primary hover:underline">App Store</a> to deploy your first app
+				</p>
+			</div>
+		</div>
+	{:else}
+		<!-- Apps grid -->
+		<div>
+			<!-- Stats overview -->
+			<div class="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+				<div class="rounded-lg border border-rack-primary/30 bg-rack-light p-4">
+					<p class="text-sm text-gray-400">Total Apps</p>
+					<p class="mt-1 text-2xl font-bold text-white">{$myAppsStore.apps.length}</p>
+				</div>
+				<div class="rounded-lg border border-green-500/30 bg-rack-light p-4">
+					<p class="text-sm text-gray-400">Running</p>
+					<p class="mt-1 text-2xl font-bold text-green-400">
+						{$myAppsStore.apps.filter((a) => a.status === 'running').length}
+					</p>
+				</div>
+				<div class="rounded-lg border border-yellow-500/30 bg-rack-light p-4">
+					<p class="text-sm text-gray-400">Deploying</p>
+					<p class="mt-1 text-2xl font-bold text-yellow-400">
+						{$myAppsStore.apps.filter((a) => a.status === 'deploying').length}
+					</p>
+				</div>
+				<div class="rounded-lg border border-gray-500/30 bg-rack-light p-4">
+					<p class="text-sm text-gray-400">Stopped</p>
+					<p class="mt-1 text-2xl font-bold text-gray-400">
+						{$myAppsStore.apps.filter((a) => a.status === 'stopped').length}
+					</p>
+				</div>
+			</div>
+
+			<!-- Apps grid -->
+			<div class="grid gap-6 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
+				{#each $myAppsStore.apps as app (app.id)}
+					<RackCard {app} variant="deployed">
+						<div slot="actions" class="flex w-full flex-wrap gap-2">
+							{#if app.status === 'deploying'}
+								<!-- Show view logs button while deploying -->
+								<button
+									on:click={() => handleViewLogs(app.id, app.name)}
+									disabled={actionInProgress[app.id]}
+									class="flex flex-1 items-center justify-center gap-2 rounded-lg border border-rack-primary/30 bg-rack-darker px-3 py-2 text-sm text-rack-primary transition-colors hover:bg-rack-darker/80 disabled:opacity-50"
+								>
+									<FileText class="h-4 w-4" />
+									View Logs
+								</button>
+							{:else if app.status === 'running'}
+								<!-- Running: Show stop, restart, delete -->
+								<button
+									on:click={() => handleAction(app.id, app.name, 'stop')}
+									disabled={actionInProgress[app.id]}
+									class="flex flex-1 items-center justify-center gap-2 rounded-lg border border-rack-primary/30 bg-rack-darker px-3 py-2 text-sm text-yellow-400 transition-colors hover:bg-rack-darker/80 disabled:opacity-50"
+								>
+									{#if actionInProgress[app.id]}
+										<Loader2 class="h-4 w-4 animate-spin" />
+									{:else}
+										<StopCircle class="h-4 w-4" />
+									{/if}
+									Stop
+								</button>
+								<button
+									on:click={() => handleAction(app.id, app.name, 'restart')}
+									disabled={actionInProgress[app.id]}
+									class="flex flex-1 items-center justify-center gap-2 rounded-lg border border-rack-primary/30 bg-rack-darker px-3 py-2 text-sm text-rack-primary transition-colors hover:bg-rack-darker/80 disabled:opacity-50"
+								>
+									{#if actionInProgress[app.id]}
+										<Loader2 class="h-4 w-4 animate-spin" />
+									{:else}
+										<RotateCw class="h-4 w-4" />
+									{/if}
+									Restart
+								</button>
+							{:else if app.status === 'stopped'}
+								<!-- Stopped: Show start, delete -->
+								<button
+									on:click={() => handleAction(app.id, app.name, 'start')}
+									disabled={actionInProgress[app.id]}
+									class="flex flex-1 items-center justify-center gap-2 rounded-lg bg-rack-primary px-3 py-2 text-sm text-white transition-colors hover:bg-rack-primary/90 disabled:opacity-50"
+								>
+									{#if actionInProgress[app.id]}
+										<Loader2 class="h-4 w-4 animate-spin" />
+									{:else}
+										<PlayCircle class="h-4 w-4" />
+									{/if}
+									Start
+								</button>
+							{:else if app.status === 'error'}
+								<!-- Error: Show restart, delete -->
+								<button
+									on:click={() => handleAction(app.id, app.name, 'restart')}
+									disabled={actionInProgress[app.id]}
+									class="flex flex-1 items-center justify-center gap-2 rounded-lg bg-yellow-500/20 px-3 py-2 text-sm text-yellow-400 transition-colors hover:bg-yellow-500/30 disabled:opacity-50"
+								>
+									{#if actionInProgress[app.id]}
+										<Loader2 class="h-4 w-4 animate-spin" />
+									{:else}
+										<RotateCw class="h-4 w-4" />
+									{/if}
+									Retry
+								</button>
+							{/if}
+
+							<!-- Delete button (always available except when deploying/deleting) -->
+							{#if app.status !== 'deploying' && app.status !== 'deleting'}
+								<button
+									on:click={() => {
+										if (
+											confirm(
+												`Are you sure you want to delete ${app.name}? This action cannot be undone.`
+											)
+										) {
+											handleAction(app.id, app.name, 'delete');
+										}
+									}}
+									disabled={actionInProgress[app.id]}
+									class="flex items-center justify-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-400 transition-colors hover:bg-red-500/20 disabled:opacity-50"
+								>
+									{#if actionInProgress[app.id]}
+										<Loader2 class="h-4 w-4 animate-spin" />
+									{:else}
+										<Trash2 class="h-4 w-4" />
+									{/if}
+								</button>
+							{/if}
+						</div>
+					</RackCard>
+				{/each}
+			</div>
+		</div>
+	{/if}
+</div>

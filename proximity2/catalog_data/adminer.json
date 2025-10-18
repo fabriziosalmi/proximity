@@ -1,0 +1,36 @@
+{
+  "id": "adminer",
+  "name": "Adminer",
+  "version": "latest",
+  "description": "Full-featured database management tool in a single file",
+  "icon": "https://cdn.simpleicons.org/adminer/34567C",
+  "category": "Database",
+  "docker_compose": {
+    "version": "3.8",
+    "services": {
+      "adminer": {
+        "image": "adminer:latest",
+        "environment": {
+          "ADMINER_DEFAULT_SERVER": "db"
+        },
+        "restart": "always",
+        "network_mode": "host"
+      }
+    }
+  },
+  "ports": [
+    8080
+  ],
+  "volumes": [],
+  "environment": {},
+  "min_memory": 128,
+  "min_cpu": 1,
+  "tags": [
+    "database",
+    "management",
+    "mysql",
+    "postgresql"
+  ],
+  "author": "Adminer",
+  "website": "https://www.adminer.org"
+}
