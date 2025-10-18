@@ -23,7 +23,7 @@ daphne==4.0.0
 
 # Proxmox Integration
 proxmoxer==2.0.1
-requests==2.31.0
+requests==2.32.4
 
 # Utilities
 pydantic==2.5.3
