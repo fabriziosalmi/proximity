@@ -198,9 +198,9 @@ def context_with_storage(browser: Browser):
 @pytest.fixture(scope="function")
 def proxmox_host():
     """
-    Creates a test Proxmox host via Django shell command in Docker.
+    Creates a test Proxmox host and node via Django shell command in Docker.
     
-    This fixture ensures that at least one Proxmox host exists
+    This fixture ensures that at least one Proxmox host with nodes exists
     for deployment tests.
     
     Returns:
@@ -208,9 +208,9 @@ def proxmox_host():
     """
     import subprocess
     
-    # Create host via Django shell in Docker container
+    # Create host and node via Django shell in Docker container
     create_command = """
-from apps.proxmox.models import ProxmoxHost
+from apps.proxmox.models import ProxmoxHost, ProxmoxNode
 host, created = ProxmoxHost.objects.get_or_create(
     name='e2e-test-host',
     defaults={
@@ -223,7 +223,23 @@ host, created = ProxmoxHost.objects.get_or_create(
         'is_default': True
     }
 )
-print(f'{host.id},{host.name},{host.host},{host.port}')
+
+# Create test node
+node, node_created = ProxmoxNode.objects.get_or_create(
+    name='pve',
+    host=host,
+    defaults={
+        'status': 'online',
+        'cpu_count': 8,
+        'cpu_usage': 10.5,
+        'memory_total': 32 * 1024 * 1024 * 1024,  # 32GB in bytes
+        'memory_used': 8 * 1024 * 1024 * 1024,    # 8GB in bytes
+        'storage_total': 500 * 1024 * 1024 * 1024,   # 500GB in bytes
+        'storage_used': 100 * 1024 * 1024 * 1024,    # 100GB in bytes
+        'uptime': 86400
+    }
+)
+print(f'{host.id},{host.name},{host.host},{host.port},{node.name}')
 """
     
     try:
@@ -236,19 +252,21 @@ print(f'{host.id},{host.name},{host.host},{host.port}')
         )
         
         if result.returncode == 0:
-            # Parse output: id,name,host,port
+            # Parse output: id,name,host,port,node_name
             output_line = result.stdout.strip().split('\n')[-1]
-            host_id, name, host, port = output_line.split(',')
+            host_id, name, host, port, node_name = output_line.split(',')
             
             host_data = {
                 "id": int(host_id),
                 "name": name,
                 "host": host,
                 "port": int(port),
-                "url": f"{host}:{port}"
+                "url": f"{host}:{port}",
+                "node": node_name
             }
             
             print(f"\n✅ Proxmox host ready: {name} (ID: {host_id})")
+            print(f"✅ Proxmox node ready: {node_name}")
             return host_data
         else:
             pytest.fail(f"Failed to create Proxmox host: {result.stderr}")

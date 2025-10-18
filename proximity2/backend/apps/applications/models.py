@@ -61,7 +61,9 @@ class Application(models.Model):
     owner = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='applications'
+        related_name='applications',
+        null=True,
+        blank=True
     )
     
     # Timestamps
