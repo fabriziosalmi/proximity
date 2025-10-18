@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { authStore } from '$lib/stores/auth';
-	import api from '$lib/api';
+	import { api } from '$lib/api';
 	import { toasts } from '$lib/stores/toast';
 	
 	let username = '';
@@ -71,7 +71,7 @@
 
 		<!-- Login Card -->
 		<div class="bg-rack-light rounded-lg border border-rack-primary/20 p-8 shadow-lg hover:shadow-glow transition-all">
-			<form on:submit|preventDefault={handleLogin} class="space-y-6">
+			<div class="space-y-6">
 				<!-- Username Field -->
 				<div>
 					<label for="username" class="block text-sm font-medium text-rack-primary mb-2">
@@ -127,7 +127,8 @@
 
 				<!-- Submit Button -->
 				<button
-					type="submit"
+					type="button"
+					on:click={handleLogin}
 					disabled={isLoading}
 					class="w-full px-4 py-3 bg-rack-primary text-white rounded-lg font-semibold
 					       hover:shadow-glow hover:bg-rack-primary/90
@@ -145,7 +146,7 @@
 						Sign In
 					{/if}
 				</button>
-			</form>
+			</div>
 
 			<!-- Register Link -->
 			<div class="mt-6 text-center">
