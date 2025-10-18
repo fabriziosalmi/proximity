@@ -195,6 +195,70 @@ def context_with_storage(browser: Browser):
     context.close()
 
 
+@pytest.fixture(scope="function")
+def proxmox_host():
+    """
+    Creates a test Proxmox host via Django shell command in Docker.
+    
+    This fixture ensures that at least one Proxmox host exists
+    for deployment tests.
+    
+    Returns:
+        Dict containing host details
+    """
+    import subprocess
+    
+    # Create host via Django shell in Docker container
+    create_command = """
+from apps.proxmox.models import ProxmoxHost
+host, created = ProxmoxHost.objects.get_or_create(
+    name='e2e-test-host',
+    defaults={
+        'host': '192.168.1.100',
+        'port': 8006,
+        'user': 'root@pam',
+        'password': 'dummy-password-for-e2e',
+        'verify_ssl': False,
+        'is_active': True,
+        'is_default': True
+    }
+)
+print(f'{host.id},{host.name},{host.host},{host.port}')
+"""
+    
+    try:
+        result = subprocess.run(
+            ['docker-compose', '-f', 'proximity2/docker-compose.yml', 'exec', '-T', 'backend', 
+             'python', 'manage.py', 'shell', '-c', create_command],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        
+        if result.returncode == 0:
+            # Parse output: id,name,host,port
+            output_line = result.stdout.strip().split('\n')[-1]
+            host_id, name, host, port = output_line.split(',')
+            
+            host_data = {
+                "id": int(host_id),
+                "name": name,
+                "host": host,
+                "port": int(port),
+                "url": f"{host}:{port}"
+            }
+            
+            print(f"\n✅ Proxmox host ready: {name} (ID: {host_id})")
+            return host_data
+        else:
+            pytest.fail(f"Failed to create Proxmox host: {result.stderr}")
+            
+    except subprocess.TimeoutExpired:
+        pytest.fail("Timeout creating Proxmox host")
+    except Exception as e:
+        pytest.fail(f"Error creating Proxmox host: {str(e)}")
+
+
 @pytest.fixture
 def authenticated_page(
     context_with_storage, 

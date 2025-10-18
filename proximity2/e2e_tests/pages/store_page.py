@@ -6,6 +6,7 @@ Encapsulates all interactions with the App Store/Catalog page.
 from playwright.sync_api import Page, expect, Locator
 from typing import Optional
 import time
+import re
 
 
 class StorePage:
@@ -142,12 +143,13 @@ class StorePage:
         modal_deploy_button = self.page.locator(self.MODAL_DEPLOY_BUTTON).first
         expect(modal_deploy_button).to_be_visible(timeout=5000)
         
+        # Click the button (deployment is async, navigation happens after API call)
+        modal_deploy_button.click()
+        
         if wait_for_redirect:
-            # Expect navigation to /apps page
-            with self.page.expect_navigation(timeout=10000):
-                modal_deploy_button.click()
-        else:
-            modal_deploy_button.click()
+            # Wait for navigation to /apps page after successful deployment
+            # This happens asynchronously after the API call completes
+            expect(self.page).to_have_url(re.compile(r".*/apps/?$"), timeout=30000)
         
         return self
     
