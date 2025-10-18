@@ -195,3 +195,520 @@ class ProxmoxService:
             return client.cluster.nextid.get()
         except Exception as e:
             raise ProxmoxError(f"Failed to get next VMID: {e}")
+    
+    def create_lxc(
+        self,
+        node_name: str,
+        vmid: int,
+        hostname: str,
+        ostemplate: str,
+        password: str,
+        memory: int = 2048,
+        cores: int = 2,
+        disk_size: str = "8",
+        storage: str = "local-lvm",
+        network_bridge: str = "vmbr0",
+        **kwargs
+    ) -> Dict[str, Any]:
+        """
+        Create a new LXC container.
+        
+        Args:
+            node_name: Target Proxmox node
+            vmid: Container VMID
+            hostname: Container hostname
+            ostemplate: OS template (e.g., 'local:vztmpl/ubuntu-22.04-standard_22.04-1_amd64.tar.zst')
+            password: Root password
+            memory: Memory in MB
+            cores: CPU cores
+            disk_size: Disk size (e.g., "8" for 8GB)
+            storage: Storage location
+            network_bridge: Network bridge
+            **kwargs: Additional Proxmox LXC options
+            
+        Returns:
+            Task information
+        """
+        try:
+            client = self.get_client()
+            
+            # Build configuration
+            config = {
+                'vmid': vmid,
+                'ostemplate': ostemplate,
+                'hostname': hostname,
+                'password': password,
+                'memory': memory,
+                'cores': cores,
+                'rootfs': f'{storage}:{disk_size}',
+                'net0': f'name=eth0,bridge={network_bridge},ip=dhcp',
+                'unprivileged': 1,
+                'start': 0,  # Don't auto-start after creation
+                **kwargs
+            }
+            
+            # Create container
+            task = client.nodes(node_name).lxc.post(**config)
+            logger.info(f"Created LXC {vmid} on node {node_name}: {task}")
+            return task
+            
+        except Exception as e:
+            raise ProxmoxError(f"Failed to create LXC {vmid}: {e}")
+    
+    def start_lxc(self, node_name: str, vmid: int) -> Dict[str, Any]:
+        """
+        Start an LXC container.
+        
+        Args:
+            node_name: Proxmox node name
+            vmid: Container VMID
+            
+        Returns:
+            Task information
+        """
+        try:
+            client = self.get_client()
+            task = client.nodes(node_name).lxc(vmid).status.start.post()
+            logger.info(f"Started LXC {vmid} on node {node_name}")
+            return task
+        except Exception as e:
+            raise ProxmoxError(f"Failed to start LXC {vmid}: {e}")
+    
+    def stop_lxc(self, node_name: str, vmid: int, force: bool = False) -> Dict[str, Any]:
+        """
+        Stop an LXC container.
+        
+        Args:
+            node_name: Proxmox node name
+            vmid: Container VMID
+            force: Force stop (immediate)
+            
+        Returns:
+            Task information
+        """
+        try:
+            client = self.get_client()
+            if force:
+                task = client.nodes(node_name).lxc(vmid).status.stop.post(forceStop=1)
+            else:
+                task = client.nodes(node_name).lxc(vmid).status.shutdown.post()
+            logger.info(f"Stopped LXC {vmid} on node {node_name}")
+            return task
+        except Exception as e:
+            raise ProxmoxError(f"Failed to stop LXC {vmid}: {e}")
+    
+    def delete_lxc(self, node_name: str, vmid: int, force: bool = False) -> Dict[str, Any]:
+        """
+        Delete an LXC container.
+        
+        Args:
+            node_name: Proxmox node name
+            vmid: Container VMID
+            force: Force deletion even if running
+            
+        Returns:
+            Task information
+        """
+        try:
+            client = self.get_client()
+            
+            # Stop container first if force is True
+            if force:
+                try:
+                    self.stop_lxc(node_name, vmid, force=True)
+                    import time
+                    time.sleep(2)  # Wait for container to stop
+                except:
+                    pass  # Ignore errors if already stopped
+            
+            task = client.nodes(node_name).lxc(vmid).delete()
+            logger.info(f"Deleted LXC {vmid} from node {node_name}")
+            return task
+        except Exception as e:
+            raise ProxmoxError(f"Failed to delete LXC {vmid}: {e}")
+    
+    def get_lxc_status(self, node_name: str, vmid: int) -> Dict[str, Any]:
+        """
+        Get the current status of an LXC container.
+        
+        Args:
+            node_name: Proxmox node name
+            vmid: Container VMID
+            
+        Returns:
+            Container status information
+        """
+        try:
+            client = self.get_client()
+            status = client.nodes(node_name).lxc(vmid).status.current.get()
+            return status
+        except Exception as e:
+            raise ProxmoxError(f"Failed to get LXC {vmid} status: {e}")
+    
+    def get_lxc_config(self, node_name: str, vmid: int) -> Dict[str, Any]:
+        """
+        Get the configuration of an LXC container.
+        
+        Args:
+            node_name: Proxmox node name
+            vmid: Container VMID
+            
+        Returns:
+            Container configuration
+        """
+        try:
+            client = self.get_client()
+            config = client.nodes(node_name).lxc(vmid).config.get()
+            return config
+        except Exception as e:
+            raise ProxmoxError(f"Failed to get LXC {vmid} config: {e}")
+    
+    def update_lxc_config(
+        self, 
+        node_name: str, 
+        vmid: int, 
+        **config_params
+    ) -> Dict[str, Any]:
+        """
+        Update LXC container configuration.
+        
+        Args:
+            node_name: Proxmox node name
+            vmid: Container VMID
+            **config_params: Configuration parameters to update
+            
+        Returns:
+            Update result
+        """
+        try:
+            client = self.get_client()
+            result = client.nodes(node_name).lxc(vmid).config.put(**config_params)
+            logger.info(f"Updated LXC {vmid} config: {config_params}")
+            return result
+        except Exception as e:
+            raise ProxmoxError(f"Failed to update LXC {vmid} config: {e}")
+    
+    def wait_for_task(
+        self,
+        node_name: str,
+        upid: str,
+        timeout: int = 600,
+        poll_interval: int = 2
+    ) -> Dict[str, Any]:
+        """
+        Wait for a Proxmox task to complete.
+        
+        Args:
+            node_name: Proxmox node name
+            upid: Task UPID (Unique Process ID)
+            timeout: Maximum time to wait in seconds
+            poll_interval: Polling interval in seconds
+            
+        Returns:
+            Task status information
+            
+        Raises:
+            ProxmoxError: If task fails or times out
+        """
+        import time
+        
+        try:
+            client = self.get_client()
+            start_time = time.time()
+            
+            while True:
+                # Check timeout
+                if time.time() - start_time > timeout:
+                    raise ProxmoxError(f"Task {upid} timed out after {timeout}s")
+                
+                # Get task status
+                status = client.nodes(node_name).tasks(upid).status.get()
+                
+                # Check if task is finished
+                if status.get('status') == 'stopped':
+                    exitstatus = status.get('exitstatus', 'unknown')
+                    
+                    if exitstatus == 'OK':
+                        logger.info(f"Task {upid} completed successfully")
+                        return status
+                    else:
+                        raise ProxmoxError(
+                            f"Task {upid} failed with status: {exitstatus}"
+                        )
+                
+                # Wait before next check
+                time.sleep(poll_interval)
+                
+        except Exception as e:
+            if isinstance(e, ProxmoxError):
+                raise
+            raise ProxmoxError(f"Error waiting for task {upid}: {e}")
+    
+    def create_lxc_backup(
+        self,
+        node_name: str,
+        vmid: int,
+        storage: str = 'local',
+        mode: str = 'snapshot',
+        compress: str = 'zstd'
+    ) -> Dict[str, Any]:
+        """
+        Create a backup of an LXC container using vzdump.
+        
+        This method triggers a backup operation and waits for it to complete.
+        The backup will be stored in the specified Proxmox storage.
+        
+        Args:
+            node_name: Proxmox node name
+            vmid: Container VMID to backup
+            storage: Proxmox storage name for backup (default: 'local')
+            mode: Backup mode - 'snapshot' (fastest), 'suspend', or 'stop'
+            compress: Compression algorithm - 'zstd', 'gzip', or 'lzo'
+            
+        Returns:
+            Dictionary containing:
+                - file_name: Name of the created backup file
+                - size: Backup file size in bytes
+                - task: Task information
+                
+        Raises:
+            ProxmoxError: If backup creation fails
+        """
+        try:
+            client = self.get_client()
+            
+            # Validate mode
+            valid_modes = ['snapshot', 'suspend', 'stop']
+            if mode not in valid_modes:
+                raise ProxmoxError(
+                    f"Invalid backup mode '{mode}'. Must be one of: {valid_modes}"
+                )
+            
+            # Validate compression
+            valid_compress = ['zstd', 'gzip', 'lzo']
+            if compress not in valid_compress:
+                raise ProxmoxError(
+                    f"Invalid compression '{compress}'. Must be one of: {valid_compress}"
+                )
+            
+            logger.info(
+                f"Creating backup for LXC {vmid} on {node_name} "
+                f"(storage={storage}, mode={mode}, compress={compress})"
+            )
+            
+            # Trigger vzdump backup
+            task_upid = client.nodes(node_name).vzdump.post(
+                vmid=vmid,
+                storage=storage,
+                mode=mode,
+                compress=compress,
+                remove=0  # Don't remove old backups automatically
+            )
+            
+            logger.info(f"Backup task started: {task_upid}")
+            
+            # Wait for backup to complete
+            task_status = self.wait_for_task(node_name, task_upid, timeout=1800)
+            
+            # Get the backup file information
+            # The backup filename follows pattern: vzdump-lxc-{vmid}-{timestamp}.{ext}
+            backups = client.nodes(node_name).storage(storage).content.get(
+                content='backup'
+            )
+            
+            # Find the most recent backup for this VMID
+            vmid_backups = [
+                b for b in backups 
+                if f"lxc-{vmid}-" in b.get('volid', '')
+            ]
+            
+            if not vmid_backups:
+                raise ProxmoxError(f"Backup file not found for LXC {vmid}")
+            
+            # Sort by creation time and get the latest
+            latest_backup = sorted(
+                vmid_backups,
+                key=lambda x: x.get('ctime', 0),
+                reverse=True
+            )[0]
+            
+            # Extract filename from volid (format: storage:backup/filename)
+            volid = latest_backup.get('volid', '')
+            file_name = volid.split('/')[-1] if '/' in volid else volid
+            size = latest_backup.get('size', 0)
+            
+            logger.info(
+                f"Backup completed successfully: {file_name} ({size} bytes)"
+            )
+            
+            return {
+                'file_name': file_name,
+                'size': size,
+                'storage': storage,
+                'volid': volid,
+                'task': task_status
+            }
+            
+        except Exception as e:
+            if isinstance(e, ProxmoxError):
+                raise
+            raise ProxmoxError(f"Failed to create backup for LXC {vmid}: {e}")
+    
+    def restore_lxc_backup(
+        self,
+        node_name: str,
+        vmid: int,
+        backup_file: str,
+        storage: str = 'local',
+        force: bool = True
+    ) -> Dict[str, Any]:
+        """
+        Restore an LXC container from a backup.
+        
+        This is a DESTRUCTIVE operation that will overwrite the existing container.
+        The container must be stopped before restoration.
+        
+        Args:
+            node_name: Proxmox node name
+            vmid: Container VMID to restore to
+            backup_file: Backup filename (or volid)
+            storage: Proxmox storage name where backup is stored
+            force: Force overwrite of existing container
+            
+        Returns:
+            Task status information
+            
+        Raises:
+            ProxmoxError: If restore operation fails
+        """
+        try:
+            client = self.get_client()
+            
+            # Ensure container is stopped
+            try:
+                status = self.get_lxc_status(node_name, vmid)
+                if status.get('status') == 'running':
+                    logger.info(f"Stopping LXC {vmid} before restore")
+                    self.stop_lxc(node_name, vmid, force=True)
+                    # Wait for container to stop
+                    import time
+                    time.sleep(3)
+            except Exception as e:
+                logger.warning(f"Could not check/stop container before restore: {e}")
+            
+            # Build volid if not already in that format
+            if ':' not in backup_file:
+                volid = f"{storage}:backup/{backup_file}"
+            else:
+                volid = backup_file
+            
+            logger.info(
+                f"Restoring LXC {vmid} from backup {backup_file} "
+                f"(volid={volid}, force={force})"
+            )
+            
+            # Trigger restore operation
+            task_upid = client.nodes(node_name).lxc.post(
+                vmid=vmid,
+                ostemplate=volid,
+                restore=1,
+                force=int(force),
+                storage=storage
+            )
+            
+            logger.info(f"Restore task started: {task_upid}")
+            
+            # Wait for restore to complete
+            task_status = self.wait_for_task(node_name, task_upid, timeout=1800)
+            
+            logger.info(f"Restore completed successfully for LXC {vmid}")
+            
+            return {
+                'task': task_status,
+                'vmid': vmid,
+                'backup_file': backup_file
+            }
+            
+        except Exception as e:
+            if isinstance(e, ProxmoxError):
+                raise
+            raise ProxmoxError(
+                f"Failed to restore LXC {vmid} from {backup_file}: {e}"
+            )
+    
+    def delete_backup_file(
+        self,
+        node_name: str,
+        storage: str,
+        backup_file: str
+    ) -> bool:
+        """
+        Delete a backup file from Proxmox storage.
+        
+        Args:
+            node_name: Proxmox node name
+            storage: Storage name
+            backup_file: Backup filename or volid
+            
+        Returns:
+            True if deletion was successful
+            
+        Raises:
+            ProxmoxError: If deletion fails
+        """
+        try:
+            client = self.get_client()
+            
+            # Build volid if not already in that format
+            if ':' not in backup_file:
+                volid = f"{storage}:backup/{backup_file}"
+            else:
+                volid = backup_file
+            
+            logger.info(f"Deleting backup file: {volid}")
+            
+            # Delete the backup
+            client.nodes(node_name).storage(storage).content(volid).delete()
+            
+            logger.info(f"Successfully deleted backup: {volid}")
+            return True
+            
+        except Exception as e:
+            raise ProxmoxError(f"Failed to delete backup {backup_file}: {e}")
+    
+    def list_backups(
+        self,
+        node_name: str,
+        storage: str = 'local',
+        vmid: Optional[int] = None
+    ) -> List[Dict[str, Any]]:
+        """
+        List available backups in storage.
+        
+        Args:
+            node_name: Proxmox node name
+            storage: Storage name
+            vmid: Optional VMID to filter backups
+            
+        Returns:
+            List of backup information dictionaries
+        """
+        try:
+            client = self.get_client()
+            
+            # Get all backups from storage
+            backups = client.nodes(node_name).storage(storage).content.get(
+                content='backup'
+            )
+            
+            # Filter by VMID if specified
+            if vmid is not None:
+                backups = [
+                    b for b in backups 
+                    if f"lxc-{vmid}-" in b.get('volid', '')
+                ]
+            
+            return backups
+            
+        except Exception as e:
+            raise ProxmoxError(f"Failed to list backups: {e}")

@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global CSS Variables for Theming */
+:root {
+	--glow-color: rgba(0, 212, 255, 0.3);
+	--background-color: #0a0e1a;
+	--card-background: #1a1f35;
+	--text-primary: #ffffff;
+	--text-secondary: #a0aec0;
+
+	/* RackCard Theming Variables */
+	--card-bg-color: #1a1f35;
+	--card-border-color: rgba(26, 31, 53, 0.5);
+	--card-title-color: #ffffff;
+	--card-text-color: #a0aec0;
+	--card-hover-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+}
+
+body {
+	@apply bg-rack-darker text-rack-light;
+	font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Custom scrollbar for futuristic look */
+::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+
+::-webkit-scrollbar-track {
+	@apply bg-rack-darker;
+}
+
+::-webkit-scrollbar-thumb {
+	@apply bg-rack-primary rounded;
+	opacity: 0.5;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	opacity: 1;
+}
+
+/* Smooth transitions for all interactive elements */
+button,
+a,
+input,
+select {
+	@apply transition-colors duration-200;
+}
+
+/* Focus styles for accessibility */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+	@apply outline-none ring-2 ring-rack-primary ring-offset-2 ring-offset-rack-darker;
+}

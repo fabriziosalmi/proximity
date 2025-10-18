@@ -45,6 +45,7 @@ services:
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - ./backend:/app
+      - ./catalog_data:/catalog_data:ro
       - static_volume:/app/staticfiles
       - media_volume:/app/media
     ports:
@@ -57,7 +58,7 @@ services:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
       - ALLOWED_HOSTS=localhost,127.0.0.1,backend
-      - CORS_ALLOWED_ORIGINS=http://localhost:5173
+      - CORS_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
     depends_on:
       db:
         condition: service_healthy

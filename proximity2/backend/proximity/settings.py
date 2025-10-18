@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'apps.core',
     'apps.proxmox',
     'apps.applications',
+    'apps.catalog',
     'apps.backups',
     'apps.monitoring',
 ]
@@ -78,6 +79,9 @@ DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///db.sqlite3')
 DATABASES = {
     'default': dj_database_url.parse(DATABASE_URL)
 }
+
+# Custom User Model
+AUTH_USER_MODEL = 'core.User'
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -190,3 +194,11 @@ LOGGING = {
         },
     },
 }
+
+
+# ======================================================================
+# CATALOG SETTINGS
+# ======================================================================
+
+# Path to catalog data directory containing application JSON files
+CATALOG_DATA_PATH = BASE_DIR.parent / 'catalog_data'
