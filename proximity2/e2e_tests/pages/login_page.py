@@ -74,9 +74,22 @@ class LoginPage:
         Returns:
             self for chaining
         """
-        self.fill_username(username)
-        self.fill_password(password)
-        self.click_submit()
+        # Wait for form to be ready
+        username_input = self.page.locator(self.USERNAME_INPUT).first
+        password_input = self.page.locator(self.PASSWORD_INPUT).first
+        submit_button = self.page.locator(self.SUBMIT_BUTTON).first
+        
+        # Ensure elements are visible
+        expect(username_input).to_be_visible(timeout=5000)
+        expect(password_input).to_be_visible(timeout=5000)
+        expect(submit_button).to_be_visible(timeout=5000)
+        
+        # Fill fields
+        username_input.fill(username)
+        password_input.fill(password)
+        
+        # Click submit
+        submit_button.click()
         
         if wait_for_navigation:
             # Wait for successful login by checking for homepage elements
