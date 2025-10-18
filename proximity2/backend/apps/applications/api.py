@@ -3,6 +3,7 @@ Application API endpoints - Full CRUD and lifecycle management
 """
 from typing import List
 from ninja import Router
+from ninja.errors import HttpError
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
 import uuid
@@ -91,14 +92,14 @@ def create_application(request, payload: ApplicationCreate):
     """
     # Validate hostname is unique
     if Application.objects.filter(hostname=payload.hostname).exists():
-        return 400, {"error": f"Hostname '{payload.hostname}' already exists"}
+        raise HttpError(400, f"Hostname '{payload.hostname}' already exists")
     
     # Get or select Proxmox host
     if payload.node:
         # Find host that has this node
         node_obj = ProxmoxNode.objects.filter(name=payload.node).first()
         if not node_obj:
-            return 400, {"error": f"Node '{payload.node}' not found"}
+            raise HttpError(400, f"Node '{payload.node}' not found")
         host = node_obj.host
         node = payload.node
     else:
@@ -107,12 +108,12 @@ def create_application(request, payload: ApplicationCreate):
         if not host:
             host = ProxmoxHost.objects.filter(is_active=True).first()
         if not host:
-            return 400, {"error": "No active Proxmox host configured"}
+            raise HttpError(400, "No active Proxmox host configured")
         
         # Select first available node
         node_obj = ProxmoxNode.objects.filter(host=host).first()
         if not node_obj:
-            return 400, {"error": "No nodes available on selected host"}
+            raise HttpError(400, "No nodes available on selected host")
         node = node_obj.name
     
     # Allocate ports
@@ -120,7 +121,7 @@ def create_application(request, payload: ApplicationCreate):
     try:
         public_port, internal_port = port_manager.allocate_ports()
     except ValueError as e:
-        return 500, {"error": str(e)}
+        raise HttpError(500, str(e))
     
     # Generate unique app ID
     app_id = f"{payload.catalog_id}-{uuid.uuid4().hex[:8]}"
