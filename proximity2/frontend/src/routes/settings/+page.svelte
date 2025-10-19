@@ -7,6 +7,8 @@
 	import { Server, Cpu, Network, Settings as SettingsIcon } from 'lucide-svelte';
 	import { pageTitleStore } from '$lib/stores/pageTitle';
 	import ProxmoxSettings from '$lib/components/settings/ProxmoxSettings.svelte';
+	import ResourceSettings from '$lib/components/settings/ResourceSettings.svelte';
+	import NetworkSettings from '$lib/components/settings/NetworkSettings.svelte';
 	import SystemSettings from '$lib/components/settings/SystemSettings.svelte';
 
 	type Tab = 'proxmox' | 'resources' | 'network' | 'system';
@@ -24,15 +26,13 @@
 			id: 'resources' as Tab,
 			label: 'Resources',
 			icon: Cpu,
-			description: 'Default resource allocations',
-			disabled: true
+			description: 'Default resource allocations'
 		},
 		{
 			id: 'network' as Tab,
 			label: 'Network',
 			icon: Network,
-			description: 'Network configuration defaults',
-			disabled: true
+			description: 'Network configuration defaults'
 		},
 		{
 			id: 'system' as Tab,
@@ -96,21 +96,9 @@
 			{#if activeTab === 'proxmox'}
 				<ProxmoxSettings />
 			{:else if activeTab === 'resources'}
-				<!-- Placeholder for Resources Settings -->
-				<div class="placeholder-panel">
-					<Cpu class="h-16 w-16 text-gray-600" />
-					<h3 class="text-xl font-semibold text-gray-400 mt-4">Resource Settings</h3>
-					<p class="text-gray-500 mt-2">Configure default CPU, memory, and disk allocations</p>
-					<p class="text-sm text-gray-600 mt-4">Coming in a future release</p>
-				</div>
+				<ResourceSettings />
 			{:else if activeTab === 'network'}
-				<!-- Placeholder for Network Settings -->
-				<div class="placeholder-panel">
-					<Network class="h-16 w-16 text-gray-600" />
-					<h3 class="text-xl font-semibold text-gray-400 mt-4">Network Settings</h3>
-					<p class="text-gray-500 mt-2">Configure network defaults and IP ranges</p>
-					<p class="text-sm text-gray-600 mt-4">Coming in a future release</p>
-				</div>
+				<NetworkSettings />
 			{:else if activeTab === 'system'}
 				<SystemSettings />
 			{/if}
