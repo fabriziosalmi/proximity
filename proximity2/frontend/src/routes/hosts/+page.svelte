@@ -101,7 +101,7 @@
 				disabled={loading}
 				class="flex items-center gap-2 rounded-lg bg-rack-primary/10 px-4 py-2 text-rack-primary transition-colors hover:bg-rack-primary/20 disabled:opacity-50"
 			>
-				<RotateCw class="h-4 w-4" class:animate-spin={loading} />
+				<RotateCw class={loading ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
 				Refresh
 			</button>
 		</div>
