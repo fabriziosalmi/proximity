@@ -39,7 +39,7 @@
 			const response = await api.getProxmoxNodes();
 
 			if (response.success && response.data) {
-				nodes = response.data || [];
+				nodes = Array.isArray(response.data) ? response.data : [];
 				lastUpdated = new Date();
 			} else {
 				error = response.error || 'Failed to load Proxmox nodes';
