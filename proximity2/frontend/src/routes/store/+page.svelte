@@ -100,25 +100,25 @@
 
 	async function handleDeploy(event: CustomEvent) {
 		const deploymentData = event.detail;
-
-		console.log('[StorePage] Received deployment event:', event.detail);
-		console.log('[StorePage] Deployment data:', deploymentData);
+		
+		// Save app reference before closing modal
+		const appToDeploy = selectedApp;
 
 		// Close modal
 		isModalOpen = false;
 
 		// Show deploying toast
-		toasts.info(`Deploying ${selectedApp.name}...`, 3000);
+		toasts.info(`Deploying ${appToDeploy.name}...`, 3000);
 
 		// Perform deployment
 		const result = await myAppsStore.deployApp(deploymentData);
 
 		if (result.success) {
-			toasts.success(`${selectedApp.name} deployment started!`, 5000);
+			toasts.success(`${appToDeploy.name} deployment started!`, 5000);
 			// Navigate to My Apps page
 			goto('/apps');
 		} else {
-			toasts.error(result.error || `Failed to deploy ${selectedApp.name}`, 7000);
+			toasts.error(result.error || `Failed to deploy ${appToDeploy.name}`, 7000);
 		}
 	}
 
@@ -139,9 +139,9 @@
 	<title>App Store - Proximity</title>
 </svelte:head>
 
-<div class="min-h-screen bg-rack-darker p-6">
+<div class="min-h-screen bg-rack-darker p-4 md:p-6">
 	<!-- Header -->
-	<div class="mb-8">
+	<div class="mb-6 flex-shrink-0">
 		<div class="flex items-center justify-between">
 			<div>
 				<h1 class="mb-2 text-4xl font-bold text-white">App Store</h1>
@@ -196,9 +196,9 @@
 		</div>
 	{:else}
 		<!-- Main content: Two-column layout -->
-		<div class="flex gap-6">
-			<!-- Left sidebar: Category filter -->
-			<div class="w-64 flex-shrink-0">
+		<div class="flex gap-6 overflow-visible">
+			<!-- Left sidebar: Category filter - Hidden on small screens -->
+			<div class="hidden lg:block w-64 flex-shrink-0">
 				<div class="sticky top-6">
 					<CategoryFilter
 						{categories}
@@ -209,7 +209,7 @@
 			</div>
 
 			<!-- Right content: App grid -->
-			<div class="flex-1">
+			<div class="flex-1 w-full overflow-visible pb-20">
 				{#if filteredApps.length === 0}
 					<div class="flex h-64 items-center justify-center rounded-lg border-2 border-dashed border-rack-primary/30 bg-rack-light/50">
 						<div class="text-center">
@@ -233,19 +233,21 @@
 						{/if}
 					</div>
 
-					<!-- App grid -->
-					<div class="grid gap-6 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
+					<!-- App list - Simple text version for debugging -->
+					<div class="space-y-2 pb-20">
 						{#each filteredApps as app (app.id)}
-							<RackCard {app} variant="catalog">
-								<div slot="actions" class="w-full">
-									<button
-										on:click={() => handleDeployClick(app)}
-										class="w-full rounded-lg bg-rack-primary px-4 py-2 font-medium text-white transition-colors hover:bg-rack-primary/90"
-									>
-										Deploy
-									</button>
+							<div class="flex items-center justify-between border border-rack-primary/30 bg-rack-light p-4 rounded-lg">
+								<div class="flex-1">
+									<h3 class="text-white font-semibold">{app.name}</h3>
+									<p class="text-gray-400 text-sm">{app.description || 'No description'}</p>
 								</div>
-							</RackCard>
+								<button
+									on:click={() => handleDeployClick(app)}
+									class="ml-4 rounded-lg bg-rack-primary px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-rack-primary/90"
+								>
+									🚀 Deploy
+								</button>
+							</div>
 						{/each}
 					</div>
 				{/if}

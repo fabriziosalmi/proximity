@@ -26,7 +26,7 @@ class ApplicationResponse(BaseModel):
     iframe_url: Optional[str]
     public_port: Optional[int]
     internal_port: Optional[int]
-    lxc_id: int
+    lxc_id: Optional[int]
     node: str
     host_id: int
     created_at: str

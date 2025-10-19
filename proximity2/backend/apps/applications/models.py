@@ -40,7 +40,7 @@ class Application(models.Model):
     internal_port = models.IntegerField(null=True, blank=True, unique=True, db_index=True)
     
     # LXC Configuration
-    lxc_id = models.IntegerField(unique=True, db_index=True)
+    lxc_id = models.IntegerField(unique=True, db_index=True, null=True, blank=True)
     lxc_root_password = models.CharField(max_length=500, null=True, blank=True)
     
     # Proxmox references
