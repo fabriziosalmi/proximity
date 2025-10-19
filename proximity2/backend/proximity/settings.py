@@ -156,6 +156,7 @@ PROXMOX_PORT = int(os.getenv('PROXMOX_PORT', '8006'))
 SENTRY_DSN = os.getenv('SENTRY_DSN', None)
 SENTRY_ENVIRONMENT = os.getenv('SENTRY_ENVIRONMENT', 'development')
 SENTRY_TRACES_SAMPLE_RATE = float(os.getenv('SENTRY_TRACES_SAMPLE_RATE', '1.0'))
+SENTRY_PROFILES_SAMPLE_RATE = float(os.getenv('SENTRY_PROFILES_SAMPLE_RATE', '0.1'))
 
 if SENTRY_DSN:
     import sentry_sdk
@@ -163,23 +164,69 @@ if SENTRY_DSN:
     from sentry_sdk.integrations.celery import CeleryIntegration
     from sentry_sdk.integrations.redis import RedisIntegration
 
+    def before_send_transaction(event, hint):
+        """Filter out noise from transactions to reduce quota usage."""
+        url = event.get('request', {}).get('url', '')
+        transaction_name = event.get('transaction', '')
+        
+        # Skip health checks and monitoring endpoints
+        if '/health' in url or '/api/health' in transaction_name:
+            return None
+        if '/metrics' in url or '/prometheus' in url:
+            return None
+        
+        # Skip static file requests
+        if '/static/' in url or '/media/' in url:
+            return None
+            
+        return event
+
+    def before_send(event, hint):
+        """Filter events to reduce noise and quota usage."""
+        # Don't send events in DEBUG mode unless explicitly configured
+        if DEBUG and os.getenv('SENTRY_DEBUG', 'False') != 'True':
+            return None
+        
+        # Skip certain logger names that are too noisy
+        if event.get('logger') in ['django.server', 'django.request']:
+            # Only send errors, not info/debug from these loggers
+            if event.get('level') not in ['error', 'fatal']:
+                return None
+        
+        return event
+
     sentry_sdk.init(
         dsn=SENTRY_DSN,
         integrations=[
-            DjangoIntegration(),
-            CeleryIntegration(),
+            DjangoIntegration(
+                transaction_style='url',  # Use URL pattern for transaction names
+                middleware_spans=False,   # Reduce span noise
+            ),
+            CeleryIntegration(
+                monitor_beat_tasks=True,
+                exclude_beat_tasks=None,
+            ),
             RedisIntegration(),
         ],
         environment=SENTRY_ENVIRONMENT,
+        release=os.getenv('SENTRY_RELEASE', 'proximity@2.0.0'),
+        
+        # Sampling rates - reduce to avoid quota limits
         traces_sample_rate=SENTRY_TRACES_SAMPLE_RATE,
-        # Set profiles_sample_rate to 1.0 to profile 100%
-        # of transactions for performance monitoring.
-        profiles_sample_rate=1.0,
-        # Send personal identifiable information
+        profiles_sample_rate=SENTRY_PROFILES_SAMPLE_RATE,
+        
+        # Event filtering
+        before_send=before_send,
+        before_send_transaction=before_send_transaction,
+        
+        # Performance options
         send_default_pii=True,
         attach_stacktrace=True,
-        # Don't send events in DEBUG mode unless explicitly configured
-        before_send=lambda event, hint: event if not DEBUG or os.getenv('SENTRY_DEBUG', 'False') == 'True' else None,
+        max_breadcrumbs=50,  # Limit breadcrumbs to reduce payload size
+        
+        # Reduce background overhead
+        shutdown_timeout=2,  # Faster shutdown
+        transport_queue_size=30,  # Smaller queue to reduce memory
     )
 
 # Logging Configuration
