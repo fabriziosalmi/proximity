@@ -236,7 +236,7 @@
 					<!-- App list - Simple text version for debugging -->
 					<div class="space-y-2 pb-20">
 						{#each filteredApps as app (app.id)}
-							<div class="flex items-center justify-between border border-rack-primary/30 bg-rack-light p-4 rounded-lg">
+							<div data-testid="app-card" class="flex items-center justify-between border border-rack-primary/30 bg-rack-light p-4 rounded-lg">
 								<div class="flex-1">
 									<h3 class="text-white font-semibold">{app.name}</h3>
 									<p class="text-gray-400 text-sm">{app.description || 'No description'}</p>
