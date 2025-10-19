@@ -24,6 +24,7 @@ class AppsPage:
     
     # Status indicators (adjust based on your actual implementation)
     STATUS_DEPLOYING = '.status-deploying, [data-status="deploying"], .deploying'
+    STATUS_CLONING = '.status-cloning, [data-status="cloning"], .cloning'
     STATUS_RUNNING = '.status-running, [data-status="running"], .running'
     STATUS_STOPPED = '.status-stopped, [data-status="stopped"], .stopped'
     STATUS_ERROR = '.status-error, [data-status="error"], .error, .failed'
@@ -97,13 +98,15 @@ class AppsPage:
             hostname: Hostname of the application
         
         Returns:
-            Status string: 'deploying', 'running', 'stopped', 'error', or 'unknown'
+            Status string: 'deploying', 'cloning', 'running', 'stopped', 'error', or 'unknown'
         """
         card = self.get_app_card_by_hostname(hostname)
         
         # Check for each status indicator
         if card.locator(self.STATUS_DEPLOYING).count() > 0:
             return 'deploying'
+        elif card.locator(self.STATUS_CLONING).count() > 0:
+            return 'cloning'
         elif card.locator(self.STATUS_RUNNING).count() > 0:
             return 'running'
         elif card.locator(self.STATUS_STOPPED).count() > 0:
@@ -139,6 +142,7 @@ class AppsPage:
         # Map status to locator
         status_locators = {
             'deploying': self.STATUS_DEPLOYING,
+            'cloning': self.STATUS_CLONING,
             'running': self.STATUS_RUNNING,
             'stopped': self.STATUS_STOPPED,
             'error': self.STATUS_ERROR,

@@ -327,6 +327,151 @@ print(f'{host.id},{host.name},{host.host},{host.port},{node.name}')
 
 
 @pytest.fixture
+def deployed_app(
+    api_client: httpx.Client,
+    unique_user: Dict[str, str],
+    proxmox_host: Dict[str, str]
+) -> Generator[Dict[str, any], None, None]:
+    """
+    Provides a deployed application ready for cloning tests.
+    
+    This fixture:
+    1. Creates a unique app via API (bypassing UI for speed)
+    2. Waits for the app to reach 'running' status
+    3. Yields app details and auth token
+    4. In teardown: Deletes the app and any clones
+    
+    Returns:
+        dict: {
+            'id': int,
+            'hostname': str,
+            'auth_token': str,
+            'user': dict (user details)
+        }
+    """
+    timestamp = int(time.time() * 1000)
+    app_hostname = f"e2e-clone-source-{timestamp}"
+    
+    print(f"\n🚀 Deploying source app for clone test: {app_hostname}")
+    
+    headers = {"Authorization": f"Bearer {unique_user['auth_token']}"}
+    
+    # Ensure catalog is loaded
+    print(f"  ⏳ Reloading catalog...")
+    try:
+        reload_response = api_client.post("/api/catalog/reload", headers=headers)
+        if reload_response.status_code in [200, 201]:
+            print(f"  ✓ Catalog reloaded successfully")
+        else:
+            print(f"  ⚠️  Catalog reload returned {reload_response.status_code}, continuing anyway...")
+    except Exception as reload_error:
+        print(f"  ⚠️  Could not reload catalog: {str(reload_error)}, continuing anyway...")
+    
+    # Get available catalog apps
+    catalog_response = api_client.get("/api/catalog/")
+    
+    if catalog_response.status_code != 200:
+        pytest.fail(f"Failed to fetch catalog: {catalog_response.status_code}")
+    
+    catalog_data = catalog_response.json()
+    apps_list = catalog_data.get("applications", [])  # Fixed: API returns "applications", not "apps"
+    
+    if not apps_list:
+        pytest.fail("No catalog apps available for deployment. Please ensure catalog JSON files exist.")
+    
+    # Use the first catalog app
+    first_app = apps_list[0]
+    catalog_id = first_app.get("id")
+    catalog_name = first_app.get("name", "unknown")
+    
+    print(f"  ✓ Using catalog app: {catalog_name} (ID: {catalog_id})")
+    
+    # Deploy application via API
+    deploy_payload = {
+        "catalog_id": catalog_id,
+        "hostname": app_hostname,
+        "node": proxmox_host["node"],
+        "config": {},
+        "environment": {}
+    }
+    
+    try:
+        deploy_response = api_client.post(
+            "/api/apps/",
+            json=deploy_payload,
+            headers=headers
+        )
+        
+        if deploy_response.status_code not in [200, 201, 202]:
+            pytest.fail(f"Failed to deploy source app: {deploy_response.status_code} - {deploy_response.text}")
+        
+        app_data = deploy_response.json()
+        app_id = app_data.get("id")
+        
+        print(f"✅ Source app created: {app_hostname} (ID: {app_id})")
+        print(f"⏳ Waiting for app to reach 'running' status (timeout: 3 minutes)...")
+        
+        # Poll for app status to reach 'running'
+        max_wait = 180  # 3 minutes
+        poll_interval = 3  # 3 seconds
+        elapsed = 0
+        
+        while elapsed < max_wait:
+            status_response = api_client.get(
+                f"/api/apps/{app_id}",
+                headers=headers
+            )
+            
+            if status_response.status_code == 200:
+                current_app = status_response.json()
+                current_status = current_app.get("status")
+                
+                print(f"  Status: {current_status} (elapsed: {elapsed}s)")
+                
+                if current_status == "running":
+                    print(f"✅ Source app is now running!")
+                    app_details = {
+                        "id": app_id,
+                        "hostname": app_hostname,
+                        "auth_token": unique_user["auth_token"],
+                        "user": unique_user,
+                        "status": current_status,
+                        "vmid": current_app.get("vmid"),
+                        "node": current_app.get("node")
+                    }
+                    break
+                elif current_status == "error":
+                    pytest.fail(f"Source app deployment failed with error status")
+                
+            time.sleep(poll_interval)
+            elapsed += poll_interval
+        else:
+            pytest.fail(f"Source app did not reach 'running' status within {max_wait} seconds")
+        
+    except Exception as e:
+        pytest.fail(f"Failed to deploy source app: {str(e)}")
+    
+    # Yield to test
+    yield app_details
+    
+    # TEARDOWN: Clean up source app (cloned apps will be cleaned by unique_user fixture)
+    print(f"\n🧹 Cleaning up source app: {app_hostname}")
+    
+    try:
+        delete_response = api_client.delete(
+            f"/api/apps/{app_id}",
+            headers=headers
+        )
+        
+        if delete_response.status_code in [200, 202, 204]:
+            print(f"✅ Source app {app_hostname} deleted")
+        else:
+            print(f"⚠️  Failed to delete source app: {delete_response.status_code}")
+    except Exception as cleanup_error:
+        print(f"⚠️  Error during source app cleanup: {str(cleanup_error)}")
+
+
+@pytest.fixture
 def authenticated_page(
     context_with_storage, 
     base_url: str, 
@@ -335,21 +480,22 @@ def authenticated_page(
     """
     Provides a Page object that's already authenticated.
     
-    This fixture handles the login flow programmatically, so tests
-    can start from an already-authenticated state.
+    This fixture bypasses the UI login flow by directly injecting the auth token
+    into localStorage. This is faster and more reliable than UI-based login.
     """
     page = context_with_storage.new_page()
     
-    # Navigate to login page
-    page.goto(f"{base_url}/login")
+    # Navigate to a page to establish the domain context
+    page.goto(base_url)
     
-    # Perform login
-    page.fill('input[name="username"]', unique_user["username"])
-    page.fill('input[name="password"]', unique_user["password"])
-    page.click('button[type="submit"]')
+    # Inject auth token into localStorage
+    # This simulates a successful login without going through the UI
+    # Note: The frontend uses 'access_token' key (see frontend/src/lib/api.ts)
+    page.evaluate(f"""
+        localStorage.setItem('access_token', '{unique_user["auth_token"]}');
+    """)
     
-    # Wait for successful login (redirect to dashboard)
-    page.wait_for_url(f"{base_url}/", timeout=10000)
+    print(f"✅ Authenticated page ready for user: {unique_user['username']}")
     
     yield page
     
