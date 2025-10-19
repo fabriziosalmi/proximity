@@ -237,26 +237,20 @@
 						{/if}
 					</div>
 
-					<!-- App list - Simple text version for debugging -->
-					<div class="space-y-2 pb-20">
+					<!-- App Catalog Rack -->
+					<div class="rack-canvas pb-20">
 						{#each filteredApps as app (app.id)}
-							<div 
-								data-testid="app-card-{app.id}" 
-								data-app-id={app.id}
-								class="flex items-center justify-between border border-rack-primary/30 bg-rack-light p-4 rounded-lg"
-							>
-								<div class="flex-1">
-									<h3 class="text-white font-semibold">{app.name}</h3>
-									<p class="text-gray-400 text-sm">{app.description || 'No description'}</p>
+							<RackCard {app} variant="catalog">
+								<div slot="actions" class="flex gap-2">
+									<button
+										on:click={() => handleDeployClick(app)}
+										data-testid="deploy-button-{app.id}"
+										class="rounded-lg bg-rack-primary px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-rack-primary/90"
+									>
+										Deploy
+									</button>
 								</div>
-								<button
-									on:click={() => handleDeployClick(app)}
-									data-testid="deploy-button-{app.id}"
-									class="ml-4 rounded-lg bg-rack-primary px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-rack-primary/90"
-								>
-									🚀 Deploy
-								</button>
-							</div>
+							</RackCard>
 						{/each}
 					</div>
 				{/if}

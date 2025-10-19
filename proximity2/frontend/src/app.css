@@ -353,3 +353,76 @@ select:focus-visible {
 		opacity: 0.97;
 	}
 }
+
+/* Rack Unit Glow Animations */
+@keyframes pulse-yellow-glow {
+	0%,
+	100% {
+		box-shadow: 0 0 15px var(--color-led-warning);
+	}
+	50% {
+		box-shadow: 0 0 25px var(--color-led-warning), 0 0 35px var(--color-led-warning);
+	}
+}
+
+@keyframes pulse-blue-glow {
+	0%,
+	100% {
+		box-shadow: 0 0 15px var(--color-accent);
+	}
+	50% {
+		box-shadow: 0 0 25px var(--color-accent), 0 0 35px var(--color-accent);
+	}
+}
+
+/* ============================================ */
+/* RACK CANVAS - Virtual Rack Container */
+/* ============================================ */
+
+.rack-canvas {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 1rem;
+}
+
+/* ============================================ */
+/* 3D FLIP CARD ANIMATION */
+/* ============================================ */
+
+.card-container {
+	perspective: 1500px;
+	width: 100%;
+	height: 7rem; /* Match 1U height */
+}
+
+.card-inner {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	transition: transform 0.7s cubic-bezier(0.4, 0.2, 0.2, 1);
+	transform-style: preserve-3d;
+}
+
+/* Trigger flip with this class */
+.card-container.is-flipped .card-inner {
+	transform: rotateY(180deg);
+}
+
+.card-front,
+.card-back {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	-webkit-backface-visibility: hidden;
+	backface-visibility: hidden;
+	display: flex;
+	align-items: center;
+}
+
+.card-back {
+	transform: rotateY(180deg);
+	background: var(--bg-card-back, #0f1419);
+}

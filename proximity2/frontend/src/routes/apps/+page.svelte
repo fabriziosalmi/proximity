@@ -222,8 +222,8 @@
 				</div>
 			</div>
 
-			<!-- Apps grid -->
-			<div class="grid gap-6 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
+			<!-- Apps Rack -->
+			<div class="rack-canvas">
 				{#each $myAppsStore.apps as app (app.id)}
 					<RackCard {app} variant="deployed">
 						<div slot="actions" class="flex w-full flex-wrap gap-2">

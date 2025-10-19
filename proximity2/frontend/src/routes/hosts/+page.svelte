@@ -176,8 +176,8 @@
 			</button>
 		</div>
 	{:else}
-		<!-- Hosts Grid -->
-		<div class="hosts-grid">
+		<!-- Hosts Rack -->
+		<div class="rack-canvas">
 			{#each hosts as host (host.id)}
 				<HostCard {host}>
 					<div slot="actions" class="host-actions">
