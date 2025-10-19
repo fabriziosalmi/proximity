@@ -3,12 +3,15 @@
 	 * My Apps - Manage deployed applications
 	 */
 	import { onMount, onDestroy } from 'svelte';
-	import { Loader2, Server, PlayCircle, StopCircle, RotateCw, Trash2, FileText } from 'lucide-svelte';
+	import { Loader2, Server, PlayCircle, StopCircle, RotateCw, Trash2, FileText, Copy } from 'lucide-svelte';
 	import { myAppsStore, hasDeployingApps } from '$lib/stores/apps';
 	import { toasts } from '$lib/stores/toast';
 	import RackCard from '$lib/components/RackCard.svelte';
+	import CloneModal from '$lib/components/CloneModal.svelte';
 
 	let actionInProgress: Record<string, boolean> = {};
+	let showCloneModal = false;
+	let cloneSourceApp: any = null;
 
 	onMount(() => {
 		// Start polling for real-time updates
@@ -54,6 +57,27 @@
 	async function handleViewLogs(appId: string, appName: string) {
 		toasts.info('Log viewer coming soon!', 3000);
 		// TODO: Implement log viewer modal
+	}
+
+	function handleClone(app: any) {
+		cloneSourceApp = app;
+		showCloneModal = true;
+	}
+
+	async function handleCloneSubmit(newHostname: string) {
+		if (!cloneSourceApp) return;
+
+		showCloneModal = false;
+		toasts.info(`Cloning ${cloneSourceApp.name} to ${newHostname}...`, 3000);
+
+		const result = await myAppsStore.cloneApplication(cloneSourceApp.id, newHostname);
+
+		if (result.success) {
+			toasts.success(`Clone started! ${newHostname} will be ready soon.`, 5000);
+			cloneSourceApp = null;
+		} else {
+			toasts.error(result.error || 'Failed to start clone operation', 7000);
+		}
 	}
 
 	function handleRefresh() {
@@ -137,7 +161,7 @@
 		<!-- Apps grid -->
 		<div>
 			<!-- Stats overview -->
-			<div class="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+			<div class="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-5">
 				<div class="rounded-lg border border-rack-primary/30 bg-rack-light p-4">
 					<p class="text-sm text-gray-400">Total Apps</p>
 					<p class="mt-1 text-2xl font-bold text-white">{$myAppsStore.apps.length}</p>
@@ -152,6 +176,12 @@
 					<p class="text-sm text-gray-400">Deploying</p>
 					<p class="mt-1 text-2xl font-bold text-yellow-400">
 						{$myAppsStore.apps.filter((a) => a.status === 'deploying').length}
+					</p>
+				</div>
+				<div class="rounded-lg border border-blue-500/30 bg-rack-light p-4">
+					<p class="text-sm text-gray-400">Cloning</p>
+					<p class="mt-1 text-2xl font-bold text-blue-400">
+						{$myAppsStore.apps.filter((a) => a.status === 'cloning').length}
 					</p>
 				</div>
 				<div class="rounded-lg border border-gray-500/30 bg-rack-light p-4">
@@ -203,8 +233,17 @@
 									{/if}
 									Restart
 								</button>
+								<button
+									data-testid="clone-button"
+									on:click={() => handleClone(app)}
+									disabled={actionInProgress[app.id]}
+									class="flex flex-1 items-center justify-center gap-2 rounded-lg border border-blue-500/30 bg-blue-500/10 px-3 py-2 text-sm text-blue-400 transition-colors hover:bg-blue-500/20 disabled:opacity-50"
+								>
+									<Copy class="h-4 w-4" />
+									Clone
+								</button>
 							{:else if app.status === 'stopped'}
-								<!-- Stopped: Show start, delete -->
+								<!-- Stopped: Show start, clone, delete -->
 								<button
 									on:click={() => handleAction(app.id, app.name, 'start')}
 									disabled={actionInProgress[app.id]}
@@ -216,6 +255,15 @@
 										<PlayCircle class="h-4 w-4" />
 									{/if}
 									Start
+								</button>
+								<button
+									data-testid="clone-button"
+									on:click={() => handleClone(app)}
+									disabled={actionInProgress[app.id]}
+									class="flex flex-1 items-center justify-center gap-2 rounded-lg border border-blue-500/30 bg-blue-500/10 px-3 py-2 text-sm text-blue-400 transition-colors hover:bg-blue-500/20 disabled:opacity-50"
+								>
+									<Copy class="h-4 w-4" />
+									Clone
 								</button>
 							{:else if app.status === 'error'}
 								<!-- Error: Show restart, delete -->
@@ -263,3 +311,14 @@
 		</div>
 	{/if}
 </div>
+
+<!-- Clone Modal -->
+<CloneModal
+	bind:show={showCloneModal}
+	sourceApp={cloneSourceApp}
+	on:submit={(e) => handleCloneSubmit(e.detail)}
+	on:close={() => {
+		showCloneModal = false;
+		cloneSourceApp = null;
+	}}
+/>

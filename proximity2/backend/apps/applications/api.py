@@ -12,9 +12,10 @@ import uuid
 from .models import Application, DeploymentLog
 from .schemas import (
     ApplicationCreate, ApplicationResponse, ApplicationListResponse,
-    ApplicationAction, ApplicationLogsResponse, DeploymentLogResponse
+    ApplicationAction, ApplicationLogsResponse, DeploymentLogResponse,
+    ApplicationClone
 )
-from .tasks import deploy_app_task, start_app_task, stop_app_task, restart_app_task, delete_app_task
+from .tasks import deploy_app_task, start_app_task, stop_app_task, restart_app_task, delete_app_task, clone_app_task
 from .port_manager import PortManagerService
 from apps.proxmox.models import ProxmoxHost, ProxmoxNode
 
@@ -301,6 +302,58 @@ def app_action(request, app_id: str, payload: ApplicationAction):
     
     else:
         return 400, {"error": f"Invalid action: {action}"}
+
+
+@router.post("/{app_id}/clone", response={202: dict})
+def clone_application(request, app_id: str, payload: ApplicationClone):
+    """
+    Clone an existing application.
+    
+    Creates a duplicate of the application with a new hostname.
+    Returns 202 Accepted immediately - the actual cloning happens in background.
+    
+    Args:
+        app_id: Source application ID to clone
+        payload: Contains new_hostname for the clone
+        
+    Returns:
+        202 Accepted with message and task information
+    """
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    # Validate source application exists
+    source_app = get_object_or_404(Application, id=app_id)
+    
+    # Validate source app is in a stable state for cloning
+    if source_app.status not in ['running', 'stopped']:
+        raise HttpError(400, f"Cannot clone application in status '{source_app.status}'. Only running or stopped applications can be cloned.")
+    
+    # Validate new hostname is unique
+    if Application.objects.filter(hostname=payload.new_hostname).exists():
+        raise HttpError(400, f"Hostname '{payload.new_hostname}' already exists")
+    
+    # Get owner from request (use authenticated user or source app's owner)
+    owner_id = request.user.id if request.user.is_authenticated else source_app.owner_id
+    
+    logger.info(f"[CLONE API] Initiating clone of {source_app.name} (ID: {app_id}) to new hostname: {payload.new_hostname}")
+    
+    # Start clone task in background
+    clone_app_task.delay(
+        source_app_id=app_id,
+        new_hostname=payload.new_hostname,
+        owner_id=owner_id
+    )
+    
+    logger.info(f"[CLONE API] Clone task started successfully")
+    
+    # Return 202 Accepted - operation is async
+    return 202, {
+        "success": True,
+        "message": f"Cloning {source_app.name} to {payload.new_hostname}. This will take a few minutes.",
+        "source_app_id": app_id,
+        "new_hostname": payload.new_hostname
+    }
 
 
 @router.get("/{app_id}/logs", response=ApplicationLogsResponse)

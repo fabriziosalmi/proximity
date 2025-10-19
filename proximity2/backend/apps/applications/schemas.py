@@ -48,6 +48,11 @@ class ApplicationAction(BaseModel):
     action: str = Field(..., description="Action: start, stop, restart, or delete")
 
 
+class ApplicationClone(BaseModel):
+    """Clone application request."""
+    new_hostname: str = Field(..., min_length=3, max_length=63, description="Hostname for the cloned application")
+
+
 class DeploymentLogResponse(BaseModel):
     """Deployment log entry."""
     id: int

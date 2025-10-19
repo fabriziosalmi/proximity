@@ -23,6 +23,7 @@ class Application(models.Model):
         db_index=True,
         choices=[
             ('deploying', 'Deploying'),
+            ('cloning', 'Cloning'),
             ('running', 'Running'),
             ('stopped', 'Stopped'),
             ('error', 'Error'),

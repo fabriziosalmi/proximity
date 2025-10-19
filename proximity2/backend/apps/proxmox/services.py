@@ -380,6 +380,57 @@ class ProxmoxService:
         except Exception as e:
             raise ProxmoxError(f"Failed to delete LXC {vmid}: {e}")
     
+    def clone_lxc(
+        self,
+        node_name: str,
+        source_vmid: int,
+        new_vmid: int,
+        new_hostname: str,
+        full: bool = True,
+        timeout: int = 600
+    ) -> str:
+        """
+        Clone an LXC container.
+        
+        Args:
+            node_name: Proxmox node name
+            source_vmid: Source container VMID to clone from
+            new_vmid: New container VMID for the clone
+            new_hostname: New hostname for the clone
+            full: Create a full clone (True) or linked clone (False)
+            timeout: Maximum time to wait for clone operation in seconds
+            
+        Returns:
+            Success message
+            
+        Raises:
+            ProxmoxError: If clone operation fails
+        """
+        try:
+            client = self.get_client()
+            
+            # Prepare clone configuration
+            clone_config = {
+                'newid': new_vmid,
+                'hostname': new_hostname,
+                'full': 1 if full else 0,
+                'storage': 'local-lvm',  # Target storage for full clone
+            }
+            
+            # Initiate clone operation
+            logger.info(f"Cloning LXC {source_vmid} to {new_vmid} on node {node_name}")
+            task_upid = client.nodes(node_name).lxc(source_vmid).clone.post(**clone_config)
+            
+            # Wait for clone task to complete
+            logger.info(f"Waiting for clone task {task_upid} to complete (timeout: {timeout}s)")
+            self.wait_for_task(node_name, task_upid, timeout=timeout)
+            
+            logger.info(f"Successfully cloned LXC {source_vmid} to {new_vmid} with hostname {new_hostname}")
+            return f"Container {source_vmid} successfully cloned to {new_vmid}"
+            
+        except Exception as e:
+            raise ProxmoxError(f"Failed to clone LXC {source_vmid} to {new_vmid}: {e}")
+    
     def get_lxc_status(self, node_name: str, vmid: int) -> Dict[str, Any]:
         """
         Get the current status of an LXC container.

@@ -470,6 +470,178 @@ def restart_app_task(self, app_id: str) -> Dict[str, Any]:
         raise
 
 
+@shared_task(bind=True, max_retries=3)
+def clone_app_task(self, source_app_id: str, new_hostname: str, owner_id: int) -> Dict[str, Any]:
+    """
+    Clone an existing application to create a duplicate with a new hostname.
+    
+    This task orchestrates the complete cloning process:
+    1. Fetch source application
+    2. Create new Application record with 'cloning' status
+    3. Assign new ports using PortManager
+    4. Clone LXC container via Proxmox
+    5. Start the cloned container
+    6. Update new Application status to 'running'
+    
+    If any step fails, rollback is performed (delete new Application record and LXC if created).
+    
+    Args:
+        source_app_id: ID of the application to clone
+        new_hostname: Hostname for the cloned application
+        owner_id: User ID who owns the new clone
+        
+    Returns:
+        Clone operation result with new app_id
+    """
+    import uuid
+    
+    new_app = None
+    new_lxc_created = False
+    
+    logger.info(f"="*100)
+    logger.info(f"[CLONE TASK START] --- Cloning Application {source_app_id} ---")
+    logger.info(f"[CLONE TASK] New hostname: {new_hostname}, Owner ID: {owner_id}")
+    logger.info(f"="*100)
+    
+    try:
+        # STEP 1: Fetch source application
+        logger.info(f"[CLONE] STEP 1/6: Fetching source application {source_app_id}...")
+        source_app = Application.objects.get(id=source_app_id)
+        logger.info(f"[CLONE] ✓ Source app found: {source_app.name} (VMID: {source_app.lxc_id})")
+        
+        # Validate source app is in a stable state
+        if source_app.status not in ['running', 'stopped']:
+            raise ValueError(f"Cannot clone app in status '{source_app.status}'. Only running/stopped apps can be cloned.")
+        
+        # STEP 2: Create new Application record with 'cloning' status
+        logger.info(f"[CLONE] STEP 2/6: Creating new Application record...")
+        new_app_id = str(uuid.uuid4())
+        
+        # Assign new ports using PortManager
+        port_manager = PortManagerService()
+        public_port, internal_port = port_manager.assign_ports()
+        logger.info(f"[CLONE] ✓ Assigned ports: public={public_port}, internal={internal_port}")
+        
+        # Determine new VMID (get next available from Proxmox)
+        proxmox_service = ProxmoxService(host_id=source_app.host_id)
+        new_vmid = proxmox_service.get_next_vmid()
+        logger.info(f"[CLONE] ✓ Next available VMID: {new_vmid}")
+        
+        # Create new Application record
+        new_app = Application.objects.create(
+            id=new_app_id,
+            catalog_id=source_app.catalog_id,
+            name=f"{source_app.name}-clone",
+            hostname=new_hostname,
+            status='cloning',
+            public_port=public_port,
+            internal_port=internal_port,
+            lxc_id=new_vmid,
+            lxc_root_password=source_app.lxc_root_password,  # Copy same password
+            host=source_app.host,
+            node=source_app.node,
+            config=source_app.config.copy() if source_app.config else {},
+            ports=source_app.ports.copy() if source_app.ports else {},
+            volumes=source_app.volumes.copy() if source_app.volumes else [],
+            environment=source_app.environment.copy() if source_app.environment else {},
+            owner_id=owner_id
+        )
+        logger.info(f"[CLONE] ✓ Created new Application: {new_app.id} (name: {new_app.name})")
+        log_deployment(new_app.id, 'info', f'Cloning from {source_app.name}', 'clone')
+        
+        # STEP 3: Clone LXC container via Proxmox API
+        logger.info(f"[CLONE] STEP 3/6: Cloning LXC {source_app.lxc_id} → {new_vmid}...")
+        log_deployment(new_app.id, 'info', f'Cloning LXC container (may take several minutes)...', 'clone')
+        
+        proxmox_service.clone_lxc(
+            node_name=source_app.node,
+            source_vmid=source_app.lxc_id,
+            new_vmid=new_vmid,
+            new_hostname=new_hostname,
+            full=True,  # Full clone (not linked)
+            timeout=600  # 10 minutes timeout
+        )
+        new_lxc_created = True
+        logger.info(f"[CLONE] ✓ LXC cloned successfully")
+        log_deployment(new_app.id, 'info', 'Container cloned successfully', 'clone')
+        
+        # STEP 4: Configure cloned LXC for Docker (if source had Docker)
+        logger.info(f"[CLONE] STEP 4/6: Configuring cloned container...")
+        if source_app.config.get('supports_docker', False):
+            logger.info(f"[CLONE]   → Source app supports Docker, configuring clone...")
+            proxmox_service.configure_lxc_for_docker(new_vmid)
+            logger.info(f"[CLONE]   ✓ Docker configuration applied")
+        
+        # STEP 5: Start the cloned container
+        logger.info(f"[CLONE] STEP 5/6: Starting cloned container {new_vmid}...")
+        log_deployment(new_app.id, 'info', 'Starting cloned container...', 'clone')
+        
+        start_task = proxmox_service.start_lxc(source_app.node, new_vmid)
+        if start_task:
+            proxmox_service.wait_for_task(source_app.node, start_task, timeout=120)
+        logger.info(f"[CLONE] ✓ Container started successfully")
+        
+        # Wait for container to be fully running
+        time.sleep(5)
+        
+        # STEP 6: Update new Application status to 'running'
+        logger.info(f"[CLONE] STEP 6/6: Updating application status to 'running'...")
+        new_app.status = 'running'
+        new_app.url = f"http://{new_hostname}:{public_port}"
+        new_app.save(update_fields=['status', 'url'])
+        
+        logger.info(f"[CLONE] ✅ CLONE COMPLETE: {new_app.name} (ID: {new_app.id}, VMID: {new_vmid})")
+        log_deployment(new_app.id, 'info', 'Clone completed successfully', 'clone')
+        
+        return {
+            'success': True,
+            'message': f'Application cloned successfully',
+            'new_app_id': new_app.id,
+            'new_hostname': new_hostname,
+            'new_vmid': new_vmid
+        }
+        
+    except Exception as e:
+        logger.error(f"[CLONE] ❌ CLONE FAILED: {e}")
+        
+        # ROLLBACK: Clean up on failure
+        try:
+            if new_app:
+                logger.warning(f"[CLONE] 🔄 ROLLBACK: Cleaning up failed clone...")
+                log_deployment(new_app.id, 'error', f'Clone failed: {str(e)}', 'clone')
+                
+                # Delete LXC if it was created
+                if new_lxc_created:
+                    try:
+                        logger.warning(f"[CLONE]   → Deleting LXC {new_app.lxc_id}...")
+                        proxmox_service.delete_lxc(source_app.node, new_app.lxc_id, force=True)
+                        logger.warning(f"[CLONE]   ✓ LXC deleted")
+                    except Exception as lxc_error:
+                        logger.error(f"[CLONE]   ✗ Failed to delete LXC during rollback: {lxc_error}")
+                
+                # Release assigned ports
+                try:
+                    logger.warning(f"[CLONE]   → Releasing ports...")
+                    port_manager.release_ports(new_app.public_port, new_app.internal_port)
+                    logger.warning(f"[CLONE]   ✓ Ports released")
+                except Exception as port_error:
+                    logger.error(f"[CLONE]   ✗ Failed to release ports during rollback: {port_error}")
+                
+                # Delete Application record
+                try:
+                    logger.warning(f"[CLONE]   → Deleting Application record...")
+                    new_app.delete()
+                    logger.warning(f"[CLONE]   ✓ Application record deleted")
+                except Exception as db_error:
+                    logger.error(f"[CLONE]   ✗ Failed to delete Application during rollback: {db_error}")
+                
+                logger.warning(f"[CLONE] 🔄 ROLLBACK COMPLETE")
+        except Exception as rollback_error:
+            logger.error(f"[CLONE] ❌ ROLLBACK FAILED: {rollback_error}")
+        
+        raise
+
+
 @shared_task(bind=True)
 def delete_app_task(self, app_id: str, force: bool = True) -> Dict[str, Any]:
     """
