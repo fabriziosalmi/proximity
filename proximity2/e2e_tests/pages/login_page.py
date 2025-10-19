@@ -42,6 +42,43 @@ class LoginPage:
         self.page = page
         self.base_url = base_url
     
+    def navigate_and_wait_for_ready(self) -> 'LoginPage':
+        """
+        Navigate to the login page and wait for SvelteKit hydration to complete.
+        
+        This method ensures that SvelteKit has fully hydrated the page and
+        attached all event handlers before proceeding. This prevents race
+        conditions where Playwright might click elements before their event
+        handlers are attached.
+        
+        Returns:
+            Self for method chaining
+        """
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        logger.info(f"Navigating to {self.base_url}/login and waiting for SvelteKit hydration")
+        
+        # Navigate to the page
+        self.page.goto(f"{self.base_url}/login")
+        
+        # Wait for the page to load (DOM content ready)
+        self.page.wait_for_load_state("domcontentloaded")
+        
+        # Wait for SvelteKit to complete hydration and signal readiness
+        logger.info("Waiting for SvelteKit hydration signal (data-sveltekit-interactive=true)")
+        try:
+            self.page.wait_for_selector('body[data-sveltekit-interactive="true"]', timeout=30000)
+            logger.info("✓ SvelteKit hydration complete - page is interactive")
+        except Exception as e:
+            # Debug: Check what's actually on the body
+            body_attrs = self.page.evaluate("() => { const attrs = {}; for (const attr of document.body.attributes) { attrs[attr.name] = attr.value; } return attrs; }")
+            logger.error(f"Hydration signal NOT found! Body attributes: {body_attrs}")
+            logger.error(f"Page URL: {self.page.url}")
+            logger.error(f"Page title: {self.page.title()}")
+            raise
+        return self
+    
     def navigate(self) -> 'LoginPage':
         """Navigate to the login page."""
         self.page.goto(f"{self.base_url}/login")

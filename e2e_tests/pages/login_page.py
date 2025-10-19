@@ -52,6 +52,36 @@ class LoginPage(BasePage):
         super().__init__(page)
     
     # ========================================================================
+    # Navigation with SvelteKit Hydration Detection
+    # ========================================================================
+    
+    def navigate_and_wait_for_ready(self, path: str = "/") -> None:
+        """
+        Navigate to a path and wait for SvelteKit hydration to complete.
+        
+        This method ensures that SvelteKit has fully hydrated the page and
+        attached all event handlers before proceeding. This prevents race
+        conditions where Playwright might click elements before their event
+        handlers are attached.
+        
+        Args:
+            path: Path to navigate to (default: "/")
+        """
+        logger.info(f"Navigating to {path} and waiting for SvelteKit hydration")
+        
+        # Navigate to the page
+        self.navigate_to(path)
+        
+        # Wait for the page to load (DOM content ready)
+        self.page.wait_for_load_state("domcontentloaded")
+        
+        # Wait for SvelteKit to complete hydration and signal readiness
+        logger.info("Waiting for SvelteKit hydration signal (data-sveltekit-interactive=true)")
+        self.page.wait_for_selector('body[data-sveltekit-interactive="true"]', timeout=10000)
+        
+        logger.info("✓ SvelteKit hydration complete - page is interactive")
+    
+    # ========================================================================
     # Properties - Locators for use in expect() assertions
     # ========================================================================
     
