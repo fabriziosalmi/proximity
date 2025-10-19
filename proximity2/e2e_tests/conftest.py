@@ -214,10 +214,10 @@ from apps.proxmox.models import ProxmoxHost, ProxmoxNode
 host, created = ProxmoxHost.objects.get_or_create(
     name='e2e-test-host',
     defaults={
-        'host': '192.168.1.100',
+        'host': '192.168.100.102',
         'port': 8006,
         'user': 'root@pam',
-        'password': 'dummy-password-for-e2e',
+        'password': 'invaders',
         'verify_ssl': False,
         'is_active': True,
         'is_default': True

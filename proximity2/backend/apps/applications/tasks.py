@@ -7,6 +7,7 @@ import time
 from typing import Dict, Any, Optional
 from celery import shared_task
 from django.utils import timezone
+from django.conf import settings
 
 from apps.proxmox.services import ProxmoxService, ProxmoxError
 from apps.applications.models import Application, DeploymentLog
@@ -78,6 +79,29 @@ def deploy_app_task(
         app = Application.objects.get(id=app_id)
         app.status = 'deploying'
         app.save(update_fields=['status'])
+        
+        # TESTING MODE: Simulate deployment without Proxmox
+        if settings.TESTING_MODE:
+            log_deployment(app_id, 'info', '[TEST MODE] Simulating deployment...', 'test_mode')
+            time.sleep(2)  # Simulate deployment time
+            
+            # Assign fake VMID
+            app.lxc_id = 9999
+            app.status = 'running'
+            app.lxc_root_password = 'test-password'
+            app.updated_at = timezone.now()
+            app.save(update_fields=['lxc_id', 'status', 'lxc_root_password', 'updated_at'])
+            
+            log_deployment(app_id, 'info', '[TEST MODE] Deployment simulated successfully', 'complete')
+            
+            return {
+                'success': True,
+                'app_id': app_id,
+                'vmid': 9999,
+                'hostname': hostname,
+                'status': 'running',
+                'testing_mode': True
+            }
         
         # Initialize services
         proxmox_service = ProxmoxService(host_id=host_id)
