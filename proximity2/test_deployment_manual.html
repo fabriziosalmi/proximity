@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual Deployment Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .container {
+            background: #2a2a2a;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #4a9eff;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #aaa;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            background: #1a1a1a;
+            border: 1px solid #444;
+            border-radius: 5px;
+            color: #fff;
+            font-size: 14px;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #4a9eff;
+        }
+        button {
+            background: #4a9eff;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #3a8eef;
+        }
+        button:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+        #output {
+            margin-top: 30px;
+            padding: 20px;
+            background: #1a1a1a;
+            border: 1px solid #444;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success {
+            color: #4ade80;
+        }
+        .error {
+            color: #f87171;
+        }
+        .info {
+            color: #4a9eff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Manual Deployment Test</h1>
+        <p style="color: #aaa; margin-bottom: 30px;">
+            This page tests the deployment flow to help debug the hostname issue.
+            <br>Check the browser console (F12) for detailed logs.
+        </p>
+
+        <div class="form-group">
+            <label for="catalogId">Catalog ID:</label>
+            <input type="text" id="catalogId" value="adminer" />
+        </div>
+
+        <div class="form-group">
+            <label for="hostname">Hostname:</label>
+            <input type="text" id="hostname" value="" placeholder="e.g., test-adminer-12345" />
+        </div>
+
+        <div class="form-group">
+            <label for="token">Auth Token (from localStorage):</label>
+            <input type="text" id="token" placeholder="Will be auto-filled if you're logged in" />
+        </div>
+
+        <button onclick="generateHostname()">Generate Unique Hostname</button>
+        <button onclick="testDeployment()" id="deployBtn">Deploy</button>
+
+        <div id="output"></div>
+    </div>
+
+    <script>
+        // Auto-fill token from localStorage
+        window.onload = function() {
+            const token = localStorage.getItem('access_token');
+            if (token) {
+                document.getElementById('token').value = token;
+                log('✓ Auth token loaded from localStorage', 'success');
+            } else {
+                log('⚠ No auth token found. Please login first at http://localhost:5173/login', 'error');
+            }
+            
+            // Generate initial hostname
+            generateHostname();
+        };
+
+        function generateHostname() {
+            const timestamp = Date.now();
+            const hostname = `test-adminer-${timestamp}`;
+            document.getElementById('hostname').value = hostname;
+            log(`Generated hostname: ${hostname}`, 'info');
+        }
+
+        function log(message, type = 'info') {
+            const output = document.getElementById('output');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type;
+            output.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+            output.scrollTop = output.scrollHeight;
+            console.log(`[${timestamp}] ${message}`);
+        }
+
+        async function testDeployment() {
+            const catalogId = document.getElementById('catalogId').value;
+            const hostname = document.getElementById('hostname').value;
+            const token = document.getElementById('token').value;
+
+            if (!hostname) {
+                log('❌ ERROR: Hostname is required', 'error');
+                return;
+            }
+
+            if (!token) {
+                log('❌ ERROR: Please login first to get an auth token', 'error');
+                return;
+            }
+
+            log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+            log('🚀 Starting deployment test...', 'info');
+            log(`   Catalog ID: ${catalogId}`, 'info');
+            log(`   Hostname: ${hostname}`, 'info');
+            log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+
+            const payload = {
+                catalog_id: catalogId,
+                hostname: hostname,
+                config: {},
+                environment: {}
+            };
+
+            log(`📦 Payload being sent:`, 'info');
+            log(JSON.stringify(payload, null, 2), 'info');
+
+            const deployBtn = document.getElementById('deployBtn');
+            deployBtn.disabled = true;
+            deployBtn.textContent = 'Deploying...';
+
+            try {
+                const response = await fetch('http://localhost:8000/api/apps/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    log('✅ SUCCESS! Deployment initiated', 'success');
+                    log('Response:', 'success');
+                    log(JSON.stringify(data, null, 2), 'success');
+                    log(`\n🔍 Verify in backend logs that hostname="${hostname}"`, 'info');
+                    log(`🔍 Check Application model: hostname should be "${hostname}"`, 'info');
+                } else {
+                    log(`❌ ERROR: ${response.status} ${response.statusText}`, 'error');
+                    log(JSON.stringify(data, null, 2), 'error');
+                }
+            } catch (error) {
+                log(`❌ EXCEPTION: ${error.message}`, 'error');
+                console.error(error);
+            } finally {
+                deployBtn.disabled = false;
+                deployBtn.textContent = 'Deploy';
+            }
+        }
+    </script>
+</body>
+</html>
