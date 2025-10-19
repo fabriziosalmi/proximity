@@ -1,46 +1,54 @@
 <!-- Hosts/Nodes View -->
-<!-- Manage and monitor Proxmox hosts and nodes -->
+<!-- Manage and monitor Proxmox nodes in rack-mounted style -->
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
-	import { Loader2, HardDrive, RefreshCw, Plus } from 'lucide-svelte';
-	import HostCard from '$lib/components/HostCard.svelte';
+	import { Loader2, Server, RotateCw, RefreshCw, TestTube } from 'lucide-svelte';
+	import HostRackCard from '$lib/components/HostRackCard.svelte';
 	import { api } from '$lib/api';
 	import { pageTitleStore } from '$lib/stores/pageTitle';
 	import { toasts } from '$lib/stores/toast';
 
-	interface Host {
+	interface ProxmoxNode {
 		id: number;
+		host_name: string;
 		name: string;
-		host: string;
-		port: number;
-		status?: string;
-		node_name?: string;
+		status: string;
+		cpu_count?: number;
 		cpu_usage?: number;
-		memory_usage?: number;
-		disk_usage?: number;
-		created_at?: string;
+		memory_total?: number;
+		memory_used?: number;
+		storage_total?: number;
+		storage_used?: number;
+		uptime?: number;
+		ip_address?: string;
+		pve_version?: string;
 	}
 
-	let hosts: Host[] = [];
+	let nodes: ProxmoxNode[] = [];
 	let loading = true;
 	let error = '';
 	let pollingInterval: number;
+	let lastUpdated: Date | null = null;
 
-	async function loadHosts() {
+	async function loadNodes() {
+		const wasLoading = loading;
 		loading = true;
 		error = '';
 
 		try {
-			const response = await api.listHosts();
+			const response = await api.getProxmoxNodes();
 
 			if (response.success && response.data) {
-				hosts = response.data.hosts || [];
+				nodes = response.data || [];
+				lastUpdated = new Date();
 			} else {
-				error = response.error || 'Failed to load hosts';
+				error = response.error || 'Failed to load Proxmox nodes';
+				toasts.error(error, 5000);
 			}
 		} catch (err) {
 			error = 'An unexpected error occurred';
 			console.error(err);
+			toasts.error(error, 5000);
 		} finally {
 			loading = false;
 		}
