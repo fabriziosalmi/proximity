@@ -87,20 +87,26 @@ def deploy_app_task(
             logger.warning(f"[{app_id}] ⚠️  TESTING MODE ACTIVE - Simulating deployment (NO REAL PROXMOX DEPLOYMENT)")
             log_deployment(app_id, 'info', '[TEST MODE] Simulating deployment...', 'test_mode')
             time.sleep(2)  # Simulate deployment time
-            
-            # Assign fake VMID
-            app.lxc_id = 9999
+
+            # Assign unique fake VMID (find next available starting from 9000)
+            test_vmid = 9000
+            while Application.objects.filter(lxc_id=test_vmid).exists():
+                test_vmid += 1
+
+            logger.info(f"[{app_id}] 🔢 [TEST MODE] Allocated test VMID: {test_vmid}")
+
+            app.lxc_id = test_vmid
             app.status = 'running'
             app.lxc_root_password = 'test-password'
             app.updated_at = timezone.now()
             app.save(update_fields=['lxc_id', 'status', 'lxc_root_password', 'updated_at'])
-            
+
             log_deployment(app_id, 'info', '[TEST MODE] Deployment simulated successfully', 'complete')
-            
+
             return {
                 'success': True,
                 'app_id': app_id,
-                'vmid': 9999,
+                'vmid': test_vmid,
                 'hostname': hostname,
                 'status': 'running',
                 'testing_mode': True
@@ -115,14 +121,51 @@ def deploy_app_task(
         logger.info(f"[{app_id}] ✓ ProxmoxService initialized successfully")
         
         log_deployment(app_id, 'info', f'Allocating VMID...', 'vmid')
-        
-        # Get next available VMID
+
+        # Get next available VMID (with conflict resolution)
         logger.info(f"[{app_id}] 🔢 Requesting next available VMID from Proxmox...")
-        vmid = proxmox_service.get_next_vmid()
-        logger.info(f"[{app_id}] ✓ Allocated VMID: {vmid}")
+        max_attempts = 10
+        vmid = None
+
+        for attempt in range(max_attempts):
+            candidate_vmid = proxmox_service.get_next_vmid()
+
+            # Check if this VMID is already in use in our database
+            existing_app = Application.objects.filter(lxc_id=candidate_vmid).first()
+
+            if not existing_app:
+                # VMID is unique, use it
+                vmid = candidate_vmid
+                logger.info(f"[{app_id}] ✓ Allocated unique VMID: {vmid}")
+                break
+            else:
+                # VMID conflict - check if it's an orphaned record
+                logger.warning(
+                    f"[{app_id}] ⚠️  VMID {candidate_vmid} already in use by {existing_app.hostname} "
+                    f"(status: {existing_app.status})"
+                )
+
+                if existing_app.status == 'error':
+                    # Clear the lxc_id from the orphaned application
+                    logger.info(f"[{app_id}] 🧹 Clearing lxc_id from orphaned application: {existing_app.hostname}")
+                    existing_app.lxc_id = None
+                    existing_app.save(update_fields=['lxc_id'])
+
+                    # Now we can use this VMID
+                    vmid = candidate_vmid
+                    logger.info(f"[{app_id}] ✓ Allocated VMID after cleanup: {vmid}")
+                    break
+                else:
+                    # VMID is legitimately in use, try again
+                    logger.info(f"[{app_id}] 🔄 VMID {candidate_vmid} is in use, trying again...")
+                    continue
+
+        if vmid is None:
+            raise Exception(f"Failed to allocate unique VMID after {max_attempts} attempts")
+
         app.lxc_id = vmid
         app.save(update_fields=['lxc_id'])
-        
+
         log_deployment(app_id, 'info', f'Allocated VMID: {vmid}', 'vmid')
         
         # Generate root password (TODO: Use encryption service from v1.0)
@@ -185,36 +228,35 @@ def deploy_app_task(
         # Setup Docker inside the container
         logger.info(f"[{app_id}] 🐋 Setting up Docker in Alpine LXC container...")
         from apps.applications.docker_setup import DockerSetupService
-        import asyncio
-        
+
         docker_service = DockerSetupService(proxmox_service)
-        
+
         # Always install Docker in Alpine (fast with apk)
         # TODO: Implement template caching for even faster deployments
         logger.info(f"[{app_id}] 📦 Installing Docker in Alpine container...")
-        docker_installed = asyncio.run(docker_service.setup_docker_in_alpine(node, vmid))
+        docker_installed = docker_service.setup_docker_in_alpine(node, vmid)
         if not docker_installed:
             raise Exception("Failed to install Docker in container")
-        
+
         logger.info(f"[{app_id}] ✓ Docker installed successfully")
         log_deployment(app_id, 'info', 'Docker installed successfully', 'docker_setup')
-        
+
         log_deployment(app_id, 'info', 'Docker ready, deploying application...', 'app_deploy')
-        
+
         # Deploy the application with Docker Compose
         logger.info(f"[{app_id}] 🚀 Deploying application with Docker Compose...")
-        
+
         # Generate docker-compose configuration based on catalog_id
         if catalog_id == 'adminer':
             docker_compose_config = docker_service.generate_adminer_compose(port=80)
         else:
             # TODO: Get docker-compose from catalog
             raise Exception(f"Unsupported app: {catalog_id}")
-        
-        app_deployed = asyncio.run(docker_service.deploy_app_with_docker_compose(
+
+        app_deployed = docker_service.deploy_app_with_docker_compose(
             node, vmid, catalog_id, docker_compose_config
-        ))
-        
+        )
+
         if not app_deployed:
             raise Exception("Failed to deploy application")
         

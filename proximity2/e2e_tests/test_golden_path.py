@@ -14,21 +14,21 @@ to ensure perfect test isolation and reliability.
 """
 import pytest
 import time
-from playwright.sync_api import Page, expect
+from playwright.sync_api import expect
 from pages import LoginPage, StorePage, AppsPage
 
 
 @pytest.mark.golden_path
 @pytest.mark.slow
 def test_full_app_lifecycle(
-    page: Page,
+    context_with_storage,
     unique_user: dict,
     proxmox_host: dict,  # Ensure a Proxmox host exists
     base_url: str
 ):
     """
     The Golden Path: Complete application lifecycle test.
-    
+
     This test performs the following steps:
     1. ✅ Login with unique test user
     2. ✅ Navigate to App Store
@@ -38,18 +38,24 @@ def test_full_app_lifecycle(
     6. ✅ Start the application
     7. ✅ Delete the application
     8. ✅ Verify application is removed
-    
+
     Args:
-        page: Playwright Page fixture
+        context_with_storage: Browser context with persistent storage
         unique_user: Unique user fixture with credentials
         proxmox_host: Proxmox host fixture (ensures host exists)
         base_url: Frontend base URL fixture
     """
-    
+
+    # Create a page from the context with storage
+    page = context_with_storage.new_page()
+
     # Generate unique hostname for this test run
     timestamp = int(time.time() * 1000)
     test_hostname = f"e2e-adminer-{timestamp}"
-    
+
+    # Track total test duration
+    test_start_time = time.time()
+
     print("\n" + "="*80)
     print("🚀 GOLDEN PATH TEST - Full Application Lifecycle")
     print("="*80)
@@ -192,25 +198,31 @@ def test_full_app_lifecycle(
     # ============================================================================
     # TEST COMPLETE
     # ============================================================================
+    total_duration = time.time() - test_start_time
     print("="*80)
     print("✅ GOLDEN PATH TEST COMPLETE - ALL STEPS PASSED")
     print("="*80)
-    print(f"Total test duration: {time.time() - start_time:.1f}s")
+    print(f"Total test duration: {total_duration:.1f}s")
     print(f"User: {unique_user['username']}")
     print(f"Hostname: {test_hostname}")
     print("="*80 + "\n")
 
+    # Clean up the page
+    page.close()
+
 
 @pytest.mark.smoke
-def test_login_only(page: Page, unique_user: dict, base_url: str):
+def test_login_only(context_with_storage, unique_user: dict, base_url: str):
     """
     Smoke test: Verify basic login functionality.
-    
+
     This is a quick test that validates the authentication flow
     without deploying any applications.
     """
     print("\n🔍 SMOKE TEST: Login Only")
-    
+
+    page = context_with_storage.new_page()
+
     login_page = LoginPage(page, base_url)
     login_page.navigate_and_wait_for_ready()
     login_page.login(
@@ -218,24 +230,28 @@ def test_login_only(page: Page, unique_user: dict, base_url: str):
         password=unique_user['password'],
         wait_for_navigation=True
     )
-    
+
     # Verify successful login
     login_page.assert_login_success(expected_url=base_url + "/")
     assert login_page.is_logged_in(), "Login indicators not found"
-    
+
     print("✅ Login smoke test passed\n")
+
+    page.close()
 
 
 @pytest.mark.smoke
-def test_catalog_loads(page: Page, unique_user: dict, base_url: str):
+def test_catalog_loads(context_with_storage, unique_user: dict, base_url: str):
     """
     Smoke test: Verify the catalog loads applications.
-    
+
     This test ensures the catalog service is working and
     applications are being displayed.
     """
     print("\n🔍 SMOKE TEST: Catalog Loads")
-    
+
+    page = context_with_storage.new_page()
+
     # Login first
     login_page = LoginPage(page, base_url)
     login_page.navigate_and_wait_for_ready()
@@ -244,14 +260,16 @@ def test_catalog_loads(page: Page, unique_user: dict, base_url: str):
         password=unique_user['password'],
         wait_for_navigation=True
     )
-    
+
     # Navigate to store
     store_page = StorePage(page, base_url)
     store_page.navigate()
-    
+
     # Verify at least one app is loaded
     store_page.wait_for_apps_loaded(min_count=1, timeout=10000)
     app_count = store_page.get_app_count()
-    
+
     assert app_count > 0, "No applications found in catalog"
     print(f"✅ Catalog smoke test passed - {app_count} app(s) loaded\n")
+
+    page.close()
