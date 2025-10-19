@@ -161,12 +161,12 @@ def test_clone_application_lifecycle(
     print("📍 STEP 5: Verify Clone Appears")
     print("-" * 80)
     
-    # Clone card should appear (optimistic update)
-    clone_card_locator = page.locator(f'text={clone_hostname}').first
-    expect(clone_card_locator).to_be_visible(timeout=10000)
+    # Wait for clone card to appear using our fortified selector
+    clone_card = apps_page.get_app_card_by_hostname(clone_hostname)
+    expect(clone_card).to_be_visible(timeout=10000)
     print(f"  ✓ Clone card appeared: {clone_hostname}")
     
-    # Check initial status
+    # Check initial status using our fortified status reader
     clone_initial_status = apps_page.get_app_status(clone_hostname)
     print(f"  ✓ Clone initial status: {clone_initial_status}")
     assert clone_initial_status in ['cloning', 'running'], \
