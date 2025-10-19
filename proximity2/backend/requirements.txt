@@ -1,7 +1,7 @@
 # Backend Python dependencies for Proximity 2.0
 
 # Django Core
-Django==5.0.1
+Django==5.1.13
 django-ninja==1.1.0
 django-cors-headers==4.3.1
 
