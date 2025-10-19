@@ -127,6 +127,7 @@ class StorePage:
         """
         hostname_input = self.page.locator(self.HOSTNAME_INPUT).first
         expect(hostname_input).to_be_visible(timeout=5000)
+        hostname_input.clear()  # Clear existing value first
         hostname_input.fill(hostname)
         return self
     

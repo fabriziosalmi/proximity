@@ -101,6 +101,9 @@
 	async function handleDeploy(event: CustomEvent) {
 		const deploymentData = event.detail;
 
+		console.log('[StorePage] Received deployment event:', event.detail);
+		console.log('[StorePage] Deployment data:', deploymentData);
+
 		// Close modal
 		isModalOpen = false;
 

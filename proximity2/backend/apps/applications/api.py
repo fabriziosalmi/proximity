@@ -90,6 +90,13 @@ def create_application(request, payload: ApplicationCreate):
     
     This triggers a Celery task for the actual deployment.
     """
+    # DEBUG: Log received payload
+    import json
+    print(f"[API] Received deployment request:")
+    print(f"[API] catalog_id: {payload.catalog_id}")
+    print(f"[API] hostname: {payload.hostname}")
+    print(f"[API] Full payload: {json.dumps(payload.dict(), indent=2)}")
+    
     # Validate hostname is unique
     if Application.objects.filter(hostname=payload.hostname).exists():
         raise HttpError(400, f"Hostname '{payload.hostname}' already exists")
