@@ -148,6 +148,10 @@ services:
     environment:
       - PUBLIC_API_URL=http://localhost:8000
       - VITE_API_URL=http://backend:8000
+      - VITE_SENTRY_DSN=https://dbee00d4782d131ab54ffe60b16d969b@o149725.ingest.us.sentry.io/4510189390266368
+      - VITE_SENTRY_ENVIRONMENT=development
+      - VITE_SENTRY_TRACES_SAMPLE_RATE=1.0
+      - VITE_SENTRY_DEBUG=false
     depends_on:
       - backend
 

@@ -1,5 +1,10 @@
 <script lang="ts">
 	// Proximity 2.0 - Landing Page
+	
+	function testSentryError() {
+		throw new Error("Sentry test error from frontend.");
+	}
+	
 	const features = [
 		{
 			title: 'Divertimento',
@@ -45,6 +50,13 @@
 			>
 				My Apps
 			</a>
+			<button
+				on:click={testSentryError}
+				class="px-8 py-3 border border-red-500 text-red-500 rounded-lg font-semibold hover:bg-red-500 hover:text-white transition-all"
+				title="Test Sentry Integration"
+			>
+				🐛 Test Sentry
+			</button>
 		</div>
 	</div>
 
