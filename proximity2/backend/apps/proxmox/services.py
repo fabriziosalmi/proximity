@@ -712,3 +712,50 @@ class ProxmoxService:
             
         except Exception as e:
             raise ProxmoxError(f"Failed to list backups: {e}")
+    
+    async def execute_in_container(
+        self, 
+        node_name: str, 
+        vmid: int, 
+        command: str,
+        timeout: int = 300,
+        allow_nonzero_exit: bool = False
+    ) -> str:
+        """
+        Execute a command inside an LXC container using pct exec.
+        
+        Args:
+            node_name: Proxmox node name
+            vmid: LXC container ID  
+            command: Command to execute
+            timeout: Command timeout in seconds
+            allow_nonzero_exit: If True, don't raise error on non-zero exit code
+            
+        Returns:
+            Command output as string
+            
+        Raises:
+            ProxmoxError: If command execution fails
+        """
+        try:
+            client = self.get_client()
+            
+            logger.debug(f"Executing in LXC {vmid}: {command}")
+            
+            # Use Proxmox pct exec endpoint
+            result = client.nodes(node_name).lxc(vmid).exec.post(
+                command=command
+            )
+            
+            return result if isinstance(result, str) else str(result)
+            
+        except ResourceException as e:
+            error_msg = f"Failed to execute command in LXC {vmid}: {e}"
+            logger.error(error_msg)
+            if not allow_nonzero_exit:
+                raise ProxmoxError(error_msg)
+            return ""
+        except Exception as e:
+            error_msg = f"Unexpected error executing in LXC {vmid}: {e}"
+            logger.error(error_msg)
+            raise ProxmoxError(error_msg)

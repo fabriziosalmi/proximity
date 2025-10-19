@@ -21,6 +21,44 @@ api = NinjaAPI(
     docs_url="/docs",
 )
 
+
+# Health check endpoint
+@api.get("/health", tags=["Health"], summary="Health Check")
+def health_check(request):
+    """
+    Health check endpoint for monitoring and container orchestration.
+    Returns 200 OK if the service is running.
+    """
+    from django.db import connection
+    from django.core.cache import cache
+    
+    health_status = {
+        "status": "healthy",
+        "service": "proximity-backend",
+        "version": "2.0.0"
+    }
+    
+    # Check database connection
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+        health_status["database"] = "connected"
+    except Exception as e:
+        health_status["database"] = f"error: {str(e)}"
+        health_status["status"] = "degraded"
+    
+    # Check Redis/cache
+    try:
+        cache.set("health_check", "ok", 10)
+        cache.get("health_check")
+        health_status["cache"] = "connected"
+    except Exception as e:
+        health_status["cache"] = f"error: {str(e)}"
+        health_status["status"] = "degraded"
+    
+    return health_status
+
+
 # Register API routers
 api.add_router("/core/", core_router, tags=["Core"])
 api.add_router("/apps/", apps_router, tags=["Applications"])

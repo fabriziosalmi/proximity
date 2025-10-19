@@ -74,14 +74,17 @@ def deploy_app_task(
     """
     try:
         log_deployment(app_id, 'info', f'Starting deployment of {hostname}', 'init')
+        logger.info(f"[{app_id}] 🚀 DEPLOYMENT STARTED - hostname={hostname}, node={node}, host_id={host_id}")
         
         # Get application record
         app = Application.objects.get(id=app_id)
         app.status = 'deploying'
         app.save(update_fields=['status'])
+        logger.info(f"[{app_id}] ✓ Application status set to 'deploying'")
         
         # TESTING MODE: Simulate deployment without Proxmox
         if settings.TESTING_MODE:
+            logger.warning(f"[{app_id}] ⚠️  TESTING MODE ACTIVE - Simulating deployment (NO REAL PROXMOX DEPLOYMENT)")
             log_deployment(app_id, 'info', '[TEST MODE] Simulating deployment...', 'test_mode')
             time.sleep(2)  # Simulate deployment time
             
@@ -103,13 +106,20 @@ def deploy_app_task(
                 'testing_mode': True
             }
         
+        # REAL DEPLOYMENT MODE
+        logger.info(f"[{app_id}] 🔥 REAL DEPLOYMENT MODE - Deploying to Proxmox!")
+        
         # Initialize services
+        logger.info(f"[{app_id}] 📡 Initializing ProxmoxService for host_id={host_id}...")
         proxmox_service = ProxmoxService(host_id=host_id)
+        logger.info(f"[{app_id}] ✓ ProxmoxService initialized successfully")
         
         log_deployment(app_id, 'info', f'Allocating VMID...', 'vmid')
         
         # Get next available VMID
+        logger.info(f"[{app_id}] 🔢 Requesting next available VMID from Proxmox...")
         vmid = proxmox_service.get_next_vmid()
+        logger.info(f"[{app_id}] ✓ Allocated VMID: {vmid}")
         app.lxc_id = vmid
         app.save(update_fields=['lxc_id'])
         
@@ -118,6 +128,7 @@ def deploy_app_task(
         # Generate root password (TODO: Use encryption service from v1.0)
         import secrets
         root_password = secrets.token_urlsafe(16)
+        logger.info(f"[{app_id}] 🔐 Generated root password (length: {len(root_password)})")
         
         log_deployment(app_id, 'info', 'Creating LXC container...', 'lxc_create')
         
@@ -128,6 +139,16 @@ def deploy_app_task(
         cores = config.get('cores', 2)
         disk_size = config.get('disk_size', '8')
         
+        logger.info(f"[{app_id}] 📦 LXC Configuration:")
+        logger.info(f"[{app_id}]    - Template: {ostemplate}")
+        logger.info(f"[{app_id}]    - Memory: {memory}MB")
+        logger.info(f"[{app_id}]    - Cores: {cores}")
+        logger.info(f"[{app_id}]    - Disk: {disk_size}GB")
+        logger.info(f"[{app_id}]    - Hostname: {hostname}")
+        logger.info(f"[{app_id}]    - VMID: {vmid}")
+        logger.info(f"[{app_id}]    - Node: {node}")
+        
+        logger.info(f"[{app_id}] 🏗️  Calling Proxmox API to create LXC container...")
         create_result = proxmox_service.create_lxc(
             node_name=node,
             vmid=vmid,
@@ -139,32 +160,69 @@ def deploy_app_task(
             disk_size=disk_size
         )
         
+        logger.info(f"[{app_id}] ✓ LXC container created successfully!")
+        logger.info(f"[{app_id}] 📋 Create result: {create_result}")
         log_deployment(app_id, 'info', f'LXC container created: {create_result}', 'lxc_create')
         
         # Wait for container to be ready
+        logger.info(f"[{app_id}] ⏳ Waiting 5 seconds for container to be ready...")
         time.sleep(5)
         
         log_deployment(app_id, 'info', 'Starting LXC container...', 'lxc_start')
         
         # Start container
+        logger.info(f"[{app_id}] ▶️  Starting LXC container (VMID: {vmid})...")
         proxmox_service.start_lxc(node, vmid)
+        logger.info(f"[{app_id}] ✓ LXC container started successfully!")
         
         # Wait for container to start
+        logger.info(f"[{app_id}] ⏳ Waiting 10 seconds for container to fully start...")
         time.sleep(10)
         
-        log_deployment(app_id, 'info', 'Container started, configuring application...', 'app_config')
+        log_deployment(app_id, 'info', 'Container started, installing Docker...', 'docker_setup')
         
-        # TODO: Execute setup scripts inside container
-        # This would use the command execution service from v1.0
-        # For now, we'll mark as running
+        # Setup Docker inside the container
+        logger.info(f"[{app_id}] 🐋 Installing Docker inside LXC container...")
+        from apps.applications.docker_setup import DockerSetupService
+        import asyncio
         
+        docker_service = DockerSetupService(proxmox_service)
+        
+        # Run async functions using asyncio.run()
+        docker_installed = asyncio.run(docker_service.setup_docker_in_alpine(node, vmid))
+        if not docker_installed:
+            raise Exception("Failed to install Docker in container")
+        
+        log_deployment(app_id, 'info', 'Docker installed, deploying application...', 'app_deploy')
+        
+        # Deploy the application with Docker Compose
+        logger.info(f"[{app_id}] 🚀 Deploying application with Docker Compose...")
+        
+        # Generate docker-compose configuration based on catalog_id
+        if catalog_id == 'adminer':
+            docker_compose_config = docker_service.generate_adminer_compose(port=80)
+        else:
+            # TODO: Get docker-compose from catalog
+            raise Exception(f"Unsupported app: {catalog_id}")
+        
+        app_deployed = asyncio.run(docker_service.deploy_app_with_docker_compose(
+            node, vmid, catalog_id, docker_compose_config
+        ))
+        
+        if not app_deployed:
+            raise Exception("Failed to deploy application")
+        
+        logger.info(f"[{app_id}] 💾 Updating application status to 'running'...")
         # Update application status
         app.status = 'running'
         app.lxc_root_password = root_password  # TODO: Encrypt this
         app.updated_at = timezone.now()
         app.save(update_fields=['status', 'lxc_root_password', 'updated_at'])
+        logger.info(f"[{app_id}] ✓ Application status updated")
         
         log_deployment(app_id, 'info', f'Deployment complete: {hostname}', 'complete')
+        logger.info(f"[{app_id}] 🎉 DEPLOYMENT COMPLETED SUCCESSFULLY!")
+        logger.info(f"[{app_id}] 📊 Summary: VMID={vmid}, Hostname={hostname}, Status=running")
         
         return {
             'success': True,
@@ -175,7 +233,8 @@ def deploy_app_task(
         }
         
     except Exception as e:
-        logger.error(f"Deployment failed for {app_id}: {e}")
+        logger.error(f"[{app_id}] ❌ DEPLOYMENT FAILED: {type(e).__name__}: {e}")
+        logger.exception(f"[{app_id}] Full traceback:")
         log_deployment(app_id, 'error', f'Deployment failed: {str(e)}', 'error')
         
         # Update application status to error

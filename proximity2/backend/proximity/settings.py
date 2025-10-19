@@ -153,12 +153,29 @@ PROXMOX_PORT = int(os.getenv('PROXMOX_PORT', '8006'))
 
 # Sentry Configuration (optional)
 SENTRY_DSN = os.getenv('SENTRY_DSN', '')
+SENTRY_ENVIRONMENT = os.getenv('SENTRY_ENVIRONMENT', 'development' if DEBUG else 'production')
+SENTRY_RELEASE = os.getenv('SENTRY_RELEASE', '2.0.0')
+
 if SENTRY_DSN:
     import sentry_sdk
+    from sentry_sdk.integrations.django import DjangoIntegration
+    from sentry_sdk.integrations.celery import CeleryIntegration
+    from sentry_sdk.integrations.redis import RedisIntegration
+
     sentry_sdk.init(
         dsn=SENTRY_DSN,
+        environment=SENTRY_ENVIRONMENT,
+        release=SENTRY_RELEASE,
+        integrations=[
+            DjangoIntegration(),
+            CeleryIntegration(),
+            RedisIntegration(),
+        ],
         traces_sample_rate=0.1,
         profiles_sample_rate=0.1,
+        send_default_pii=False,  # Don't send personally identifiable information
+        attach_stacktrace=True,
+        before_send=lambda event, hint: event if not DEBUG else None,  # Don't send in debug mode
     )
 
 # Logging Configuration

@@ -18,9 +18,16 @@
 	--card-hover-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
 }
 
+html {
+	height: 100%;
+}
+
 body {
 	@apply bg-rack-darker text-rack-light;
 	font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+	height: 100%;
+	margin: 0;
+	padding: 0;
 }
 
 /* Custom scrollbar for futuristic look */

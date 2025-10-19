@@ -92,36 +92,65 @@ def create_application(request, payload: ApplicationCreate):
     """
     # DEBUG: Log received payload
     import json
-    print(f"[API] Received deployment request:")
-    print(f"[API] catalog_id: {payload.catalog_id}")
-    print(f"[API] hostname: {payload.hostname}")
-    print(f"[API] Full payload: {json.dumps(payload.dict(), indent=2)}")
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    logger.info(f"[API] Received deployment request:")
+    logger.info(f"[API] catalog_id: {payload.catalog_id}")
+    logger.info(f"[API] hostname: {payload.hostname}")
+    logger.info(f"[API] Full payload: {json.dumps(payload.dict(), indent=2)}")
     
     # Validate hostname is unique
     if Application.objects.filter(hostname=payload.hostname).exists():
         raise HttpError(400, f"Hostname '{payload.hostname}' already exists")
     
-    # Get or select Proxmox host
+    # Get or select Proxmox host and node with intelligent selection
     if payload.node:
-        # Find host that has this node
-        node_obj = ProxmoxNode.objects.filter(name=payload.node).first()
+        # Explicit node specified - verify it's online
+        node_obj = ProxmoxNode.objects.filter(name=payload.node, status='online').first()
         if not node_obj:
-            raise HttpError(400, f"Node '{payload.node}' not found")
+            # Check if node exists but is offline
+            offline_node = ProxmoxNode.objects.filter(name=payload.node).first()
+            if offline_node:
+                raise HttpError(400, f"The specified node '{payload.node}' is not online (status: {offline_node.status})")
+            else:
+                raise HttpError(400, f"The specified node '{payload.node}' does not exist")
+        
         host = node_obj.host
         node = payload.node
     else:
-        # Select default host
-        host = ProxmoxHost.objects.filter(is_default=True, is_active=True).first()
-        if not host:
-            host = ProxmoxHost.objects.filter(is_active=True).first()
-        if not host:
-            raise HttpError(400, "No active Proxmox host configured")
+        # No node specified - intelligent selection
+        # Strategy: Select the online node with most available memory
         
-        # Select first available node
-        node_obj = ProxmoxNode.objects.filter(host=host).first()
-        if not node_obj:
-            raise HttpError(400, "No nodes available on selected host")
-        node = node_obj.name
+        # Get all online nodes across all active hosts
+        online_nodes = ProxmoxNode.objects.filter(
+            status='online',
+            host__is_active=True
+        ).select_related('host')
+        
+        if not online_nodes.exists():
+            raise HttpError(503, "No online Proxmox nodes available for deployment")
+        
+        # Select node with most available memory (best for load balancing)
+        best_node = None
+        max_available_memory = -1
+        
+        for node_obj in online_nodes:
+            # Calculate available memory (total - used)
+            if node_obj.memory_total and node_obj.memory_used is not None:
+                available = node_obj.memory_total - node_obj.memory_used
+                if available > max_available_memory:
+                    max_available_memory = available
+                    best_node = node_obj
+        
+        # Fallback: if no memory info, just pick first online node
+        if not best_node:
+            best_node = online_nodes.first()
+        
+        host = best_node.host
+        node = best_node.name
+        
+        print(f"[API] Smart node selection: {node} on host {host.name} (available memory: {max_available_memory / (1024**3):.2f} GB)")
     
     # Allocate ports
     port_manager = PortManagerService()
@@ -142,7 +171,7 @@ def create_application(request, payload: ApplicationCreate):
         status='deploying',
         public_port=public_port,
         internal_port=internal_port,
-        lxc_id=0,  # Will be set by deploy task
+        lxc_id=None,  # Will be set by deploy task
         node=node,
         host=host,
         config=payload.config,

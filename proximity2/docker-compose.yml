@@ -59,7 +59,15 @@ services:
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
       - ALLOWED_HOSTS=localhost,127.0.0.1,backend
       - CORS_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
-      - TESTING_MODE=True
+      - TESTING_MODE=False
+      - SENTRY_DSN=https://dbee00d4782d131ab54ffe60b16d969b@o149725.ingest.us.sentry.io/4510189390266368
+      - SENTRY_ENVIRONMENT=development
+      - SENTRY_RELEASE=2.0.0
+      - PROXMOX_HOST=192.168.100.102
+      - PROXMOX_USER=root@pam
+      - PROXMOX_PASSWORD=invaders
+      - PROXMOX_PORT=8006
+      - PROXMOX_VERIFY_SSL=False
     depends_on:
       db:
         condition: service_healthy
@@ -87,7 +95,15 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
-      - TESTING_MODE=True
+      - TESTING_MODE=False
+      - SENTRY_DSN=https://dbee00d4782d131ab54ffe60b16d969b@o149725.ingest.us.sentry.io/4510189390266368
+      - SENTRY_ENVIRONMENT=development
+      - SENTRY_RELEASE=2.0.0
+      - PROXMOX_HOST=192.168.100.102
+      - PROXMOX_USER=root@pam
+      - PROXMOX_PASSWORD=invaders
+      - PROXMOX_PORT=8006
+      - PROXMOX_VERIFY_SSL=False
     depends_on:
       - db
       - redis
@@ -109,6 +125,9 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - SENTRY_DSN=https://dbee00d4782d131ab54ffe60b16d969b@o149725.ingest.us.sentry.io/4510189390266368
+      - SENTRY_ENVIRONMENT=development
+      - SENTRY_RELEASE=2.0.0
     depends_on:
       - db
       - redis
