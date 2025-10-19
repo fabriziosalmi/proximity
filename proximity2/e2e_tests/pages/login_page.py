@@ -18,7 +18,7 @@ class LoginPage:
     # Locators
     USERNAME_INPUT = 'input[name="username"], input[type="email"], input[placeholder*="username" i], input[placeholder*="email" i]'
     PASSWORD_INPUT = 'input[name="password"], input[type="password"]'
-    SUBMIT_BUTTON = 'button[type="submit"], button:has-text("Log in"), button:has-text("Sign in")'
+    SUBMIT_BUTTON = 'button:has-text("Sign In"), button[type="submit"], button:has-text("Log in"), button:has-text("Sign in")'
     ERROR_MESSAGE = '.error, .alert-error, [role="alert"]'
     SUCCESS_MESSAGE = '.success, .alert-success'
     
@@ -74,9 +74,9 @@ class LoginPage:
         Returns:
             self for chaining
         """
-        # Wait for page to be fully loaded and hydrated
-        self.page.wait_for_load_state("networkidle")
-        self.page.wait_for_timeout(1000)  # Wait for Svelte hydration
+        # Wait for page to be fully loaded
+        self.page.wait_for_load_state("domcontentloaded")  # Changed from networkidle
+        self.page.wait_for_timeout(500)  # Reduced from 1000ms
         
         # Wait for form to be ready
         username_input = self.page.locator(self.USERNAME_INPUT).first
