@@ -65,9 +65,9 @@ def test_full_app_lifecycle(
     
     login_page = LoginPage(page, base_url)
     
-    # Navigate to login page
-    login_page.navigate()
-    print(f"  ✓ Navigated to login page: {base_url}/login")
+    # Navigate to login page and wait for hydration
+    login_page.navigate_and_wait_for_ready()
+    print(f"  ✓ Navigated to login page: {base_url}/login (hydration complete)")
     
     # Perform login
     login_page.login(
@@ -212,7 +212,7 @@ def test_login_only(page: Page, unique_user: dict, base_url: str):
     print("\n🔍 SMOKE TEST: Login Only")
     
     login_page = LoginPage(page, base_url)
-    login_page.navigate()
+    login_page.navigate_and_wait_for_ready()
     login_page.login(
         username=unique_user['username'],
         password=unique_user['password'],
@@ -238,7 +238,7 @@ def test_catalog_loads(page: Page, unique_user: dict, base_url: str):
     
     # Login first
     login_page = LoginPage(page, base_url)
-    login_page.navigate()
+    login_page.navigate_and_wait_for_ready()
     login_page.login(
         username=unique_user['username'],
         password=unique_user['password'],

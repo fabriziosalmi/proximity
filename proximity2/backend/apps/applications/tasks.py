@@ -135,7 +135,7 @@ def deploy_app_task(
         # Create LXC container with Alpine Linux
         # Alpine is lightweight and perfect for Docker containers
         # TODO: Get ostemplate from catalog configuration
-        ostemplate = config.get('ostemplate', 'local:vztmpl/alpine-3.20-default_20240908_amd64.tar.xz')
+        ostemplate = config.get('ostemplate', 'local:vztmpl/alpine-3.22-default_20250617_amd64.tar.xz')
         memory = config.get('memory', 2048)
         cores = config.get('cores', 2)
         disk_size = config.get('disk_size', '8')
