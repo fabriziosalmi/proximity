@@ -179,7 +179,7 @@ def api_url() -> str:
 def context_with_storage(browser: Browser):
     """
     Creates a browser context with persistent storage.
-    
+
     This allows cookies and localStorage to persist across page navigations,
     which is crucial for maintaining authentication state.
     """
@@ -193,6 +193,19 @@ def context_with_storage(browser: Browser):
     )
     yield context
     context.close()
+
+
+@pytest.fixture
+def test_page(context_with_storage):
+    """
+    Creates a page from context_with_storage and ensures proper cleanup.
+    """
+    page = context_with_storage.new_page()
+    yield page
+    try:
+        page.close()
+    except Exception:
+        pass  # Page might already be closed
 
 
 @pytest.fixture(scope="function")

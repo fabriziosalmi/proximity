@@ -21,7 +21,7 @@ from pages import LoginPage, StorePage, AppsPage
 @pytest.mark.golden_path
 @pytest.mark.slow
 def test_full_app_lifecycle(
-    context_with_storage,
+    test_page,
     unique_user: dict,
     proxmox_host: dict,  # Ensure a Proxmox host exists
     base_url: str
@@ -40,14 +40,13 @@ def test_full_app_lifecycle(
     8. ✅ Verify application is removed
 
     Args:
-        context_with_storage: Browser context with persistent storage
+        test_page: Playwright Page fixture with storage
         unique_user: Unique user fixture with credentials
         proxmox_host: Proxmox host fixture (ensures host exists)
         base_url: Frontend base URL fixture
     """
 
-    # Create a page from the context with storage
-    page = context_with_storage.new_page()
+    page = test_page
 
     # Generate unique hostname for this test run
     timestamp = int(time.time() * 1000)
@@ -62,19 +61,19 @@ def test_full_app_lifecycle(
     print(f"📧 Test User: {unique_user['username']}")
     print(f"🏷️  Test Hostname: {test_hostname}")
     print("="*80 + "\n")
-    
+
     # ============================================================================
     # STEP 1: LOGIN
     # ============================================================================
     print("📍 STEP 1: Login")
     print("-" * 80)
-    
+
     login_page = LoginPage(page, base_url)
-    
+
     # Navigate to login page and wait for hydration
     login_page.navigate_and_wait_for_ready()
     print(f"  ✓ Navigated to login page: {base_url}/login (hydration complete)")
-    
+
     # Perform login
     login_page.login(
         username=unique_user['username'],
@@ -82,11 +81,11 @@ def test_full_app_lifecycle(
         wait_for_navigation=True
     )
     print(f"  ✓ Submitted login credentials")
-    
+
     # Assert login success - should be redirected to home
     login_page.assert_login_success(expected_url=base_url + "/")
     print(f"  ✅ LOGIN SUCCESS - Redirected to home page")
-    
+
     # Verify we have access to protected routes
     assert page.locator('a[href="/apps"]').is_visible(), "Apps link not found after login"
     print(f"  ✓ Authenticated navigation verified\n")
@@ -207,12 +206,9 @@ def test_full_app_lifecycle(
     print(f"Hostname: {test_hostname}")
     print("="*80 + "\n")
 
-    # Clean up the page
-    page.close()
-
 
 @pytest.mark.smoke
-def test_login_only(context_with_storage, unique_user: dict, base_url: str):
+def test_login_only(test_page, unique_user: dict, base_url: str):
     """
     Smoke test: Verify basic login functionality.
 
@@ -221,7 +217,7 @@ def test_login_only(context_with_storage, unique_user: dict, base_url: str):
     """
     print("\n🔍 SMOKE TEST: Login Only")
 
-    page = context_with_storage.new_page()
+    page = test_page
 
     login_page = LoginPage(page, base_url)
     login_page.navigate_and_wait_for_ready()
@@ -237,11 +233,9 @@ def test_login_only(context_with_storage, unique_user: dict, base_url: str):
 
     print("✅ Login smoke test passed\n")
 
-    page.close()
-
 
 @pytest.mark.smoke
-def test_catalog_loads(context_with_storage, unique_user: dict, base_url: str):
+def test_catalog_loads(test_page, unique_user: dict, base_url: str):
     """
     Smoke test: Verify the catalog loads applications.
 
@@ -250,7 +244,7 @@ def test_catalog_loads(context_with_storage, unique_user: dict, base_url: str):
     """
     print("\n🔍 SMOKE TEST: Catalog Loads")
 
-    page = context_with_storage.new_page()
+    page = test_page
 
     # Login first
     login_page = LoginPage(page, base_url)
@@ -271,5 +265,3 @@ def test_catalog_loads(context_with_storage, unique_user: dict, base_url: str):
 
     assert app_count > 0, "No applications found in catalog"
     print(f"✅ Catalog smoke test passed - {app_count} app(s) loaded\n")
-
-    page.close()
