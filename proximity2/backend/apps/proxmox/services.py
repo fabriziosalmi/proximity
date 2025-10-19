@@ -282,8 +282,19 @@ class ProxmoxService:
                 f"grep -q 'lxc.cap.drop' {config_path} || echo 'lxc.cap.drop:' >> {config_path}"
             ]
             
+            # Execute commands via SSH on the Proxmox node
             for cmd in commands:
-                self.execute_in_node(node_name, cmd)
+                stdout, stderr, exit_code = self._execute_ssh_command(
+                    host=self.host.hostname,
+                    port=self.host.port,
+                    username=self.host.username,
+                    password=self.host.password,
+                    command=cmd,
+                    timeout=10
+                )
+                
+                if exit_code != 0:
+                    raise ProxmoxError(f"Command failed with exit code {exit_code}: {stderr}")
             
             logger.info(f"Configured LXC {vmid} for Docker (AppArmor: unconfined, Capabilities: all)")
             

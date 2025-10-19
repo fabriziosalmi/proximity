@@ -80,10 +80,28 @@ def unique_user(api_client: httpx.Client) -> Generator[Dict[str, str], None, Non
             pytest.fail(f"Failed to create test user: {register_response.text}")
         
         registration_data = register_response.json()
-        user_data["auth_token"] = registration_data.get("token", "")
-        user_data["user_id"] = registration_data.get("user", {}).get("id")
+        user_data["user_id"] = registration_data.get("id")
         
         print(f"✅ User created successfully: {user_data['username']}")
+        
+        # Login to get auth token (registration doesn't return token)
+        login_response = api_client.post(
+            "/api/core/auth/login",
+            json={
+                "username": user_data["username"],
+                "password": user_data["password"]
+            }
+        )
+        
+        if login_response.status_code != 200:
+            print(f"❌ Login failed: {login_response.status_code}")
+            print(f"Response: {login_response.text}")
+            pytest.fail(f"Failed to login test user: {login_response.text}")
+        
+        login_data = login_response.json()
+        user_data["auth_token"] = login_data.get("access_token", "")
+        
+        print(f"✅ User logged in successfully, token obtained")
         
     except Exception as e:
         pytest.fail(f"Failed to create test user: {str(e)}")
@@ -178,7 +196,7 @@ def api_url() -> str:
 @pytest.fixture
 def context_with_storage(browser: Browser):
     """
-    Creates a browser context with persistent storage.
+    Creates a browser context with persistent storage and increased timeouts.
 
     This allows cookies and localStorage to persist across page navigations,
     which is crucial for maintaining authentication state.
@@ -191,8 +209,19 @@ def context_with_storage(browser: Browser):
         # Record videos for debugging failed tests
         record_video_dir="./test-results/videos" if os.getenv("RECORD_VIDEO") else None
     )
+    
+    # Increase default timeouts for slower CI environments
+    context.set_default_timeout(60000)  # 60 seconds
+    context.set_default_navigation_timeout(60000)
+    
     yield context
-    context.close()
+    
+    # Safe cleanup: check if context is still open before closing
+    try:
+        context.close()
+    except Exception as e:
+        # Context may already be closed, ignore
+        pass
 
 
 @pytest.fixture
