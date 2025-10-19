@@ -153,7 +153,7 @@ def test_smart_node_selection_chooses_best_node(client, django_user_model):
     
     # === SUCCESS ===
     print(f"\n✅ TEST PASSED: Smart node selection working correctly!")
-    print(f"   Selected node: {new_app.node.name}")
+    print(f"   Selected node: {new_app.node}")
     print(f"   Node memory: {(opti2_node.memory_total - opti2_node.memory_used) / 1024**3:.1f}GB free")
     print(f"   Application ID: {new_app.id}")
     print(f"   Hostname: {new_app.hostname}")
