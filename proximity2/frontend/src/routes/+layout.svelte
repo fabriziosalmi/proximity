@@ -1,14 +1,21 @@
-<script lang="ts">
-	import { onMount } from 'svelte';
+<script>
 	import '../app.css';
 	import ToastContainer from '$lib/components/ToastContainer.svelte';
-
-	onMount(() => {
-		console.log('[Layout] SvelteKit hydration complete, marking body as interactive');
-		document.body.setAttribute('data-sveltekit-interactive', 'true');
-	});
+	import CommandDeck from '$lib/components/layout/CommandDeck.svelte';
+	import RackNav from '$lib/components/layout/RackNav.svelte';
+	import TopBar from '$lib/components/layout/TopBar.svelte';
 </script>
 
 <ToastContainer />
 
-<slot />
+<CommandDeck>
+	<svelte:fragment slot="rack-nav">
+		<RackNav />
+	</svelte:fragment>
+	<svelte:fragment slot="top-bar">
+		<TopBar />
+	</svelte:fragment>
+	<svelte:fragment slot="main-canvas">
+		<slot />
+	</svelte:fragment>
+</CommandDeck>
