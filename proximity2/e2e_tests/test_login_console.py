@@ -55,19 +55,13 @@ def test_login_with_console_logs(page, unique_user):
     page.fill('input[name="username"]', unique_user['username'])
     page.fill('input[type="password"]', unique_user['password'])
     
-    # Wait for Svelte hydration
-    print("⏳ Waiting for Svelte hydration...")
-    page.wait_for_timeout(2000)
-    
-    # Click login
-    print("🖱️  Clicking login button...")
-    login_button = page.locator('button:has-text("Sign In")').first
-    login_button.wait_for(state='attached', timeout=5000)
-    login_button.click()
+    # Press Enter instead of clicking button (works before hydration)
+    print("⌨️  Pressing Enter...")
+    page.press('input[type="password"]', 'Enter')
     
     # Wait a bit for API call
     print("⏳ Waiting for API call...")
-    page.wait_for_timeout(8000)
+    page.wait_for_timeout(5000)
     
     # Check for error messages in the page
     print("\n🔍 Checking for error messages...")
