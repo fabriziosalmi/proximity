@@ -14,18 +14,20 @@ from apps.proxmox.services import ProxmoxService
 
 # Test SSH connection and pct exec
 service = ProxmoxService(host_id=2)  # e2e-test-host
+host = service.get_host()
 
 print("🔧 Testing SSH-based pct exec...")
-print(f"Host: {service.host_config['host']}")
-print(f"User: {service.host_config['user']}")
+print(f"Host: {host.host}")
+print(f"User: {host.user}")
+print(f"SSH Port: {host.ssh_port}")
 
 try:
     # Test simple command that should work even if no containers exist
     result = service._execute_ssh_command(
-        host=service.host_config['host'],
-        port=22,
-        username=service.host_config['user'].split('@')[0],
-        password=service.host_config['password'],
+        host=host.host,
+        port=host.ssh_port,
+        username=host.user.split('@')[0],
+        password=host.password,
         command='echo "SSH connection test successful"',
         timeout=10
     )
