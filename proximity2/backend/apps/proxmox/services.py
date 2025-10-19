@@ -273,6 +273,13 @@ class ProxmoxService:
             vmid: Container VMID
         """
         try:
+            # Get host configuration
+            host = self.get_host()
+            
+            # Extract SSH username (remove @pam realm if present)
+            # Proxmox API uses 'root@pam', but SSH requires just 'root'
+            ssh_username = host.user.split('@')[0] if '@' in host.user else host.user
+            
             # Modify the LXC config file directly via SSH
             config_path = f"/etc/pve/lxc/{vmid}.conf"
             
@@ -285,10 +292,10 @@ class ProxmoxService:
             # Execute commands via SSH on the Proxmox node
             for cmd in commands:
                 stdout, stderr, exit_code = self._execute_ssh_command(
-                    host=self.host.hostname,
-                    port=self.host.port,
-                    username=self.host.username,
-                    password=self.host.password,
+                    host=host.host,
+                    port=host.ssh_port,
+                    username=ssh_username,
+                    password=host.password,
                     command=cmd,
                     timeout=10
                 )
