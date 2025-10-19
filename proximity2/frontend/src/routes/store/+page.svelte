@@ -7,6 +7,7 @@
 	import { Search, Loader2, Package, RefreshCw } from 'lucide-svelte';
 	import { api } from '$lib/api';
 	import { myAppsStore } from '$lib/stores/apps';
+	import { pageTitleStore } from '$lib/stores/pageTitle';
 	import { toasts } from '$lib/stores/toast';
 	import RackCard from '$lib/components/RackCard.svelte';
 	import CategoryFilter from '$lib/components/CategoryFilter.svelte';
@@ -25,6 +26,9 @@
 	let selectedApp: any = null;
 
 	onMount(() => {
+		// Set page title
+		pageTitleStore.setTitle('App Store');
+
 		loadCatalog();
 	});
 

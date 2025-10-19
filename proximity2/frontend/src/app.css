@@ -329,3 +329,27 @@ select:focus-visible {
 .animate-spin {
 	animation: spin 1s linear infinite;
 }
+
+/* LED Pulse Animation */
+@keyframes pulse-green {
+	0%,
+	100% {
+		opacity: 1;
+		box-shadow: 0 0 8px var(--color-led-active);
+	}
+	50% {
+		opacity: 0.6;
+		box-shadow: 0 0 12px var(--color-led-active);
+	}
+}
+
+/* LCD Scanline/Flicker Effect */
+@keyframes lcd-flicker {
+	0%,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.97;
+	}
+}

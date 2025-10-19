@@ -5,6 +5,7 @@
 	import { Loader2, HardDrive, RefreshCw, Plus } from 'lucide-svelte';
 	import HostCard from '$lib/components/HostCard.svelte';
 	import { api } from '$lib/api';
+	import { pageTitleStore } from '$lib/stores/pageTitle';
 	import { toasts } from '$lib/stores/toast';
 
 	interface Host {
@@ -77,6 +78,9 @@
 	}
 
 	onMount(() => {
+		// Set page title
+		pageTitleStore.setTitle('Hosts');
+
 		loadHosts();
 
 		// Poll for updates every 30 seconds

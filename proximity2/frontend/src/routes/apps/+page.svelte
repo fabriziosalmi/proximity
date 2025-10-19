@@ -5,6 +5,7 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { Loader2, Server, PlayCircle, StopCircle, RotateCw, Trash2, FileText, Copy } from 'lucide-svelte';
 	import { myAppsStore, hasDeployingApps } from '$lib/stores/apps';
+	import { pageTitleStore } from '$lib/stores/pageTitle';
 	import { toasts } from '$lib/stores/toast';
 	import RackCard from '$lib/components/RackCard.svelte';
 	import CloneModal from '$lib/components/CloneModal.svelte';
@@ -14,6 +15,9 @@
 	let cloneSourceApp: any = null;
 
 	onMount(() => {
+		// Set page title
+		pageTitleStore.setTitle('My Apps');
+
 		// Start polling for real-time updates
 		myAppsStore.startPolling(5000);
 	});

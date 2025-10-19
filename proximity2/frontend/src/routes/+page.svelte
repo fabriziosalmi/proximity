@@ -5,6 +5,7 @@
 	import { Server, Package, Play, Square, Loader2, HardDrive, Cpu, MemoryStick } from 'lucide-svelte';
 	import StatCard from '$lib/components/dashboard/StatCard.svelte';
 	import { myAppsStore } from '$lib/stores/apps';
+	import { pageTitleStore } from '$lib/stores/pageTitle';
 	import { api } from '$lib/api';
 
 	// Dashboard stats
@@ -13,6 +14,9 @@
 	let loading = true;
 
 	onMount(async () => {
+		// Set page title
+		pageTitleStore.setTitle('Dashboard');
+
 		// Start polling for apps
 		myAppsStore.startPolling(10000);
 
