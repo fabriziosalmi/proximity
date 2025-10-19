@@ -8,6 +8,7 @@ from typing import Dict, Any, Optional
 from celery import shared_task
 from django.utils import timezone
 from django.conf import settings
+from django.db import transaction
 
 from apps.proxmox.services import ProxmoxService, ProxmoxError
 from apps.applications.models import Application, DeploymentLog
@@ -72,15 +73,29 @@ def deploy_app_task(
     Returns:
         Deployment result dictionary
     """
+    logger.info(f"="*100)
+    logger.info(f"[TASK START] --- Starting deployment for Application ID: {app_id} ---")
+    logger.info(f"[TASK START] Parameters: hostname={hostname}, catalog_id={catalog_id}, node={node}, host_id={host_id}")
+    logger.info(f"[TASK START] Config: {config}")
+    logger.info(f"[TASK START] Environment: {environment}")
+    logger.info(f"[TASK START] Owner ID: {owner_id}")
+    logger.info(f"="*100)
+
     try:
         log_deployment(app_id, 'info', f'Starting deployment of {hostname}', 'init')
-        logger.info(f"[{app_id}] 🚀 DEPLOYMENT STARTED - hostname={hostname}, node={node}, host_id={host_id}")
-        
-        # Get application record
-        app = Application.objects.get(id=app_id)
-        app.status = 'deploying'
-        app.save(update_fields=['status'])
-        logger.info(f"[{app_id}] ✓ Application status set to 'deploying'")
+
+        # STEP 0: Use transaction to ensure we read committed data
+        logger.info(f"[{app_id}] STEP 0: Acquiring application record with transaction lock...")
+        with transaction.atomic():
+            app = Application.objects.select_for_update().get(id=app_id)
+            logger.info(f"[{app_id}] ✓ Application locked: current_status={app.status}, lxc_id={app.lxc_id}")
+
+            logger.info(f"[{app_id}] → Setting status to 'deploying'...")
+            app.status = 'deploying'
+            app.save(update_fields=['status'])
+            logger.info(f"[{app_id}] ✓ Database committed: status='deploying'")
+
+        logger.info(f"[{app_id}] STEP 0 COMPLETE: Application status set to 'deploying'")
         
         # TESTING MODE: Simulate deployment without Proxmox
         if settings.TESTING_MODE:
@@ -113,12 +128,16 @@ def deploy_app_task(
             }
         
         # REAL DEPLOYMENT MODE
-        logger.info(f"[{app_id}] 🔥 REAL DEPLOYMENT MODE - Deploying to Proxmox!")
-        
+        logger.info(f"[{app_id}] STEP 1: REAL DEPLOYMENT MODE - Deploying to Proxmox!")
+
         # Initialize services
-        logger.info(f"[{app_id}] 📡 Initializing ProxmoxService for host_id={host_id}...")
-        proxmox_service = ProxmoxService(host_id=host_id)
-        logger.info(f"[{app_id}] ✓ ProxmoxService initialized successfully")
+        logger.info(f"[{app_id}] STEP 1.1: Initializing ProxmoxService for host_id={host_id}...")
+        try:
+            proxmox_service = ProxmoxService(host_id=host_id)
+            logger.info(f"[{app_id}] ✓ ProxmoxService initialized successfully")
+        except Exception as e:
+            logger.error(f"[{app_id}] ❌ Failed to initialize ProxmoxService: {e}", exc_info=True)
+            raise
         
         log_deployment(app_id, 'info', f'Allocating VMID...', 'vmid')
 
@@ -225,52 +244,84 @@ def deploy_app_task(
         
         log_deployment(app_id, 'info', 'Container started, checking Docker...', 'docker_setup')
         
-        # Setup Docker inside the container
-        logger.info(f"[{app_id}] 🐋 Setting up Docker in Alpine LXC container...")
+        # STEP 4: Setup Docker inside the container
+        logger.info(f"[{app_id}] STEP 4: Setting up Docker in Alpine LXC container...")
+        logger.info(f"[{app_id}] STEP 4.1: Importing DockerSetupService...")
         from apps.applications.docker_setup import DockerSetupService
 
+        logger.info(f"[{app_id}] STEP 4.2: Initializing DockerSetupService...")
         docker_service = DockerSetupService(proxmox_service)
 
-        # Always install Docker in Alpine (fast with apk)
-        # TODO: Implement template caching for even faster deployments
-        logger.info(f"[{app_id}] 📦 Installing Docker in Alpine container...")
-        docker_installed = docker_service.setup_docker_in_alpine(node, vmid)
-        if not docker_installed:
-            raise Exception("Failed to install Docker in container")
+        logger.info(f"[{app_id}] STEP 4.3: Installing Docker in Alpine container (VMID={vmid}, Node={node})...")
+        try:
+            docker_installed = docker_service.setup_docker_in_alpine(node, vmid)
+            logger.info(f"[{app_id}] ✓ Docker installation returned: {docker_installed}")
 
-        logger.info(f"[{app_id}] ✓ Docker installed successfully")
-        log_deployment(app_id, 'info', 'Docker installed successfully', 'docker_setup')
+            if not docker_installed:
+                logger.error(f"[{app_id}] ❌ Docker installation returned False!")
+                raise Exception("Failed to install Docker in container")
 
+            logger.info(f"[{app_id}] STEP 4 COMPLETE: Docker installed successfully")
+            log_deployment(app_id, 'info', 'Docker installed successfully', 'docker_setup')
+        except Exception as e:
+            logger.error(f"[{app_id}] ❌ STEP 4 FAILED: Docker installation error: {e}", exc_info=True)
+            raise
+
+        # STEP 5: Deploy application with Docker Compose
+        logger.info(f"[{app_id}] STEP 5: Deploying application with Docker Compose...")
         log_deployment(app_id, 'info', 'Docker ready, deploying application...', 'app_deploy')
 
-        # Deploy the application with Docker Compose
-        logger.info(f"[{app_id}] 🚀 Deploying application with Docker Compose...")
-
-        # Generate docker-compose configuration based on catalog_id
+        logger.info(f"[{app_id}] STEP 5.1: Generating docker-compose configuration for {catalog_id}...")
         if catalog_id == 'adminer':
             docker_compose_config = docker_service.generate_adminer_compose(port=80)
+            logger.info(f"[{app_id}] ✓ Generated Adminer docker-compose config: {docker_compose_config}")
         else:
             # TODO: Get docker-compose from catalog
+            logger.error(f"[{app_id}] ❌ Unsupported catalog_id: {catalog_id}")
             raise Exception(f"Unsupported app: {catalog_id}")
 
-        app_deployed = docker_service.deploy_app_with_docker_compose(
-            node, vmid, catalog_id, docker_compose_config
-        )
+        logger.info(f"[{app_id}] STEP 5.2: Deploying with docker-compose (VMID={vmid}, Node={node})...")
+        try:
+            app_deployed = docker_service.deploy_app_with_docker_compose(
+                node, vmid, catalog_id, docker_compose_config
+            )
+            logger.info(f"[{app_id}] ✓ Docker compose deployment returned: {app_deployed}")
 
-        if not app_deployed:
-            raise Exception("Failed to deploy application")
-        
-        logger.info(f"[{app_id}] 💾 Updating application status to 'running'...")
-        # Update application status
-        app.status = 'running'
-        app.lxc_root_password = root_password  # TODO: Encrypt this
-        app.updated_at = timezone.now()
-        app.save(update_fields=['status', 'lxc_root_password', 'updated_at'])
-        logger.info(f"[{app_id}] ✓ Application status updated")
-        
+            if not app_deployed:
+                logger.error(f"[{app_id}] ❌ Docker compose deployment returned False!")
+                raise Exception("Failed to deploy application")
+
+            logger.info(f"[{app_id}] STEP 5 COMPLETE: Application deployed successfully")
+        except Exception as e:
+            logger.error(f"[{app_id}] ❌ STEP 5 FAILED: Docker compose deployment error: {e}", exc_info=True)
+            raise
+
+        # STEP 6: Update application status to 'running'
+        logger.info(f"[{app_id}] STEP 6: Updating application status to 'running'...")
+        try:
+            with transaction.atomic():
+                # Re-fetch to get latest state
+                app = Application.objects.select_for_update().get(id=app_id)
+                logger.info(f"[{app_id}] ✓ Re-fetched app: current_status={app.status}, lxc_id={app.lxc_id}")
+
+                logger.info(f"[{app_id}] → Setting status='running', lxc_root_password=<hidden>, updated_at=now")
+                app.status = 'running'
+                app.lxc_root_password = root_password  # TODO: Encrypt this
+                app.updated_at = timezone.now()
+                app.save(update_fields=['status', 'lxc_root_password', 'updated_at'])
+                logger.info(f"[{app_id}] ✓ Database committed: status='running'")
+
+            logger.info(f"[{app_id}] STEP 6 COMPLETE: Application status updated to 'running'")
+        except Exception as e:
+            logger.error(f"[{app_id}] ❌ STEP 6 FAILED: Status update error: {e}", exc_info=True)
+            raise
+
         log_deployment(app_id, 'info', f'Deployment complete: {hostname}', 'complete')
-        logger.info(f"[{app_id}] 🎉 DEPLOYMENT COMPLETED SUCCESSFULLY!")
-        logger.info(f"[{app_id}] 📊 Summary: VMID={vmid}, Hostname={hostname}, Status=running")
+
+        logger.info(f"="*100)
+        logger.info(f"[TASK SUCCESS] --- Deployment for {hostname} COMPLETED SUCCESSFULLY ---")
+        logger.info(f"[TASK SUCCESS] VMID={vmid}, Hostname={hostname}, Status=running, App ID={app_id}")
+        logger.info(f"="*100)
         
         return {
             'success': True,
@@ -281,20 +332,35 @@ def deploy_app_task(
         }
         
     except Exception as e:
-        logger.error(f"[{app_id}] ❌ DEPLOYMENT FAILED: {type(e).__name__}: {e}")
-        logger.exception(f"[{app_id}] Full traceback:")
+        logger.error(f"="*100)
+        logger.error(f"[TASK FAILED] --- Deployment for Application ID: {app_id} FAILED ---")
+        logger.error(f"[TASK FAILED] Exception Type: {type(e).__name__}")
+        logger.error(f"[TASK FAILED] Exception Message: {str(e)}")
+        logger.error(f"[TASK FAILED] Hostname: {hostname}")
+        logger.error(f"[TASK FAILED] Catalog ID: {catalog_id}")
+        logger.error(f"[TASK FAILED] Node: {node}")
+        logger.error(f"[TASK FAILED] Current Retry: {self.request.retries}/3")
+        logger.error(f"="*100)
+        logger.exception(f"[TASK FAILED] Full traceback:")
         log_deployment(app_id, 'error', f'Deployment failed: {str(e)}', 'error')
-        
+
         # Update application status to error
+        logger.error(f"[{app_id}] Attempting to set status='error' in database...")
         try:
-            app = Application.objects.get(id=app_id)
-            app.status = 'error'
-            app.save(update_fields=['status'])
-        except:
-            pass
-        
+            with transaction.atomic():
+                app_error = Application.objects.select_for_update().get(id=app_id)
+                logger.error(f"[{app_id}] Current state before error update: status={app_error.status}, lxc_id={app_error.lxc_id}")
+                app_error.status = 'error'
+                app_error.updated_at = timezone.now()
+                app_error.save(update_fields=['status', 'updated_at'])
+                logger.error(f"[{app_id}] ✓ Status set to 'error' in database")
+        except Exception as db_error:
+            logger.error(f"[{app_id}] ❌ Failed to update status to 'error': {db_error}", exc_info=True)
+
         # Retry with exponential backoff
-        raise self.retry(exc=e, countdown=60 * (2 ** self.request.retries))
+        retry_countdown = 60 * (2 ** self.request.retries)
+        logger.error(f"[{app_id}] Scheduling retry in {retry_countdown} seconds...")
+        raise self.retry(exc=e, countdown=retry_countdown)
 
 
 @shared_task(bind=True)

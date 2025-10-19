@@ -244,7 +244,8 @@ class ProxmoxService:
                 'cores': cores,
                 'rootfs': f'{storage}:{disk_size}',
                 'net0': f'name=eth0,bridge={network_bridge},ip=dhcp',
-                'unprivileged': 1,
+                'unprivileged': 0,  # Privileged container required for Docker
+                'features': 'nesting=1,keyctl=1',  # Enable nesting and keyctl for Docker-in-LXC
                 'start': 0,  # Don't auto-start after creation
                 **kwargs
             }
