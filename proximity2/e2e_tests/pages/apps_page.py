@@ -57,15 +57,40 @@ class AppsPage:
         self.base_url = base_url
     
     def navigate(self) -> 'AppsPage':
-        """Navigate to the apps page."""
-        self.page.goto(f"{self.base_url}/apps")
-        # Wait for page to be fully loaded
+        """
+        Navigate to the apps page with intelligent API synchronization.
+        
+        Waits for the initial /api/apps call to complete before proceeding,
+        eliminating race conditions with frontend data polling.
+        
+        Returns:
+            Self for method chaining
+        """
+        print(f"  🔄 Navigating to /apps and waiting for initial data load...")
+        
+        # Intercept the /api/apps call to ensure data is loaded before we interact
+        with self.page.expect_response(
+            lambda res: "/api/apps" in res.url and res.status == 200,
+            timeout=15000
+        ) as response_info:
+            self.page.goto(f"{self.base_url}/apps")
+        
+        response = response_info.value
+        print(f"  ✅ Initial /api/apps call intercepted (Status: {response.status})")
+        print(f"  ✅ UI is now populated with data")
+        
+        # Additional wait for page stability
         self.page.wait_for_load_state("networkidle")
+        
         return self
     
     def get_app_card_by_hostname(self, hostname: str) -> Locator:
         """
         Get the card element for a specific application by hostname.
+        
+        Uses the most robust selector strategy: data-testid with hostname.
+        This is the primary strategy as it's immune to CSS changes and
+        provides unique identification.
         
         Args:
             hostname: Hostname of the deployed application
@@ -73,36 +98,36 @@ class AppsPage:
         Returns:
             Locator for the app card
         """
-        # Try multiple strategies to find the card
+        # STRATEGY 1 (PRIMARY & MOST ROBUST): Use data-testid with hostname
+        # This is set in RackCard.svelte as: data-testid="rack-card-{hostname}"
+        primary_selector = f'[data-testid="rack-card-{hostname}"]'
+        card = self.page.locator(primary_selector)
         
-        # Strategy 1: Look for data attribute
-        card_with_data = self.page.locator(f'[data-hostname="{hostname}"]')
-        if card_with_data.count() > 0:
-            return card_with_data.first
-        
-        # Strategy 2: Look for text content
-        all_cards = self.page.locator(self.APP_CARD)
-        for i in range(all_cards.count()):
-            card = all_cards.nth(i)
-            if hostname.lower() in card.inner_text().lower():
-                return card
-        
-        # Strategy 3: Return a generic locator that contains the hostname
-        return self.page.locator(f'{self.APP_CARD}:has-text("{hostname}")').first
+        # Return the primary selector - it's the most reliable
+        return card.first
     
     def get_app_status(self, hostname: str) -> str:
         """
         Get the current status of an application.
         
+        Uses the data-status attribute for robust, CSS-independent status detection.
+        
         Args:
             hostname: Hostname of the application
         
         Returns:
-            Status string: 'deploying', 'cloning', 'running', 'stopped', 'error', or 'unknown'
+            Status string: 'deploying', 'cloning', 'running', 'stopped', 'error', 'deleting', or 'unknown'
         """
         card = self.get_app_card_by_hostname(hostname)
         
-        # Check for each status indicator
+        # PRIMARY STRATEGY: Use data-status attribute (most robust)
+        # This is set in RackCard.svelte as: data-status={app.status}
+        status_attr = card.get_attribute('data-status')
+        
+        if status_attr:
+            return status_attr
+        
+        # FALLBACK: Check for status indicators via CSS classes (legacy support)
         if card.locator(self.STATUS_DEPLOYING).count() > 0:
             return 'deploying'
         elif card.locator(self.STATUS_CLONING).count() > 0:

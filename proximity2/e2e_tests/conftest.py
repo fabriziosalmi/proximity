@@ -266,9 +266,9 @@ host, created = ProxmoxHost.objects.get_or_create(
     }
 )
 
-# Create test node
+# Create test node (opti2 is the real Proxmox node name)
 node, node_created = ProxmoxNode.objects.get_or_create(
-    name='pve',
+    name='opti2',
     host=host,
     defaults={
         'status': 'online',

@@ -17,34 +17,55 @@ from pages import LoginPage, StorePage, AppsPage
 @pytest.mark.clone
 @pytest.mark.fast
 def test_clone_application_lifecycle(
-    authenticated_page: Page,
-    base_url: str,
-    deployed_app: dict
+    page: Page,  # ← Standard page fixture (no pre-auth)
+    deployed_app: dict,  # ← Backend setup (includes token)
+    base_url: str
 ):
     """
     FAST Clone Test: Uses deployed_app fixture (API-based deployment).
     
-    This test is faster and more focused on the clone functionality itself,
-    as it bypasses the UI deployment flow by using a pre-deployed app from fixture.
+    This test demonstrates the ROBUST architectural pattern:
+    1. Backend setup via API (deployed_app fixture - takes ~60s)
+    2. Browser authentication via token injection (instant, no race condition)
+    3. UI interaction testing (clone workflow)
+    
+    This pattern eliminates the TargetClosedError by ensuring the browser
+    is only involved AFTER the slow backend setup completes.
     
     Steps:
-    1. ✅ Start with authenticated page and running app (from fixtures)
-    2. ✅ Navigate to /apps
-    3. ✅ Verify source app is visible and running
-    4. ✅ Click Clone button
-    5. ✅ Fill clone modal with new hostname
-    6. ✅ Submit clone request
-    7. ✅ Verify clone appears with 'cloning' status
-    8. ✅ Wait for clone to reach 'running' status
-    9. ✅ Verify both apps are running
-    10. ✅ Cleanup handled by fixtures
+    1. ✅ Start with deployed app from API (no browser yet)
+    2. ✅ Inject auth token into browser (programmatic login)
+    3. ✅ Navigate to /apps
+    4. ✅ Verify source app is visible and running
+    5. ✅ Click Clone button
+    6. ✅ Fill clone modal with new hostname
+    7. ✅ Submit clone request
+    8. ✅ Verify clone appears with 'cloning' status
+    9. ✅ Wait for clone to reach 'running' status
+    10. ✅ Verify both apps are running
+    11. ✅ Cleanup handled by fixtures
     
     Args:
-        authenticated_page: Pre-authenticated Page (from fixture)
+        page: Standard Playwright Page (no pre-authentication)
+        deployed_app: Pre-deployed source app with auth token (from fixture)
         base_url: Frontend base URL
-        deployed_app: Pre-deployed source app (from fixture)
     """
-    page = authenticated_page
+    # ============================================================================
+    # PROGRAMMATIC LOGIN: Inject auth token before any navigation
+    # ============================================================================
+    auth_token = deployed_app["auth_token"]
+    
+    # Inject token into localStorage using add_init_script
+    # This script runs before page load, ensuring authentication is ready
+    page.add_init_script(f"""
+        window.localStorage.setItem('access_token', '{auth_token}');
+    """)
+    
+    print(f"\n✅ Auth token injected programmatically (no UI login required)")
+    
+    # ============================================================================
+    # NOW THE PAGE IS READY FOR AUTHENTICATED NAVIGATION
+    # ============================================================================
     apps_page = AppsPage(page, base_url)
     
     # Extract source app details
