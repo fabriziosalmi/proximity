@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentry Frontend Integration Test - Proximity 2.0</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #1a1f35 0%, #2d3748 100%);
+            color: #e2e8f0;
+        }
+        .container {
+            background: #2d3748;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            color: #00d4ff;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #a0aec0;
+            margin-bottom: 30px;
+        }
+        .step {
+            background: #1a1f35;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            border-left: 4px solid #00d4ff;
+        }
+        .step-title {
+            font-weight: bold;
+            color: #00d4ff;
+            margin-bottom: 10px;
+        }
+        .step-content {
+            color: #cbd5e0;
+            font-size: 14px;
+        }
+        button {
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.4);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .output {
+            background: #1a1f35;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 400px;
+            overflow-y: auto;
+            display: none;
+        }
+        .output.show {
+            display: block;
+        }
+        .success { color: #48bb78; }
+        .error { color: #f56565; }
+        .info { color: #4299e1; }
+        .warning { color: #ed8936; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Sentry Frontend Integration Test</h1>
+        <p class="subtitle">Comprehensive Sentry test with full context and metadata</p>
+
+        <div class="step">
+            <div class="step-title">📋 What This Test Does:</div>
+            <div class="step-content">
+                <ul>
+                    <li>✅ Sets user context (simulated authenticated user)</li>
+                    <li>✅ Adds custom tags (environment, service, component)</li>
+                    <li>✅ Records breadcrumbs (user activity trail)</li>
+                    <li>✅ Captures performance transaction with spans</li>
+                    <li>✅ Sends error with full context to Sentry</li>
+                    <li>✅ Sends custom info message</li>
+                </ul>
+            </div>
+        </div>
+
+        <button onclick="runSentryTest()">
+            🚀 Run Full Sentry Integration Test
+        </button>
+
+        <div id="output" class="output"></div>
+    </div>
+
+    <script type="module">
+        import * as Sentry from 'https://browser.sentry-cdn.com/8.0.0/index.min.js';
+
+        // Initialize Sentry
+        const SENTRY_DSN = 'https://dbee00d4782d131ab54ffe60b16d969b@o149725.ingest.us.sentry.io/4510189390266368';
+        
+        Sentry.init({
+            dsn: SENTRY_DSN,
+            environment: 'development',
+            tracesSampleRate: 1.0,
+            replaysSessionSampleRate: 0.1,
+            replaysOnErrorSampleRate: 1.0,
+            integrations: [
+                Sentry.replayIntegration(),
+            ],
+        });
+
+        window.runSentryTest = async function() {
+            const output = document.getElementById('output');
+            output.classList.add('show');
+            output.innerHTML = '';
+
+            function log(message, type = 'info') {
+                const colors = {
+                    success: '#48bb78',
+                    error: '#f56565',
+                    info: '#4299e1',
+                    warning: '#ed8936'
+                };
+                output.innerHTML += `<div style="color: ${colors[type]}">${message}</div>`;
+                output.scrollTop = output.scrollHeight;
+            }
+
+            log('════════════════════════════════════════════════════════════════', 'info');
+            log('🧪 SENTRY FRONTEND INTEGRATION TEST - Full Context', 'info');
+            log('════════════════════════════════════════════════════════════════', 'info');
+            log('');
+
+            // Step 1: Set user context
+            log('📋 Step 1: Setting up user context...', 'info');
+            Sentry.setUser({
+                id: '42',
+                username: 'frontend_test_user',
+                email: 'frontend.test@proximity.local',
+                ip_address: '192.168.100.50'
+            });
+            log('   ✅ Sentry user context set', 'success');
+            log('   • User: frontend_test_user', 'info');
+            log('   • Email: frontend.test@proximity.local', 'info');
+            log('');
+
+            // Step 2: Add custom tags
+            log('🏷️  Step 2: Adding custom tags...', 'info');
+            Sentry.setTag('environment', 'development');
+            Sentry.setTag('service', 'proximity-frontend');
+            Sentry.setTag('test_type', 'integration_test');
+            Sentry.setTag('component', 'sentry_verification');
+            Sentry.setTag('browser', navigator.userAgent.split(' ').pop());
+            log('   ✅ Tags added: environment, service, test_type, component, browser', 'success');
+            log('');
+
+            // Step 3: Add breadcrumbs
+            log('🍞 Step 3: Adding breadcrumbs...', 'info');
+            Sentry.addBreadcrumb({
+                category: 'navigation',
+                message: 'User navigated to Sentry test page',
+                level: 'info',
+                data: { page: '/sentry-test.html', method: 'GET' }
+            });
+            Sentry.addBreadcrumb({
+                category: 'user.click',
+                message: 'User clicked "Run Test" button',
+                level: 'info',
+                data: { button_id: 'run-test-btn', timestamp: new Date().toISOString() }
+            });
+            Sentry.addBreadcrumb({
+                category: 'http.request',
+                message: 'API call to backend',
+                level: 'info',
+                data: { url: '/api/catalog/', method: 'GET', status: 200 }
+            });
+            Sentry.addBreadcrumb({
+                category: 'user.action',
+                message: 'User scrolled page',
+                level: 'info',
+                data: { scrollY: window.scrollY }
+            });
+            log('   ✅ Breadcrumbs added: navigation, click, http, scroll', 'success');
+            log('');
+
+            // Step 4: Set context
+            log('📦 Step 4: Adding context data...', 'info');
+            Sentry.setContext('test_metadata', {
+                test_name: 'Full Frontend Sentry Integration Test',
+                test_timestamp: new Date().toISOString(),
+                test_purpose: 'Verify Sentry observability stack (frontend)',
+                expected_outcome: 'Error captured with full context'
+            });
+            
+            Sentry.setContext('browser_info', {
+                user_agent: navigator.userAgent,
+                language: navigator.language,
+                platform: navigator.platform,
+                screen_resolution: `${screen.width}x${screen.height}`,
+                viewport: `${window.innerWidth}x${window.innerHeight}`
+            });
+
+            Sentry.setContext('performance_metrics', {
+                memory_used_mb: (performance.memory?.usedJSHeapSize / 1024 / 1024).toFixed(2) || 'N/A',
+                timing_dom_ready: performance.timing.domContentLoadedEventEnd - performance.timing.navigationStart,
+                timing_page_load: performance.timing.loadEventEnd - performance.timing.navigationStart
+            });
+            log('   ✅ Context added: test_metadata, browser_info, performance_metrics', 'success');
+            log('');
+
+            // Step 5: Start transaction
+            log('⚡ Step 5: Starting performance transaction...', 'info');
+            const transaction = Sentry.startTransaction({
+                op: 'test',
+                name: 'frontend_sentry_integration_test',
+                description: 'Comprehensive frontend Sentry verification'
+            });
+
+            transaction.setTag('transaction_type', 'integration_test');
+
+            // Simulate some work with spans
+            const span1 = transaction.startChild({
+                op: 'http.client',
+                description: 'Fetch catalog data'
+            });
+            await new Promise(resolve => setTimeout(resolve, 100));
+            span1.finish();
+            log('   ✅ Span: HTTP request completed (100ms)', 'success');
+
+            const span2 = transaction.startChild({
+                op: 'ui.render',
+                description: 'Render components'
+            });
+            await new Promise(resolve => setTimeout(resolve, 50));
+            span2.finish();
+            log('   ✅ Span: UI render completed (50ms)', 'success');
+            log('');
+
+            // Step 6: Capture error
+            log('💥 Step 6: Raising test error with full context...', 'info');
+            try {
+                // This will trigger the error
+                const result = nonExistentFunction();
+            } catch (error) {
+                Sentry.captureException(error, {
+                    level: 'error',
+                    tags: {
+                        error_source: 'integration_test',
+                        test_phase: 'step_6'
+                    },
+                    extra: {
+                        additional_info: 'This is a deliberate test error',
+                        test_success: true
+                    }
+                });
+                log('   ✅ Error captured and sent to Sentry!', 'success');
+                log(`   • Error Type: ${error.name}`, 'error');
+                log(`   • Error Message: ${error.message}`, 'error');
+            }
+            log('');
+
+            // Finish transaction
+            transaction.finish();
+            log('   ✅ Transaction completed', 'success');
+            log('');
+
+            // Step 7: Send custom message
+            log('📨 Step 7: Sending custom message...', 'info');
+            Sentry.captureMessage('Frontend Sentry Integration Test Completed Successfully', {
+                level: 'info',
+                extra: {
+                    test_completion_time: new Date().toISOString(),
+                    all_steps_passed: true
+                }
+            });
+            log('   ✅ Custom message sent', 'success');
+            log('');
+
+            // Summary
+            log('════════════════════════════════════════════════════════════════', 'success');
+            log('✅ TEST COMPLETE - Check your Sentry dashboard!', 'success');
+            log('════════════════════════════════════════════════════════════════', 'success');
+            log('');
+            log('📊 What was sent to Sentry:', 'info');
+            log('   • 1 x Exception (ReferenceError)', 'info');
+            log('   • 1 x Info Message (Test completion)', 'info');
+            log('   • 1 x Transaction (with 2 spans)', 'info');
+            log('   • 4 x Breadcrumbs (user activity trail)', 'info');
+            log('   • 5 x Tags (metadata)', 'info');
+            log('   • 3 x Context objects (extra data)', 'info');
+            log('   • 1 x User context (authenticated user)', 'info');
+            log('');
+            log('🔗 Check Sentry Dashboard:', 'warning');
+            log('   https://sentry.io/organizations/fabriziosalmi/issues/', 'info');
+            log('');
+            log('💡 Expected in Sentry:', 'warning');
+            log('   • Error: ReferenceError: nonExistentFunction is not defined', 'info');
+            log('   • User: frontend_test_user (frontend.test@proximity.local)', 'info');
+            log('   • Tags: environment, service, test_type, component, browser', 'info');
+            log('   • Breadcrumbs: navigation → click → API → scroll', 'info');
+            log('   • Context: Test metadata, browser info, performance metrics', 'info');
+            log('   • Transaction: frontend_sentry_integration_test with timing', 'info');
+            log('');
+            log('════════════════════════════════════════════════════════════════', 'success');
+        };
+    </script>
+</body>
+</html>

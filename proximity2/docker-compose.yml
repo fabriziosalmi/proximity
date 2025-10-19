@@ -63,6 +63,7 @@ services:
       - SENTRY_DSN=https://dbee00d4782d131ab54ffe60b16d969b@o149725.ingest.us.sentry.io/4510189390266368
       - SENTRY_ENVIRONMENT=development
       - SENTRY_TRACES_SAMPLE_RATE=1.0
+      - SENTRY_DEBUG=True
       - PROXMOX_HOST=192.168.100.102
       - PROXMOX_USER=root@pam
       - PROXMOX_PASSWORD=invaders
@@ -99,6 +100,7 @@ services:
       - SENTRY_DSN=https://dbee00d4782d131ab54ffe60b16d969b@o149725.ingest.us.sentry.io/4510189390266368
       - SENTRY_ENVIRONMENT=development
       - SENTRY_TRACES_SAMPLE_RATE=1.0
+      - SENTRY_DEBUG=True
       - PROXMOX_HOST=192.168.100.102
       - PROXMOX_USER=root@pam
       - PROXMOX_PASSWORD=invaders
@@ -128,6 +130,7 @@ services:
       - SENTRY_DSN=https://dbee00d4782d131ab54ffe60b16d969b@o149725.ingest.us.sentry.io/4510189390266368
       - SENTRY_ENVIRONMENT=development
       - SENTRY_TRACES_SAMPLE_RATE=1.0
+      - SENTRY_DEBUG=True
     depends_on:
       - db
       - redis
