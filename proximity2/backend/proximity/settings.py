@@ -202,3 +202,11 @@ LOGGING = {
 
 # Path to catalog data directory containing application JSON files
 CATALOG_DATA_PATH = BASE_DIR.parent / 'catalog_data'
+
+
+# ======================================================================
+# TESTING SETTINGS
+# ======================================================================
+
+# Enable testing mode to bypass Proxmox connections and simulate deployments
+TESTING_MODE = os.getenv('TESTING_MODE', 'False') == 'True'

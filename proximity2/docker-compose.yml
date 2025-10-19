@@ -59,6 +59,7 @@ services:
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
       - ALLOWED_HOSTS=localhost,127.0.0.1,backend
       - CORS_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+      - TESTING_MODE=True
     depends_on:
       db:
         condition: service_healthy
@@ -86,6 +87,7 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - TESTING_MODE=True
     depends_on:
       - db
       - redis
