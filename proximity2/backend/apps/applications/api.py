@@ -6,6 +6,7 @@ from ninja import Router
 from ninja.errors import HttpError
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
+from django.db import transaction
 import uuid
 
 from .models import Application, DeploymentLog
@@ -211,16 +212,19 @@ def create_application(request, payload: ApplicationCreate):
         owner=request.user if request.user.is_authenticated else None
     )
     
-    # Trigger deployment task
-    deploy_app_task.delay(
-        app_id=app.id,
-        catalog_id=app.catalog_id,
-        hostname=app.hostname,
-        host_id=host.id,
-        node=node,
-        config=payload.config,
-        environment=payload.environment,
-        owner_id=request.user.id if request.user.is_authenticated else None
+    # Trigger deployment task AFTER transaction commits to avoid race condition
+    # This ensures the Application record is available in the database before the task runs
+    transaction.on_commit(
+        lambda: deploy_app_task.delay(
+            app_id=app.id,
+            catalog_id=app.catalog_id,
+            hostname=app.hostname,
+            host_id=host.id,
+            node=node,
+            config=payload.config,
+            environment=payload.environment,
+            owner_id=request.user.id if request.user.is_authenticated else None
+        )
     )
     
     return {

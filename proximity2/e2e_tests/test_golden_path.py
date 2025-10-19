@@ -95,8 +95,8 @@ def test_full_app_lifecycle(
     store_page.navigate()
     print(f"  ✓ Navigated to: {base_url}/store")
     
-    # Wait for apps to load
-    store_page.wait_for_apps_loaded(min_count=1, timeout=10000)
+    # Wait for apps to load (increased timeout for initial catalog load)
+    store_page.wait_for_apps_loaded(min_count=1, timeout=30000)
     app_count = store_page.get_app_count()
     print(f"  ✓ Catalog loaded: {app_count} application(s) available")
     

@@ -243,8 +243,14 @@ print(f'{host.id},{host.name},{host.host},{host.port},{node.name}')
 """
     
     try:
+        # Get the correct path to docker-compose.yml
+        import os
+        test_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(test_dir)
+        docker_compose_path = os.path.join(project_root, 'docker-compose.yml')
+        
         result = subprocess.run(
-            ['docker-compose', '-f', 'proximity2/docker-compose.yml', 'exec', '-T', 'backend', 
+            ['docker-compose', '-f', docker_compose_path, 'exec', '-T', 'backend', 
              'python', 'manage.py', 'shell', '-c', create_command],
             capture_output=True,
             text=True,
