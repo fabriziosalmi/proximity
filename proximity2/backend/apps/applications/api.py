@@ -122,13 +122,38 @@ def create_application(request, payload: ApplicationCreate):
         # No node specified - intelligent selection
         # Strategy: Select the online node with most available memory
         
+        logger.info("🔍 Starting smart node selection...")
+        
         # Get all online nodes across all active hosts
         online_nodes = ProxmoxNode.objects.filter(
             status='online',
             host__is_active=True
         ).select_related('host')
         
+        logger.info(f"📊 Found {online_nodes.count()} online nodes across active hosts")
+        
+        # Log details of each candidate node
+        for node_obj in online_nodes:
+            if node_obj.memory_total and node_obj.memory_used is not None:
+                free_gb = (node_obj.memory_total - node_obj.memory_used) / (1024**3)
+                logger.info(
+                    f"   - Node '{node_obj.name}': "
+                    f"status={node_obj.status}, "
+                    f"host={node_obj.host.name}, "
+                    f"host_active={node_obj.host.is_active}, "
+                    f"free_memory={free_gb:.2f}GB"
+                )
+            else:
+                logger.info(
+                    f"   - Node '{node_obj.name}': "
+                    f"status={node_obj.status}, "
+                    f"host={node_obj.host.name}, "
+                    f"host_active={node_obj.host.is_active}, "
+                    f"free_memory=UNKNOWN"
+                )
+        
         if not online_nodes.exists():
+            logger.error("❌ No online Proxmox nodes available for deployment")
             raise HttpError(503, "No online Proxmox nodes available for deployment")
         
         # Select node with most available memory (best for load balancing)
@@ -145,7 +170,14 @@ def create_application(request, payload: ApplicationCreate):
         
         # Fallback: if no memory info, just pick first online node
         if not best_node:
+            logger.warning("⚠️  No memory info available, using first online node")
             best_node = online_nodes.first()
+        else:
+            free_gb = max_available_memory / (1024**3)
+            logger.info(
+                f"✅ Selected node '{best_node.name}' with {free_gb:.2f}GB free memory "
+                f"(host: {best_node.host.name})"
+            )
         
         host = best_node.host
         node = best_node.name
