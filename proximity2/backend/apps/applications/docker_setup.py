@@ -15,6 +15,81 @@ class DockerSetupService:
     def __init__(self, proxmox_service):
         self.proxmox = proxmox_service
     
+    async def setup_docker_in_ubuntu(self, node: str, vmid: int) -> bool:
+        """
+        Install Docker inside Ubuntu 22.04 LXC container.
+        
+        This method installs Docker using the official Docker convenience script
+        which is the most reliable method for LXC containers.
+        
+        Args:
+            node: Proxmox node name
+            vmid: LXC container ID
+            
+        Returns:
+            bool: True if successful
+        """
+        try:
+            logger.info(f"[VMID {vmid}] 🐋 Setting up Docker in Ubuntu 22.04 LXC...")
+            
+            # Step 1: Wait for network to be ready
+            logger.info(f"[VMID {vmid}] 🌐 Waiting for network to be ready...")
+            import asyncio
+            await asyncio.sleep(5)
+            
+            # Step 2: Update apt packages and install prerequisites
+            logger.info(f"[VMID {vmid}] 📦 Updating apt packages and installing prerequisites...")
+            await self.proxmox.execute_in_container(
+                node, vmid,
+                "apt-get update && apt-get install -y ca-certificates curl gnupg lsb-release",
+                timeout=180
+            )
+            
+            # Step 3: Download and install Docker using official convenience script
+            logger.info(f"[VMID {vmid}] 🐳 Installing Docker using official script...")
+            await self.proxmox.execute_in_container(
+                node, vmid,
+                "curl -fsSL https://get.docker.com -o /tmp/get-docker.sh && sh /tmp/get-docker.sh",
+                timeout=300
+            )
+            
+            # Step 4: Start Docker service
+            logger.info(f"[VMID {vmid}] ▶️  Starting Docker service...")
+            await self.proxmox.execute_in_container(
+                node, vmid,
+                "systemctl start docker && systemctl enable docker",
+                timeout=60
+            )
+            
+            # Step 5: Wait for Docker to be ready
+            logger.info(f"[VMID {vmid}] ⏳ Waiting for Docker daemon to be ready...")
+            await asyncio.sleep(5)
+            
+            # Step 6: Verify Docker is working
+            logger.info(f"[VMID {vmid}] ✅ Verifying Docker installation...")
+            docker_version = await self.proxmox.execute_in_container(
+                node, vmid,
+                "docker --version",
+                timeout=30
+            )
+            
+            logger.info(f"[VMID {vmid}] ✓ Docker installed: {docker_version.strip()}")
+            
+            # Step 7: Verify Docker Compose is available
+            compose_version = await self.proxmox.execute_in_container(
+                node, vmid,
+                "docker compose version",
+                timeout=30
+            )
+            logger.info(f"[VMID {vmid}] ✓ Docker Compose available: {compose_version.strip()}")
+            
+            return True
+            
+        except Exception as e:
+            logger.error(f"[VMID {vmid}] ❌ Failed to setup Docker: {e}")
+            logger.exception(f"[VMID {vmid}] Full traceback:")
+            return False
+    
     async def setup_docker_in_alpine(self, node: str, vmid: int) -> bool:
         """
         Install Docker inside Alpine LXC container.

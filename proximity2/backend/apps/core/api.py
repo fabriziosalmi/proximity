@@ -17,7 +17,7 @@ from .models import User, SystemSettings
 router = Router()
 
 
-@router.post("/auth/login", response=LoginResponse)
+@router.post("/auth/login", response={200: LoginResponse, 401: Dict})
 def login(request, payload: LoginRequest):
     """
     Authenticate user and return JWT tokens.
@@ -43,7 +43,7 @@ def login(request, payload: LoginRequest):
     }
 
 
-@router.post("/auth/register", response=UserResponse)
+@router.post("/auth/register", response={200: UserResponse, 400: Dict})
 def register(request, payload: RegisterRequest):
     """
     Register a new user.

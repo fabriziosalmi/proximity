@@ -132,9 +132,10 @@ def deploy_app_task(
         
         log_deployment(app_id, 'info', 'Creating LXC container...', 'lxc_create')
         
-        # Create LXC container
+        # Create LXC container with Alpine Linux
+        # Alpine is lightweight and perfect for Docker containers
         # TODO: Get ostemplate from catalog configuration
-        ostemplate = config.get('ostemplate', 'local:vztmpl/ubuntu-22.04-standard_22.04-1_amd64.tar.zst')
+        ostemplate = config.get('ostemplate', 'local:vztmpl/alpine-3.20-default_20240908_amd64.tar.xz')
         memory = config.get('memory', 2048)
         cores = config.get('cores', 2)
         disk_size = config.get('disk_size', '8')
@@ -179,21 +180,26 @@ def deploy_app_task(
         logger.info(f"[{app_id}] ⏳ Waiting 10 seconds for container to fully start...")
         time.sleep(10)
         
-        log_deployment(app_id, 'info', 'Container started, installing Docker...', 'docker_setup')
+        log_deployment(app_id, 'info', 'Container started, checking Docker...', 'docker_setup')
         
         # Setup Docker inside the container
-        logger.info(f"[{app_id}] 🐋 Installing Docker inside LXC container...")
+        logger.info(f"[{app_id}] 🐋 Setting up Docker in Alpine LXC container...")
         from apps.applications.docker_setup import DockerSetupService
         import asyncio
         
         docker_service = DockerSetupService(proxmox_service)
         
-        # Run async functions using asyncio.run()
+        # Always install Docker in Alpine (fast with apk)
+        # TODO: Implement template caching for even faster deployments
+        logger.info(f"[{app_id}] 📦 Installing Docker in Alpine container...")
         docker_installed = asyncio.run(docker_service.setup_docker_in_alpine(node, vmid))
         if not docker_installed:
             raise Exception("Failed to install Docker in container")
         
-        log_deployment(app_id, 'info', 'Docker installed, deploying application...', 'app_deploy')
+        logger.info(f"[{app_id}] ✓ Docker installed successfully")
+        log_deployment(app_id, 'info', 'Docker installed successfully', 'docker_setup')
+        
+        log_deployment(app_id, 'info', 'Docker ready, deploying application...', 'app_deploy')
         
         # Deploy the application with Docker Compose
         logger.info(f"[{app_id}] 🚀 Deploying application with Docker Compose...")

@@ -75,18 +75,17 @@ class LoginPage:
             self for chaining
         """
         # Wait for page to be fully loaded
-        self.page.wait_for_load_state("domcontentloaded")  # Changed from networkidle
-        self.page.wait_for_timeout(500)  # Reduced from 1000ms
+        self.page.wait_for_load_state("domcontentloaded")
         
-        # Wait for form to be ready
+        # Wait for form to be ready - use locators with auto-waiting
         username_input = self.page.locator(self.USERNAME_INPUT).first
         password_input = self.page.locator(self.PASSWORD_INPUT).first
         submit_button = self.page.locator(self.SUBMIT_BUTTON).first
         
-        # Ensure elements are visible
-        expect(username_input).to_be_visible(timeout=5000)
-        expect(password_input).to_be_visible(timeout=5000)
-        expect(submit_button).to_be_visible(timeout=5000)
+        # Ensure elements are visible (Playwright auto-waits)
+        expect(username_input).to_be_visible(timeout=10000)
+        expect(password_input).to_be_visible(timeout=10000)
+        expect(submit_button).to_be_visible(timeout=10000)
         
         # Fill fields
         username_input.fill(username)

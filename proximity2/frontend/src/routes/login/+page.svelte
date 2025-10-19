@@ -19,11 +19,14 @@
 		errorMessage = '';
 
 		try {
+			console.log('🔐 Attempting login...', { username });
 			const response = await api.login(username, password);
+			console.log('📥 Login response:', response);
 
 			if (response.success && response.data) {
 				// Extract user info and token
 				const { access_token, user } = response.data;
+				console.log('✅ Login successful, redirecting...', { user });
 				
 				// Update auth store
 				authStore.login(access_token, user);
@@ -34,10 +37,12 @@
 				// Redirect to home page
 				goto('/');
 			} else {
+				console.error('❌ Login failed:', response.error);
 				errorMessage = response.error || 'Login failed. Please try again.';
 				toasts.error(errorMessage, 5000);
 			}
 		} catch (error) {
+			console.error('💥 Login exception:', error);
 			errorMessage = 'An unexpected error occurred. Please try again.';
 			toasts.error(errorMessage, 5000);
 			console.error('Login error:', error);
