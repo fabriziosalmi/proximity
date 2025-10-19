@@ -260,29 +260,32 @@ class ProxmoxService:
     
     def configure_lxc_for_docker(self, node_name: str, vmid: int) -> None:
         """
-        Configure LXC container for Docker support by disabling AppArmor restrictions.
+        Configure LXC container for Docker support by modifying /etc/pve/lxc config directly.
         
         This must be called AFTER container creation but BEFORE starting it.
         AppArmor restrictions prevent Docker from applying capabilities properly.
+        
+        We modify the LXC config file directly via SSH since the Proxmox API 
+        doesn't support setting custom lxc.* parameters.
         
         Args:
             node_name: Proxmox node name
             vmid: Container VMID
         """
         try:
-            client = self.get_client()
-            # Get current config
-            current_config = client.nodes(node_name).lxc(vmid).config.get()
+            # Modify the LXC config file directly via SSH
+            config_path = f"/etc/pve/lxc/{vmid}.conf"
             
-            # Update config to disable AppArmor profile for Docker support
-            update_config = {
-                'lxc': [
-                    ['lxc.apparmor.profile', 'unconfined']
-                ]
-            }
+            # Commands to append AppArmor configuration if not present
+            commands = [
+                f"grep -q 'lxc.apparmor.profile' {config_path} || echo 'lxc.apparmor.profile: unconfined' >> {config_path}",
+                f"grep -q 'lxc.cap.drop' {config_path} || echo 'lxc.cap.drop:' >> {config_path}"
+            ]
             
-            client.nodes(node_name).lxc(vmid).config.put(**update_config)
-            logger.info(f"Configured LXC {vmid} for Docker (AppArmor: unconfined)")
+            for cmd in commands:
+                self.execute_in_node(node_name, cmd)
+            
+            logger.info(f"Configured LXC {vmid} for Docker (AppArmor: unconfined, Capabilities: all)")
             
         except Exception as e:
             raise ProxmoxError(f"Failed to configure LXC {vmid} for Docker: {e}")
