@@ -489,12 +489,31 @@ def delete_app_task(self, app_id: str, force: bool = True) -> Dict[str, Any]:
         app.status = 'removing'
         app.save(update_fields=['status'])
         
-        # Delete LXC container
+        # Initialize Proxmox service
         proxmox_service = ProxmoxService(host_id=app.host_id)
+        
+        # STEP 1/3: Stop container before deletion (Proxmox requirement)
+        logger.info(f"[{app.name}] STEP 1/3: Stopping LXC {app.lxc_id} before deletion...")
+        try:
+            proxmox_service.stop_lxc(app.node, app.lxc_id, force=True)
+            logger.info(f"[{app.name}] ✓ Container stopped successfully")
+        except Exception as stop_error:
+            # If already stopped, that's fine - proceed with deletion
+            logger.warning(f"[{app.name}] Stop command failed (may already be stopped): {stop_error}")
+        
+        # Wait for container to fully stop
+        time.sleep(3)
+        
+        # STEP 2/3: Delete LXC container
+        logger.info(f"[{app.name}] STEP 2/3: Deleting LXC {app.lxc_id}...")
         proxmox_service.delete_lxc(app.node, app.lxc_id, force=force)
+        logger.info(f"[{app.name}] ✓ Container deleted successfully")
         
         # Wait for deletion to complete
         time.sleep(5)
+        
+        # STEP 3/3: Release resources and cleanup
+        logger.info(f"[{app.name}] STEP 3/3: Releasing ports and cleaning up...")
         
         # Release ports
         port_manager = PortManagerService()
@@ -504,7 +523,7 @@ def delete_app_task(self, app_id: str, force: bool = True) -> Dict[str, Any]:
         app_name = app.name
         app.delete()
         
-        logger.info(f"Application {app_name} deleted successfully")
+        logger.info(f"[{app_name}] ✅ Application deleted successfully (all 3 steps complete)")
         
         return {'success': True, 'message': f'Application {app_name} deleted'}
         

@@ -236,6 +236,7 @@
 							<!-- Delete button (always available except when deploying/deleting) -->
 							{#if app.status !== 'deploying' && app.status !== 'deleting'}
 								<button
+									data-testid="delete-button"
 									on:click={() => {
 										if (
 											confirm(

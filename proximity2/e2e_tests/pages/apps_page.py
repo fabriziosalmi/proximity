@@ -32,7 +32,7 @@ class AppsPage:
     START_BUTTON = 'button:has-text("Start")'
     STOP_BUTTON = 'button:has-text("Stop")'
     RESTART_BUTTON = 'button:has-text("Restart")'
-    DELETE_BUTTON = 'button:has-text("Delete"), button:has-text("Remove")'
+    DELETE_BUTTON = '[data-testid="delete-button"]'
     
     # Confirmation dialog
     CONFIRM_DIALOG = '[role="dialog"], .modal, .confirm-dialog'
@@ -209,7 +209,7 @@ class AppsPage:
         
         Args:
             hostname: Hostname of the application
-            confirm: Whether to confirm the deletion in the dialog
+            confirm: Whether to confirm the deletion in the browser's native confirm dialog
         
         Returns:
             self for chaining
@@ -217,19 +217,18 @@ class AppsPage:
         card = self.get_app_card_by_hostname(hostname)
         delete_button = card.locator(self.DELETE_BUTTON).first
         expect(delete_button).to_be_visible(timeout=5000)
-        delete_button.click()
         
         if confirm:
-            # Wait for confirmation dialog
-            dialog = self.page.locator(self.CONFIRM_DIALOG).first
-            expect(dialog).to_be_visible(timeout=5000)
-            
-            # Click confirm
-            confirm_button = dialog.locator(self.CONFIRM_YES_BUTTON).first
-            confirm_button.click()
-            
-            # Wait a moment for the deletion to process
-            self.page.wait_for_timeout(1000)
+            # Handle the browser's native confirm() dialog
+            self.page.on("dialog", lambda dialog: dialog.accept())
+        else:
+            # Dismiss the dialog
+            self.page.on("dialog", lambda dialog: dialog.dismiss())
+        
+        delete_button.click()
+        
+        # Wait a moment for the deletion to process
+        self.page.wait_for_timeout(1000)
         
         return self
     
