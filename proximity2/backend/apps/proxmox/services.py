@@ -258,6 +258,35 @@ class ProxmoxService:
         except Exception as e:
             raise ProxmoxError(f"Failed to create LXC {vmid}: {e}")
     
+    def configure_lxc_for_docker(self, node_name: str, vmid: int) -> None:
+        """
+        Configure LXC container for Docker support by disabling AppArmor restrictions.
+        
+        This must be called AFTER container creation but BEFORE starting it.
+        AppArmor restrictions prevent Docker from applying capabilities properly.
+        
+        Args:
+            node_name: Proxmox node name
+            vmid: Container VMID
+        """
+        try:
+            client = self.get_client()
+            # Get current config
+            current_config = client.nodes(node_name).lxc(vmid).config.get()
+            
+            # Update config to disable AppArmor profile for Docker support
+            update_config = {
+                'lxc': [
+                    ['lxc.apparmor.profile', 'unconfined']
+                ]
+            }
+            
+            client.nodes(node_name).lxc(vmid).config.put(**update_config)
+            logger.info(f"Configured LXC {vmid} for Docker (AppArmor: unconfined)")
+            
+        except Exception as e:
+            raise ProxmoxError(f"Failed to configure LXC {vmid} for Docker: {e}")
+    
     def start_lxc(self, node_name: str, vmid: int) -> Dict[str, Any]:
         """
         Start an LXC container.

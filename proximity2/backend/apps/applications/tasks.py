@@ -231,6 +231,11 @@ def deploy_app_task(
         logger.info(f"[{app_id}] ⏳ Waiting 5 seconds for container to be ready...")
         time.sleep(5)
         
+        # Configure container for Docker BEFORE starting it
+        logger.info(f"[{app_id}] 🔧 Configuring LXC for Docker support (AppArmor: unconfined)...")
+        proxmox_service.configure_lxc_for_docker(node, vmid)
+        logger.info(f"[{app_id}] ✓ LXC configured for Docker!")
+        
         log_deployment(app_id, 'info', 'Starting LXC container...', 'lxc_start')
         
         # Start container
