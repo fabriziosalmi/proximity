@@ -125,13 +125,39 @@
 		{/if}
 	</div>
 
-	<!-- Loading state -->
+	<!-- Loading state with skeleton -->
 	{#if $myAppsStore.loading && $myAppsStore.apps.length === 0}
-		<div class="flex h-64 items-center justify-center">
-			<div class="text-center">
-				<Loader2 class="mx-auto h-12 w-12 animate-spin text-rack-primary" />
-				<p class="mt-4 text-gray-400">Loading your apps...</p>
-			</div>
+		<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+			{#each Array(6) as _, i}
+				<div class="animate-pulse rounded-lg border-2 border-gray-700/50 bg-gray-800/50 p-4">
+					<!-- Icon and title skeleton -->
+					<div class="mb-3 flex items-start gap-3">
+						<div class="h-12 w-12 flex-shrink-0 rounded-lg bg-gray-700/50"></div>
+						<div class="flex-1 space-y-2">
+							<div class="h-5 w-3/4 rounded bg-gray-700/50"></div>
+							<div class="h-4 w-1/2 rounded bg-gray-700/50"></div>
+						</div>
+					</div>
+					
+					<!-- Description skeleton -->
+					<div class="mb-3 space-y-2">
+						<div class="h-3 w-full rounded bg-gray-700/50"></div>
+						<div class="h-3 w-5/6 rounded bg-gray-700/50"></div>
+					</div>
+					
+					<!-- Metadata skeleton -->
+					<div class="mb-3 space-y-2 rounded bg-gray-900/50 p-2">
+						<div class="h-3 w-full rounded bg-gray-700/50"></div>
+						<div class="h-3 w-4/5 rounded bg-gray-700/50"></div>
+					</div>
+					
+					<!-- Buttons skeleton -->
+					<div class="mt-3 flex gap-2">
+						<div class="h-9 flex-1 rounded-lg bg-gray-700/50"></div>
+						<div class="h-9 flex-1 rounded-lg bg-gray-700/50"></div>
+					</div>
+				</div>
+			{/each}
 		</div>
 	{:else if $myAppsStore.error}
 		<!-- Error state -->
