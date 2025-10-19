@@ -131,7 +131,13 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
-      - SENTRY_DSN=https://dbee00d4782d131ab54ffe
+      - SENTRY_DSN=https://dbee00d4782d131ab54ffe60b16d969b@o149725.ingest.us.sentry.io/4510189390266368
+      - SENTRY_ENVIRONMENT=development
+      - SENTRY_TRACES_SAMPLE_RATE=0.1
+      - SENTRY_PROFILES_SAMPLE_RATE=0.05
+      - SENTRY_DEBUG=True
+      - SENTRY_RELEASE=proximity@2.0.0
+    depends_on:
       - db
       - redis
       - backend
