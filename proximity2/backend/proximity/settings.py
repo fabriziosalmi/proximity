@@ -151,10 +151,10 @@ PROXMOX_PASSWORD = os.getenv('PROXMOX_PASSWORD', '')
 PROXMOX_VERIFY_SSL = os.getenv('PROXMOX_VERIFY_SSL', 'False') == 'True'
 PROXMOX_PORT = int(os.getenv('PROXMOX_PORT', '8006'))
 
-# Sentry Configuration (optional)
-SENTRY_DSN = os.getenv('SENTRY_DSN', '')
-SENTRY_ENVIRONMENT = os.getenv('SENTRY_ENVIRONMENT', 'development' if DEBUG else 'production')
-SENTRY_RELEASE = os.getenv('SENTRY_RELEASE', '2.0.0')
+# Sentry Configuration
+SENTRY_DSN = os.getenv('SENTRY_DSN', None)
+SENTRY_ENVIRONMENT = os.getenv('SENTRY_ENVIRONMENT', 'development')
+SENTRY_TRACES_SAMPLE_RATE = float(os.getenv('SENTRY_TRACES_SAMPLE_RATE', '1.0'))
 
 if SENTRY_DSN:
     import sentry_sdk
@@ -164,18 +164,21 @@ if SENTRY_DSN:
 
     sentry_sdk.init(
         dsn=SENTRY_DSN,
-        environment=SENTRY_ENVIRONMENT,
-        release=SENTRY_RELEASE,
         integrations=[
             DjangoIntegration(),
             CeleryIntegration(),
             RedisIntegration(),
         ],
-        traces_sample_rate=0.1,
-        profiles_sample_rate=0.1,
-        send_default_pii=False,  # Don't send personally identifiable information
+        environment=SENTRY_ENVIRONMENT,
+        traces_sample_rate=SENTRY_TRACES_SAMPLE_RATE,
+        # Set profiles_sample_rate to 1.0 to profile 100%
+        # of transactions for performance monitoring.
+        profiles_sample_rate=1.0,
+        # Send personal identifiable information
+        send_default_pii=True,
         attach_stacktrace=True,
-        before_send=lambda event, hint: event if not DEBUG else None,  # Don't send in debug mode
+        # Don't send events in DEBUG mode unless explicitly configured
+        before_send=lambda event, hint: event if not DEBUG or os.getenv('SENTRY_DEBUG', 'False') == 'True' else None,
     )
 
 # Logging Configuration

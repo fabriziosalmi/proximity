@@ -101,6 +101,15 @@ def system_info(request):
     }
 
 
+@router.get("/sentry-debug/")
+def sentry_debug(request):
+    """
+    Intentionally raise an exception to test Sentry integration.
+    This endpoint should only be used for verification purposes.
+    """
+    raise ZeroDivisionError("Sentry test error from backend.")
+
+
 # Utility functions
 
 def generate_jwt_token(user: User, token_type: str) -> str:

@@ -35,7 +35,7 @@ PyYAML==6.0.1
 paramiko==3.4.0
 
 # Monitoring & Logging
-sentry-sdk==1.39.2
+sentry-sdk[django]==1.39.2
 
 # Development & Testing
 pytest==7.4.4
