@@ -20,9 +20,10 @@ class StorePage:
     # Locators
     SEARCH_INPUT = 'input[type="search"], input[placeholder*="Search" i]'
     CATEGORY_FILTER = '.category-filter, [data-testid="category-filter"]'
-    APP_CARD = '.rack-card, [data-testid="app-card"], .app-card'
+    # Updated to match actual frontend implementation (simple div with border)
+    APP_CARD = 'div.flex.items-center.justify-between, .rack-card, [data-testid="app-card"], .app-card'
     APP_CARD_TITLE = '.app-title, h3, h4'
-    DEPLOY_BUTTON = 'button:has-text("Deploy"), button:has-text("Install")'
+    DEPLOY_BUTTON = 'button:has-text("Deploy"), button:has-text("🚀 Deploy"), button:has-text("Install")'
     
     # Deployment Modal
     MODAL = '.modal, [role="dialog"], .deployment-modal'
