@@ -492,28 +492,60 @@ def delete_app_task(self, app_id: str, force: bool = True) -> Dict[str, Any]:
         # Initialize Proxmox service
         proxmox_service = ProxmoxService(host_id=app.host_id)
         
-        # STEP 1/3: Stop container before deletion (Proxmox requirement)
-        logger.info(f"[{app.name}] STEP 1/3: Stopping LXC {app.lxc_id} before deletion...")
+        # STEP 1/4: Issue STOP command and wait for task completion
+        logger.info(f"[{app.name}] STEP 1/4: Issuing STOP command for LXC {app.lxc_id}...")
         try:
-            proxmox_service.stop_lxc(app.node, app.lxc_id, force=True)
-            logger.info(f"[{app.name}] ✓ Container stopped successfully")
+            stop_task = proxmox_service.stop_lxc(app.node, app.lxc_id, force=True)
+            logger.info(f"[{app.name}] ✓ STOP command issued successfully, UPID: {stop_task}")
+            
+            # Wait for the stop task to complete (crucial!)
+            if stop_task:
+                logger.info(f"[{app.name}] ⏳ Waiting for stop task to complete...")
+                proxmox_service.wait_for_task(app.node, stop_task, timeout=120)
+                logger.info(f"[{app.name}] ✓ Stop task completed successfully")
         except Exception as stop_error:
-            # If already stopped, that's fine - proceed with deletion
+            # If already stopped, that's fine - we'll verify in next step
             logger.warning(f"[{app.name}] Stop command failed (may already be stopped): {stop_error}")
         
-        # Wait for container to fully stop
-        time.sleep(3)
+        # STEP 2/4: VERIFY container is STOPPED (quick check after task completion)
+        logger.info(f"[{app.name}] STEP 2/4: Verifying LXC {app.lxc_id} is STOPPED...")
+        max_wait_seconds = 30  # Reduced since task should already be done
+        wait_interval = 3
+        elapsed_time = 0
         
-        # STEP 2/3: Delete LXC container
-        logger.info(f"[{app.name}] STEP 2/3: Deleting LXC {app.lxc_id}...")
+        while elapsed_time < max_wait_seconds:
+            try:
+                status_info = proxmox_service.get_lxc_status(app.node, app.lxc_id)
+                current_status = status_info.get('status', 'unknown')
+                logger.info(f"[{app.name}]   -> Current status: '{current_status}' (waiting for 'stopped')")
+                
+                if current_status == 'stopped':
+                    logger.info(f"[{app.name}]   -> ✅ CONFIRMED: Container {app.lxc_id} is STOPPED")
+                    break
+                    
+            except Exception as status_error:
+                # Container might already be deleted or unreachable - treat as stopped
+                logger.warning(f"[{app.name}]   -> Status check failed (container may be gone): {status_error}")
+                break
+            
+            time.sleep(wait_interval)
+            elapsed_time += wait_interval
+        else:
+            # Loop finished without break - timeout!
+            error_msg = f"FATAL: Container {app.lxc_id} did not stop within {max_wait_seconds} seconds"
+            logger.error(f"[{app.name}] {error_msg}")
+            raise ProxmoxError(error_msg)
+        
+        # STEP 3/4: Delete LXC container (now guaranteed to be stopped)
+        logger.info(f"[{app.name}] STEP 3/4: Deleting LXC {app.lxc_id}...")
         proxmox_service.delete_lxc(app.node, app.lxc_id, force=force)
         logger.info(f"[{app.name}] ✓ Container deleted successfully")
         
         # Wait for deletion to complete
         time.sleep(5)
         
-        # STEP 3/3: Release resources and cleanup
-        logger.info(f"[{app.name}] STEP 3/3: Releasing ports and cleaning up...")
+        # STEP 4/4: Release resources and cleanup
+        logger.info(f"[{app.name}] STEP 4/4: Releasing ports and cleaning up...")
         
         # Release ports
         port_manager = PortManagerService()
@@ -523,7 +555,7 @@ def delete_app_task(self, app_id: str, force: bool = True) -> Dict[str, Any]:
         app_name = app.name
         app.delete()
         
-        logger.info(f"[{app_name}] ✅ Application deleted successfully (all 3 steps complete)")
+        logger.info(f"[{app_name}] ✅ Application deleted successfully (all 4 steps complete)")
         
         return {'success': True, 'message': f'Application {app_name} deleted'}
         
