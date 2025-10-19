@@ -254,7 +254,8 @@ print(f'{host.id},{host.name},{host.host},{host.port},{node.name}')
              'python', 'manage.py', 'shell', '-c', create_command],
             capture_output=True,
             text=True,
-            timeout=10
+            timeout=30,  # Increased timeout for Sentry overhead
+            env={**os.environ, 'SENTRY_DEBUG': 'False'}  # Disable Sentry debug output
         )
         
         if result.returncode == 0:
