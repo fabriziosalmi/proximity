@@ -3,11 +3,13 @@ Proxmox service - Connection and node management
 Adapted from v1.0 ProxmoxService with async support via Celery
 """
 import logging
+import shlex
 from typing import List, Dict, Any, Optional
 from proxmoxer import ProxmoxAPI
 from proxmoxer.core import ResourceException
 from django.utils import timezone
 from django.core.cache import cache
+import paramiko
 
 from .models import ProxmoxHost, ProxmoxNode
 
@@ -713,49 +715,161 @@ class ProxmoxService:
         except Exception as e:
             raise ProxmoxError(f"Failed to list backups: {e}")
     
-    async def execute_in_container(
+    def _execute_ssh_command(
+        self,
+        host: str,
+        port: int,
+        username: str,
+        password: str,
+        command: str,
+        timeout: int = 30
+    ) -> tuple[str, str, int]:
+        """
+        Execute a command on a remote host via SSH.
+        
+        Args:
+            host: SSH host address
+            port: SSH port (default 22)
+            username: SSH username
+            password: SSH password
+            command: Command to execute
+            timeout: SSH timeout in seconds
+            
+        Returns:
+            Tuple of (stdout, stderr, exit_code)
+            
+        Raises:
+            ProxmoxError: If SSH connection or command execution fails
+        """
+        ssh = None
+        try:
+            # Create SSH client
+            ssh = paramiko.SSHClient()
+            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            
+            logger.debug(f"Connecting to {host}:{port} as {username}")
+            
+            # Connect to host
+            ssh.connect(
+                hostname=host,
+                port=port,
+                username=username,
+                password=password,
+                timeout=timeout,
+                allow_agent=False,
+                look_for_keys=False
+            )
+            
+            logger.debug(f"Executing SSH command: {command}")
+            
+            # Execute command
+            stdin, stdout, stderr = ssh.exec_command(command, timeout=timeout)
+            
+            # Get output and exit code
+            stdout_data = stdout.read().decode('utf-8')
+            stderr_data = stderr.read().decode('utf-8')
+            exit_code = stdout.channel.recv_exit_status()
+            
+            logger.debug(f"SSH command completed with exit code {exit_code}")
+            
+            return stdout_data, stderr_data, exit_code
+            
+        except paramiko.AuthenticationException as e:
+            error_msg = f"SSH authentication failed for {username}@{host}: {e}"
+            logger.error(error_msg)
+            raise ProxmoxError(error_msg)
+        except paramiko.SSHException as e:
+            error_msg = f"SSH connection error to {host}: {e}"
+            logger.error(error_msg)
+            raise ProxmoxError(error_msg)
+        except Exception as e:
+            error_msg = f"Unexpected SSH error: {e}"
+            logger.error(error_msg)
+            raise ProxmoxError(error_msg)
+        finally:
+            if ssh:
+                ssh.close()
+    
+    def execute_in_container(
         self, 
-        node_name: str, 
+        node_name: str,
         vmid: int, 
         command: str,
         timeout: int = 300,
         allow_nonzero_exit: bool = False
     ) -> str:
         """
-        Execute a command inside an LXC container using pct exec.
+        Execute a command inside an LXC container using pct exec via SSH.
+        
+        This method connects to the Proxmox node via SSH and executes
+        'pct exec <vmid> -- <command>' to run commands inside the container.
         
         Args:
             node_name: Proxmox node name
             vmid: LXC container ID  
-            command: Command to execute
+            command: Command to execute inside the container
             timeout: Command timeout in seconds
             allow_nonzero_exit: If True, don't raise error on non-zero exit code
             
         Returns:
-            Command output as string
+            Command output (stdout) as string
             
         Raises:
-            ProxmoxError: If command execution fails
+            ProxmoxError: If command execution fails or returns non-zero exit code
         """
         try:
-            client = self.get_client()
+            # Get host configuration
+            host = self.get_host()
             
-            logger.debug(f"Executing in LXC {vmid}: {command}")
+            # Extract username without realm (@pam) for SSH
+            ssh_username = host.user.split('@')[0]
+            ssh_password = host.password
+            ssh_host = host.host
+            ssh_port = host.ssh_port
             
-            # Use Proxmox pct exec endpoint
-            result = client.nodes(node_name).lxc(vmid).exec.post(
-                command=command
+            logger.debug(f"Executing in LXC {vmid} on node {node_name}: {command}")
+            
+            # Build pct exec command
+            # Note: We don't use shlex.quote for the command itself here because
+            # pct exec handles it properly. The command is passed as separate args.
+            pct_command = f"pct exec {vmid} -- {command}"
+            
+            logger.debug(f"Full pct command: {pct_command}")
+            
+            # Execute via SSH
+            stdout, stderr, exit_code = self._execute_ssh_command(
+                host=ssh_host,
+                port=ssh_port,
+                username=ssh_username,
+                password=ssh_password,
+                command=pct_command,
+                timeout=timeout
             )
             
-            return result if isinstance(result, str) else str(result)
+            # Check exit code
+            if exit_code != 0 and not allow_nonzero_exit:
+                error_msg = (
+                    f"Command in LXC {vmid} failed with exit code {exit_code}\n"
+                    f"Command: {command}\n"
+                    f"STDOUT: {stdout}\n"
+                    f"STDERR: {stderr}"
+                )
+                logger.error(error_msg)
+                raise ProxmoxError(error_msg)
             
-        except ResourceException as e:
-            error_msg = f"Failed to execute command in LXC {vmid}: {e}"
+            if stderr and not allow_nonzero_exit:
+                logger.warning(f"Command stderr: {stderr}")
+            
+            logger.debug(f"Command output: {stdout[:200]}..." if len(stdout) > 200 else f"Command output: {stdout}")
+            
+            return stdout
+            
+        except ProxmoxError:
+            # Re-raise ProxmoxError from SSH layer
+            raise
+        except Exception as e:
+            error_msg = f"Unexpected error executing in LXC {vmid}: {e}"
             logger.error(error_msg)
             if not allow_nonzero_exit:
                 raise ProxmoxError(error_msg)
             return ""
-        except Exception as e:
-            error_msg = f"Unexpected error executing in LXC {vmid}: {e}"
-            logger.error(error_msg)
-            raise ProxmoxError(error_msg)

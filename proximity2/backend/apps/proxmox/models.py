@@ -22,7 +22,13 @@ class ProxmoxHost(models.Model):
     )
     port = models.IntegerField(
         default=8006,
-        validators=[MinValueValidator(1), MaxValueValidator(65535)]
+        validators=[MinValueValidator(1), MaxValueValidator(65535)],
+        help_text='Proxmox API port'
+    )
+    ssh_port = models.IntegerField(
+        default=22,
+        validators=[MinValueValidator(1), MaxValueValidator(65535)],
+        help_text='SSH port for pct exec commands'
     )
     user = models.CharField(
         max_length=100,
