@@ -519,7 +519,7 @@ def clone_app_task(self, source_app_id: str, new_hostname: str, owner_id: int) -
         
         # Assign new ports using PortManager
         port_manager = PortManagerService()
-        public_port, internal_port = port_manager.assign_ports()
+        public_port, internal_port = port_manager.allocate_ports()
         logger.info(f"[CLONE] ✓ Assigned ports: public={public_port}, internal={internal_port}")
         
         # Determine new VMID (get next available from Proxmox)
