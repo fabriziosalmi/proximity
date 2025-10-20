@@ -8,6 +8,8 @@
 	import { goto } from '$app/navigation';
 	import { Home, Server, Store, HardDrive, Settings, Plus, User, LogOut } from 'lucide-svelte';
 	import { myAppsStore } from '$lib/stores/apps';
+	import { authStore } from '$lib/stores/auth';
+	import { api } from '$lib/api';
 
 	const navItems = [
 		{ href: '/', label: 'Home', icon: Home },
@@ -54,7 +56,12 @@
 	}
 
 	async function handleLogout() {
-		await goto('/');
+		// Clear auth state
+		authStore.logout();
+		api.logout();
+		
+		// Navigate to login
+		await goto('/login');
 		showUserMenu = false;
 	}
 

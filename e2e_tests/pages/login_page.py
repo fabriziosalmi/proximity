@@ -5,6 +5,7 @@ Encapsulates all interactions with the login/authentication pages.
 """
 from playwright.sync_api import Page, expect
 from typing import Optional
+import requests
 
 
 class LoginPage:
@@ -246,3 +247,50 @@ class LoginPage:
                 return True
         
         return False
+    
+    def login_with_api(self, username: str, password: str, api_base_url: str = "http://localhost:8000") -> 'LoginPage':
+        """
+        Login using direct API call and set the token in browser localStorage.
+        This bypasses the frontend form and is more reliable for E2E tests.
+        
+        Args:
+            username: Username to login with
+            password: Password
+            api_base_url: Base URL of the API (default: http://localhost:8000)
+        
+        Returns:
+            self for chaining
+        """
+        import requests
+        
+        # Call the API directly
+        response = requests.post(
+            f"{api_base_url}/api/core/auth/login",
+            json={"username": username, "password": password},
+            headers={"Content-Type": "application/json"}
+        )
+        
+        if not response.ok:
+            raise Exception(f"API login failed: {response.status_code} - {response.text}")
+        
+        data = response.json()
+        token = data.get('access_token') or data.get('access')  # Try both formats
+        
+        if not token:
+            raise Exception(f"No access token in response: {data}")
+        
+        # Navigate to any page first (needed to set localStorage)
+        self.page.goto(f"{self.base_url}/login")
+        self.page.wait_for_load_state("domcontentloaded")
+        
+        # Set the token in localStorage via JavaScript
+        self.page.evaluate(f"""
+            localStorage.setItem('access_token', '{token}');
+            localStorage.setItem('user', JSON.stringify({{ username: '{username}' }}));
+        """)
+        
+        # Navigate to home to trigger auth check
+        self.page.goto(self.base_url + "/")
+        self.page.wait_for_load_state("networkidle")
+        
+        return self

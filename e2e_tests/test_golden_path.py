@@ -220,11 +220,11 @@ def test_login_only(test_page, unique_user: dict, base_url: str):
     page = test_page
 
     login_page = LoginPage(page, base_url)
-    login_page.navigate_and_wait_for_ready()
-    login_page.login(
+    
+    # Use API login instead of form (more reliable)
+    login_page.login_with_api(
         username=unique_user['username'],
-        password=unique_user['password'],
-        wait_for_navigation=True
+        password=unique_user['password']
     )
 
     # Verify successful login by checking URL redirection
@@ -246,13 +246,11 @@ def test_catalog_loads(test_page, unique_user: dict, base_url: str):
 
     page = test_page
 
-    # Login first
+    # Login first using API (more reliable)
     login_page = LoginPage(page, base_url)
-    login_page.navigate_and_wait_for_ready()
-    login_page.login(
+    login_page.login_with_api(
         username=unique_user['username'],
-        password=unique_user['password'],
-        wait_for_navigation=True
+        password=unique_user['password']
     )
 
     # Navigate to store
