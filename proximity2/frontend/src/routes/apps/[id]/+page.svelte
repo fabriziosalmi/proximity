@@ -171,24 +171,36 @@
 	<title>{app?.name || 'App Details'} - Proximity</title>
 </svelte:head>
 
-<div class="min-h-screen bg-rack-darker p-6">
+<div class="bg-rack-darker">
 	{#if loading}
 		<!-- Loading State -->
-		<div class="flex items-center justify-center py-12">
+		<div class="flex items-center justify-center py-12 px-6">
 			<Loader2 class="h-8 w-8 animate-spin text-blue-400" />
 			<span class="ml-3 text-gray-400">Loading application details...</span>
 		</div>
 	{:else if app}
-		<!-- Back Button -->
-		<div class="mb-6">
-			<a
-				href="/apps"
-				class="inline-flex items-center gap-2 text-sm text-gray-400 transition-colors hover:text-white"
-			>
-				<ArrowLeft class="h-4 w-4" />
-				Back to Apps
-			</a>
-		</div>
+		<!-- ============================================ -->
+		<!-- STICKY HEADER: Back Navigation -->
+		<!-- ============================================ -->
+		<header class="sticky-header">
+			<div class="px-6 pt-6 pb-6">
+				<!-- Back Button -->
+				<div class="mb-0">
+					<a
+						href="/apps"
+						class="inline-flex items-center gap-2 text-sm text-gray-400 transition-colors hover:text-white"
+					>
+						<ArrowLeft class="h-4 w-4" />
+						Back to Apps
+					</a>
+				</div>
+			</div>
+		</header>
+
+		<!-- ============================================ -->
+		<!-- SCROLLABLE CONTENT: App Details -->
+		<!-- ============================================ -->
+		<main class="px-10 pt-6 pb-6">
 
 		<!-- App Header -->
 		<div class="app-header">
@@ -324,6 +336,8 @@
 
 		<!-- Backup Manager -->
 		<BackupManager appId={app.id} appName={app.name} />
+		</main>
+		<!-- END: Main Scrollable Content -->
 	{/if}
 </div>
 

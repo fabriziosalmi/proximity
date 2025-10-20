@@ -150,7 +150,7 @@
 	<title>App Store - Proximity</title>
 </svelte:head>
 
-<div class="min-h-screen bg-rack-darker">
+<div class="bg-rack-darker">
 	<!-- ============================================ -->
 	<!-- STICKY HEADER: Always-Visible Control Surface -->
 	<!-- ============================================ -->
@@ -231,7 +231,7 @@
 	<!-- ============================================ -->
 	<!-- SCROLLABLE CONTENT: Catalog Cards Flow Beneath -->
 	<!-- ============================================ -->
-	<main class="px-6 pb-6">
+	<main class="px-10 pt-6 pb-6">
 		<!-- Loading state -->
 	{#if loading}
 		<div class="flex h-64 items-center justify-center">
@@ -289,6 +289,7 @@
 	{/if}
 </main>
 <!-- END: Main Scrollable Content -->
+</div>
 
 <!-- Deployment Modal -->
 <DeploymentModal

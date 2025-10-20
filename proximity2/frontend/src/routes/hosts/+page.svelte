@@ -116,7 +116,7 @@
 	<title>Proxmox Nodes - Proximity</title>
 </svelte:head>
 
-<div class="min-h-screen bg-rack-darker">
+<div class="bg-rack-darker">
 	<!-- ============================================ -->
 	<!-- STICKY HEADER: Always-Visible Control Surface -->
 	<!-- ============================================ -->
@@ -214,7 +214,7 @@
 	<!-- ============================================ -->
 	<!-- SCROLLABLE CONTENT: Host Racks Flow Beneath -->
 	<!-- ============================================ -->
-	<main class="px-6 pb-6">
+	<main class="px-10 pt-6 pb-6">
 		<!-- Loading state with skeleton -->
 	{#if loading && nodes.length === 0}
 		<div class="space-y-4">

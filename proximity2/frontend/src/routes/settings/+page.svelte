@@ -106,9 +106,9 @@
 	<!-- END: Sticky Header -->
 
 	<!-- MAIN: Scrollable Content -->
-	<main class="px-6 pb-6">
+	<main class="px-10 pt-6 pb-6">
 		<!-- Settings Content Panel - Rack Unit Style -->
-	<div class="mt-6 settings-rack-unit">
+	<div class="settings-rack-unit">
 		<!-- Mounting Ears -->
 		<div class="rack-ear rack-ear-left">
 			<div class="screw screw-top"></div>
