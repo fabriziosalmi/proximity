@@ -1,10 +1,10 @@
 <script lang="ts">
 	/**
 	 * Settings Page - Comprehensive Configuration Management
-	 * Tabbed interface for Proxmox, Resources, Network, and System settings
+	 * OperationalRack-based interface for Proxmox, Resources, Network, and System settings
 	 */
 	import { onMount } from 'svelte';
-	import { Server, Cpu, Network, Settings as SettingsIcon } from 'lucide-svelte';
+	import { Server, Cpu, Network, Settings as SettingsIcon, Save } from 'lucide-svelte';
 	import { pageTitleStore } from '$lib/stores/pageTitle';
 	import { switchTab as switchTabAction } from '$lib/stores/actions';
 	import ProxmoxSettings from '$lib/components/settings/ProxmoxSettings.svelte';
@@ -12,6 +12,7 @@
 	import NetworkSettings from '$lib/components/settings/NetworkSettings.svelte';
 	import SystemSettings from '$lib/components/settings/SystemSettings.svelte';
 	import NavigationRack from '$lib/components/layout/NavigationRack.svelte';
+	import OperationalRack from '$lib/components/layout/OperationalRack.svelte';
 
 	type Tab = 'proxmox' | 'resources' | 'network' | 'system';
 
@@ -46,11 +47,14 @@
 
 	function switchTab(tabId: Tab) {
 		const tab = tabs.find((t) => t.id === tabId);
-		if (tab && !tab.disabled) {
+		if (tab) {
 			activeTab = tabId;
 			switchTabAction(tabId); // Use centralized action for sound feedback
 		}
 	}
+
+	// Get current tab info for display
+	$: currentTab = tabs.find((t) => t.id === activeTab);
 
 	onMount(() => {
 		pageTitleStore.setTitle('Settings');
@@ -65,154 +69,45 @@
 <NavigationRack />
 
 <div class="min-h-screen bg-rack-darker p-6">
-	<!-- Header -->
-	<div class="mb-8">
-		<h1 class="mb-2 text-4xl font-bold text-white">Settings</h1>
-		<p class="text-gray-400">Configure your Proximity installation</p>
-	</div>
+	<!-- Operational Control Panel -->
+	<OperationalRack>
+		<div slot="stats" class="flex items-center gap-3">
+			<div class="flex items-center gap-2">
+				<svelte:component this={currentTab?.icon} class="h-5 w-5 text-rack-primary" />
+				<span class="text-sm font-semibold text-white">{currentTab?.label}</span>
+			</div>
+			<div class="hidden md:block text-xs text-gray-400">
+				{currentTab?.description}
+			</div>
+		</div>
 
-	<!-- Tabs Navigation -->
-	<div class="settings-container">
-		<div class="tabs-nav">
+		<div slot="actions" class="flex flex-wrap items-center gap-2">
 			{#each tabs as tab}
 				<button
 					on:click={() => switchTab(tab.id)}
-					class="tab-button"
-					class:active={activeTab === tab.id}
 					data-testid="tab-{tab.id}"
+					class="flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all
+						{activeTab === tab.id
+							? 'bg-rack-primary text-white shadow-lg shadow-rack-primary/30'
+							: 'bg-rack-light/50 text-gray-300 hover:bg-rack-light hover:text-white'}"
 				>
-					<div class="tab-icon">
-						<svelte:component this={tab.icon} size={20} />
-					</div>
-					<div class="tab-content">
-						<div class="tab-label">{tab.label}</div>
-						<div class="tab-description">{tab.description}</div>
-					</div>
+					<svelte:component this={tab.icon} class="h-4 w-4" />
+					<span class="hidden sm:inline">{tab.label}</span>
 				</button>
 			{/each}
 		</div>
+	</OperationalRack>
 
-		<!-- Tab Content -->
-		<div class="tab-panel">
-			{#if activeTab === 'proxmox'}
-				<ProxmoxSettings />
-			{:else if activeTab === 'resources'}
-				<ResourceSettings />
-			{:else if activeTab === 'network'}
-				<NetworkSettings />
-			{:else if activeTab === 'system'}
-				<SystemSettings />
-			{/if}
-		</div>
+	<!-- Settings Content Panel -->
+	<div class="mt-6">
+		{#if activeTab === 'proxmox'}
+			<ProxmoxSettings />
+		{:else if activeTab === 'resources'}
+			<ResourceSettings />
+		{:else if activeTab === 'network'}
+			<NetworkSettings />
+		{:else if activeTab === 'system'}
+			<SystemSettings />
+		{/if}
 	</div>
 </div>
-
-<style>
-	.settings-container {
-		display: grid;
-		grid-template-columns: 300px 1fr;
-		gap: 2rem;
-		max-width: 1400px;
-	}
-
-	/* Tab Navigation */
-	.tabs-nav {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-	}
-
-	.tab-button {
-		display: flex;
-		align-items: flex-start;
-		gap: 1rem;
-		padding: 1rem;
-		background: var(--bg-card, #1f2937);
-		border: 2px solid transparent;
-		border-radius: 0.75rem;
-		cursor: pointer;
-		transition: all 0.2s ease;
-		text-align: left;
-		position: relative;
-	}
-
-	.tab-button:hover {
-		border-color: var(--color-accent, #3b82f6);
-		background: rgba(59, 130, 246, 0.05);
-	}
-
-	.tab-button.active {
-		border-color: var(--color-accent, #3b82f6);
-		background: rgba(59, 130, 246, 0.1);
-		box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
-	}
-
-	.tab-icon {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 40px;
-		height: 40px;
-		background: rgba(59, 130, 246, 0.1);
-		border-radius: 0.5rem;
-		color: var(--color-accent, #3b82f6);
-		flex-shrink: 0;
-	}
-
-	.tab-button.active .tab-icon {
-		background: rgba(59, 130, 246, 0.2);
-	}
-
-	.tab-content {
-		flex: 1;
-		min-width: 0;
-	}
-
-	.tab-label {
-		font-size: 0.875rem;
-		font-weight: 600;
-		color: var(--color-text-primary, #e5e7eb);
-		margin-bottom: 0.25rem;
-	}
-
-	.tab-description {
-		font-size: 0.75rem;
-		color: var(--color-text-secondary, #9ca3af);
-		line-height: 1.4;
-	}
-
-	/* Tab Panel */
-	.tab-panel {
-		min-height: 500px;
-	}
-
-	/* Responsive */
-	@media (max-width: 1024px) {
-		.settings-container {
-			grid-template-columns: 250px 1fr;
-			gap: 1.5rem;
-		}
-	}
-
-	@media (max-width: 768px) {
-		.settings-container {
-			grid-template-columns: 1fr;
-			gap: 1rem;
-		}
-
-		.tabs-nav {
-			flex-direction: row;
-			overflow-x: auto;
-			padding-bottom: 0.5rem;
-		}
-
-		.tab-button {
-			min-width: 200px;
-		}
-
-		.tab-badge {
-			position: static;
-			margin-left: auto;
-		}
-	}
-</style>
