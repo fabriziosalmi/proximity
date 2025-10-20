@@ -2,6 +2,7 @@
 Application models - Deployed apps and configurations
 """
 from django.db import models
+from django.utils import timezone
 from apps.core.models import User
 from apps.proxmox.models import ProxmoxHost
 
@@ -70,15 +71,33 @@ class Application(models.Model):
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+    state_changed_at = models.DateTimeField(default=timezone.now, db_index=True)
+
     class Meta:
         db_table = 'applications'
         verbose_name = 'Application'
         verbose_name_plural = 'Applications'
         ordering = ['-created_at']
-    
+
     def __str__(self):
         return f"{self.name} ({self.status})"
+
+    def save(self, *args, **kwargs):
+        """
+        Override save to update state_changed_at when status changes.
+        """
+        # Check if this is an update (not a new object)
+        if self.pk:
+            try:
+                old_instance = Application.objects.get(pk=self.pk)
+                # If status has changed, update state_changed_at
+                if old_instance.status != self.status:
+                    self.state_changed_at = timezone.now()
+            except Application.DoesNotExist:
+                # Object is being created, state_changed_at will be set by default
+                pass
+
+        super().save(*args, **kwargs)
 
 
 class DeploymentLog(models.Model):

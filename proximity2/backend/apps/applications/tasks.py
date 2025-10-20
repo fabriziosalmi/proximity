@@ -646,30 +646,30 @@ def clone_app_task(self, source_app_id: str, new_hostname: str, owner_id: int) -
 def delete_app_task(self, app_id: str, force: bool = True) -> Dict[str, Any]:
     """
     Delete an application (destroy LXC container and release resources).
-    
+
     Args:
         app_id: Application ID
         force: Force deletion even if running
-        
+
     Returns:
         Operation result
     """
     try:
         app = Application.objects.get(id=app_id)
         log_deployment(app_id, 'info', 'Deleting application...', 'delete')
-        
+
         app.status = 'removing'
         app.save(update_fields=['status'])
-        
+
         # Initialize Proxmox service
         proxmox_service = ProxmoxService(host_id=app.host_id)
-        
+
         # STEP 1/4: Issue STOP command and wait for task completion
         logger.info(f"[{app.name}] STEP 1/4: Issuing STOP command for LXC {app.lxc_id}...")
         try:
             stop_task = proxmox_service.stop_lxc(app.node, app.lxc_id, force=True)
             logger.info(f"[{app.name}] ✓ STOP command issued successfully, UPID: {stop_task}")
-            
+
             # Wait for the stop task to complete (crucial!)
             if stop_task:
                 logger.info(f"[{app.name}] ⏳ Waiting for stop task to complete...")
@@ -678,28 +678,28 @@ def delete_app_task(self, app_id: str, force: bool = True) -> Dict[str, Any]:
         except Exception as stop_error:
             # If already stopped, that's fine - we'll verify in next step
             logger.warning(f"[{app.name}] Stop command failed (may already be stopped): {stop_error}")
-        
+
         # STEP 2/4: VERIFY container is STOPPED (quick check after task completion)
         logger.info(f"[{app.name}] STEP 2/4: Verifying LXC {app.lxc_id} is STOPPED...")
         max_wait_seconds = 30  # Reduced since task should already be done
         wait_interval = 3
         elapsed_time = 0
-        
+
         while elapsed_time < max_wait_seconds:
             try:
                 status_info = proxmox_service.get_lxc_status(app.node, app.lxc_id)
                 current_status = status_info.get('status', 'unknown')
                 logger.info(f"[{app.name}]   -> Current status: '{current_status}' (waiting for 'stopped')")
-                
+
                 if current_status == 'stopped':
                     logger.info(f"[{app.name}]   -> ✅ CONFIRMED: Container {app.lxc_id} is STOPPED")
                     break
-                    
+
             except Exception as status_error:
                 # Container might already be deleted or unreachable - treat as stopped
                 logger.warning(f"[{app.name}]   -> Status check failed (container may be gone): {status_error}")
                 break
-            
+
             time.sleep(wait_interval)
             elapsed_time += wait_interval
         else:
@@ -707,35 +707,124 @@ def delete_app_task(self, app_id: str, force: bool = True) -> Dict[str, Any]:
             error_msg = f"FATAL: Container {app.lxc_id} did not stop within {max_wait_seconds} seconds"
             logger.error(f"[{app.name}] {error_msg}")
             raise ProxmoxError(error_msg)
-        
+
         # STEP 3/4: Delete LXC container (now guaranteed to be stopped)
         logger.info(f"[{app.name}] STEP 3/4: Deleting LXC {app.lxc_id}...")
         proxmox_service.delete_lxc(app.node, app.lxc_id, force=force)
         logger.info(f"[{app.name}] ✓ Container deleted successfully")
-        
+
         # Wait for deletion to complete
         time.sleep(5)
-        
+
         # STEP 4/4: Release resources and cleanup
         logger.info(f"[{app.name}] STEP 4/4: Releasing ports and cleaning up...")
-        
+
         # Release ports
         port_manager = PortManagerService()
         port_manager.release_ports(app.public_port, app.internal_port)
-        
+
         # Delete application record
         app_name = app.name
         app.delete()
-        
+
         logger.info(f"[{app_name}] ✅ Application deleted successfully (all 4 steps complete)")
-        
+
         return {'success': True, 'message': f'Application {app_name} deleted'}
-        
+
     except Application.DoesNotExist:
         logger.warning(f"Application {app_id} not found for deletion")
         return {'success': False, 'message': 'Application not found'}
-        
+
     except Exception as e:
         logger.error(f"Failed to delete app {app_id}: {e}")
         log_deployment(app_id, 'error', f'Delete failed: {str(e)}', 'delete')
         raise
+
+
+@shared_task(bind=True)
+def reconciliation_task(self) -> Dict[str, Any]:
+    """
+    Periodic reconciliation task to identify and clean up orphan applications.
+
+    This task compares the list of applications in the Proximity database with
+    the actual list of LXC containers on all Proxmox hosts. Any applications
+    that reference non-existent containers (orphans) are automatically purged.
+
+    This ensures database consistency when containers are manually deleted from
+    Proxmox without going through the Proximity interface.
+
+    Scheduled to run periodically via Celery Beat.
+
+    Returns:
+        Reconciliation result dictionary
+    """
+    logger.info("🔄 [RECONCILIATION TASK] Starting scheduled reconciliation...")
+
+    try:
+        from apps.applications.services import ApplicationService
+
+        result = ApplicationService.reconcile_applications()
+
+        if result['success']:
+            logger.info(
+                f"✅ [RECONCILIATION TASK] Completed successfully - "
+                f"Purged {result['orphans_purged']}/{result['orphans_found']} orphan(s)"
+            )
+        else:
+            logger.error(
+                f"❌ [RECONCILIATION TASK] Failed - Errors: {result.get('errors', [])}"
+            )
+
+        return result
+
+    except Exception as e:
+        logger.error(f"❌ [RECONCILIATION TASK] Unexpected error: {e}", exc_info=True)
+        return {
+            'success': False,
+            'error': str(e)
+        }
+
+
+@shared_task(bind=True)
+def janitor_task(self) -> Dict[str, Any]:
+    """
+    Periodic janitor task to clean up applications stuck in transitional states.
+
+    This task scans for applications that have been in transitional states
+    (deploying, cloning, removing, updating) for longer than the allowed timeout
+    period (1 hour). These "zombie" applications are marked as error to prevent
+    them from being stuck in limbo indefinitely.
+
+    The reconciliation service will handle actual cleanup of orphaned containers.
+    This service focuses on ending transitional states safely.
+
+    Scheduled to run every 6 hours via Celery Beat.
+
+    Returns:
+        Cleanup result dictionary
+    """
+    logger.info("🧹 [JANITOR TASK] Starting scheduled stuck applications cleanup...")
+
+    try:
+        from apps.applications.services import ApplicationService
+
+        result = ApplicationService.cleanup_stuck_applications()
+
+        if result['success']:
+            logger.info(
+                f"✅ [JANITOR TASK] Completed successfully - "
+                f"Marked {result['stuck_marked_error']}/{result['stuck_found']} stuck app(s) as error"
+            )
+        else:
+            logger.error(
+                f"❌ [JANITOR TASK] Failed - Errors: {result.get('errors', [])}"
+            )
+
+        return result
+
+    except Exception as e:
+        logger.error(f"❌ [JANITOR TASK] Unexpected error: {e}", exc_info=True)
+        return {
+            'success': False,
+            'error': str(e)
+        }

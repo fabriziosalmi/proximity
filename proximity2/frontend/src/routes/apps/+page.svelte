@@ -4,20 +4,20 @@
 	 * Premium hardware aesthetic with stat blocks and clean hierarchy
 	 */
 	import { onMount, onDestroy } from 'svelte';
-	import { 
-		Loader2, 
-		Server, 
-		PlayCircle, 
-		StopCircle, 
-		RotateCw, 
-		Trash2, 
-		FileText, 
+	import {
+		Loader2,
+		Server,
+		PlayCircle,
+		StopCircle,
+		RotateCw,
+		Trash2,
+		FileText,
 		Copy,
-		Activity,
-		CheckCircle2,
-		XCircle,
 		Clock,
-		Wifi
+		Wifi,
+		Search,
+		Filter,
+		ArrowUpDown
 	} from 'lucide-svelte';
 	import { myAppsStore, hasDeployingApps } from '$lib/stores/apps';
 	import { pageTitleStore } from '$lib/stores/pageTitle';
@@ -25,13 +25,17 @@
 	import { startApp, stopApp, restartApp, deleteApp, cloneApp } from '$lib/stores/actions';
 	import RackCard from '$lib/components/RackCard.svelte';
 	import CloneModal from '$lib/components/CloneModal.svelte';
-	import StatBlock from '$lib/components/dashboard/StatBlock.svelte';
 	import NavigationRack from '$lib/components/layout/NavigationRack.svelte';
 	import OperationalRack from '$lib/components/layout/OperationalRack.svelte';
 
 	let actionInProgress: Record<string, boolean> = {};
 	let showCloneModal = false;
 	let cloneSourceApp: any = null;
+
+	// Filter, Search, and Sort state
+	let selectedFilter: 'all' | 'running' | 'stopped' | 'error' | 'deploying' = 'all';
+	let searchQuery = '';
+	let sortBy: 'name' | 'created' | 'cpu' | 'memory' = 'created';
 
 	onMount(() => {
 		// Set page title
@@ -101,13 +105,59 @@
 		toasts.info('Refreshing apps...', 2000);
 	}
 
-	// Computed stats
+	// Computed stats (based on ALL apps, not filtered)
 	$: totalApps = $myAppsStore.apps.length;
 	$: runningApps = $myAppsStore.apps.filter((a) => a.status === 'running').length;
 	$: stoppedApps = $myAppsStore.apps.filter((a) => a.status === 'stopped').length;
 	$: deployingApps = $myAppsStore.apps.filter((a) => a.status === 'deploying').length;
 	$: cloningApps = $myAppsStore.apps.filter((a) => a.status === 'cloning').length;
+	$: errorApps = $myAppsStore.apps.filter((a) => a.status === 'error').length;
 	$: transitionalApps = deployingApps + cloningApps;
+
+	// Filtered, searched, and sorted apps (client-side)
+	$: filteredApps = (() => {
+		let apps = $myAppsStore.apps;
+
+		// 1. FILTER by status
+		if (selectedFilter !== 'all') {
+			apps = apps.filter((app) => app.status === selectedFilter);
+		}
+
+		// 2. SEARCH by name or hostname
+		if (searchQuery.trim()) {
+			const query = searchQuery.toLowerCase();
+			apps = apps.filter(
+				(app) =>
+					app.name?.toLowerCase().includes(query) ||
+					app.hostname?.toLowerCase().includes(query)
+			);
+		}
+
+		// 3. SORT
+		apps = [...apps]; // Create copy to avoid mutating original
+		switch (sortBy) {
+			case 'name':
+				apps.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+				break;
+			case 'created':
+				apps.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+				break;
+			case 'cpu':
+				apps.sort((a, b) => (b.cpu_usage || 0) - (a.cpu_usage || 0));
+				break;
+			case 'memory':
+				apps.sort((a, b) => {
+					const aPercent = a.memory_used && a.memory_total ? (a.memory_used / a.memory_total) * 100 : 0;
+					const bPercent = b.memory_used && b.memory_total ? (b.memory_used / b.memory_total) * 100 : 0;
+					return bPercent - aPercent;
+				});
+				break;
+		}
+
+		return apps;
+	})();
+
+	$: filteredCount = filteredApps.length;
 </script>
 
 <svelte:head>
@@ -127,73 +177,124 @@
 		<!-- Operational Control Panel Rack -->
 		<div class="px-6 pb-6">
 			<OperationalRack title="Application Fleet Operations">
-		<!-- Stats Slot -->
+		<!-- ========================================== -->
+		<!-- LEFT SECTION: Data-Rich Filters & Search/Sort -->
+		<!-- ========================================== -->
 		<svelte:fragment slot="stats">
-			<StatBlock 
-				label="Total" 
-				value={totalApps} 
-				icon={Server}
-				ledColor="var(--color-accent)"
-				borderColor="var(--color-accent)"
-			/>
-			
-			<StatBlock 
-				label="Running" 
-				value={runningApps} 
-				icon={CheckCircle2}
-				ledColor="var(--color-led-active)"
-				borderColor="rgba(16, 185, 129, 0.3)"
-				pulse={runningApps > 0}
-			/>
-			
-			<StatBlock 
-				label="Stopped" 
-				value={stoppedApps} 
-				icon={XCircle}
-				ledColor="var(--color-led-inactive)"
-				borderColor="var(--border-color-secondary)"
-			/>
-			
-			{#if transitionalApps > 0}
-				<StatBlock 
-					label="In Progress" 
-					value={transitionalApps} 
-					icon={Clock}
-					ledColor="var(--color-led-warning)"
-					borderColor="rgba(245, 158, 11, 0.3)"
-					pulse={true}
-				/>
-			{/if}
+			<div class="filters-group">
+				<!-- Filter Label + Icon -->
+				<div class="filter-label">
+					<Filter class="h-3.5 w-3.5" />
+					<span>FILTER BY:</span>
+				</div>
+
+				<!-- Data-Rich Filter Chips -->
+				<div class="filter-chips">
+					<button
+						class="filter-chip"
+						class:filter-chip-active={selectedFilter === 'all'}
+						on:click={() => (selectedFilter = 'all')}
+					>
+						<span>ALL</span>
+						<span class="chip-count">{totalApps}</span>
+					</button>
+					<button
+						class="filter-chip"
+						class:filter-chip-active={selectedFilter === 'running'}
+						on:click={() => (selectedFilter = 'running')}
+					>
+						<span>RUNNING</span>
+						<span class="chip-count">{runningApps}</span>
+					</button>
+					<button
+						class="filter-chip"
+						class:filter-chip-active={selectedFilter === 'stopped'}
+						on:click={() => (selectedFilter = 'stopped')}
+					>
+						<span>STOPPED</span>
+						<span class="chip-count">{stoppedApps}</span>
+					</button>
+					{#if transitionalApps > 0}
+						<button
+							class="filter-chip"
+							class:filter-chip-active={selectedFilter === 'deploying'}
+							on:click={() => (selectedFilter = 'deploying')}
+						>
+							<span>IN PROGRESS</span>
+							<span class="chip-count chip-count-pulse">{transitionalApps}</span>
+						</button>
+					{/if}
+					{#if errorApps > 0}
+						<button
+							class="filter-chip"
+							class:filter-chip-active={selectedFilter === 'error'}
+							on:click={() => (selectedFilter = 'error')}
+						>
+							<span>ERROR</span>
+							<span class="chip-count chip-count-danger">{errorApps}</span>
+						</button>
+					{/if}
+				</div>
+
+				<!-- Search Input -->
+				<div class="search-container">
+					<Search class="search-icon h-4 w-4" />
+					<input
+						type="text"
+						bind:value={searchQuery}
+						placeholder="Search apps..."
+						class="search-input"
+					/>
+				</div>
+
+				<!-- Sort Label + Icon -->
+				<div class="sort-label">
+					<ArrowUpDown class="h-3.5 w-3.5" />
+					<span>SORT BY:</span>
+				</div>
+
+				<!-- Sort Dropdown -->
+				<select bind:value={sortBy} class="sort-select">
+					<option value="created">Newest First</option>
+					<option value="name">Name (A-Z)</option>
+					<option value="cpu">CPU Usage (High)</option>
+					<option value="memory">Memory Usage (High)</option>
+				</select>
+			</div>
 		</svelte:fragment>
 
-		<!-- Actions Slot -->
+		<!-- ========================================== -->
+		<!-- RIGHT SECTION: System Actions -->
+		<!-- ========================================== -->
 		<svelte:fragment slot="actions">
-			<!-- Polling Indicator -->
-			{#if $hasDeployingApps}
-				<div class="polling-indicator" title="Real-time updates active - polling every 5 seconds">
-					<Wifi class="h-3.5 w-3.5 polling-icon" />
-					<span class="polling-text">Live Updates</span>
-				</div>
-			{/if}
+			<div class="actions-group">
+				<!-- Polling Indicator -->
+				{#if $hasDeployingApps}
+					<div class="polling-indicator" title="Real-time updates active - polling every 5 seconds">
+						<Wifi class="h-3.5 w-3.5 polling-icon" />
+						<span class="polling-text">Live Updates</span>
+					</div>
+				{/if}
 
-			<!-- Last Updated -->
-			{#if $myAppsStore.lastUpdated}
-				<div class="last-updated">
-					<Clock class="h-3.5 w-3.5" />
-					<span>{$myAppsStore.lastUpdated.toLocaleTimeString()}</span>
-				</div>
-			{/if}
+				<!-- Last Updated -->
+				{#if $myAppsStore.lastUpdated}
+					<div class="last-updated">
+						<Clock class="h-3.5 w-3.5" />
+						<span>{$myAppsStore.lastUpdated.toLocaleTimeString()}</span>
+					</div>
+				{/if}
 
-			<!-- Refresh Button -->
-			<button
-				on:click={handleRefresh}
-				disabled={$myAppsStore.loading}
-				class="refresh-button"
-				title="Refresh applications"
-			>
-				<RotateCw class={`h-4 w-4 ${$myAppsStore.loading ? 'animate-spin' : ''}`} />
-				<span>Refresh</span>
-			</button>
+				<!-- Refresh Button -->
+				<button
+					on:click={handleRefresh}
+					disabled={$myAppsStore.loading}
+					class="refresh-button"
+					title="Refresh applications"
+				>
+					<RotateCw class={`h-4 w-4 ${$myAppsStore.loading ? 'animate-spin' : ''}`} />
+					<span>Refresh</span>
+				</button>
+			</div>
 		</svelte:fragment>
 		</OperationalRack>
 		</div>
@@ -243,10 +344,28 @@
 				Visit the <a href="/store" class="text-cyan-400 hover:underline">App Store</a> to deploy your first application
 			</p>
 		</div>
+	{:else if filteredApps.length === 0}
+		<!-- No Results State (after filtering/searching) -->
+		<div class="flex min-h-[400px] flex-col items-center justify-center rounded-lg border-2 border-gray-700/50 bg-gray-800/30 p-8">
+			<Search class="mb-4 h-16 w-16 text-gray-600" />
+			<p class="mb-2 text-xl font-semibold text-gray-400">No Apps Found</p>
+			<p class="text-sm text-gray-500">
+				Try adjusting your filters or search query
+			</p>
+			<button
+				on:click={() => {
+					selectedFilter = 'all';
+					searchQuery = '';
+				}}
+				class="mt-4 rounded-lg bg-rack-primary/20 px-4 py-2 text-sm text-rack-primary transition-colors hover:bg-rack-primary/30"
+			>
+				Clear Filters
+			</button>
+		</div>
 	{:else}
 		<!-- Apps Rack - Vertical Stack -->
 		<div class="space-y-4">
-			{#each $myAppsStore.apps as app (app.id)}
+			{#each filteredApps as app (app.id)}
 				<RackCard {app} variant="deployed">
 					<svelte:fragment slot="actions">
 						{#if app.status === 'deploying'}
@@ -378,11 +497,6 @@
 	/* ============================================ */
 	/* IMMERSIVE COCKPIT LAYOUT */
 	/* ============================================ */
-	
-	.main-canvas {
-		min-height: 100vh;
-		background-color: var(--bg-rack-darker);
-	}
 
 	/* Sticky Header - Master Control + Operational Rack */
 	.sticky-header {
@@ -392,31 +506,211 @@
 		background-color: rgba(17, 24, 39, 0.95); /* Semi-transparent bg-rack-darker */
 		backdrop-filter: blur(12px);
 		-webkit-backdrop-filter: blur(12px);
-		padding: 1.5rem 2rem 0 2rem;
+		/* NO PADDING - handled by inner divs with px-6 pt-6 */
 		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
 	}
 
-	.master-control-wrapper {
-		margin-bottom: 1.5rem;
+	/* ============================================ */
+	/* FILTER, SEARCH, AND SORT CONTROLS */
+	/* ============================================ */
+
+	/* Filters Group (Left Section) */
+	.filters-group {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		flex-wrap: wrap;
 	}
 
-	.operational-rack-wrapper {
-		/* No extra margin - OperationalRack has its own spacing */
+	/* Actions Group (Right Section) */
+	.actions-group {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
 	}
 
-	/* Content Rack - Scrollable Area */
-	.content-rack {
-		padding: 2rem;
+	/* Filter Label */
+	.filter-label {
+		display: flex;
+		align-items: center;
+		gap: 0.375rem;
+		font-size: 0.625rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.1em;
+		color: var(--color-text-secondary);
 	}
 
-	/* Responsive adjustments */
-	@media (max-width: 1024px) {
-		.sticky-header {
-			padding: 1rem;
+	/* Sort Label */
+	.sort-label {
+		display: flex;
+		align-items: center;
+		gap: 0.375rem;
+		font-size: 0.625rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.1em;
+		color: var(--color-text-secondary);
+	}
+
+	/* Data-Rich Filter Chips */
+	.filter-chips {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.filter-chip {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.375rem 0.875rem;
+		font-size: 0.75rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		border-radius: 0.375rem;
+		border: 1px solid rgba(75, 85, 99, 0.3);
+		background: rgba(0, 0, 0, 0.3);
+		color: var(--color-text-secondary);
+		cursor: pointer;
+		transition: all 0.2s ease;
+	}
+
+	.filter-chip:hover {
+		border-color: rgba(14, 165, 233, 0.5);
+		background: rgba(14, 165, 233, 0.1);
+		color: #0ea5e9;
+	}
+
+	.filter-chip:hover .chip-count {
+		background: rgba(14, 165, 233, 0.3);
+	}
+
+	.filter-chip-active {
+		border-color: var(--color-accent);
+		background: rgba(14, 165, 233, 0.2);
+		color: var(--color-accent-bright);
+		box-shadow: 0 0 12px rgba(14, 165, 233, 0.3);
+	}
+
+	/* Count Badge */
+	.chip-count {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-width: 1.5rem;
+		height: 1.25rem;
+		padding: 0.125rem 0.5rem;
+		font-size: 0.75rem;
+		font-weight: 700;
+		line-height: 1;
+		background: rgba(255, 255, 255, 0.1);
+		border-radius: 9999px; /* Pill shape */
+		transition: all 0.2s ease;
+	}
+
+	/* Active chip badge */
+	.filter-chip-active .chip-count {
+		background: var(--color-accent);
+		color: white;
+		box-shadow: 0 0 8px rgba(14, 165, 233, 0.5);
+	}
+
+	/* Pulsing badge for transitional states */
+	.chip-count-pulse {
+		background: rgba(245, 158, 11, 0.2);
+		color: #fbbf24;
+		animation: badge-pulse 2s ease-in-out infinite;
+	}
+
+	.filter-chip-active .chip-count-pulse {
+		background: rgba(245, 158, 11, 0.9);
+		color: white;
+	}
+
+	/* Danger badge for error states */
+	.chip-count-danger {
+		background: rgba(239, 68, 68, 0.2);
+		color: #f87171;
+	}
+
+	.filter-chip-active .chip-count-danger {
+		background: rgba(239, 68, 68, 0.9);
+		color: white;
+	}
+
+	@keyframes badge-pulse {
+		0%, 100% {
+			opacity: 1;
 		}
-		
-		.content-rack {
-			padding: 1rem;
+		50% {
+			opacity: 0.6;
 		}
+	}
+
+	/* Search Input */
+	.search-container {
+		position: relative;
+		display: flex;
+		align-items: center;
+	}
+
+	.search-icon {
+		position: absolute;
+		left: 0.75rem;
+		color: var(--color-text-secondary);
+		pointer-events: none;
+	}
+
+	.search-input {
+		width: 240px;
+		padding: 0.5rem 0.75rem 0.5rem 2.5rem;
+		font-size: 0.875rem;
+		border-radius: 0.375rem;
+		border: 1px solid rgba(75, 85, 99, 0.3);
+		background: rgba(0, 0, 0, 0.3);
+		color: var(--color-text-primary);
+		transition: all 0.2s ease;
+	}
+
+	.search-input::placeholder {
+		color: var(--color-text-secondary);
+	}
+
+	.search-input:focus {
+		outline: none;
+		border-color: var(--color-accent);
+		box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+		background: rgba(0, 0, 0, 0.4);
+	}
+
+	/* Sort Dropdown */
+	.sort-select {
+		padding: 0.5rem 0.75rem;
+		font-size: 0.875rem;
+		font-weight: 500;
+		border-radius: 0.375rem;
+		border: 1px solid rgba(75, 85, 99, 0.3);
+		background: rgba(0, 0, 0, 0.3);
+		color: var(--color-text-primary);
+		cursor: pointer;
+		transition: all 0.2s ease;
+	}
+
+	.sort-select:hover {
+		border-color: rgba(14, 165, 233, 0.5);
+		background: rgba(14, 165, 233, 0.1);
+	}
+
+	.sort-select:focus {
+		outline: none;
+		border-color: var(--color-accent);
+		box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+	}
+
+	.sort-select option {
+		background: var(--bg-card);
+		color: var(--color-text-primary);
 	}
 </style>
