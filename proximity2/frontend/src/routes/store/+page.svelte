@@ -185,6 +185,16 @@
 
 		<!-- Actions Slot -->
 		<svelte:fragment slot="actions">
+			<!-- Category Filter Buttons -->
+			<CategoryFilter
+				{categories}
+				{selectedCategory}
+				onCategorySelect={handleCategorySelect}
+			/>
+
+			<!-- Divider -->
+			<div class="h-6 w-px bg-rack-primary/30"></div>
+
 			<!-- Search Input -->
 			<div class="relative w-80">
 				<Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
@@ -231,17 +241,8 @@
 			</button>
 		</div>
 	{:else}
-		<!-- Category Filter Bar - Full Width -->
-		<div class="mb-6">
-			<CategoryFilter
-				{categories}
-				{selectedCategory}
-				onCategorySelect={handleCategorySelect}
-			/>
-		</div>
-
 		<!-- App Catalog Content -->
-		<div class="w-full">
+		<div class="w-full mt-6">
 			{#if filteredApps.length === 0}
 				<div class="flex h-64 items-center justify-center rounded-lg border-2 border-dashed border-rack-primary/30 bg-rack-light/50">
 					<div class="text-center">

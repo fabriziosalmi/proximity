@@ -133,87 +133,96 @@
 </div>
 
 <style>
-	/* Settings Rack Unit - Dynamic Height */
+	/* Settings Rack Unit - Match RackCard exact styling */
 	.settings-rack-unit {
 		position: relative;
-		background: linear-gradient(180deg, var(--bg-rack-nav) 0%, var(--bg-card) 100%);
+		width: 100%;
+		max-width: 1600px;
+		margin: 0 auto;
+		min-height: 400px;
+		/* Match RackCard exact background and border */
+		background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 50%, #1a1a1a 100%);
+		border: 2px solid rgba(75, 85, 99, 0.4);
 		border-radius: 0.5rem;
-		border-top: 1px solid rgba(255, 255, 255, 0.1);
-		border-bottom: 2px solid rgba(0, 0, 0, 0.2);
+		padding: 2rem 4rem;
 		box-shadow: 
 			0 4px 6px rgba(0, 0, 0, 0.3),
-			inset 0 1px 0 rgba(255, 255, 255, 0.1),
-			inset 0 -1px 0 rgba(0, 0, 0, 0.2);
-		padding: 2rem 4rem;
-		min-height: 400px;
+			0 10px 30px rgba(0, 0, 0, 0.5),
+			inset 0 1px 0 rgba(255, 255, 255, 0.05),
+			inset 0 -1px 0 rgba(0, 0, 0, 0.5);
 		transition: all 0.3s ease;
 	}
 
-	/* Mounting Ears - Identical to RackCard */
+	/* Mounting Ears - Match RackCard exact styling */
 	.rack-ear {
 		position: absolute;
-		top: 1.5rem;
-		width: 2rem;
-		height: calc(100% - 3rem);
-		background: linear-gradient(90deg, #2a2a2a 0%, #1a1a1a 50%, #2a2a2a 100%);
-		border: 1px solid rgba(0, 0, 0, 0.5);
+		top: 0;
+		width: 2rem; /* Match RackCard width */
+		height: 100%;
+		/* Match RackCard exact ear gradient */
+		background: linear-gradient(180deg, #3a3a3a 0%, #2a2a2a 50%, #1a1a1a 100%);
+		border: 1px solid rgba(0, 0, 0, 0.8);
 		display: flex;
 		flex-direction: column;
 		justify-content: space-between;
 		align-items: center;
 		padding: 1rem 0;
 		z-index: 2;
+		/* Match RackCard shadow */
+		box-shadow: 
+			inset 1px 0 2px rgba(255, 255, 255, 0.1),
+			inset -1px 0 2px rgba(0, 0, 0, 0.5);
 	}
 
 	.rack-ear-left {
 		left: 0;
-		border-radius: 0.25rem 0 0 0.25rem;
+		border-radius: 0.5rem 0 0 0.5rem; /* Match outer border-radius */
 		border-right: none;
 	}
 
 	.rack-ear-right {
 		right: 0;
-		border-radius: 0 0.25rem 0.25rem 0;
+		border-radius: 0 0.5rem 0.5rem 0; /* Match outer border-radius */
 		border-left: none;
 	}
 
-	/* Screws - Identical to RackCard */
+	/* Screws - Match RackCard exact screw styling */
 	.screw {
 		width: 0.625rem;
 		height: 0.625rem;
 		background: radial-gradient(circle, #4a4a4a 0%, #2a2a2a 70%);
 		border-radius: 50%;
 		border: 1px solid rgba(0, 0, 0, 0.8);
-		position: relative;
 		box-shadow: 
 			inset 0 1px 2px rgba(255, 255, 255, 0.3),
 			inset 0 -1px 2px rgba(0, 0, 0, 0.5);
+		position: relative;
 	}
 
 	.screw::before {
 		content: '';
 		position: absolute;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
 		width: 50%;
 		height: 1px;
 		background: rgba(0, 0, 0, 0.6);
+		left: 25%;
+		top: 50%;
+		transform: translateY(-50%);
 	}
 
 	.screw-top {
-		margin-top: 0.5rem;
+		/* Remove custom margin - space-between handles it */
 	}
 
 	.screw-bottom {
-		margin-bottom: 0.5rem;
+		/* Remove custom margin - space-between handles it */
 	}
 
-	/* LED Strip - Identical to RackCard */
+	/* LED Strip - Match RackCard exact positioning */
 	.led-strip {
 		position: absolute;
-		top: 1rem;
-		right: 3rem;
+		top: 0.75rem; /* Match RackCard positioning */
+		right: 2.5rem;
 		display: flex;
 		gap: 0.25rem;
 		z-index: 3;
