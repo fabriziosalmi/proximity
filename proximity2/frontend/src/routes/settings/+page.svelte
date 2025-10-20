@@ -81,18 +81,17 @@
 			</div>
 		</div>
 
-		<div slot="actions" class="flex flex-wrap items-center gap-2">
+		<div slot="actions" class="settings-nav-container">
 			{#each tabs as tab}
 				<button
 					on:click={() => switchTab(tab.id)}
 					data-testid="tab-{tab.id}"
-					class="flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all
-						{activeTab === tab.id
-							? 'bg-rack-primary text-white shadow-lg shadow-rack-primary/30'
-							: 'bg-rack-light/50 text-gray-300 hover:bg-rack-light hover:text-white'}"
+					class="settings-nav-button"
+					class:settings-nav-button-active={activeTab === tab.id}
 				>
-					<svelte:component this={tab.icon} class="h-4 w-4" />
-					<span class="hidden sm:inline">{tab.label}</span>
+					<svelte:component this={tab.icon} class="h-5 w-5" />
+					<span class="settings-nav-label">{tab.label}</span>
+					<div class="settings-nav-indicator" class:active={activeTab === tab.id}></div>
 				</button>
 			{/each}
 		</div>
@@ -266,5 +265,69 @@
 		.led-strip {
 			right: 2rem;
 		}
+	}
+
+	/* Settings Navigation Container - Force horizontal layout */
+	.settings-nav-container {
+		display: flex !important;
+		flex-direction: row !important;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.5rem;
+		width: 100%;
+	}
+
+	/* Settings Navigation Buttons - Identical to NavigationRack */
+	.settings-nav-button {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.5rem 1rem;
+		border-radius: 0.25rem;
+		border: 1px solid rgba(75, 85, 99, 0.3);
+		background: rgba(31, 41, 55, 0.5);
+		color: var(--color-text-secondary, #9ca3af);
+		text-decoration: none;
+		font-size: 0.875rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		transition: all 0.2s ease;
+		position: relative;
+		cursor: pointer;
+		flex-shrink: 0;
+	}
+
+	.settings-nav-button:hover {
+		background: rgba(31, 41, 55, 0.8);
+		border-color: rgba(59, 130, 246, 0.5);
+		color: var(--color-text-primary, #e5e7eb);
+		box-shadow: 0 0 12px rgba(59, 130, 246, 0.3);
+	}
+
+	.settings-nav-button-active {
+		background: rgba(0, 212, 255, 0.15);
+		border-color: var(--color-accent-bright, #00d4ff);
+		color: var(--color-text-primary, #e5e7eb);
+		box-shadow: 0 0 12px rgba(0, 212, 255, 0.4);
+	}
+
+	.settings-nav-label {
+		white-space: nowrap;
+	}
+
+	.settings-nav-indicator {
+		width: 6px;
+		height: 6px;
+		border-radius: 50%;
+		background: var(--color-led-inactive, #374151);
+		transition: all 0.3s ease;
+		margin-left: auto;
+	}
+
+	.settings-nav-indicator.active {
+		background: var(--color-led-active, #4ade80);
+		box-shadow: 0 0 8px var(--color-led-active, #4ade80);
+		animation: pulse-led 2s ease-in-out infinite;
 	}
 </style>
