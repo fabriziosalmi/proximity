@@ -11,6 +11,7 @@
 	import ResourceSettings from '$lib/components/settings/ResourceSettings.svelte';
 	import NetworkSettings from '$lib/components/settings/NetworkSettings.svelte';
 	import SystemSettings from '$lib/components/settings/SystemSettings.svelte';
+	import NavigationRack from '$lib/components/layout/NavigationRack.svelte';
 
 	type Tab = 'proxmox' | 'resources' | 'network' | 'system';
 
@@ -59,6 +60,9 @@
 <svelte:head>
 	<title>Settings - Proximity</title>
 </svelte:head>
+
+<!-- Desktop Navigation Rack (visible only on lg: screens) -->
+<NavigationRack />
 
 <div class="min-h-screen bg-rack-darker p-6">
 	<!-- Header -->

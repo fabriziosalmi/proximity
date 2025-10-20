@@ -7,6 +7,7 @@
 	import { myAppsStore } from '$lib/stores/apps';
 	import { pageTitleStore } from '$lib/stores/pageTitle';
 	import { api } from '$lib/api';
+	import NavigationRack from '$lib/components/layout/NavigationRack.svelte';
 
 	// Dashboard stats
 	let catalogStats = { total: 0, categories: 0 };
@@ -56,6 +57,9 @@
 <svelte:head>
 	<title>Dashboard - Proximity</title>
 </svelte:head>
+
+<!-- Desktop Navigation Rack (visible only on lg: screens) -->
+<NavigationRack />
 
 <div class="dashboard-container">
 	<!-- Header -->

@@ -26,6 +26,7 @@
 	import RackCard from '$lib/components/RackCard.svelte';
 	import CloneModal from '$lib/components/CloneModal.svelte';
 	import StatBlock from '$lib/components/dashboard/StatBlock.svelte';
+	import NavigationRack from '$lib/components/layout/NavigationRack.svelte';
 
 	let actionInProgress: Record<string, boolean> = {};
 	let showCloneModal = false;
@@ -111,6 +112,9 @@
 <svelte:head>
 	<title>My Apps - Proximity</title>
 </svelte:head>
+
+<!-- Desktop Navigation Rack (visible only on lg: screens) -->
+<NavigationRack />
 
 <div class="min-h-screen bg-rack-darker p-6">
 	<!-- Operations Dashboard Header -->

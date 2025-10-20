@@ -13,6 +13,7 @@
 	import CategoryFilter from '$lib/components/CategoryFilter.svelte';
 	import DeploymentModal from '$lib/components/DeploymentModal.svelte';
 	import StatBlock from '$lib/components/dashboard/StatBlock.svelte';
+	import NavigationRack from '$lib/components/layout/NavigationRack.svelte';
 
 	let catalogApps: any[] = [];
 	let categories: string[] = [];
@@ -148,7 +149,10 @@
 	<title>App Store - Proximity</title>
 </svelte:head>
 
-<div class="min-h-screen bg-rack-darker p-4 md:p-6">
+<!-- Desktop Navigation Rack (visible only on lg: screens) -->
+<NavigationRack />
+
+<div class="min-h-screen bg-rack-darker p-6">
 	<!-- Operations Dashboard Header -->
 	<div class="dashboard-header">
 		<!-- Title Section -->

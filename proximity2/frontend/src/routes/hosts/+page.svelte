@@ -9,6 +9,7 @@
 	import { pageTitleStore } from '$lib/stores/pageTitle';
 	import { toasts } from '$lib/stores/toast';
 	import StatBlock from '$lib/components/dashboard/StatBlock.svelte';
+	import NavigationRack from '$lib/components/layout/NavigationRack.svelte';
 
 	interface ProxmoxNode {
 		id: number;
@@ -113,6 +114,9 @@
 <svelte:head>
 	<title>Proxmox Nodes - Proximity</title>
 </svelte:head>
+
+<!-- Desktop Navigation Rack (visible only on lg: screens) -->
+<NavigationRack />
 
 <div class="min-h-screen bg-rack-darker p-6">
 	<!-- Operations Dashboard Header -->
