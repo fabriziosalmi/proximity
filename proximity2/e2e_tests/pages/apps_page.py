@@ -416,12 +416,12 @@ class AppsPage:
         """
         import re
 
-        # Get the card (which has the data-testid)
-        card = self.get_app_card_by_hostname(hostname)
-
-        # Navigate up to the parent .card-container which has the is-flipped class
-        # The structure is: .card-container > .card-inner > .card-front (where card lives)
-        card_container = card.locator('..').locator('..')
+        # Get the card container directly using the data-testid
+        # Structure: .card-container[data-testid="rack-card-{hostname}"]
+        card_container = self.page.locator(f'[data-testid="rack-card-{hostname}"]')
+        
+        # Wait for the element to exist
+        expect(card_container).to_be_visible(timeout=5000)
 
         # Assert that the container has the 'is-flipped' class
         expect(card_container).to_have_class(re.compile(r'is-flipped'))

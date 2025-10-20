@@ -1,0 +1,49 @@
+/**
+ * Light Theme - Proximity 2.0
+ * Clean light mode with blue accents
+ */
+
+:root {
+	/* Background Colors */
+	--bg-primary: #ffffff;
+	--bg-secondary: #f9fafb;
+	--bg-card: #ffffff;
+	--bg-hover: #f3f4f6;
+
+	/* Text Colors */
+	--color-text-primary: #111827;
+	--color-text-secondary: #4b5563;
+	--color-text-tertiary: #6b7280;
+
+	/* Border Colors */
+	--border-color-primary: #e5e7eb;
+	--border-color-secondary: #f3f4f6;
+
+	/* Accent Colors */
+	--color-accent: #3b82f6; /* Blue */
+	--color-accent-hover: #2563eb;
+	--color-accent-light: #60a5fa;
+
+	/* Status LEDs */
+	--color-led-active: #10b981; /* Green */
+	--color-led-warning: #f59e0b; /* Amber */
+	--color-led-danger: #ef4444; /* Red */
+	--color-led-inactive: #9ca3af; /* Gray */
+
+	/* Semantic Colors */
+	--color-success: #10b981;
+	--color-warning: #f59e0b;
+	--color-error: #ef4444;
+	--color-info: #3b82f6;
+
+	/* Shadows */
+	--shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+	--shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+	--shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.15);
+	--shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+
+	/* Rack Card Specific */
+	--rack-bg: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+	--rack-border: #e5e7eb;
+	--rack-metal: linear-gradient(135deg, #d1d5db 0%, #e5e7eb 100%);
+}
