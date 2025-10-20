@@ -231,62 +231,46 @@
 			</button>
 		</div>
 	{:else}
-		<!-- Main content: Two-column layout -->
-		<div class="flex gap-6 overflow-visible">
-			<!-- Left sidebar: Category filter - Hidden on small screens -->
-			<div class="hidden lg:block w-64 flex-shrink-0">
-				<div class="sticky top-6">
-					<CategoryFilter
-						{categories}
-						{selectedCategory}
-						onCategorySelect={handleCategorySelect}
-					/>
+		<!-- Category Filter Bar - Full Width -->
+		<div class="mb-6">
+			<CategoryFilter
+				{categories}
+				{selectedCategory}
+				onCategorySelect={handleCategorySelect}
+			/>
+		</div>
+
+		<!-- App Catalog Content -->
+		<div class="w-full">
+			{#if filteredApps.length === 0}
+				<div class="flex h-64 items-center justify-center rounded-lg border-2 border-dashed border-rack-primary/30 bg-rack-light/50">
+					<div class="text-center">
+						<Package class="mx-auto h-16 w-16 text-gray-500" />
+						<p class="mt-4 text-gray-400">
+							{searchQuery || selectedCategory
+								? 'No apps match your filters'
+								: 'No apps available'}
+						</p>
+					</div>
 				</div>
-			</div>
-
-			<!-- Right content: App grid -->
-			<div class="flex-1 w-full overflow-visible pb-20">
-				{#if filteredApps.length === 0}
-					<div class="flex h-64 items-center justify-center rounded-lg border-2 border-dashed border-rack-primary/30 bg-rack-light/50">
-						<div class="text-center">
-							<Package class="mx-auto h-16 w-16 text-gray-500" />
-							<p class="mt-4 text-gray-400">
-								{searchQuery || selectedCategory
-									? 'No apps match your filters'
-									: 'No apps available'}
-							</p>
-						</div>
-					</div>
-				{:else}
-					<!-- Results count -->
-					<div class="mb-4 text-sm text-gray-400">
-						{filteredApps.length}
-						{filteredApps.length === 1 ? 'app' : 'apps'} found
-						{#if selectedCategory}
-							<span class="text-rack-primary">
-								in {selectedCategory}
-							</span>
-						{/if}
-					</div>
-
-					<!-- App Catalog Rack -->
-					<div class="rack-canvas pb-20">
-						{#each filteredApps as app (app.id)}
-							<RackCard {app} variant="catalog">
-								<div slot="actions" class="flex gap-2">
-									<button
-										on:click={() => handleDeployClick(app)}
-										data-testid="deploy-button-{app.id}"
-										class="rounded-lg bg-rack-primary px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-rack-primary/90"
-									>
-										Deploy
-									</button>
-								</div>
-							</RackCard>
-						{/each}
-					</div>
-				{/if}
-			</div>
+			{:else}
+				<!-- App Catalog Rack - Full Width Grid -->
+				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-20">
+					{#each filteredApps as app (app.id)}
+						<RackCard {app} variant="catalog">
+							<div slot="actions" class="flex gap-2">
+								<button
+									on:click={() => handleDeployClick(app)}
+									data-testid="deploy-button-{app.id}"
+									class="rounded-lg bg-rack-primary px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-rack-primary/90"
+								>
+									Deploy
+								</button>
+							</div>
+						</RackCard>
+					{/each}
+				</div>
+			{/if}
 		</div>
 	{/if}
 </div>
