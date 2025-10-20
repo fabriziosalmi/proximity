@@ -254,7 +254,7 @@
 		<div class="rack-canvas">
 			{#each $myAppsStore.apps as app (app.id)}
 				<RackCard {app} variant="deployed">
-					<div slot="actions" class="flex w-full flex-wrap gap-2">
+					<svelte:fragment slot="actions">
 						{#if app.status === 'deploying'}
 							<!-- Show view logs button while deploying -->
 							<button
@@ -361,7 +361,7 @@
 									{/if}
 								</button>
 							{/if}
-						</div>
+						</svelte:fragment>
 					</RackCard>
 				{/each}
 			</div>
