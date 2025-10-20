@@ -4,7 +4,7 @@
 	 */
 	import { onMount, onDestroy } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { Search, Loader2, Package, RefreshCw } from 'lucide-svelte';
+	import { Search, Loader2, Package, RefreshCw, ShoppingBag, Layers, Grid } from 'lucide-svelte';
 	import { api } from '$lib/api';
 	import { myAppsStore } from '$lib/stores/apps';
 	import { pageTitleStore } from '$lib/stores/pageTitle';
@@ -12,6 +12,7 @@
 	import RackCard from '$lib/components/RackCard.svelte';
 	import CategoryFilter from '$lib/components/CategoryFilter.svelte';
 	import DeploymentModal from '$lib/components/DeploymentModal.svelte';
+	import StatBlock from '$lib/components/dashboard/StatBlock.svelte';
 
 	let catalogApps: any[] = [];
 	let categories: string[] = [];
@@ -137,6 +138,10 @@
 			toasts.error(response.error || 'Failed to reload catalog', 5000);
 		}
 	}
+
+	// Computed stats
+	$: availableApps = catalogApps.length;
+	$: uniqueCategories = categories.length;
 </script>
 
 <svelte:head>
@@ -144,36 +149,66 @@
 </svelte:head>
 
 <div class="min-h-screen bg-rack-darker p-4 md:p-6">
-	<!-- Header -->
-	<div class="mb-6 flex-shrink-0">
-		<div class="flex items-center justify-between">
-			<div>
-				<h1 class="mb-2 text-4xl font-bold text-white">App Store</h1>
-				<p class="text-gray-400">
-					Browse and deploy applications from the catalog
-				</p>
-			</div>
+	<!-- Operations Dashboard Header -->
+	<div class="dashboard-header">
+		<!-- Title Section -->
+		<div class="header-title-section">
+			<h1 class="page-title">App Store</h1>
+			<p class="page-subtitle">Browse and deploy applications from the catalog</p>
+		</div>
+
+		<!-- Stats Bar - Premium Hardware Display -->
+		<div class="stats-bar">
+			<StatBlock 
+				label="Available Apps" 
+				value={availableApps} 
+				icon={ShoppingBag}
+				ledColor="var(--color-accent)"
+				borderColor="var(--color-accent)"
+			/>
+			
+			<StatBlock 
+				label="Categories" 
+				value={uniqueCategories} 
+				icon={Layers}
+				ledColor="var(--color-led-active)"
+				borderColor="rgba(16, 185, 129, 0.3)"
+			/>
+			
+			<StatBlock 
+				label="Filtered" 
+				value={filteredApps.length} 
+				icon={Grid}
+				ledColor="var(--color-accent)"
+				borderColor="var(--border-color-secondary)"
+			/>
+		</div>
+
+		<!-- Secondary Actions Bar -->
+		<div class="actions-bar">
+			<!-- Reload Button -->
 			<button
 				on:click={handleReload}
 				disabled={loading}
-				class="flex items-center gap-2 rounded-lg bg-rack-primary/10 px-4 py-2 text-rack-primary transition-colors hover:bg-rack-primary/20 disabled:opacity-50"
+				class="refresh-button"
+				title="Reload catalog from repository"
 			>
-				<RefreshCw class="h-4 w-4" />
-				Reload Catalog
+				<RefreshCw class={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+				<span>Reload Catalog</span>
 			</button>
 		</div>
+	</div>
 
-		<!-- Search bar -->
-		<div class="mt-6">
-			<div class="relative">
-				<Search class="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
-				<input
-					type="text"
-					bind:value={searchQuery}
-					placeholder="Search applications..."
-					class="w-full rounded-lg border border-rack-primary/30 bg-rack-light py-3 pl-12 pr-4 text-white placeholder-gray-500 focus:border-rack-primary focus:outline-none focus:ring-2 focus:ring-rack-primary/20"
-				/>
-			</div>
+	<!-- Search bar -->
+	<div class="mb-6">
+		<div class="relative">
+			<Search class="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+			<input
+				type="text"
+				bind:value={searchQuery}
+				placeholder="Search applications by name, description, or tags..."
+				class="w-full rounded-lg border border-rack-primary/30 bg-rack-light py-3 pl-12 pr-4 text-white placeholder-gray-500 focus:border-rack-primary focus:outline-none focus:ring-2 focus:ring-rack-primary/20"
+			/>
 		</div>
 	</div>
 

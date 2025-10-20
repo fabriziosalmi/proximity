@@ -1,15 +1,31 @@
 <script lang="ts">
 	/**
-	 * My Apps - Manage deployed applications
+	 * My Apps - Operations Dashboard
+	 * Premium hardware aesthetic with stat blocks and clean hierarchy
 	 */
 	import { onMount, onDestroy } from 'svelte';
-	import { Loader2, Server, PlayCircle, StopCircle, RotateCw, Trash2, FileText, Copy } from 'lucide-svelte';
+	import { 
+		Loader2, 
+		Server, 
+		PlayCircle, 
+		StopCircle, 
+		RotateCw, 
+		Trash2, 
+		FileText, 
+		Copy,
+		Activity,
+		CheckCircle2,
+		XCircle,
+		Clock,
+		Wifi
+	} from 'lucide-svelte';
 	import { myAppsStore, hasDeployingApps } from '$lib/stores/apps';
 	import { pageTitleStore } from '$lib/stores/pageTitle';
 	import { toasts } from '$lib/stores/toast';
 	import { startApp, stopApp, restartApp, deleteApp, cloneApp } from '$lib/stores/actions';
 	import RackCard from '$lib/components/RackCard.svelte';
 	import CloneModal from '$lib/components/CloneModal.svelte';
+	import StatBlock from '$lib/components/dashboard/StatBlock.svelte';
 
 	let actionInProgress: Record<string, boolean> = {};
 	let showCloneModal = false;
@@ -82,6 +98,14 @@
 		myAppsStore.fetchApps();
 		toasts.info('Refreshing apps...', 2000);
 	}
+
+	// Computed stats
+	$: totalApps = $myAppsStore.apps.length;
+	$: runningApps = $myAppsStore.apps.filter((a) => a.status === 'running').length;
+	$: stoppedApps = $myAppsStore.apps.filter((a) => a.status === 'stopped').length;
+	$: deployingApps = $myAppsStore.apps.filter((a) => a.status === 'deploying').length;
+	$: cloningApps = $myAppsStore.apps.filter((a) => a.status === 'cloning').length;
+	$: transitionalApps = deployingApps + cloningApps;
 </script>
 
 <svelte:head>
@@ -89,40 +113,84 @@
 </svelte:head>
 
 <div class="min-h-screen bg-rack-darker p-6">
-	<!-- Header -->
-	<div class="mb-8">
-		<div class="flex items-center justify-between">
-			<div>
-				<h1 class="mb-2 text-4xl font-bold text-white">My Apps</h1>
-				<p class="text-gray-400">Manage your deployed applications</p>
-			</div>
-			<button
-				on:click={handleRefresh}
-				disabled={$myAppsStore.loading}
-				class="flex items-center gap-2 rounded-lg bg-rack-primary/10 px-4 py-2 text-rack-primary transition-colors hover:bg-rack-primary/20 disabled:opacity-50"
-			>
-				<RotateCw class="h-4 w-4" />
-				Refresh
-			</button>
+	<!-- Operations Dashboard Header -->
+	<div class="dashboard-header">
+		<!-- Title Section -->
+		<div class="header-title-section">
+			<h1 class="page-title">My Apps</h1>
+			<p class="page-subtitle">Application Fleet Operations Dashboard</p>
 		</div>
 
-		<!-- Real-time status indicator -->
-		{#if $hasDeployingApps}
-			<div
-				class="mt-4 flex items-center gap-2 rounded-lg border border-yellow-500/50 bg-yellow-500/10 px-4 py-2 text-yellow-400"
-			>
-				<Loader2 class="h-4 w-4 animate-spin" />
-				<span class="text-sm">Deployments in progress - updates every 5 seconds</span>
-			</div>
-		{/if}
+		<!-- Stats Bar - Premium Hardware Display -->
+		<div class="stats-bar">
+			<StatBlock 
+				label="Total" 
+				value={totalApps} 
+				icon={Server}
+				ledColor="var(--color-accent)"
+				borderColor="var(--color-accent)"
+			/>
+			
+			<StatBlock 
+				label="Running" 
+				value={runningApps} 
+				icon={CheckCircle2}
+				ledColor="var(--color-led-active)"
+				borderColor="rgba(16, 185, 129, 0.3)"
+				pulse={runningApps > 0}
+			/>
+			
+			<StatBlock 
+				label="Stopped" 
+				value={stoppedApps} 
+				icon={XCircle}
+				ledColor="var(--color-led-inactive)"
+				borderColor="var(--border-color-secondary)"
+			/>
+			
+			{#if transitionalApps > 0}
+				<StatBlock 
+					label="In Progress" 
+					value={transitionalApps} 
+					icon={Clock}
+					ledColor="var(--color-led-warning)"
+					borderColor="rgba(245, 158, 11, 0.3)"
+					pulse={true}
+				/>
+			{/if}
+		</div>
 
-		{#if $myAppsStore.lastUpdated}
-			<p class="mt-2 text-xs text-gray-500">
-				Last updated: {$myAppsStore.lastUpdated.toLocaleTimeString()}
-			</p>
-		{/if}
+		<!-- Secondary Actions Bar -->
+		<div class="actions-bar">
+			<!-- Polling Indicator -->
+			{#if $hasDeployingApps}
+				<div class="polling-indicator" title="Real-time updates active - polling every 5 seconds">
+					<Wifi class="h-3.5 w-3.5 polling-icon" />
+					<span class="polling-text">Live Updates</span>
+				</div>
+			{/if}
+
+			<!-- Last Updated -->
+			{#if $myAppsStore.lastUpdated}
+				<div class="last-updated">
+					<Clock class="h-3.5 w-3.5" />
+					<span>{$myAppsStore.lastUpdated.toLocaleTimeString()}</span>
+				</div>
+			{/if}
+
+
+		<!-- Refresh Button -->
+		<button
+			on:click={handleRefresh}
+			disabled={$myAppsStore.loading}
+			class="refresh-button"
+			title="Refresh applications"
+		>
+			<RotateCw class={`h-4 w-4 ${$myAppsStore.loading ? 'animate-spin' : ''}`} />
+			<span>Refresh</span>
+		</button>
 	</div>
-
+</div>
 	<!-- Loading state with skeleton -->
 	{#if $myAppsStore.loading && $myAppsStore.apps.length === 0}
 		<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -182,43 +250,9 @@
 			</div>
 		</div>
 	{:else}
-		<!-- Apps grid -->
-		<div>
-			<!-- Stats overview -->
-			<div class="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-5">
-				<div class="rounded-lg border border-rack-primary/30 bg-rack-light p-4">
-					<p class="text-sm text-gray-400">Total Apps</p>
-					<p class="mt-1 text-2xl font-bold text-white">{$myAppsStore.apps.length}</p>
-				</div>
-				<div class="rounded-lg border border-green-500/30 bg-rack-light p-4">
-					<p class="text-sm text-gray-400">Running</p>
-					<p class="mt-1 text-2xl font-bold text-green-400">
-						{$myAppsStore.apps.filter((a) => a.status === 'running').length}
-					</p>
-				</div>
-				<div class="rounded-lg border border-yellow-500/30 bg-rack-light p-4">
-					<p class="text-sm text-gray-400">Deploying</p>
-					<p class="mt-1 text-2xl font-bold text-yellow-400">
-						{$myAppsStore.apps.filter((a) => a.status === 'deploying').length}
-					</p>
-				</div>
-				<div class="rounded-lg border border-blue-500/30 bg-rack-light p-4">
-					<p class="text-sm text-gray-400">Cloning</p>
-					<p class="mt-1 text-2xl font-bold text-blue-400">
-						{$myAppsStore.apps.filter((a) => a.status === 'cloning').length}
-					</p>
-				</div>
-				<div class="rounded-lg border border-gray-500/30 bg-rack-light p-4">
-					<p class="text-sm text-gray-400">Stopped</p>
-					<p class="mt-1 text-2xl font-bold text-gray-400">
-						{$myAppsStore.apps.filter((a) => a.status === 'stopped').length}
-					</p>
-				</div>
-			</div>
-
-			<!-- Apps Rack -->
-			<div class="rack-canvas">
-				{#each $myAppsStore.apps as app (app.id)}
+		<!-- Apps Rack -->
+		<div class="rack-canvas">
+			{#each $myAppsStore.apps as app (app.id)}
 					<RackCard {app} variant="deployed">
 						<div slot="actions" class="flex w-full flex-wrap gap-2">
 							{#if app.status === 'deploying'}
@@ -332,7 +366,6 @@
 					</RackCard>
 				{/each}
 			</div>
-		</div>
 	{/if}
 </div>
 

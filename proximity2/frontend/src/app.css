@@ -426,3 +426,114 @@ select:focus-visible {
 	transform: rotateY(180deg);
 	background: var(--bg-card-back, #0f1419);
 }
+
+/* ============================================ */
+/* OPERATIONS DASHBOARD - UNIFIED HEADER */
+/* ============================================ */
+
+.dashboard-header {
+	margin-bottom: 2rem;
+}
+
+.header-title-section {
+	margin-bottom: 1.5rem;
+}
+
+.page-title {
+	font-size: 2.5rem;
+	font-weight: 700;
+	color: var(--text-color-primary, #ffffff);
+	margin: 0 0 0.5rem 0;
+	letter-spacing: -0.025em;
+}
+
+.page-subtitle {
+	font-size: 1rem;
+	color: var(--text-color-secondary, #9ca3af);
+	margin: 0;
+}
+
+/* Stats Bar - Premium Hardware Display */
+.stats-bar {
+	display: flex;
+	gap: 1rem;
+	margin-bottom: 1rem;
+	flex-wrap: wrap;
+}
+
+/* Secondary Actions Bar */
+.actions-bar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	padding: 0.75rem 0;
+	border-top: 1px solid var(--border-color-secondary, #374151);
+}
+
+.polling-indicator {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.5rem 1rem;
+	background: rgba(14, 165, 233, 0.1);
+	border: 1px solid rgba(14, 165, 233, 0.3);
+	border-radius: 0.5rem;
+	color: #0ea5e9;
+	font-size: 0.875rem;
+}
+
+.polling-icon {
+	animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.last-updated {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	font-size: 0.75rem;
+	color: var(--text-color-secondary, #9ca3af);
+}
+
+.refresh-button {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	padding: 0.5rem 1rem;
+	background: rgba(14, 165, 233, 0.1);
+	border: 1px solid rgba(14, 165, 233, 0.3);
+	border-radius: 0.5rem;
+	color: #0ea5e9;
+	font-size: 0.875rem;
+	font-weight: 500;
+	transition: all 0.2s ease;
+	cursor: pointer;
+}
+
+.refresh-button:hover:not(:disabled) {
+	background: rgba(14, 165, 233, 0.2);
+	border-color: rgba(14, 165, 233, 0.5);
+	box-shadow: 0 0 15px rgba(14, 165, 233, 0.2);
+}
+
+.refresh-button:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+	.page-title {
+		font-size: 2rem;
+	}
+
+	.stats-bar {
+		flex-direction: column;
+	}
+
+	.actions-bar {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+}
+

@@ -2,11 +2,13 @@
 <!-- Manage and monitor Proxmox nodes in rack-mounted style -->
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
-	import { Loader2, Server, RotateCw, RefreshCw, TestTube } from 'lucide-svelte';
+	import { goto } from '$app/navigation';
+	import { Loader2, Server, RotateCw, RefreshCw, TestTube, Plus, CheckCircle2, XCircle, Cpu, HardDrive } from 'lucide-svelte';
 	import HostRackCard from '$lib/components/HostRackCard.svelte';
 	import { api } from '$lib/api';
 	import { pageTitleStore } from '$lib/stores/pageTitle';
 	import { toasts } from '$lib/stores/toast';
+	import StatBlock from '$lib/components/dashboard/StatBlock.svelte';
 
 	interface ProxmoxNode {
 		id: number;
@@ -82,6 +84,30 @@
 	$: onlineNodes = nodes.filter((n) => n.status === 'online').length;
 	$: offlineNodes = nodes.filter((n) => n.status === 'offline').length;
 	$: totalNodes = nodes.length;
+	
+	// Aggregate CPU usage (average of online nodes)
+	$: avgCpuUsage = onlineNodes > 0 
+		? Math.round(
+			nodes
+				.filter(n => n.status === 'online' && n.cpu_usage !== undefined)
+				.reduce((sum, n) => sum + (n.cpu_usage || 0), 0) / 
+			nodes.filter(n => n.status === 'online' && n.cpu_usage !== undefined).length
+		)
+		: 0;
+	
+	// Aggregate Memory usage (average of online nodes)
+	$: avgMemoryUsage = onlineNodes > 0
+		? Math.round(
+			nodes
+				.filter(n => n.status === 'online' && n.memory_used !== undefined && n.memory_total !== undefined)
+				.reduce((sum, n) => sum + ((n.memory_used || 0) / (n.memory_total || 1) * 100), 0) /
+			nodes.filter(n => n.status === 'online' && n.memory_used !== undefined && n.memory_total !== undefined).length
+		)
+		: 0;
+	
+	function handleAddHost() {
+		goto('/settings/proxmox');
+	}
 </script>
 
 <svelte:head>
@@ -89,62 +115,93 @@
 </svelte:head>
 
 <div class="min-h-screen bg-rack-darker p-6">
-	<!-- Header -->
-	<div class="mb-8">
-		<div class="flex items-center justify-between">
-			<div>
-				<h1 class="mb-2 text-4xl font-bold text-white">Proxmox Nodes</h1>
-				<p class="text-gray-400">Monitor and manage your Proxmox cluster nodes</p>
-			</div>
-			<button
-				on:click={handleRefresh}
-				disabled={loading}
-				class="flex items-center gap-2 rounded-lg bg-rack-primary/10 px-4 py-2 text-rack-primary transition-colors hover:bg-rack-primary/20 disabled:opacity-50"
-			>
-				<RotateCw class={loading ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
-				Refresh
-			</button>
+	<!-- Operations Dashboard Header -->
+	<div class="dashboard-header">
+		<!-- Title Section -->
+		<div class="header-title-section">
+			<h1 class="page-title">Infrastructure</h1>
+			<p class="page-subtitle">Manage and monitor your Proxmox cluster nodes</p>
 		</div>
 
-		{#if lastUpdated}
-			<p class="mt-2 text-xs text-gray-500">
-				Last updated: {lastUpdated.toLocaleTimeString()}
-			</p>
-		{/if}
+		<!-- Stats Bar - Premium Hardware Display -->
+		<div class="stats-bar">
+			<StatBlock 
+				label="Total Hosts" 
+				value={totalNodes} 
+				icon={Server}
+				ledColor="var(--color-accent)"
+				borderColor="var(--color-accent)"
+			/>
+			
+			<StatBlock 
+				label="Online" 
+				value={onlineNodes} 
+				icon={CheckCircle2}
+				ledColor="var(--color-led-active)"
+				borderColor="rgba(16, 185, 129, 0.3)"
+				pulse={onlineNodes > 0}
+			/>
+			
+			<StatBlock 
+				label="Offline" 
+				value={offlineNodes} 
+				icon={XCircle}
+				ledColor={offlineNodes > 0 ? "var(--color-led-danger)" : "var(--color-led-inactive)"}
+				borderColor={offlineNodes > 0 ? "rgba(239, 68, 68, 0.3)" : "var(--border-color-secondary)"}
+			/>
+			
+			{#if onlineNodes > 0}
+				<StatBlock 
+					label="Avg CPU" 
+					value={`${avgCpuUsage}%`} 
+					icon={Cpu}
+					ledColor="var(--color-accent)"
+					borderColor="rgba(14, 165, 233, 0.3)"
+				/>
+				
+				<StatBlock 
+					label="Avg Memory" 
+					value={`${avgMemoryUsage}%`} 
+					icon={HardDrive}
+					ledColor="var(--color-accent)"
+					borderColor="rgba(14, 165, 233, 0.3)"
+				/>
+			{/if}
+		</div>
+
+		<!-- Secondary Actions Bar -->
+		<div class="actions-bar">
+			{#if lastUpdated}
+				<div class="last-updated">
+					<RefreshCw class="h-3.5 w-3.5" />
+					<span>Last updated: {lastUpdated.toLocaleTimeString()}</span>
+				</div>
+			{/if}
+
+			<div class="flex gap-2">
+				<!-- Add Host Button -->
+				<button
+					on:click={handleAddHost}
+					class="flex items-center gap-2 rounded-lg bg-rack-primary px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-rack-primary/90"
+					title="Add new Proxmox host"
+				>
+					<Plus class="h-4 w-4" />
+					<span>Add Host</span>
+				</button>
+				
+				<!-- Refresh Button -->
+				<button
+					on:click={handleRefresh}
+					disabled={loading}
+					class="refresh-button"
+					title="Refresh node status"
+				>
+					<RotateCw class={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+					<span>Refresh</span>
+				</button>
+			</div>
+		</div>
 	</div>
-
-	<!-- Stats Summary -->
-	{#if !loading && nodes.length > 0}
-		<div class="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
-			<div class="rounded-lg border border-gray-700/50 bg-gray-800/50 p-4">
-				<div class="flex items-center gap-3">
-					<Server class="h-8 w-8 text-blue-400" />
-					<div>
-						<div class="text-sm text-gray-400">Total Nodes</div>
-						<div class="text-2xl font-bold text-white">{totalNodes}</div>
-					</div>
-				</div>
-			</div>
-			<div class="rounded-lg border border-green-500/20 bg-green-500/10 p-4">
-				<div class="flex items-center gap-3">
-					<Server class="h-8 w-8 text-green-400" />
-					<div>
-						<div class="text-sm text-green-200">Online</div>
-						<div class="text-2xl font-bold text-green-400">{onlineNodes}</div>
-					</div>
-				</div>
-			</div>
-			<div class="rounded-lg border border-red-500/20 bg-red-500/10 p-4">
-				<div class="flex items-center gap-3">
-					<Server class="h-8 w-8 text-red-400" />
-					<div>
-						<div class="text-sm text-red-200">Offline</div>
-						<div class="text-2xl font-bold text-red-400">{offlineNodes}</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	{/if}
 
 	<!-- Loading state with skeleton -->
 	{#if loading && nodes.length === 0}
