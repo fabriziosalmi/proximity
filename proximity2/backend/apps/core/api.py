@@ -15,6 +15,7 @@ from .schemas import (
     NetworkSettingsRequest, NetworkSettingsResponse
 )
 from .models import User, SystemSettings
+from .auth import JWTAuth
 from ninja.errors import HttpError
 
 router = Router()
@@ -131,14 +132,14 @@ def get_resource_settings(request):
     }
 
 
-@router.post("/settings/resources", response={200: ResourceSettingsResponse, 403: Dict})
+@router.post("/settings/resources", auth=JWTAuth(), response={200: ResourceSettingsResponse, 403: Dict})
 def update_resource_settings(request, payload: ResourceSettingsRequest):
     """
     Update default resource settings.
     Requires admin privileges.
     """
-    # Check admin permissions
-    if not request.user.is_authenticated or not request.user.is_staff:
+    # Check admin permissions (request.auth is the authenticated user from JWTAuth)
+    if not request.auth or not request.auth.is_staff:
         return 403, {"error": "Admin privileges required"}
 
     settings_obj = SystemSettings.load()
@@ -148,7 +149,7 @@ def update_resource_settings(request, payload: ResourceSettingsRequest):
     settings_obj.default_memory_mb = payload.default_memory_mb
     settings_obj.default_disk_gb = payload.default_disk_gb
     settings_obj.default_swap_mb = payload.default_swap_mb
-    settings_obj.updated_by = request.user
+    settings_obj.updated_by = request.auth
     settings_obj.save()
 
     return {
@@ -177,14 +178,14 @@ def get_network_settings(request):
     }
 
 
-@router.post("/settings/network", response={200: NetworkSettingsResponse, 400: Dict, 403: Dict})
+@router.post("/settings/network", auth=JWTAuth(), response={200: NetworkSettingsResponse, 400: Dict, 403: Dict})
 def update_network_settings(request, payload: NetworkSettingsRequest):
     """
     Update default network settings.
     Requires admin privileges.
     """
-    # Check admin permissions
-    if not request.user.is_authenticated or not request.user.is_staff:
+    # Check admin permissions (request.auth is the authenticated user from JWTAuth)
+    if not request.auth or not request.auth.is_staff:
         return 403, {"error": "Admin privileges required"}
 
     # Additional CIDR validation
@@ -212,7 +213,7 @@ def update_network_settings(request, payload: NetworkSettingsRequest):
     settings_obj.default_dns_primary = payload.default_dns_primary
     settings_obj.default_dns_secondary = payload.default_dns_secondary
     settings_obj.default_bridge = payload.default_bridge
-    settings_obj.updated_by = request.user
+    settings_obj.updated_by = request.auth
     settings_obj.save()
 
     return {
