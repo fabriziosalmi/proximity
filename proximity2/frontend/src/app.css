@@ -70,17 +70,17 @@ body {
 }
 
 /* ============================================ */
-/* COMMAND DECK V2 - RESPONSIVE ALL-IS-RACK LAYOUT */
+/* COMMAND DECK V2 - IMMERSIVE COCKPIT LAYOUT */
+/* TopBar eliminated - MasterControlRack is the sole command center */
 /* ============================================ */
 
-/* Mobile First: 3-area layout with vertical rack nav */
+/* Mobile First: 2-area layout with vertical rack nav (inside MasterControlRack) */
 .command-deck-v2 {
 	display: grid;
 	height: 100vh;
 	grid-template-columns: 60px 1fr;
-	grid-template-rows: 64px 1fr;
+	grid-template-rows: 1fr;
 	grid-template-areas:
-		"rack-nav top-bar"
 		"rack-nav main-canvas";
 	background-color: var(--bg-case, #111827);
 }
@@ -90,7 +90,8 @@ body {
 }
 
 .top-bar-area {
-	grid-area: top-bar;
+	/* ELIMINATED - TopBar removed, functionality in MasterControlRack */
+	display: none;
 }
 
 .main-canvas-area {
@@ -99,14 +100,12 @@ body {
 	padding: 1rem;
 }
 
-/* Desktop: 2-area layout, navigation moves into canvas */
+/* Desktop: Single area layout, MasterControlRack is inside canvas as sticky header */
 @media (min-width: 1024px) {
 	.command-deck-v2 {
 		grid-template-columns: 1fr;
-		grid-template-rows: 64px 1fr;
-		grid-template-areas:
-			"top-bar"
-			"main-canvas";
+		grid-template-rows: 1fr;
+		grid-template-areas: "main-canvas";
 	}
 	
 	.rack-nav-area {
@@ -114,7 +113,8 @@ body {
 	}
 	
 	.main-canvas-area {
-		padding: 2rem;
+		padding: 0;
+		/* No padding - content manages its own spacing */
 	}
 }
 

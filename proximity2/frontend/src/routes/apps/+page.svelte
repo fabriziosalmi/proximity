@@ -26,7 +26,7 @@
 	import RackCard from '$lib/components/RackCard.svelte';
 	import CloneModal from '$lib/components/CloneModal.svelte';
 	import StatBlock from '$lib/components/dashboard/StatBlock.svelte';
-	import NavigationRack from '$lib/components/layout/NavigationRack.svelte';
+	import MasterControlRack from '$lib/components/layout/MasterControlRack.svelte';
 	import OperationalRack from '$lib/components/layout/OperationalRack.svelte';
 
 	let actionInProgress: Record<string, boolean> = {};
@@ -114,12 +114,20 @@
 	<title>My Apps - Proximity</title>
 </svelte:head>
 
-<!-- Desktop Navigation Rack (visible only on lg: screens) -->
-<NavigationRack />
-
-<div class="min-h-screen bg-rack-darker p-6">
-	<!-- Operational Control Panel Rack -->
-	<OperationalRack title="Application Fleet Operations">
+<!-- ============================================ -->
+<!-- IMMERSIVE COCKPIT LAYOUT with STICKY RACKS -->
+<!-- ============================================ -->
+<div class="main-canvas">
+	<!-- Sticky Header: Master Control + Operational Rack -->
+	<header class="sticky-header">
+		<!-- MasterControlRack imported in layout - will stick at top -->
+		<div class="master-control-wrapper">
+			<MasterControlRack />
+		</div>
+		
+		<!-- Operational Control Panel Rack -->
+		<div class="operational-rack-wrapper">
+			<OperationalRack title="Application Fleet Operations">
 		<!-- Stats Slot -->
 		<svelte:fragment slot="stats">
 			<StatBlock 
@@ -188,9 +196,13 @@
 				<span>Refresh</span>
 			</button>
 		</svelte:fragment>
-	</OperationalRack>
+		</OperationalRack>
+		</div>
+	</header>
 
-	<!-- Loading state with skeleton -->
+	<!-- Scrollable Content Rack -->
+	<main class="content-rack">
+		<!-- Loading state with skeleton -->
 	{#if $myAppsStore.loading && $myAppsStore.apps.length === 0}
 		<div class="space-y-4">
 			{#each Array(3) as _, i}
@@ -347,6 +359,7 @@
 				{/each}
 			</div>
 	{/if}
+	</main>
 </div>
 
 <!-- Clone Modal -->
@@ -359,3 +372,50 @@
 		cloneSourceApp = null;
 	}}
 />
+
+<style>
+	/* ============================================ */
+	/* IMMERSIVE COCKPIT LAYOUT */
+	/* ============================================ */
+	
+	.main-canvas {
+		min-height: 100vh;
+		background-color: var(--bg-rack-darker);
+	}
+
+	/* Sticky Header - Master Control + Operational Rack */
+	.sticky-header {
+		position: sticky;
+		top: 0;
+		z-index: 50;
+		background-color: rgba(17, 24, 39, 0.95); /* Semi-transparent bg-rack-darker */
+		backdrop-filter: blur(12px);
+		-webkit-backdrop-filter: blur(12px);
+		padding: 1.5rem 2rem 0 2rem;
+		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+	}
+
+	.master-control-wrapper {
+		margin-bottom: 1.5rem;
+	}
+
+	.operational-rack-wrapper {
+		/* No extra margin - OperationalRack has its own spacing */
+	}
+
+	/* Content Rack - Scrollable Area */
+	.content-rack {
+		padding: 2rem;
+	}
+
+	/* Responsive adjustments */
+	@media (max-width: 1024px) {
+		.sticky-header {
+			padding: 1rem;
+		}
+		
+		.content-rack {
+			padding: 1rem;
+		}
+	}
+</style>

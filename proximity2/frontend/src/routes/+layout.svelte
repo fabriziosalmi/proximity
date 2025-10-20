@@ -3,8 +3,7 @@
 	import '../app.css';
 	import ToastContainer from '$lib/components/ToastContainer.svelte';
 	import CommandDeck from '$lib/components/layout/CommandDeck.svelte';
-	import NavigationRack from '$lib/components/layout/NavigationRack.svelte';
-	import TopBar from '$lib/components/layout/TopBar.svelte';
+	import MasterControlRack from '$lib/components/layout/MasterControlRack.svelte';
 	import { ThemeService } from '$lib/services/ThemeService';
 
 	// Initialize theme on app startup
@@ -17,14 +16,14 @@
 
 <CommandDeck>
 	<svelte:fragment slot="rack-nav">
-		<!-- Mobile-only vertical navigation rack -->
-		<NavigationRack />
+		<!-- Mobile-only vertical navigation rack (integrated in MasterControlRack) -->
+		<MasterControlRack />
 	</svelte:fragment>
 	<svelte:fragment slot="top-bar">
-		<TopBar />
+		<!-- TopBar ELIMINATED - functionality merged into MasterControlRack -->
 	</svelte:fragment>
 	<svelte:fragment slot="main-canvas">
-		<!-- Desktop horizontal navigation rack will be injected here by pages -->
+		<!-- Main content area - MasterControlRack will be sticky at top -->
 		<slot />
 	</svelte:fragment>
 </CommandDeck>
