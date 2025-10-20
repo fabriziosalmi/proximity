@@ -150,12 +150,19 @@
 	<title>App Store - Proximity</title>
 </svelte:head>
 
-<!-- Desktop Navigation Rack (visible only on lg: screens) -->
-<NavigationRack />
-
-<div class="min-h-screen bg-rack-darker p-6">
-	<!-- Operational Control Panel Rack -->
-	<OperationalRack title="Application Catalog">
+<div class="min-h-screen bg-rack-darker">
+	<!-- ============================================ -->
+	<!-- STICKY HEADER: Always-Visible Control Surface -->
+	<!-- ============================================ -->
+	<header class="sticky-header">
+		<!-- Desktop Navigation Rack (visible only on lg: screens) -->
+		<div class="px-6 pt-6">
+			<NavigationRack />
+		</div>
+		
+		<!-- Operational Control Panel Rack -->
+		<div class="px-6 pb-6">
+			<OperationalRack title="Application Catalog">
 		<!-- Stats Slot -->
 		<svelte:fragment slot="stats">
 			<StatBlock 
@@ -217,9 +224,15 @@
 				<span>Reload Catalog</span>
 			</button>
 		</svelte:fragment>
-	</OperationalRack>
+		</OperationalRack>
+		</div>
+	</header>
 
-	<!-- Loading state -->
+	<!-- ============================================ -->
+	<!-- SCROLLABLE CONTENT: Catalog Cards Flow Beneath -->
+	<!-- ============================================ -->
+	<main class="px-6 pb-6">
+		<!-- Loading state -->
 	{#if loading}
 		<div class="flex h-64 items-center justify-center">
 			<div class="text-center">

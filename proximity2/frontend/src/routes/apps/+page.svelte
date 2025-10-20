@@ -114,12 +114,19 @@
 	<title>My Apps - Proximity</title>
 </svelte:head>
 
-<!-- Desktop Navigation Rack (visible only on lg: screens) -->
-<NavigationRack />
-
-<div class="min-h-screen bg-rack-darker p-6">
-	<!-- Operational Control Panel Rack -->
-	<OperationalRack title="Application Fleet Operations">
+<div class="min-h-screen bg-rack-darker">
+	<!-- ============================================ -->
+	<!-- STICKY HEADER: Always-Visible Control Surface -->
+	<!-- ============================================ -->
+	<header class="sticky-header">
+		<!-- Desktop Navigation Rack (visible only on lg: screens) -->
+		<div class="px-6 pt-6">
+			<NavigationRack />
+		</div>
+		
+		<!-- Operational Control Panel Rack -->
+		<div class="px-6 pb-6">
+			<OperationalRack title="Application Fleet Operations">
 		<!-- Stats Slot -->
 		<svelte:fragment slot="stats">
 			<StatBlock 
@@ -188,9 +195,15 @@
 				<span>Refresh</span>
 			</button>
 		</svelte:fragment>
-	</OperationalRack>
+		</OperationalRack>
+		</div>
+	</header>
 
-	<!-- Loading state with skeleton -->
+	<!-- ============================================ -->
+	<!-- SCROLLABLE CONTENT: App Racks Flow Beneath -->
+	<!-- ============================================ -->
+	<main class="px-6 pb-6">
+		<!-- Loading state with skeleton -->
 	{#if $myAppsStore.loading && $myAppsStore.apps.length === 0}
 		<div class="space-y-4">
 			{#each Array(3) as _, i}
@@ -347,6 +360,7 @@
 				{/each}
 			</div>
 	{/if}
+	</main>
 </div>
 
 <!-- Clone Modal -->

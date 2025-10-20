@@ -118,6 +118,47 @@ body {
 	}
 }
 
+/* ============================================ */
+/* STICKY HEADER - IMMERSIVE COCKPIT CONTROLS */
+/* MasterControlRack + OperationalRack stay fixed on scroll */
+/* ============================================ */
+
+.sticky-header {
+	position: sticky;
+	top: 0;
+	z-index: 10;
+	/* Frosted glass effect - content blurs behind the control surface */
+	background-color: rgba(17, 24, 39, 0.8); /* --bg-case with transparency */
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px); /* Safari compatibility */
+	/* Subtle shadow to create depth separation */
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+	/* Smooth transition when sticking */
+	transition: box-shadow 0.3s ease;
+}
+
+/* Enhanced shadow when scrolled (optional enhancement) */
+.sticky-header.scrolled {
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+/* Ensure racks inside sticky header have proper spacing */
+.sticky-header > * {
+	margin-bottom: 0;
+}
+
+.sticky-header > *:not(:last-child) {
+	margin-bottom: 1.5rem;
+}
+
+/* Mobile: Sticky header adjusts for smaller screens */
+@media (max-width: 1023px) {
+	.sticky-header {
+		backdrop-filter: blur(8px);
+		-webkit-backdrop-filter: blur(8px);
+	}
+}
+
 /* Legacy support - will be deprecated */
 .command-deck {
 	display: grid;
