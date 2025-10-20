@@ -7,24 +7,21 @@ __pycache__/
 venv/
 env/
 ENV/
-.venv
 
 # Pytest
 .pytest_cache/
-.cache/
-htmlcov/
 .coverage
-.coverage.*
-coverage.xml
-*.cover
-.hypothesis/
+htmlcov/
+*.log
 
 # Playwright
 test-results/
-playwright/.cache/
-screenshots/
-videos/
-traces/
+playwright-report/
+*.mp4
+*.webm
+
+# Environment
+.env
 
 # IDE
 .vscode/
@@ -32,19 +29,7 @@ traces/
 *.swp
 *.swo
 *~
+
+# OS
 .DS_Store
-
-# Test reports
-report.html
-assets/
-*.xml
-
-# Environment
-.env
-.env.local
-*.log
-
-# Temporary files
-*.tmp
-tmp/
-temp/
+Thumbs.db

@@ -1,0 +1,381 @@
+<script lang="ts">
+	/**
+	 * My Apps - Operations Dashboard
+	 * Premium hardware aesthetic with stat blocks and clean hierarchy
+	 */
+	import { onMount, onDestroy } from 'svelte';
+	import { 
+		Loader2, 
+		Server, 
+		PlayCircle, 
+		StopCircle, 
+		RotateCw, 
+		Trash2, 
+		FileText, 
+		Copy,
+		Activity,
+		CheckCircle2,
+		XCircle,
+		Clock,
+		Wifi
+	} from 'lucide-svelte';
+	import { myAppsStore, hasDeployingApps } from '$lib/stores/apps';
+	import { pageTitleStore } from '$lib/stores/pageTitle';
+	import { toasts } from '$lib/stores/toast';
+	import { startApp, stopApp, restartApp, deleteApp, cloneApp } from '$lib/stores/actions';
+	import RackCard from '$lib/components/RackCard.svelte';
+	import CloneModal from '$lib/components/CloneModal.svelte';
+	import StatBlock from '$lib/components/dashboard/StatBlock.svelte';
+
+	let actionInProgress: Record<string, boolean> = {};
+	let showCloneModal = false;
+	let cloneSourceApp: any = null;
+
+	onMount(() => {
+		// Set page title
+		pageTitleStore.setTitle('My Apps');
+
+		// Start polling for real-time updates
+		myAppsStore.startPolling(5000);
+	});
+
+	onDestroy(() => {
+		// Stop polling when leaving the page
+		myAppsStore.stopPolling();
+	});
+
+	async function handleAction(appId: string, appName: string, action: 'start' | 'stop' | 'restart' | 'delete') {
+		// Set action in progress
+		actionInProgress[appId] = true;
+		actionInProgress = { ...actionInProgress };
+
+		// Use centralized action dispatcher (handles API, toasts, and sounds)
+		switch (action) {
+			case 'start':
+				await startApp(appId, appName);
+				break;
+			case 'stop':
+				await stopApp(appId, appName);
+				break;
+			case 'restart':
+				await restartApp(appId, appName);
+				break;
+			case 'delete':
+				await deleteApp(appId, appName);
+				break;
+		}
+
+		// Clear action in progress
+		actionInProgress[appId] = false;
+		actionInProgress = { ...actionInProgress };
+	}
+
+	async function handleViewLogs(appId: string, appName: string) {
+		toasts.info('Log viewer coming soon!', 3000);
+		// TODO: Implement log viewer modal
+	}
+
+	function handleClone(app: any) {
+		cloneSourceApp = app;
+		showCloneModal = true;
+	}
+
+	async function handleCloneSubmit(newHostname: string) {
+		console.log('Clone button clicked. Calling action dispatcher...');
+		if (!cloneSourceApp) return;
+
+		showCloneModal = false;
+
+		// Use centralized action dispatcher (handles API, toasts, and sounds)
+		const result = await cloneApp(cloneSourceApp.id, cloneSourceApp.name, newHostname);
+
+		if (result.success) {
+			cloneSourceApp = null;
+		}
+	}
+
+	function handleRefresh() {
+		myAppsStore.fetchApps();
+		toasts.info('Refreshing apps...', 2000);
+	}
+
+	// Computed stats
+	$: totalApps = $myAppsStore.apps.length;
+	$: runningApps = $myAppsStore.apps.filter((a) => a.status === 'running').length;
+	$: stoppedApps = $myAppsStore.apps.filter((a) => a.status === 'stopped').length;
+	$: deployingApps = $myAppsStore.apps.filter((a) => a.status === 'deploying').length;
+	$: cloningApps = $myAppsStore.apps.filter((a) => a.status === 'cloning').length;
+	$: transitionalApps = deployingApps + cloningApps;
+</script>
+
+<svelte:head>
+	<title>My Apps - Proximity</title>
+</svelte:head>
+
+<div class="min-h-screen bg-rack-darker p-6">
+	<!-- Operations Dashboard Header -->
+	<div class="dashboard-header">
+		<!-- Title Section -->
+		<div class="header-title-section">
+			<h1 class="page-title">My Apps</h1>
+			<p class="page-subtitle">Application Fleet Operations Dashboard</p>
+		</div>
+
+		<!-- Stats Bar - Premium Hardware Display -->
+		<div class="stats-bar">
+			<StatBlock 
+				label="Total" 
+				value={totalApps} 
+				icon={Server}
+				ledColor="var(--color-accent)"
+				borderColor="var(--color-accent)"
+			/>
+			
+			<StatBlock 
+				label="Running" 
+				value={runningApps} 
+				icon={CheckCircle2}
+				ledColor="var(--color-led-active)"
+				borderColor="rgba(16, 185, 129, 0.3)"
+				pulse={runningApps > 0}
+			/>
+			
+			<StatBlock 
+				label="Stopped" 
+				value={stoppedApps} 
+				icon={XCircle}
+				ledColor="var(--color-led-inactive)"
+				borderColor="var(--border-color-secondary)"
+			/>
+			
+			{#if transitionalApps > 0}
+				<StatBlock 
+					label="In Progress" 
+					value={transitionalApps} 
+					icon={Clock}
+					ledColor="var(--color-led-warning)"
+					borderColor="rgba(245, 158, 11, 0.3)"
+					pulse={true}
+				/>
+			{/if}
+		</div>
+
+		<!-- Secondary Actions Bar -->
+		<div class="actions-bar">
+			<!-- Polling Indicator -->
+			{#if $hasDeployingApps}
+				<div class="polling-indicator" title="Real-time updates active - polling every 5 seconds">
+					<Wifi class="h-3.5 w-3.5 polling-icon" />
+					<span class="polling-text">Live Updates</span>
+				</div>
+			{/if}
+
+			<!-- Last Updated -->
+			{#if $myAppsStore.lastUpdated}
+				<div class="last-updated">
+					<Clock class="h-3.5 w-3.5" />
+					<span>{$myAppsStore.lastUpdated.toLocaleTimeString()}</span>
+				</div>
+			{/if}
+
+
+		<!-- Refresh Button -->
+		<button
+			on:click={handleRefresh}
+			disabled={$myAppsStore.loading}
+			class="refresh-button"
+			title="Refresh applications"
+		>
+			<RotateCw class={`h-4 w-4 ${$myAppsStore.loading ? 'animate-spin' : ''}`} />
+			<span>Refresh</span>
+		</button>
+	</div>
+</div>
+	<!-- Loading state with skeleton -->
+	{#if $myAppsStore.loading && $myAppsStore.apps.length === 0}
+		<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+			{#each Array(6) as _, i}
+				<div class="animate-pulse rounded-lg border-2 border-gray-700/50 bg-gray-800/50 p-4">
+					<!-- Icon and title skeleton -->
+					<div class="mb-3 flex items-start gap-3">
+						<div class="h-12 w-12 flex-shrink-0 rounded-lg bg-gray-700/50"></div>
+						<div class="flex-1 space-y-2">
+							<div class="h-5 w-3/4 rounded bg-gray-700/50"></div>
+							<div class="h-4 w-1/2 rounded bg-gray-700/50"></div>
+						</div>
+					</div>
+					
+					<!-- Description skeleton -->
+					<div class="mb-3 space-y-2">
+						<div class="h-3 w-full rounded bg-gray-700/50"></div>
+						<div class="h-3 w-5/6 rounded bg-gray-700/50"></div>
+					</div>
+					
+					<!-- Metadata skeleton -->
+					<div class="mb-3 space-y-2 rounded bg-gray-900/50 p-2">
+						<div class="h-3 w-full rounded bg-gray-700/50"></div>
+						<div class="h-3 w-4/5 rounded bg-gray-700/50"></div>
+					</div>
+					
+					<!-- Buttons skeleton -->
+					<div class="mt-3 flex gap-2">
+						<div class="h-9 flex-1 rounded-lg bg-gray-700/50"></div>
+						<div class="h-9 flex-1 rounded-lg bg-gray-700/50"></div>
+					</div>
+				</div>
+			{/each}
+		</div>
+	{:else if $myAppsStore.error}
+		<!-- Error state -->
+		<div
+			class="rounded-lg border border-red-500/50 bg-red-500/10 p-8 text-center text-red-400"
+		>
+			<p class="mb-4">{$myAppsStore.error}</p>
+			<button
+				on:click={handleRefresh}
+				class="rounded-lg bg-red-500/20 px-6 py-2 transition-colors hover:bg-red-500/30"
+			>
+				Try Again
+			</button>
+		</div>
+	{:else if $myAppsStore.apps.length === 0}
+		<!-- Empty state -->
+		<div class="flex h-64 items-center justify-center rounded-lg border-2 border-dashed border-rack-primary/30 bg-rack-light/50">
+			<div class="text-center">
+				<Server class="mx-auto h-16 w-16 text-gray-500" />
+				<p class="mt-4 text-lg text-gray-400">No deployed apps yet</p>
+				<p class="mt-2 text-sm text-gray-500">
+					Visit the <a href="/store" class="text-rack-primary hover:underline">App Store</a> to deploy your first app
+				</p>
+			</div>
+		</div>
+	{:else}
+		<!-- Apps Rack -->
+		<div class="rack-canvas">
+			{#each $myAppsStore.apps as app (app.id)}
+				<RackCard {app} variant="deployed">
+					<div slot="actions" class="flex w-full flex-wrap gap-2">
+						{#if app.status === 'deploying'}
+							<!-- Show view logs button while deploying -->
+							<button
+								on:click={() => handleViewLogs(app.id, app.name)}
+								disabled={actionInProgress[app.id]}
+								class="action-btn action-btn-info flex-1"
+							>
+								<FileText class="h-4 w-4" />
+								<span>Logs</span>
+							</button>
+							{:else if app.status === 'running'}
+								<!-- Running: Show stop, restart, delete -->
+								<button
+									on:click={() => handleAction(app.id, app.name, 'stop')}
+									disabled={actionInProgress[app.id]}
+									class="flex flex-1 items-center justify-center gap-2 rounded-lg border border-rack-primary/30 bg-rack-darker px-3 py-2 text-sm text-yellow-400 transition-colors hover:bg-rack-darker/80 disabled:opacity-50"
+								>
+									{#if actionInProgress[app.id]}
+										<Loader2 class="h-4 w-4 animate-spin" />
+									{:else}
+										<StopCircle class="h-4 w-4" />
+									{/if}
+									Stop
+								</button>
+								<button
+									on:click={() => handleAction(app.id, app.name, 'restart')}
+									disabled={actionInProgress[app.id]}
+									class="flex flex-1 items-center justify-center gap-2 rounded-lg border border-rack-primary/30 bg-rack-darker px-3 py-2 text-sm text-rack-primary transition-colors hover:bg-rack-darker/80 disabled:opacity-50"
+								>
+									{#if actionInProgress[app.id]}
+										<Loader2 class="h-4 w-4 animate-spin" />
+									{:else}
+										<RotateCw class="h-4 w-4" />
+									{/if}
+									Restart
+								</button>
+								<button
+									data-testid="clone-button"
+									on:click={() => handleClone(app)}
+									disabled={actionInProgress[app.id]}
+									class="flex flex-1 items-center justify-center gap-2 rounded-lg border border-blue-500/30 bg-blue-500/10 px-3 py-2 text-sm text-blue-400 transition-colors hover:bg-blue-500/20 disabled:opacity-50"
+								>
+									<Copy class="h-4 w-4" />
+									Clone
+								</button>
+							{:else if app.status === 'stopped'}
+								<!-- Stopped: Show start, clone, delete -->
+								<button
+									on:click={() => handleAction(app.id, app.name, 'start')}
+									disabled={actionInProgress[app.id]}
+									class="flex flex-1 items-center justify-center gap-2 rounded-lg bg-rack-primary px-3 py-2 text-sm text-white transition-colors hover:bg-rack-primary/90 disabled:opacity-50"
+								>
+									{#if actionInProgress[app.id]}
+										<Loader2 class="h-4 w-4 animate-spin" />
+									{:else}
+										<PlayCircle class="h-4 w-4" />
+									{/if}
+									Start
+								</button>
+								<button
+									data-testid="clone-button"
+									on:click={() => handleClone(app)}
+									disabled={actionInProgress[app.id]}
+									class="flex flex-1 items-center justify-center gap-2 rounded-lg border border-blue-500/30 bg-blue-500/10 px-3 py-2 text-sm text-blue-400 transition-colors hover:bg-blue-500/20 disabled:opacity-50"
+								>
+									<Copy class="h-4 w-4" />
+									Clone
+								</button>
+							{:else if app.status === 'error'}
+								<!-- Error: Show restart, delete -->
+								<button
+									on:click={() => handleAction(app.id, app.name, 'restart')}
+									disabled={actionInProgress[app.id]}
+									class="flex flex-1 items-center justify-center gap-2 rounded-lg bg-yellow-500/20 px-3 py-2 text-sm text-yellow-400 transition-colors hover:bg-yellow-500/30 disabled:opacity-50"
+								>
+									{#if actionInProgress[app.id]}
+										<Loader2 class="h-4 w-4 animate-spin" />
+									{:else}
+										<RotateCw class="h-4 w-4" />
+									{/if}
+									Retry
+								</button>
+							{/if}
+
+							<!-- Delete button (always available except when deploying/deleting) -->
+							{#if app.status !== 'deploying' && app.status !== 'deleting'}
+								<button
+									data-testid="delete-button"
+									on:click={() => {
+										if (
+											confirm(
+												`Are you sure you want to delete ${app.name}? This action cannot be undone.`
+											)
+										) {
+											handleAction(app.id, app.name, 'delete');
+										}
+									}}
+									disabled={actionInProgress[app.id]}
+									class="flex items-center justify-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-400 transition-colors hover:bg-red-500/20 disabled:opacity-50"
+								>
+									{#if actionInProgress[app.id]}
+										<Loader2 class="h-4 w-4 animate-spin" />
+									{:else}
+										<Trash2 class="h-4 w-4" />
+									{/if}
+								</button>
+							{/if}
+						</div>
+					</RackCard>
+				{/each}
+			</div>
+	{/if}
+</div>
+
+<!-- Clone Modal -->
+<CloneModal
+	bind:show={showCloneModal}
+	sourceApp={cloneSourceApp}
+	on:submit={(e) => handleCloneSubmit(e.detail)}
+	on:close={() => {
+		showCloneModal = false;
+		cloneSourceApp = null;
+	}}
+/>

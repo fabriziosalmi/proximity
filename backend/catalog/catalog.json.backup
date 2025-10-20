@@ -1,0 +1,250 @@
+{
+  "items": [
+    {
+      "id": "wordpress",
+      "name": "WordPress",
+      "description": "Popular content management system and blogging platform",
+      "version": "latest",
+      "icon": "https://s.w.org/style/images/about/WordPress-logotype-wmark.png",
+      "category": "CMS",
+      "docker_compose": {
+        "version": "3.8",
+        "services": {
+          "wordpress": {
+            "image": "wordpress:latest",
+            "ports": ["80:80"],
+            "environment": {
+              "WORDPRESS_DB_HOST": "db",
+              "WORDPRESS_DB_USER": "wordpress",
+              "WORDPRESS_DB_PASSWORD": "wordpress_password",
+              "WORDPRESS_DB_NAME": "wordpress"
+            },
+            "volumes": ["wordpress_data:/var/www/html"],
+            "depends_on": ["db"]
+          },
+          "db": {
+            "image": "mysql:8.0",
+            "environment": {
+              "MYSQL_DATABASE": "wordpress",
+              "MYSQL_USER": "wordpress",
+              "MYSQL_PASSWORD": "wordpress_password",
+              "MYSQL_ROOT_PASSWORD": "root_password"
+            },
+            "volumes": ["db_data:/var/lib/mysql"]
+          }
+        },
+        "volumes": {
+          "wordpress_data": {},
+          "db_data": {}
+        }
+      },
+      "ports": [80],
+      "volumes": ["wordpress_data", "db_data"],
+      "environment": {
+        "WORDPRESS_DB_PASSWORD": "wordpress_password",
+        "MYSQL_ROOT_PASSWORD": "root_password"
+      },
+      "min_memory": 1024,
+      "min_cpu": 1
+    },
+    {
+      "id": "nextcloud",
+      "name": "Nextcloud",
+      "description": "Self-hosted file sync and share platform",
+      "version": "latest",
+      "icon": "https://nextcloud.com/wp-content/themes/next/assets/img/common/nextcloud-square-logo.png",
+      "category": "Storage",
+      "docker_compose": {
+        "version": "3.8",
+        "services": {
+          "nextcloud": {
+            "image": "nextcloud:latest",
+            "ports": ["80:80"],
+            "environment": {
+              "MYSQL_HOST": "db",
+              "MYSQL_USER": "nextcloud",
+              "MYSQL_PASSWORD": "nextcloud_password",
+              "MYSQL_DATABASE": "nextcloud"
+            },
+            "volumes": ["nextcloud_data:/var/www/html"],
+            "depends_on": ["db"]
+          },
+          "db": {
+            "image": "mysql:8.0",
+            "environment": {
+              "MYSQL_DATABASE": "nextcloud",
+              "MYSQL_USER": "nextcloud",
+              "MYSQL_PASSWORD": "nextcloud_password",
+              "MYSQL_ROOT_PASSWORD": "root_password"
+            },
+            "volumes": ["db_data:/var/lib/mysql"]
+          }
+        },
+        "volumes": {
+          "nextcloud_data": {},
+          "db_data": {}
+        }
+      },
+      "ports": [80],
+      "volumes": ["nextcloud_data", "db_data"],
+      "environment": {
+        "MYSQL_PASSWORD": "nextcloud_password",
+        "MYSQL_ROOT_PASSWORD": "root_password"
+      },
+      "min_memory": 2048,
+      "min_cpu": 2
+    },
+    {
+      "id": "portainer",
+      "name": "Portainer",
+      "description": "Container management platform",
+      "version": "latest",
+      "icon": "https://www.portainer.io/hubfs/portainer-logo-black.svg",
+      "category": "DevOps",
+      "docker_compose": {
+        "version": "3.8",
+        "services": {
+          "portainer": {
+            "image": "portainer/portainer-ce:latest",
+            "ports": ["9000:9000"],
+            "volumes": [
+              "/var/run/docker.sock:/var/run/docker.sock",
+              "portainer_data:/data"
+            ],
+            "restart": "always"
+          }
+        },
+        "volumes": {
+          "portainer_data": {}
+        }
+      },
+      "ports": [9000],
+      "volumes": ["portainer_data"],
+      "environment": {},
+      "min_memory": 512,
+      "min_cpu": 1
+    },
+    {
+      "id": "nginx",
+      "name": "Nginx",
+      "description": "High-performance web server and reverse proxy",
+      "version": "latest",
+      "icon": "https://nginx.org/nginx.png",
+      "category": "Web Server",
+      "docker_compose": {
+        "version": "3.8",
+        "services": {
+          "nginx": {
+            "image": "nginx:latest",
+            "ports": ["80:80", "443:443"],
+            "volumes": [
+              "nginx_data:/usr/share/nginx/html",
+              "nginx_config:/etc/nginx/conf.d"
+            ],
+            "restart": "always"
+          }
+        },
+        "volumes": {
+          "nginx_data": {},
+          "nginx_config": {}
+        }
+      },
+      "ports": [80, 443],
+      "volumes": ["nginx_data", "nginx_config"],
+      "environment": {},
+      "min_memory": 256,
+      "min_cpu": 1
+    },
+    {
+      "id": "gitea",
+      "name": "Gitea",
+      "description": "Lightweight self-hosted Git service with web interface",
+      "version": "latest",
+      "category": "DevOps",
+      "docker_compose": {
+        "version": "3.8",
+        "services": {
+          "gitea": {
+            "image": "gitea/gitea:latest",
+            "ports": ["3000:3000", "22:22"],
+            "environment": {
+              "USER_UID": "1000",
+              "USER_GID": "1000",
+              "GITEA__database__DB_TYPE": "postgres",
+              "GITEA__database__HOST": "db:5432",
+              "GITEA__database__NAME": "gitea",
+              "GITEA__database__USER": "gitea",
+              "GITEA__database__PASSWD": "gitea_password"
+            },
+            "volumes": [
+              "gitea_data:/data",
+              "/etc/timezone:/etc/timezone:ro",
+              "/etc/localtime:/etc/localtime:ro"
+            ],
+            "depends_on": ["db"],
+            "restart": "always"
+          },
+          "db": {
+            "image": "postgres:14",
+            "environment": {
+              "POSTGRES_DB": "gitea",
+              "POSTGRES_USER": "gitea",
+              "POSTGRES_PASSWORD": "gitea_password"
+            },
+            "volumes": ["postgres_data:/var/lib/postgresql/data"],
+            "restart": "always"
+          }
+        },
+        "volumes": {
+          "gitea_data": {},
+          "postgres_data": {}
+        }
+      },
+      "ports": [3000, 22],
+      "volumes": ["gitea_data", "postgres_data"],
+      "environment": {
+        "GITEA__database__PASSWD": "gitea_password",
+        "POSTGRES_PASSWORD": "gitea_password"
+      },
+      "min_memory": 1024,
+      "min_cpu": 1
+    },
+    {
+      "id": "n8n",
+      "name": "n8n",
+      "description": "Workflow automation tool - connect apps and automate tasks",
+      "version": "latest",
+      "category": "Automation",
+      "docker_compose": {
+        "version": "3.8",
+        "services": {
+          "n8n": {
+            "image": "n8nio/n8n:latest",
+            "ports": ["5678:5678"],
+            "environment": {
+              "N8N_HOST": "0.0.0.0",
+              "N8N_PORT": "5678",
+              "N8N_PROTOCOL": "http",
+              "NODE_ENV": "production",
+              "WEBHOOK_URL": "http://localhost:5678/",
+              "GENERIC_TIMEZONE": "UTC"
+            },
+            "volumes": ["n8n_data:/home/node/.n8n"],
+            "restart": "always"
+          }
+        },
+        "volumes": {
+          "n8n_data": {}
+        }
+      },
+      "ports": [5678],
+      "volumes": ["n8n_data"],
+      "environment": {
+        "WEBHOOK_URL": "http://localhost:5678/",
+        "GENERIC_TIMEZONE": "UTC"
+      },
+      "min_memory": 512,
+      "min_cpu": 1
+    }
+  ]
+}

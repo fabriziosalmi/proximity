@@ -1,370 +1,229 @@
-# Sentry Integration Guide - Proximity Platform
+# Sentry Integration Guide for Proximity 2.0
 
 ## Overview
 
-Sentry is now integrated into the Proximity platform frontend to provide real-time error tracking, performance monitoring, and session replay capabilities.
+Proximity 2.0 is now fully integrated with Sentry for comprehensive error and performance monitoring across both the Django backend and SvelteKit frontend. This follows our "Tranquillità by Default" pillar, ensuring we have full visibility into the application's health.
 
-## 📊 What Sentry Tracks
+## 🎯 What's Integrated
 
-### 1. **JavaScript Errors**
-- Uncaught exceptions
-- Unhandled promise rejections
-- Component mounting errors
-- Router navigation failures
-- API request failures
+### Backend (Django)
+- ✅ Full Django integration with `sentry-sdk[django]`
+- ✅ Celery task monitoring
+- ✅ Redis operation tracking
+- ✅ User context enrichment via middleware
+- ✅ Debug endpoint `/api/core/sentry-debug/` for verification
 
-### 2. **Performance Metrics**
+### Frontend (SvelteKit)
+- ✅ SvelteKit SDK with full observability
+- ✅ Performance tracing
+- ✅ Session replay (optional)
+- ✅ Log shipping to Sentry
+- ✅ User context enrichment on login/logout
+- ✅ Test button on home page
+
+## 📋 Configuration
+
+### Environment Variables
+
+**Backend & Frontend:**
+```bash
+SENTRY_DSN=https://your-dsn@sentry.io/project
+SENTRY_ENVIRONMENT=development|staging|production
+SENTRY_TRACES_SAMPLE_RATE=1.0  # 100% in dev, lower in prod
+```
+
+**Frontend Only:**
+```bash
+VITE_SENTRY_DSN=https://your-dsn@sentry.io/project
+VITE_SENTRY_ENVIRONMENT=development
+VITE_SENTRY_TRACES_SAMPLE_RATE=1.0
+VITE_SENTRY_DEBUG=false  # Set to true to send errors in dev mode
+```
+
+**Optional (for source maps & releases):**
+```bash
+SENTRY_ORG=your-org
+SENTRY_PROJECT=your-project
+SENTRY_AUTH_TOKEN=your-auth-token
+```
+
+### Docker Compose
+
+The `docker-compose.yml` is pre-configured with Sentry environment variables for:
+- `backend` service
+- `celery_worker` service
+- `celery_beat` service
+- `frontend` service
+
+## 🔍 Features
+
+### 1. Automatic Error Capture
+
+**Backend:**
+- All unhandled exceptions in Django views
+- Celery task failures
+- Redis connection errors
+- Database query errors
+
+**Frontend:**
+- JavaScript runtime errors
+- Promise rejections
+- Component errors
+- Network failures
+
+### 2. Performance Monitoring
+
+**Backend:**
+- Database query performance
+- Celery task duration
+- Redis operation timing
+- HTTP request/response times
+
+**Frontend:**
 - Page load times
-- View transition performance
-- API call latency
-- Resource loading times
+- Component render duration
+- API call performance
+- Navigation timing
 
-### 3. **Session Replay** (10% of normal sessions, 100% of error sessions)
-- User interactions leading to errors
-- Network requests
+### 3. User Context Enrichment
+
+**Backend Middleware:**
+```python
+# apps/core/middleware.py - SentryUserContextMiddleware
+# Automatically sets user context on every authenticated request
+{
+    "id": user.id,
+    "username": user.username,
+    "email": user.email
+}
+```
+
+**Frontend API Client:**
+```typescript
+// src/lib/api.ts - login() method
+// Sets user context on successful login
+Sentry.setUser({
+    id: user.id,
+    username: user.username,
+    email: user.email
+});
+```
+
+### 4. Development Mode Behavior
+
+**By default, Sentry does NOT send events in development mode** to reduce noise. This is controlled by the `beforeSend` hook.
+
+**To enable Sentry in dev mode:**
+- Backend: Set `SENTRY_DEBUG=True`
+- Frontend: Set `VITE_SENTRY_DEBUG=true`
+
+Errors will be logged to console regardless of sending.
+
+## 🧪 Testing the Integration
+
+### Backend Test
+
+1. **Start the application:**
+   ```bash
+   docker-compose up
+   ```
+
+2. **Hit the debug endpoint:**
+   ```bash
+   curl http://localhost:8000/api/core/sentry-debug/
+   ```
+
+3. **Expected result:**
+   - Console shows: `🔴 [Sentry Server] Error captured`
+   - Sentry dashboard shows: `ZeroDivisionError: Sentry test error from backend.`
+
+### Frontend Test
+
+1. **Navigate to:** `http://localhost:5173`
+
+2. **Click the "🐛 Test Sentry" button**
+
+3. **Expected result:**
+   - Console shows: `🔴 [Sentry Client] Error captured`
+   - Sentry dashboard shows: `Error: Sentry test error from frontend.`
+
+## 📊 What Gets Tracked
+
+### Context Information
+- **User:** ID, username, email (when authenticated)
+- **Environment:** development/staging/production
+- **Device:** Browser, OS, screen resolution (frontend)
+- **Request:** URL, method, headers, body
+- **Performance:** Response times, query counts
+
+### Breadcrumbs
+- HTTP requests
+- Database queries
 - Console logs
-- DOM mutations
+- User interactions (clicks, navigation)
+- Cache operations
 
-### 4. **Breadcrumbs**
-- Navigation history
-- User actions (clicks, form submissions)
-- API calls
-- Custom application events
+## 🚀 Production Recommendations
 
-## 🔧 Configuration
-
-### Environment Detection
-Sentry automatically detects the environment:
-- `localhost` or `127.0.0.1` → `development`
-- Other domains → `production`
-
-### Development Mode
-By default, Sentry **does not send events** from localhost to avoid cluttering production data.
-
-To enable Sentry in development:
-```javascript
-localStorage.setItem('sentry_debug_enabled', 'true');
-```
-
-To disable again:
-```javascript
-localStorage.removeItem('sentry_debug_enabled');
-```
-
-## 📝 Manual Error Reporting
-
-### Basic Error Capture
-```javascript
-try {
-    // Your code
-} catch (error) {
-    window.reportToSentry(error, {
-        context: 'app_deployment',
-        app_name: 'wordpress',
-        user_action: 'deploy_button_clicked',
-    });
-}
-```
-
-### Custom Events
-```javascript
-// Track important application events
-window.captureAppEvent('deployment_failed', {
-    app_name: 'wordpress',
-    error_code: 'TIMEOUT',
-    duration_seconds: 120,
-});
-```
-
-### Debug Breadcrumbs
-```javascript
-// Add custom breadcrumbs for debugging
-window.addDebugBreadcrumb('User clicked deploy button', {
-    app_id: 123,
-    app_name: 'wordpress',
-    node_id: 'pve1',
-});
-```
-
-## 🎯 Integration Points
-
-### 1. Router (Already Integrated)
-- Navigation breadcrumbs automatically added
-- View mounting errors captured
-- Component registration errors tracked
-
-### 2. API Calls
-Add to your API utility:
-```javascript
-async function apiCall(endpoint, options) {
-    try {
-        const response = await fetch(endpoint, options);
-        if (!response.ok) {
-            const error = new Error(`API Error: ${response.status}`);
-            window.reportToSentry(error, {
-                context: 'api_call',
-                endpoint,
-                status: response.status,
-                method: options.method,
-            });
-        }
-        return response;
-    } catch (error) {
-        window.reportToSentry(error, {
-            context: 'api_call',
-            endpoint,
-            network_error: true,
-        });
-        throw error;
-    }
-}
-```
-
-### 3. Deployment Flow
-```javascript
-async function deployApp(appData) {
-    window.addDebugBreadcrumb('Starting deployment', {
-        app: appData.name,
-        node: appData.node_id,
-    });
-
-    try {
-        const result = await api.post('/api/v1/apps', appData);
-        
-        window.captureAppEvent('deployment_success', {
-            app_name: appData.name,
-            duration: result.duration,
-        });
-        
-        return result;
-    } catch (error) {
-        window.reportToSentry(error, {
-            context: 'deployment',
-            app_data: appData,
-            error_type: error.constructor.name,
-        });
-        throw error;
-    }
-}
-```
-
-### 4. View Components
-In your view mount functions:
-```javascript
-export function mount(container, state) {
-    window.addDebugBreadcrumb(`Mounting ${viewName} view`, {
-        has_data: !!state.apps,
-        app_count: state.apps?.length || 0,
-    });
-
-    try {
-        // Your mount logic
-        renderView(container, state);
-        
-        return () => {
-            // Cleanup
-            container.innerHTML = '';
-        };
-    } catch (error) {
-        window.reportToSentry(error, {
-            context: 'view_mount',
-            view: viewName,
-            state_keys: Object.keys(state),
-        });
-        throw error;
-    }
-}
-```
-
-## 🔍 Accessing Sentry Dashboard
-
-### URL
-https://proximity.sentry.io
-
-### What to Look For
-
-#### 1. **Issues Tab**
-- See all captured errors grouped by type
-- View error frequency and affected users
-- Access full stack traces
-- Watch session replays of errors
-
-#### 2. **Performance Tab**
-- Transaction overview (page loads, navigation)
-- Slowest operations
-- Performance trends over time
-
-#### 3. **Replays Tab**
-- Watch user sessions that encountered errors
-- See exactly what the user did before the error
-- Review network calls and console logs
-
-## 🎮 Testing Sentry Integration
-
-### Test Error Capture
-Open browser console and run:
-```javascript
-// Enable Sentry in development
-localStorage.setItem('sentry_debug_enabled', 'true');
-
-// Test basic error
-throw new Error('Test Sentry integration');
-
-// Test custom event
-window.captureAppEvent('test_event', { test: true });
-
-// Test breadcrumb
-window.addDebugBreadcrumb('Test breadcrumb', { action: 'test' });
-```
-
-### Test Router Integration
-```javascript
-// Navigate to trigger breadcrumbs
-router.navigateTo('apps');
-router.navigateTo('catalog');
-
-// Force a navigation error (view doesn't exist)
-router.navigateTo('nonexistent_view');
-```
-
-## 📊 Monitoring Best Practices
-
-### 1. **Error Grouping**
-Use consistent context keys:
-```javascript
-window.reportToSentry(error, {
-    context: 'deployment',  // Group by context
-    app_name: 'wordpress',  // Group by app
-    error_type: 'timeout',  // Group by error type
-});
-```
-
-### 2. **Breadcrumbs for User Flow**
-Add breadcrumbs at key interaction points:
-```javascript
-// Before critical operations
-window.addDebugBreadcrumb('User opened app configuration', { app_id: 123 });
-window.addDebugBreadcrumb('User clicked save', { fields_changed: ['cpu', 'memory'] });
-```
-
-### 3. **Performance Tags**
-Tag slow operations:
-```javascript
-const startTime = performance.now();
-try {
-    await loadCatalog();
-} finally {
-    const duration = performance.now() - startTime;
-    if (duration > 5000) {
-        window.captureAppEvent('slow_catalog_load', {
-            duration_ms: duration,
-            item_count: items.length,
-        });
-    }
-}
-```
-
-## 🚫 What NOT to Log
-
-### 1. **Sensitive Data**
-```javascript
-// ❌ DON'T
-window.reportToSentry(error, {
-    password: user.password,        // Never!
-    api_key: settings.api_key,      // Never!
-    token: localStorage.token,      // Never!
-});
-
-// ✅ DO
-window.reportToSentry(error, {
-    user_id: user.id,               // OK
-    has_password: !!user.password,  // OK
-    has_api_key: !!settings.api_key,// OK
-});
-```
-
-### 2. **PII (Personally Identifiable Information)**
-Sentry config already masks:
-- All text in session replays
-- All media in session replays
-
-But be cautious in custom contexts:
-```javascript
-// ❌ DON'T
-window.reportToSentry(error, {
-    email: user.email,           // Masked automatically, but avoid
-    full_name: user.full_name,   // Avoid
-});
-
-// ✅ DO
-window.reportToSentry(error, {
-    user_id: user.id,            // OK - non-identifiable
-    role: user.role,             // OK
-});
-```
-
-## 🔔 Alert Configuration
-
-### Recommended Alerts (Configure in Sentry)
-
-1. **High Error Rate**
-   - Trigger: >10 errors/minute
-   - Notify: Slack, Email
-
-2. **New Error Type**
-   - Trigger: First occurrence of new error
-   - Notify: Slack
-
-3. **Performance Degradation**
-   - Trigger: P95 response time >3s
-   - Notify: Email
-
-4. **Critical Errors**
-   - Trigger: Any error in deployment flow
-   - Notify: Slack, Email (immediate)
-
-## 📈 Success Metrics
-
-Track these in Sentry:
-
-1. **Error Rate Trend** (target: <0.1% of sessions)
-2. **Mean Time to Resolution** (target: <24h)
-3. **Error-Free Session Rate** (target: >99.5%)
-4. **Performance Score** (target: >80/100)
-
-## 🛠️ Troubleshooting
-
-### Sentry Not Capturing Errors
-
-1. **Check SDK loaded:**
-   ```javascript
-   console.log(typeof Sentry); // Should be 'object'
+1. **Lower Sample Rates:**
+   ```bash
+   SENTRY_TRACES_SAMPLE_RATE=0.1  # 10% of transactions
    ```
 
-2. **Check development mode:**
-   ```javascript
-   console.log(localStorage.getItem('sentry_debug_enabled'));
+2. **Enable Session Replay only for errors:**
+   ```typescript
+   replaysSessionSampleRate: 0.1,  // 10% of all sessions
+   replaysOnErrorSampleRate: 1.0,  // 100% of sessions with errors
    ```
 
-3. **Check environment:**
-   ```javascript
-   console.log(window.location.hostname);
-   ```
+3. **Set Up Alerts:**
+   - Configure Sentry alerts for critical errors
+   - Set up Slack/email notifications
+   - Define SLA thresholds
 
-### Events Not Appearing in Dashboard
+4. **Source Maps:**
+   - Use `.env.sentry-build-plugin` for automatic upload
+   - Configure `SENTRY_AUTH_TOKEN` for CI/CD
 
-1. **Check allowUrls filter** in `sentry-config.js`
-2. **Check beforeSend filter** for blocked events
-3. **Verify DSN is correct**
+5. **Data Scrubbing:**
+   - Review `send_default_pii` setting
+   - Configure data scrubbing rules in Sentry dashboard
+   - Be mindful of GDPR compliance
+
+## 📚 Files Modified/Created
+
+### Backend
+- `backend/requirements.txt` - Added `sentry-sdk[django]==1.39.2`
+- `backend/proximity/settings.py` - Sentry initialization
+- `backend/apps/core/middleware.py` - **NEW** User context middleware
+- `backend/apps/core/api.py` - Debug endpoint
+
+### Frontend
+- `frontend/src/hooks.server.ts` - Server-side Sentry init
+- `frontend/src/hooks.client.ts` - Client-side Sentry init
+- `frontend/src/instrumentation.server.ts` - **NEW** Server instrumentation
+- `frontend/src/lib/api.ts` - User context on login/logout
+- `frontend/src/routes/+page.svelte` - Test button
+
+### Configuration
+- `.env.example` - Sentry environment variables
+- `docker-compose.yml` - Sentry env vars for all services
 
 ## 🔗 Resources
 
-- **Sentry Dashboard:** https://proximity.sentry.io
-- **Sentry Docs:** https://docs.sentry.io/platforms/javascript/
-- **JavaScript SDK:** https://docs.sentry.io/platforms/javascript/guides/browser/
+- [Sentry Django Documentation](https://docs.sentry.io/platforms/python/guides/django/)
+- [Sentry SvelteKit Documentation](https://docs.sentry.io/platforms/javascript/guides/sveltekit/)
+- [Proximity 2.0 Sentry Dashboard](https://sentry.io/organizations/fabriziosalmi/projects/proximity/)
+
+## 🎉 Benefits
+
+1. **Immediate Issue Detection:** Know about errors before users report them
+2. **Performance Insights:** Identify slow queries and bottlenecks
+3. **User Impact Analysis:** See how many users are affected by each issue
+4. **Release Tracking:** Monitor error rates across deployments
+5. **Peace of Mind:** "Tranquillità by Default" ✅
 
 ---
 
-**Last Updated:** 2025-10-14  
-**Sentry Version:** Browser SDK 7.x  
-**Integration Status:** ✅ Active
+**Last Updated:** October 19, 2025  
+**Sentry Version:** SDK 1.39.2 (Backend) | @sentry/sveltekit 10.20.0 (Frontend)
