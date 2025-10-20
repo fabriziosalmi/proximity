@@ -14,6 +14,7 @@
 	import DeploymentModal from '$lib/components/DeploymentModal.svelte';
 	import StatBlock from '$lib/components/dashboard/StatBlock.svelte';
 	import NavigationRack from '$lib/components/layout/NavigationRack.svelte';
+	import OperationalRack from '$lib/components/layout/OperationalRack.svelte';
 
 	let catalogApps: any[] = [];
 	let categories: string[] = [];
@@ -153,16 +154,10 @@
 <NavigationRack />
 
 <div class="min-h-screen bg-rack-darker p-6">
-	<!-- Operations Dashboard Header -->
-	<div class="dashboard-header">
-		<!-- Title Section -->
-		<div class="header-title-section">
-			<h1 class="page-title">App Store</h1>
-			<p class="page-subtitle">Browse and deploy applications from the catalog</p>
-		</div>
-
-		<!-- Stats Bar - Premium Hardware Display -->
-		<div class="stats-bar">
+	<!-- Operational Control Panel Rack -->
+	<OperationalRack title="Application Catalog">
+		<!-- Stats Slot -->
+		<svelte:fragment slot="stats">
 			<StatBlock 
 				label="Available Apps" 
 				value={availableApps} 
@@ -186,10 +181,21 @@
 				ledColor="var(--color-accent)"
 				borderColor="var(--border-color-secondary)"
 			/>
-		</div>
+		</svelte:fragment>
 
-		<!-- Secondary Actions Bar -->
-		<div class="actions-bar">
+		<!-- Actions Slot -->
+		<svelte:fragment slot="actions">
+			<!-- Search Input -->
+			<div class="relative w-80">
+				<Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+				<input
+					type="text"
+					bind:value={searchQuery}
+					placeholder="Search apps..."
+					class="w-full rounded-lg border border-rack-primary/30 bg-rack-light py-2 pl-10 pr-4 text-sm text-white placeholder-gray-500 focus:border-rack-primary focus:outline-none focus:ring-2 focus:ring-rack-primary/20"
+				/>
+			</div>
+
 			<!-- Reload Button -->
 			<button
 				on:click={handleReload}
@@ -200,21 +206,8 @@
 				<RefreshCw class={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
 				<span>Reload Catalog</span>
 			</button>
-		</div>
-	</div>
-
-	<!-- Search bar -->
-	<div class="mb-6">
-		<div class="relative">
-			<Search class="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
-			<input
-				type="text"
-				bind:value={searchQuery}
-				placeholder="Search applications by name, description, or tags..."
-				class="w-full rounded-lg border border-rack-primary/30 bg-rack-light py-3 pl-12 pr-4 text-white placeholder-gray-500 focus:border-rack-primary focus:outline-none focus:ring-2 focus:ring-rack-primary/20"
-			/>
-		</div>
-	</div>
+		</svelte:fragment>
+	</OperationalRack>
 
 	<!-- Loading state -->
 	{#if loading}

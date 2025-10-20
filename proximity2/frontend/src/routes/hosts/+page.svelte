@@ -10,6 +10,7 @@
 	import { toasts } from '$lib/stores/toast';
 	import StatBlock from '$lib/components/dashboard/StatBlock.svelte';
 	import NavigationRack from '$lib/components/layout/NavigationRack.svelte';
+	import OperationalRack from '$lib/components/layout/OperationalRack.svelte';
 
 	interface ProxmoxNode {
 		id: number;
@@ -119,16 +120,10 @@
 <NavigationRack />
 
 <div class="min-h-screen bg-rack-darker p-6">
-	<!-- Operations Dashboard Header -->
-	<div class="dashboard-header">
-		<!-- Title Section -->
-		<div class="header-title-section">
-			<h1 class="page-title">Infrastructure</h1>
-			<p class="page-subtitle">Manage and monitor your Proxmox cluster nodes</p>
-		</div>
-
-		<!-- Stats Bar - Premium Hardware Display -->
-		<div class="stats-bar">
+	<!-- Operational Control Panel Rack -->
+	<OperationalRack title="Infrastructure Operations">
+		<!-- Stats Slot -->
+		<svelte:fragment slot="stats">
 			<StatBlock 
 				label="Total Hosts" 
 				value={totalNodes} 
@@ -171,10 +166,10 @@
 					borderColor="rgba(14, 165, 233, 0.3)"
 				/>
 			{/if}
-		</div>
+		</svelte:fragment>
 
-		<!-- Secondary Actions Bar -->
-		<div class="actions-bar">
+		<!-- Actions Slot -->
+		<svelte:fragment slot="actions">
 			{#if lastUpdated}
 				<div class="last-updated">
 					<RefreshCw class="h-3.5 w-3.5" />
@@ -204,8 +199,8 @@
 					<span>Refresh</span>
 				</button>
 			</div>
-		</div>
-	</div>
+		</svelte:fragment>
+	</OperationalRack>
 
 	<!-- Loading state with skeleton -->
 	{#if loading && nodes.length === 0}

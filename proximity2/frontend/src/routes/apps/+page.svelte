@@ -27,6 +27,7 @@
 	import CloneModal from '$lib/components/CloneModal.svelte';
 	import StatBlock from '$lib/components/dashboard/StatBlock.svelte';
 	import NavigationRack from '$lib/components/layout/NavigationRack.svelte';
+	import OperationalRack from '$lib/components/layout/OperationalRack.svelte';
 
 	let actionInProgress: Record<string, boolean> = {};
 	let showCloneModal = false;
@@ -117,16 +118,10 @@
 <NavigationRack />
 
 <div class="min-h-screen bg-rack-darker p-6">
-	<!-- Operations Dashboard Header -->
-	<div class="dashboard-header">
-		<!-- Title Section -->
-		<div class="header-title-section">
-			<h1 class="page-title">My Apps</h1>
-			<p class="page-subtitle">Application Fleet Operations Dashboard</p>
-		</div>
-
-		<!-- Stats Bar - Premium Hardware Display -->
-		<div class="stats-bar">
+	<!-- Operational Control Panel Rack -->
+	<OperationalRack title="Application Fleet Operations">
+		<!-- Stats Slot -->
+		<svelte:fragment slot="stats">
 			<StatBlock 
 				label="Total" 
 				value={totalApps} 
@@ -162,10 +157,10 @@
 					pulse={true}
 				/>
 			{/if}
-		</div>
+		</svelte:fragment>
 
-		<!-- Secondary Actions Bar -->
-		<div class="actions-bar">
+		<!-- Actions Slot -->
+		<svelte:fragment slot="actions">
 			<!-- Polling Indicator -->
 			{#if $hasDeployingApps}
 				<div class="polling-indicator" title="Real-time updates active - polling every 5 seconds">
@@ -182,18 +177,18 @@
 				</div>
 			{/if}
 
-
-		<!-- Refresh Button -->
-		<button
-			on:click={handleRefresh}
-			disabled={$myAppsStore.loading}
-			class="refresh-button"
-			title="Refresh applications"
-		>
-			<RotateCw class={`h-4 w-4 ${$myAppsStore.loading ? 'animate-spin' : ''}`} />
-			<span>Refresh</span>
-	</div>
-</div>
+			<!-- Refresh Button -->
+			<button
+				on:click={handleRefresh}
+				disabled={$myAppsStore.loading}
+				class="refresh-button"
+				title="Refresh applications"
+			>
+				<RotateCw class={`h-4 w-4 ${$myAppsStore.loading ? 'animate-spin' : ''}`} />
+				<span>Refresh</span>
+			</button>
+		</svelte:fragment>
+	</OperationalRack>
 
 	<!-- Loading state with skeleton -->
 	{#if $myAppsStore.loading && $myAppsStore.apps.length === 0}
