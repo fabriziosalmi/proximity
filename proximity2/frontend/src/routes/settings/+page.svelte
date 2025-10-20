@@ -136,9 +136,7 @@
 	/* Settings Rack Unit - Match RackCard exact styling */
 	.settings-rack-unit {
 		position: relative;
-		width: 100%;
-		max-width: 1600px;
-		margin: 0 auto;
+		/* No width specified - fills available space naturally */
 		min-height: 400px;
 		/* Match RackCard exact background and border */
 		background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 50%, #1a1a1a 100%);

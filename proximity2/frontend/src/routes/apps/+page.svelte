@@ -26,7 +26,7 @@
 	import RackCard from '$lib/components/RackCard.svelte';
 	import CloneModal from '$lib/components/CloneModal.svelte';
 	import StatBlock from '$lib/components/dashboard/StatBlock.svelte';
-	import MasterControlRack from '$lib/components/layout/MasterControlRack.svelte';
+	import NavigationRack from '$lib/components/layout/NavigationRack.svelte';
 	import OperationalRack from '$lib/components/layout/OperationalRack.svelte';
 
 	let actionInProgress: Record<string, boolean> = {};
@@ -114,20 +114,12 @@
 	<title>My Apps - Proximity</title>
 </svelte:head>
 
-<!-- ============================================ -->
-<!-- IMMERSIVE COCKPIT LAYOUT with STICKY RACKS -->
-<!-- ============================================ -->
-<div class="main-canvas">
-	<!-- Sticky Header: Master Control + Operational Rack -->
-	<header class="sticky-header">
-		<!-- MasterControlRack imported in layout - will stick at top -->
-		<div class="master-control-wrapper">
-			<MasterControlRack />
-		</div>
-		
-		<!-- Operational Control Panel Rack -->
-		<div class="operational-rack-wrapper">
-			<OperationalRack title="Application Fleet Operations">
+<!-- Desktop Navigation Rack (visible only on lg: screens) -->
+<NavigationRack />
+
+<div class="min-h-screen bg-rack-darker p-6">
+	<!-- Operational Control Panel Rack -->
+	<OperationalRack title="Application Fleet Operations">
 		<!-- Stats Slot -->
 		<svelte:fragment slot="stats">
 			<StatBlock 
@@ -196,13 +188,9 @@
 				<span>Refresh</span>
 			</button>
 		</svelte:fragment>
-		</OperationalRack>
-		</div>
-	</header>
+	</OperationalRack>
 
-	<!-- Scrollable Content Rack -->
-	<main class="content-rack">
-		<!-- Loading state with skeleton -->
+	<!-- Loading state with skeleton -->
 	{#if $myAppsStore.loading && $myAppsStore.apps.length === 0}
 		<div class="space-y-4">
 			{#each Array(3) as _, i}
@@ -359,7 +347,6 @@
 				{/each}
 			</div>
 	{/if}
-	</main>
 </div>
 
 <!-- Clone Modal -->
