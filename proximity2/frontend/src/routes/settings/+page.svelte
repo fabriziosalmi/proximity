@@ -71,10 +71,8 @@
 			{#each tabs as tab}
 				<button
 					on:click={() => switchTab(tab.id)}
-					disabled={tab.disabled}
 					class="tab-button"
 					class:active={activeTab === tab.id}
-					class:disabled={tab.disabled}
 					data-testid="tab-{tab.id}"
 				>
 					<div class="tab-icon">
@@ -84,9 +82,6 @@
 						<div class="tab-label">{tab.label}</div>
 						<div class="tab-description">{tab.description}</div>
 					</div>
-					{#if tab.disabled}
-						<span class="tab-badge">Coming Soon</span>
-					{/if}
 				</button>
 			{/each}
 		</div>
@@ -135,7 +130,7 @@
 		position: relative;
 	}
 
-	.tab-button:not(.disabled):hover {
+	.tab-button:hover {
 		border-color: var(--color-accent, #3b82f6);
 		background: rgba(59, 130, 246, 0.05);
 	}
@@ -144,11 +139,6 @@
 		border-color: var(--color-accent, #3b82f6);
 		background: rgba(59, 130, 246, 0.1);
 		box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
-	}
-
-	.tab-button.disabled {
-		opacity: 0.5;
-		cursor: not-allowed;
 	}
 
 	.tab-icon {
@@ -185,37 +175,9 @@
 		line-height: 1.4;
 	}
 
-	.tab-badge {
-		position: absolute;
-		top: 0.5rem;
-		right: 0.5rem;
-		font-size: 0.625rem;
-		font-weight: 600;
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
-		padding: 0.25rem 0.5rem;
-		background: rgba(251, 191, 36, 0.2);
-		color: #fbbf24;
-		border-radius: 0.25rem;
-	}
-
 	/* Tab Panel */
 	.tab-panel {
 		min-height: 500px;
-	}
-
-	/* Placeholder Panel */
-	.placeholder-panel {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		min-height: 400px;
-		padding: 3rem;
-		background: var(--bg-card, #1f2937);
-		border: 2px dashed var(--border-color-secondary, #374151);
-		border-radius: 0.75rem;
-		text-align: center;
 	}
 
 	/* Responsive */
