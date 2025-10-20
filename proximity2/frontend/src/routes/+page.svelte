@@ -59,21 +59,31 @@
 	<title>Dashboard - Proximity</title>
 </svelte:head>
 
-<!-- Desktop Navigation Rack (visible only on lg: screens) -->
-<NavigationRack />
+<div class="bg-rack-darker">
+	<!-- STICKY HEADER: Always-Visible Control Surface -->
+	<header class="sticky-header">
+		<!-- Desktop Navigation Rack (visible only on lg: screens) -->
+		<div class="px-6 pt-6">
+			<NavigationRack />
+		</div>
 
-<!-- Main Dashboard Panel - No Scroll Required -->
-<div class="min-h-screen bg-rack-darker p-6">
-	<SystemOverviewRack
-		{totalApps}
-		{runningApps}
-		{stoppedApps}
-		{deployingApps}
-		availableApps={catalogStats.total}
-		categories={catalogStats.categories}
-		totalHosts={hostsStats.total}
-		onlineHosts={hostsStats.online}
-		cpuUsage={hostsStats.cpuUsage}
-		memoryUsage={hostsStats.memoryUsage}
-	/>
+		<!-- Main Dashboard Panel -->
+		<div class="px-6 pb-6">
+			<SystemOverviewRack
+				{totalApps}
+				{runningApps}
+				{stoppedApps}
+				{deployingApps}
+				availableApps={catalogStats.total}
+				categories={catalogStats.categories}
+				totalHosts={hostsStats.total}
+				onlineHosts={hostsStats.online}
+				cpuUsage={hostsStats.cpuUsage}
+				memoryUsage={hostsStats.memoryUsage}
+			/>
+		</div>
+	</header>
+	<!-- END: Sticky Header -->
+	
+	<!-- Note: Dashboard is a single-screen overview with no additional scrollable content -->
 </div>

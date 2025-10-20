@@ -65,39 +65,49 @@
 	<title>Settings - Proximity</title>
 </svelte:head>
 
-<!-- Desktop Navigation Rack (visible only on lg: screens) -->
-<NavigationRack />
-
-<div class="min-h-screen bg-rack-darker p-6">
-	<!-- Operational Control Panel -->
-	<OperationalRack>
-		<div slot="stats" class="flex items-center gap-3">
-			<div class="flex items-center gap-2">
-				<svelte:component this={currentTab?.icon} class="h-5 w-5 text-rack-primary" />
-				<span class="text-sm font-semibold text-white">{currentTab?.label}</span>
-			</div>
-			<div class="hidden md:block text-xs text-gray-400">
-				{currentTab?.description}
-			</div>
+<div class="bg-rack-darker">
+	<!-- STICKY HEADER: Always-Visible Control Surface -->
+	<header class="sticky-header">
+		<!-- Desktop Navigation Rack (visible only on lg: screens) -->
+		<div class="px-6 pt-6">
+			<NavigationRack />
 		</div>
 
-		<div slot="actions" class="settings-nav-container">
-			{#each tabs as tab}
-				<button
-					on:click={() => switchTab(tab.id)}
-					data-testid="tab-{tab.id}"
-					class="settings-nav-button"
-					class:settings-nav-button-active={activeTab === tab.id}
-				>
-					<svelte:component this={tab.icon} class="h-5 w-5" />
-					<span class="settings-nav-label">{tab.label}</span>
-					<div class="settings-nav-indicator" class:active={activeTab === tab.id}></div>
-				</button>
-			{/each}
-		</div>
-	</OperationalRack>
+		<!-- Operational Control Panel -->
+		<div class="px-6 pb-6">
+			<OperationalRack>
+				<div slot="stats" class="flex items-center gap-3">
+					<div class="flex items-center gap-2">
+						<svelte:component this={currentTab?.icon} class="h-5 w-5 text-rack-primary" />
+						<span class="text-sm font-semibold text-white">{currentTab?.label}</span>
+					</div>
+					<div class="hidden md:block text-xs text-gray-400">
+						{currentTab?.description}
+					</div>
+				</div>
 
-	<!-- Settings Content Panel - Rack Unit Style -->
+				<div slot="actions" class="settings-nav-container">
+					{#each tabs as tab}
+						<button
+							on:click={() => switchTab(tab.id)}
+							data-testid="tab-{tab.id}"
+							class="settings-nav-button"
+							class:settings-nav-button-active={activeTab === tab.id}
+						>
+							<svelte:component this={tab.icon} class="h-5 w-5" />
+							<span class="settings-nav-label">{tab.label}</span>
+							<div class="settings-nav-indicator" class:active={activeTab === tab.id}></div>
+						</button>
+					{/each}
+				</div>
+			</OperationalRack>
+		</div>
+	</header>
+	<!-- END: Sticky Header -->
+
+	<!-- MAIN: Scrollable Content -->
+	<main class="px-6 pb-6">
+		<!-- Settings Content Panel - Rack Unit Style -->
 	<div class="mt-6 settings-rack-unit">
 		<!-- Mounting Ears -->
 		<div class="rack-ear rack-ear-left">
@@ -130,6 +140,8 @@
 			{/if}
 		</div>
 	</div>
+	</main>
+	<!-- END: Main Scrollable Content -->
 </div>
 
 <style>

@@ -287,7 +287,8 @@
 			{/if}
 		</div>
 	{/if}
-</div>
+</main>
+<!-- END: Main Scrollable Content -->
 
 <!-- Deployment Modal -->
 <DeploymentModal
