@@ -108,6 +108,13 @@ class App(BaseModel):
     ports: Union[Dict[int, int], Dict[str, int]] = Field(default_factory=dict, description="Port mappings (container:host)")
     volumes: Union[List[str], List[Dict[str, str]]] = Field(default_factory=list, description="Mounted volumes")
     environment: Dict[str, str] = Field(default_factory=dict, description="Environment variables")
+    
+    # Resource metrics (populated for running containers)
+    cpu_usage: Optional[float] = Field(None, description="CPU usage percentage (0-100)")
+    memory_used: Optional[int] = Field(None, description="Used memory in bytes")
+    memory_total: Optional[int] = Field(None, description="Total memory in bytes")
+    disk_used: Optional[int] = Field(None, description="Used disk space in bytes")
+    disk_total: Optional[int] = Field(None, description="Total disk space in bytes")
 
 
 

@@ -33,6 +33,13 @@ class ApplicationResponse(BaseModel):
     updated_at: str
     config: Dict[str, Any]
     environment: Dict[str, str]
+    
+    # Resource metrics (populated for running containers)
+    cpu_usage: Optional[float] = None
+    memory_used: Optional[int] = None
+    memory_total: Optional[int] = None
+    disk_used: Optional[int] = None
+    disk_total: Optional[int] = None
 
 
 class ApplicationListResponse(BaseModel):

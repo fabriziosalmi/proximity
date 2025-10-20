@@ -132,7 +132,13 @@ class AppService:
             volumes=volumes,
             environment=db_app.environment or {},
             public_port=db_app.public_port,
-            internal_port=db_app.internal_port
+            internal_port=db_app.internal_port,
+            # Initialize metrics as None - will be populated by _sync_apps_with_containers
+            cpu_usage=None,
+            memory_used=None,
+            memory_total=None,
+            disk_used=None,
+            disk_total=None
         )
 
     async def _load_catalog(self) -> None:
@@ -366,14 +372,47 @@ class AppService:
         return app
 
     async def _sync_apps_with_containers(self, apps: List[App]) -> None:
-        """Sync app database with actual LXC containers and update URLs"""
+        """
+        Sync app database with actual LXC containers, update URLs, and fetch metrics.
+        
+        Performance optimization: Fetch all container data per node in batch,
+        then map to individual apps. This reduces API calls from O(n) to O(nodes).
+        """
         try:
             # Lazy-load Caddy service if needed
             if self._caddy_service is None:
                 from services.caddy_service import get_caddy_service
                 self._caddy_service = get_caddy_service(self.proxmox_service)
             
+            # Get all containers across all nodes
             containers = await self.proxmox_service.get_lxc_containers()
+            
+            # Build metrics map: {vmid: metrics_dict}
+            # This is the key optimization - fetch all metrics per node in batch
+            metrics_map: Dict[int, Dict[str, Any]] = {}
+            
+            # Group containers by node for efficient batch fetching
+            nodes_with_containers = {}
+            for container in containers:
+                if container.node not in nodes_with_containers:
+                    nodes_with_containers[container.node] = []
+                nodes_with_containers[container.node].append(container)
+            
+            # Fetch metrics for all running containers on each node
+            for node_name, node_containers in nodes_with_containers.items():
+                for container in node_containers:
+                    # Only fetch metrics for running containers to avoid unnecessary API calls
+                    if container.status.value == "running":
+                        try:
+                            metrics = await self.proxmox_service.get_lxc_metrics(node_name, container.vmid)
+                            if metrics:
+                                metrics_map[container.vmid] = metrics
+                        except Exception as metrics_error:
+                            logger.debug(f"Could not fetch metrics for container {container.vmid}: {metrics_error}")
+                            # Continue with other containers even if one fails
+            
+            logger.debug(f"Fetched metrics for {len(metrics_map)} running containers")
+            
             status_changed = False
             
             for app in apps:
@@ -385,6 +424,15 @@ class AppService:
                 if container:
                     if container.status.value == "running":
                         app.status = AppStatus.RUNNING
+                        
+                        # Fetch metrics from our pre-built map (no additional API call!)
+                        if app.lxc_id in metrics_map:
+                            metrics = metrics_map[app.lxc_id]
+                            app.cpu_usage = metrics.get("cpu_usage")
+                            app.memory_used = metrics.get("memory_used")
+                            app.memory_total = metrics.get("memory_total")
+                            app.disk_used = metrics.get("disk_used")
+                            app.disk_total = metrics.get("disk_total")
                         
                         # Always refresh URL to ensure it's current
                         try:
@@ -425,11 +473,29 @@ class AppService:
                     
                     elif container.status.value == "stopped":
                         app.status = AppStatus.STOPPED
+                        # Clear metrics for stopped containers
+                        app.cpu_usage = None
+                        app.memory_used = None
+                        app.memory_total = None
+                        app.disk_used = None
+                        app.disk_total = None
                     else:
                         app.status = AppStatus.ERROR
+                        # Clear metrics for errored containers
+                        app.cpu_usage = None
+                        app.memory_used = None
+                        app.memory_total = None
+                        app.disk_used = None
+                        app.disk_total = None
                 else:
                     # Container not found, mark as error
                     app.status = AppStatus.ERROR
+                    # Clear metrics
+                    app.cpu_usage = None
+                    app.memory_used = None
+                    app.memory_total = None
+                    app.disk_used = None
+                    app.disk_total = None
                 
                 # Update database if status or URL changed
                 if old_status != app.status or old_url != app.url:

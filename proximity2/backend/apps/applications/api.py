@@ -39,6 +39,11 @@ def list_applications(
         status: Filter by status
         search: Search by name or hostname
     """
+    import logging
+    from apps.proxmox.services import ProxmoxService
+    
+    logger = logging.getLogger(__name__)
+    
     queryset = Application.objects.all()
     
     # Apply filters
@@ -60,6 +65,42 @@ def list_applications(
     end = start + per_page
     apps = queryset[start:end]
     
+    # Build metrics map: {lxc_id: metrics_dict}
+    # Performance optimization: Fetch all metrics per node in batch
+    metrics_map = {}
+    
+    try:
+        # Group apps by node and host for efficient batch fetching
+        nodes_apps = {}
+        for app in apps:
+            if app.status == 'running' and app.lxc_id:
+                key = (app.host_id, app.node)
+                if key not in nodes_apps:
+                    nodes_apps[key] = []
+                nodes_apps[key].append(app)
+        
+        # Fetch metrics for all running containers on each node
+        for (host_id, node_name), node_apps in nodes_apps.items():
+            try:
+                proxmox_service = ProxmoxService(host_id=host_id)
+                for app in node_apps:
+                    try:
+                        metrics = proxmox_service.get_lxc_metrics(node_name, app.lxc_id)
+                        if metrics:
+                            metrics_map[app.lxc_id] = metrics
+                    except Exception as metrics_error:
+                        logger.debug(f"Could not fetch metrics for container {app.lxc_id}: {metrics_error}")
+                        # Continue with other containers even if one fails
+            except Exception as node_error:
+                logger.warning(f"Could not connect to Proxmox host {host_id}: {node_error}")
+        
+        logger.debug(f"Fetched metrics for {len(metrics_map)} running containers")
+    
+    except Exception as e:
+        logger.warning(f"Error fetching metrics: {e}")
+        # Continue without metrics if there's an error
+    
+    # Build response with metrics
     return {
         "apps": [{
             "id": app.id,
@@ -78,6 +119,12 @@ def list_applications(
             "updated_at": app.updated_at.isoformat(),
             "config": app.config,
             "environment": app.environment,
+            # Add metrics from our pre-built map (no additional API call per app!)
+            "cpu_usage": metrics_map.get(app.lxc_id, {}).get("cpu_usage"),
+            "memory_used": metrics_map.get(app.lxc_id, {}).get("memory_used"),
+            "memory_total": metrics_map.get(app.lxc_id, {}).get("memory_total"),
+            "disk_used": metrics_map.get(app.lxc_id, {}).get("disk_used"),
+            "disk_total": metrics_map.get(app.lxc_id, {}).get("disk_total"),
         } for app in apps],
         "total": total,
         "page": page,
