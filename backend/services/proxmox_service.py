@@ -207,6 +207,50 @@ class ProxmoxService:
         except Exception as e:
             raise ProxmoxError(f"Failed to get LXC {vmid} status: {e}")
 
+    async def get_lxc_metrics(self, node: str, vmid: int) -> Dict[str, Any]:
+        """
+        Get resource usage metrics for a specific LXC container.
+        
+        Returns metrics including CPU usage, memory usage, and disk usage.
+        If the container is not running or metrics cannot be retrieved,
+        returns an empty dict.
+        
+        Args:
+            node: Proxmox node name
+            vmid: Container VM ID
+            
+        Returns:
+            Dictionary with metrics:
+            - cpu_usage: CPU usage as float (0.0-1.0, where 1.0 = 100%)
+            - memory_used: Used memory in bytes
+            - memory_total: Total memory in bytes
+            - disk_used: Used disk space in bytes
+            - disk_total: Total disk space in bytes
+        """
+        try:
+            client = await self._get_client()
+            status = await asyncio.to_thread(
+                client.nodes(node).lxc(vmid).status.current.get
+            )
+            
+            # Proxmox returns cpu as a float between 0 and number of cores
+            # We normalize it to 0.0-1.0 by dividing by the number of CPUs
+            cpu_raw = status.get("cpu", 0.0)
+            cpus = status.get("cpus", 1)  # Number of CPU cores allocated
+            cpu_usage = (cpu_raw / cpus) if cpus > 0 else 0.0
+            
+            return {
+                "cpu_usage": round(cpu_usage * 100, 2),  # Convert to percentage (0-100)
+                "memory_used": status.get("mem", 0),
+                "memory_total": status.get("maxmem", 0),
+                "disk_used": status.get("disk", 0),
+                "disk_total": status.get("maxdisk", 0),
+            }
+        except Exception as e:
+            # If container is not running or any error occurs, return empty metrics
+            logger.debug(f"Could not get metrics for LXC {vmid} on {node}: {e}")
+            return {}
+
     async def get_lxc_ip(self, node: str, vmid: int) -> Optional[str]:
         """Get IP address of a specific LXC container"""
         try:

@@ -110,7 +110,7 @@ body {
 	}
 	
 	.rack-nav-area {
-		display: none;
+		display: none !important;
 	}
 	
 	.main-canvas-area {

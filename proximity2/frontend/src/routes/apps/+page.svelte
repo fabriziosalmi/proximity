@@ -192,70 +192,52 @@
 		>
 			<RotateCw class={`h-4 w-4 ${$myAppsStore.loading ? 'animate-spin' : ''}`} />
 			<span>Refresh</span>
-		</button>
 	</div>
 </div>
+
 	<!-- Loading state with skeleton -->
 	{#if $myAppsStore.loading && $myAppsStore.apps.length === 0}
-		<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-			{#each Array(6) as _, i}
-				<div class="animate-pulse rounded-lg border-2 border-gray-700/50 bg-gray-800/50 p-4">
-					<!-- Icon and title skeleton -->
-					<div class="mb-3 flex items-start gap-3">
+		<div class="space-y-4">
+			{#each Array(3) as _, i}
+				<div class="animate-pulse rounded-lg border-2 border-gray-700/50 bg-gray-800/50" style="height: 7rem;">
+					<div class="flex h-full items-center gap-4 p-4">
 						<div class="h-12 w-12 flex-shrink-0 rounded-lg bg-gray-700/50"></div>
 						<div class="flex-1 space-y-2">
-							<div class="h-5 w-3/4 rounded bg-gray-700/50"></div>
-							<div class="h-4 w-1/2 rounded bg-gray-700/50"></div>
+							<div class="h-5 w-1/3 rounded bg-gray-700/50"></div>
+							<div class="h-4 w-1/4 rounded bg-gray-700/50"></div>
 						</div>
-					</div>
-					
-					<!-- Description skeleton -->
-					<div class="mb-3 space-y-2">
-						<div class="h-3 w-full rounded bg-gray-700/50"></div>
-						<div class="h-3 w-5/6 rounded bg-gray-700/50"></div>
-					</div>
-					
-					<!-- Metadata skeleton -->
-					<div class="mb-3 space-y-2 rounded bg-gray-900/50 p-2">
-						<div class="h-3 w-full rounded bg-gray-700/50"></div>
-						<div class="h-3 w-4/5 rounded bg-gray-700/50"></div>
-					</div>
-					
-					<!-- Buttons skeleton -->
-					<div class="mt-3 flex gap-2">
-						<div class="h-9 flex-1 rounded-lg bg-gray-700/50"></div>
-						<div class="h-9 flex-1 rounded-lg bg-gray-700/50"></div>
+						<div class="h-8 w-24 rounded bg-gray-700/50"></div>
 					</div>
 				</div>
 			{/each}
 		</div>
 	{:else if $myAppsStore.error}
-		<!-- Error state -->
-		<div
-			class="rounded-lg border border-red-500/50 bg-red-500/10 p-8 text-center text-red-400"
-		>
-			<p class="mb-4">{$myAppsStore.error}</p>
+		<!-- Error State -->
+		<div class="flex min-h-[400px] flex-col items-center justify-center rounded-lg border-2 border-red-500/20 bg-red-500/5 p-8">
+			<div class="mb-4 text-red-400">
+				<Server class="h-16 w-16" />
+			</div>
+			<p class="mb-4 text-lg font-semibold text-red-400">{$myAppsStore.error}</p>
 			<button
 				on:click={handleRefresh}
-				class="rounded-lg bg-red-500/20 px-6 py-2 transition-colors hover:bg-red-500/30"
+				class="flex items-center gap-2 rounded-lg bg-red-500/20 px-4 py-2 text-red-400 transition-colors hover:bg-red-500/30"
 			>
+				<RotateCw class="h-4 w-4" />
 				Try Again
 			</button>
 		</div>
 	{:else if $myAppsStore.apps.length === 0}
-		<!-- Empty state -->
-		<div class="flex h-64 items-center justify-center rounded-lg border-2 border-dashed border-rack-primary/30 bg-rack-light/50">
-			<div class="text-center">
-				<Server class="mx-auto h-16 w-16 text-gray-500" />
-				<p class="mt-4 text-lg text-gray-400">No deployed apps yet</p>
-				<p class="mt-2 text-sm text-gray-500">
-					Visit the <a href="/store" class="text-rack-primary hover:underline">App Store</a> to deploy your first app
-				</p>
-			</div>
+		<!-- Empty State -->
+		<div class="flex min-h-[400px] flex-col items-center justify-center rounded-lg border-2 border-gray-700/50 bg-gray-800/30 p-8">
+			<Server class="mb-4 h-16 w-16 text-gray-600" />
+			<p class="mb-2 text-xl font-semibold text-gray-400">No Deployed Apps</p>
+			<p class="text-sm text-gray-500">
+				Visit the <a href="/store" class="text-cyan-400 hover:underline">App Store</a> to deploy your first application
+			</p>
 		</div>
 	{:else}
-		<!-- Apps Rack -->
-		<div class="rack-canvas">
+		<!-- Apps Rack - Vertical Stack -->
+		<div class="space-y-4">
 			{#each $myAppsStore.apps as app (app.id)}
 				<RackCard {app} variant="deployed">
 					<svelte:fragment slot="actions">
