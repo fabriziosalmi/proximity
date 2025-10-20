@@ -65,6 +65,7 @@
 	}
 
 	async function handleCloneSubmit(newHostname: string) {
+		console.log('Clone button clicked. Calling action dispatcher...');
 		if (!cloneSourceApp) return;
 
 		showCloneModal = false;
