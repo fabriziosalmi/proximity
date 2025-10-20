@@ -380,6 +380,56 @@ class ProxmoxService:
         except Exception as e:
             raise ProxmoxError(f"Failed to delete LXC {vmid}: {e}")
     
+    def create_snapshot(self, node_name: str, vmid: int, snapname: str, description: str = "") -> str:
+        """
+        Create a snapshot of an LXC container.
+
+        Args:
+            node_name: Proxmox node name
+            vmid: Container VMID
+            snapname: Name for the snapshot
+            description: Optional description for the snapshot
+
+        Returns:
+            Task UPID
+
+        Raises:
+            ProxmoxError: If snapshot creation fails
+        """
+        try:
+            client = self.get_client()
+            task_upid = client.nodes(node_name).lxc(vmid).snapshot.post(
+                snapname=snapname,
+                description=description or f"Temporary snapshot for cloning"
+            )
+            logger.info(f"Created snapshot '{snapname}' for LXC {vmid}")
+            return task_upid
+        except Exception as e:
+            raise ProxmoxError(f"Failed to create snapshot '{snapname}' for LXC {vmid}: {e}")
+
+    def delete_snapshot(self, node_name: str, vmid: int, snapname: str) -> str:
+        """
+        Delete a snapshot of an LXC container.
+
+        Args:
+            node_name: Proxmox node name
+            vmid: Container VMID
+            snapname: Name of the snapshot to delete
+
+        Returns:
+            Task UPID
+
+        Raises:
+            ProxmoxError: If snapshot deletion fails
+        """
+        try:
+            client = self.get_client()
+            task_upid = client.nodes(node_name).lxc(vmid).snapshot(snapname).delete()
+            logger.info(f"Deleted snapshot '{snapname}' for LXC {vmid}")
+            return task_upid
+        except Exception as e:
+            raise ProxmoxError(f"Failed to delete snapshot '{snapname}' for LXC {vmid}: {e}")
+
     def clone_lxc(
         self,
         node_name: str,
@@ -390,8 +440,15 @@ class ProxmoxService:
         timeout: int = 600
     ) -> str:
         """
-        Clone an LXC container.
-        
+        Clone an LXC container with zero-downtime support.
+
+        For running containers performing full clones, this method automatically:
+        1. Creates a temporary snapshot
+        2. Clones from the snapshot (allowing source to keep running)
+        3. Deletes the temporary snapshot
+
+        The try...finally block guarantees snapshot cleanup even if the clone fails.
+
         Args:
             node_name: Proxmox node name
             source_vmid: Source container VMID to clone from
@@ -399,37 +456,78 @@ class ProxmoxService:
             new_hostname: New hostname for the clone
             full: Create a full clone (True) or linked clone (False)
             timeout: Maximum time to wait for clone operation in seconds
-            
+
         Returns:
             Success message
-            
+
         Raises:
             ProxmoxError: If clone operation fails
         """
+        import time
+        snapshot_name = f"prox_clone_temp_{int(time.time())}"
+        snapshot_created = False
+
         try:
             client = self.get_client()
-            
-            # Prepare clone configuration
-            clone_config = {
+
+            # Step 1/4: Check container status
+            logger.info(f"[Step 1/4] Checking status of source container {source_vmid}...")
+            status_info = self.get_lxc_status(node_name, source_vmid)
+            is_running = status_info.get('status') == 'running'
+            logger.info(f"[Step 1/4] ✓ Source container is {status_info.get('status')}")
+
+            # Step 2/4: Create snapshot if needed (running + full clone)
+            if is_running and full:
+                logger.info(f"[Step 2/4] Creating temporary snapshot '{snapshot_name}' for zero-downtime clone...")
+                snapshot_task = self.create_snapshot(
+                    node_name,
+                    source_vmid,
+                    snapshot_name,
+                    description="Temporary snapshot for cloning operation"
+                )
+                self.wait_for_task(node_name, snapshot_task, timeout=120)
+                snapshot_created = True
+                logger.info(f"[Step 2/4] ✓ Snapshot '{snapshot_name}' created successfully")
+            else:
+                logger.info(f"[Step 2/4] Skipping snapshot creation (running={is_running}, full={full})")
+
+            # Step 3/4: Perform the clone operation
+            logger.info(f"[Step 3/4] Cloning LXC {source_vmid} → {new_vmid} (hostname: {new_hostname})...")
+
+            clone_params = {
                 'newid': new_vmid,
                 'hostname': new_hostname,
                 'full': 1 if full else 0,
-                'storage': 'local-lvm',  # Target storage for full clone
+                'storage': 'local-lvm',
             }
-            
-            # Initiate clone operation
-            logger.info(f"Cloning LXC {source_vmid} to {new_vmid} on node {node_name}")
-            task_upid = client.nodes(node_name).lxc(source_vmid).clone.post(**clone_config)
-            
-            # Wait for clone task to complete
-            logger.info(f"Waiting for clone task {task_upid} to complete (timeout: {timeout}s)")
+
+            # If snapshot exists, clone from snapshot instead of live container
+            if snapshot_created:
+                clone_params['snapname'] = snapshot_name
+                logger.info(f"[Step 3/4] Cloning from snapshot '{snapshot_name}'")
+
+            task_upid = client.nodes(node_name).lxc(source_vmid).clone.post(**clone_params)
+            logger.info(f"[Step 3/4] Clone task initiated: {task_upid}")
+
             self.wait_for_task(node_name, task_upid, timeout=timeout)
-            
-            logger.info(f"Successfully cloned LXC {source_vmid} to {new_vmid} with hostname {new_hostname}")
+            logger.info(f"[Step 3/4] ✓ Clone completed successfully")
+
+            logger.info(f"[Step 4/4] Clone operation completed: {source_vmid} → {new_vmid}")
             return f"Container {source_vmid} successfully cloned to {new_vmid}"
-            
-        except Exception as e:
-            raise ProxmoxError(f"Failed to clone LXC {source_vmid} to {new_vmid}: {e}")
+
+        finally:
+            # Step 4/4: Guaranteed cleanup - delete temporary snapshot
+            if snapshot_created:
+                try:
+                    logger.info(f"[Step 4/4] Cleaning up temporary snapshot '{snapshot_name}'...")
+                    delete_task = self.delete_snapshot(node_name, source_vmid, snapshot_name)
+                    self.wait_for_task(node_name, delete_task, timeout=60)
+                    logger.info(f"[Step 4/4] ✓ Snapshot '{snapshot_name}' deleted successfully")
+                except Exception as cleanup_error:
+                    logger.critical(
+                        f"[Step 4/4] ✗ FAILED to delete temporary snapshot '{snapshot_name}': {cleanup_error}. "
+                        f"Manual cleanup required: 'pct delsnapshot {source_vmid} {snapshot_name}'"
+                    )
     
     def get_lxc_status(self, node_name: str, vmid: int) -> Dict[str, Any]:
         """
