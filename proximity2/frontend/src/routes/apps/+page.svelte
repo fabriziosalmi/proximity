@@ -253,89 +253,88 @@
 		<!-- Apps Rack -->
 		<div class="rack-canvas">
 			{#each $myAppsStore.apps as app (app.id)}
-					<RackCard {app} variant="deployed">
-						<div slot="actions" class="flex w-full flex-wrap gap-2">
-							{#if app.status === 'deploying'}
-								<!-- Show view logs button while deploying -->
-								<button
-									on:click={() => handleViewLogs(app.id, app.name)}
-									disabled={actionInProgress[app.id]}
-									class="flex flex-1 items-center justify-center gap-2 rounded-lg border border-rack-primary/30 bg-rack-darker px-3 py-2 text-sm text-rack-primary transition-colors hover:bg-rack-darker/80 disabled:opacity-50"
-								>
-									<FileText class="h-4 w-4" />
-									View Logs
-								</button>
-							{:else if app.status === 'running'}
+				<RackCard {app} variant="deployed">
+					<div slot="actions" class="flex w-full flex-wrap gap-2">
+						{#if app.status === 'deploying'}
+							<!-- Show view logs button while deploying -->
+							<button
+								on:click={() => handleViewLogs(app.id, app.name)}
+								disabled={actionInProgress[app.id]}
+								class="action-btn action-btn-info"
+								title="View Logs"
+							>
+								<FileText class="h-4 w-4" />
+							</button>
+						{:else if app.status === 'running'}
 								<!-- Running: Show stop, restart, delete -->
 								<button
 									on:click={() => handleAction(app.id, app.name, 'stop')}
-									disabled={actionInProgress[app.id]}
-									class="flex flex-1 items-center justify-center gap-2 rounded-lg border border-rack-primary/30 bg-rack-darker px-3 py-2 text-sm text-yellow-400 transition-colors hover:bg-rack-darker/80 disabled:opacity-50"
+								disabled={actionInProgress[app.id]}
+								class="action-btn action-btn-warning"
+								title="Stop"
 								>
 									{#if actionInProgress[app.id]}
 										<Loader2 class="h-4 w-4 animate-spin" />
 									{:else}
 										<StopCircle class="h-4 w-4" />
-									{/if}
-									Stop
+								{/if}
 								</button>
 								<button
 									on:click={() => handleAction(app.id, app.name, 'restart')}
-									disabled={actionInProgress[app.id]}
-									class="flex flex-1 items-center justify-center gap-2 rounded-lg border border-rack-primary/30 bg-rack-darker px-3 py-2 text-sm text-rack-primary transition-colors hover:bg-rack-darker/80 disabled:opacity-50"
+								disabled={actionInProgress[app.id]}
+								class="action-btn action-btn-primary"
+								title="Restart"
 								>
 									{#if actionInProgress[app.id]}
 										<Loader2 class="h-4 w-4 animate-spin" />
 									{:else}
 										<RotateCw class="h-4 w-4" />
-									{/if}
-									Restart
+								{/if}
 								</button>
 								<button
 									data-testid="clone-button"
-									on:click={() => handleClone(app)}
-									disabled={actionInProgress[app.id]}
-									class="flex flex-1 items-center justify-center gap-2 rounded-lg border border-blue-500/30 bg-blue-500/10 px-3 py-2 text-sm text-blue-400 transition-colors hover:bg-blue-500/20 disabled:opacity-50"
+								on:click={() => handleClone(app)}
+								disabled={actionInProgress[app.id]}
+								class="action-btn action-btn-info"
+								title="Clone"
 								>
 									<Copy class="h-4 w-4" />
-									Clone
 								</button>
 							{:else if app.status === 'stopped'}
 								<!-- Stopped: Show start, clone, delete -->
 								<button
 									on:click={() => handleAction(app.id, app.name, 'start')}
-									disabled={actionInProgress[app.id]}
-									class="flex flex-1 items-center justify-center gap-2 rounded-lg bg-rack-primary px-3 py-2 text-sm text-white transition-colors hover:bg-rack-primary/90 disabled:opacity-50"
+								disabled={actionInProgress[app.id]}
+								class="action-btn action-btn-success"
+								title="Start"
 								>
 									{#if actionInProgress[app.id]}
 										<Loader2 class="h-4 w-4 animate-spin" />
 									{:else}
 										<PlayCircle class="h-4 w-4" />
-									{/if}
-									Start
+								{/if}
 								</button>
 								<button
 									data-testid="clone-button"
-									on:click={() => handleClone(app)}
-									disabled={actionInProgress[app.id]}
-									class="flex flex-1 items-center justify-center gap-2 rounded-lg border border-blue-500/30 bg-blue-500/10 px-3 py-2 text-sm text-blue-400 transition-colors hover:bg-blue-500/20 disabled:opacity-50"
+								on:click={() => handleClone(app)}
+								disabled={actionInProgress[app.id]}
+								class="action-btn action-btn-info"
+								title="Clone"
 								>
 									<Copy class="h-4 w-4" />
-									Clone
 								</button>
 							{:else if app.status === 'error'}
 								<!-- Error: Show restart, delete -->
 								<button
 									on:click={() => handleAction(app.id, app.name, 'restart')}
 									disabled={actionInProgress[app.id]}
-									class="flex flex-1 items-center justify-center gap-2 rounded-lg bg-yellow-500/20 px-3 py-2 text-sm text-yellow-400 transition-colors hover:bg-yellow-500/30 disabled:opacity-50"
+									class="action-btn action-btn-warning"
 								>
 									{#if actionInProgress[app.id]}
 										<Loader2 class="h-4 w-4 animate-spin" />
 									{:else}
 										<RotateCw class="h-4 w-4" />
-									{/if}
-									Retry
+								{/if}
 								</button>
 							{/if}
 
@@ -353,7 +352,7 @@
 										}
 									}}
 									disabled={actionInProgress[app.id]}
-									class="flex items-center justify-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-400 transition-colors hover:bg-red-500/20 disabled:opacity-50"
+									class="action-btn action-btn-danger"
 								>
 									{#if actionInProgress[app.id]}
 										<Loader2 class="h-4 w-4 animate-spin" />
