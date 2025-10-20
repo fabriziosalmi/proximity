@@ -20,8 +20,8 @@ class StorePage:
     # Locators
     SEARCH_INPUT = 'input[type="search"], input[placeholder*="Search" i]'
     CATEGORY_FILTER = '.category-filter, [data-testid="category-filter"]'
-    # Use data-testid pattern for app cards (format: app-card-{app.id})
-    APP_CARD = '[data-testid^="app-card-"]'
+    # Use data-testid pattern for catalog cards (format: catalog-card-{app.id})
+    APP_CARD = '[data-testid^="catalog-card-"]'
     APP_CARD_TITLE = '.app-title, h3, h4'
     DEPLOY_BUTTON = 'button:has-text("Deploy"), button:has-text("🚀 Deploy"), button:has-text("Install")'
     
@@ -240,15 +240,15 @@ class StorePage:
         Returns:
             self for chaining
         """
-        # Wait for at least one app card with specific data-testid pattern
+        # Wait for at least one catalog card with specific data-testid pattern
         # This is more reliable than document.querySelectorAll
-        self.page.locator('[data-testid^="app-card-"]').first.wait_for(
+        self.page.locator('[data-testid^="catalog-card-"]').first.wait_for(
             state="visible",
             timeout=timeout
         )
         
         # Verify we have at least min_count apps
-        actual_count = self.page.locator('[data-testid^="app-card-"]').count()
+        actual_count = self.page.locator('[data-testid^="catalog-card-"]').count()
         if actual_count < min_count:
             raise AssertionError(
                 f"Expected at least {min_count} apps, but found {actual_count}"

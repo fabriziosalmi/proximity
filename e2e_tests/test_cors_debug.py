@@ -16,13 +16,14 @@ def test_store_page_cors(page: Page):
     
     # Capture console logs
     console_logs = []
-    page.on("console", lambda msg: console_logs.append(f"{msg.type()}: {msg.text()}"))
+    page.on("console", lambda msg: console_logs.append(f"{msg.type}: {msg.text}"))
     
     # Capture network errors
     network_errors = []
-    page.on("response", lambda response: 
-        network_errors.append(f"Failed: {response.url}") if not response.ok else None
-    )
+    def handle_response(response):
+        if not response.ok:
+            network_errors.append(f"Failed: {response.url}")
+    page.on("response", handle_response)
     
     # Wait for catalog to load
     page.wait_for_timeout(5000)
@@ -41,5 +42,5 @@ def test_store_page_cors(page: Page):
     print("\n=== CHECKING API CALLS ===")
     
     # Execute JavaScript to check what API URL is being used
-    api_url = page.evaluate("() => window.__env ? window.__env.PUBLIC_API_URL : 'not found'")
+    api_url = page.evaluate("window.__env ? window.__env.PUBLIC_API_URL : 'not found'")
     print(f"Browser sees PUBLIC_API_URL as: {api_url}")

@@ -42,7 +42,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: proximity2_backend
-    command: python manage.py runserver 0.0.0.0:8000
+    command: ["python", "manage.py", "runserver", "0.0.0.0:8000"]
     volumes:
       - ./backend:/app
       - ./catalog_data:/catalog_data:ro
