@@ -65,15 +65,19 @@ class LoginPage:
         # Wait for the page to load (DOM content ready)
         self.page.wait_for_load_state("domcontentloaded")
         
-        # Wait for SvelteKit to complete hydration and signal readiness
-        logger.info("Waiting for SvelteKit hydration signal (data-sveltekit-interactive=true)")
+        # Wait for SvelteKit to complete hydration by checking for interactive elements
+        # Instead of waiting for data-sveltekit-interactive (which doesn't exist in this version),
+        # we wait for the login form to be ready
+        logger.info("Waiting for login form to be interactive")
         try:
-            self.page.wait_for_selector('body[data-sveltekit-interactive="true"]', timeout=30000)
-            logger.info("✓ SvelteKit hydration complete - page is interactive")
+            # Wait for both username and password fields to be visible and enabled
+            self.page.wait_for_selector(self.USERNAME_INPUT, state="visible", timeout=30000)
+            self.page.wait_for_selector(self.PASSWORD_INPUT, state="visible", timeout=5000)
+            logger.info("✓ Login form is ready and interactive")
         except Exception as e:
-            # Debug: Check what's actually on the body
+            # Debug: Check what's actually on the page
             body_attrs = self.page.evaluate("() => { const attrs = {}; for (const attr of document.body.attributes) { attrs[attr.name] = attr.value; } return attrs; }")
-            logger.error(f"Hydration signal NOT found! Body attributes: {body_attrs}")
+            logger.error(f"Login form NOT ready! Body attributes: {body_attrs}")
             logger.error(f"Page URL: {self.page.url}")
             logger.error(f"Page title: {self.page.title()}")
             raise
