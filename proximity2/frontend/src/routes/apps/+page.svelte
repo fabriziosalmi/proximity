@@ -7,6 +7,7 @@
 	import { myAppsStore, hasDeployingApps } from '$lib/stores/apps';
 	import { pageTitleStore } from '$lib/stores/pageTitle';
 	import { toasts } from '$lib/stores/toast';
+	import { startApp, stopApp, restartApp, deleteApp, cloneApp } from '$lib/stores/actions';
 	import RackCard from '$lib/components/RackCard.svelte';
 	import CloneModal from '$lib/components/CloneModal.svelte';
 
@@ -32,30 +33,25 @@
 		actionInProgress[appId] = true;
 		actionInProgress = { ...actionInProgress };
 
-		const actionLabels = {
-			start: 'Starting',
-			stop: 'Stopping',
-			restart: 'Restarting',
-			delete: 'Deleting'
-		};
-
-		toasts.info(`${actionLabels[action]} ${appName}...`, 2000);
-
-		const result = await myAppsStore.performAction(appId, action);
+		// Use centralized action dispatcher (handles API, toasts, and sounds)
+		switch (action) {
+			case 'start':
+				await startApp(appId, appName);
+				break;
+			case 'stop':
+				await stopApp(appId, appName);
+				break;
+			case 'restart':
+				await restartApp(appId, appName);
+				break;
+			case 'delete':
+				await deleteApp(appId, appName);
+				break;
+		}
 
 		// Clear action in progress
 		actionInProgress[appId] = false;
 		actionInProgress = { ...actionInProgress };
-
-		if (result.success) {
-			if (action === 'delete') {
-				toasts.success(`${appName} deleted successfully`, 5000);
-			} else {
-				toasts.success(`${appName} ${action} command sent`, 5000);
-			}
-		} else {
-			toasts.error(result.error || `Failed to ${action} ${appName}`, 7000);
-		}
 	}
 
 	async function handleViewLogs(appId: string, appName: string) {

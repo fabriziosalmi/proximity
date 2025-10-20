@@ -211,7 +211,23 @@ def test_clone_application_lifecycle(
     expect(source_card).to_be_visible()
     expect(apps_page.get_app_card_by_hostname(clone_hostname)).to_be_visible()
     print(f"  ✅ Both apps visible and running\n")
-    
+
+    # ============================================================================
+    # STEP 8: VERIFY 3D FLIP ANIMATION (LIVING INTERFACE)
+    # ============================================================================
+    print("📍 STEP 8: Verify 3D Flip Animation")
+    print("-" * 80)
+    print(f"  🎨 Testing 'Living Interface' features...")
+
+    # Flip the clone card to reveal technical details
+    apps_page.flip_card(clone_hostname)
+    print(f"  ✓ Triggered flip animation on: {clone_hostname}")
+
+    # Verify the is-flipped class was applied (confirms state management)
+    apps_page.assert_card_is_flipped(clone_hostname)
+    print(f"  ✓ 'is-flipped' class applied successfully")
+    print(f"  ✅ Flip animation mechanism verified\n")
+
     # ============================================================================
     # TEST SUMMARY
     # ============================================================================

@@ -369,10 +369,61 @@ class AppsPage:
     def assert_empty_state(self) -> 'AppsPage':
         """
         Assert that the empty state is visible (no apps deployed).
-        
+
         Returns:
             self for chaining
         """
         empty_state = self.page.locator(self.EMPTY_STATE).first
         expect(empty_state).to_be_visible(timeout=5000)
+        return self
+
+    def flip_card(self, hostname: str) -> 'AppsPage':
+        """
+        Flip the application card to reveal technical details (3D flip animation).
+
+        This method triggers the 3D flip animation by clicking the info button
+        on the rack card. This is part of the "Living Interface" features.
+
+        Args:
+            hostname: Hostname of the application
+
+        Returns:
+            self for chaining
+        """
+        card = self.get_app_card_by_hostname(hostname)
+        flip_button = card.locator('[data-testid="flip-button"]')
+        expect(flip_button).to_be_visible(timeout=5000)
+        flip_button.click()
+
+        # Give the animation a moment to start
+        self.page.wait_for_timeout(100)
+
+        return self
+
+    def assert_card_is_flipped(self, hostname: str) -> 'AppsPage':
+        """
+        Assert that the application card is in the flipped state.
+
+        This verifies that the 'is-flipped' CSS class has been applied to the
+        card container, which triggers the 3D flip animation. This doesn't test
+        the animation itself, but confirms the state management is working.
+
+        Args:
+            hostname: Hostname of the application
+
+        Returns:
+            self for chaining
+        """
+        import re
+
+        # Get the card (which has the data-testid)
+        card = self.get_app_card_by_hostname(hostname)
+
+        # Navigate up to the parent .card-container which has the is-flipped class
+        # The structure is: .card-container > .card-inner > .card-front (where card lives)
+        card_container = card.locator('..').locator('..')
+
+        # Assert that the container has the 'is-flipped' class
+        expect(card_container).to_have_class(re.compile(r'is-flipped'))
+
         return self
