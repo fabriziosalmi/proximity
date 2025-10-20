@@ -68,15 +68,12 @@
 		if (!cloneSourceApp) return;
 
 		showCloneModal = false;
-		toasts.info(`Cloning ${cloneSourceApp.name} to ${newHostname}...`, 3000);
 
-		const result = await myAppsStore.cloneApplication(cloneSourceApp.id, newHostname);
+		// Use centralized action dispatcher (handles API, toasts, and sounds)
+		const result = await cloneApp(cloneSourceApp.id, cloneSourceApp.name, newHostname);
 
 		if (result.success) {
-			toasts.success(`Clone started! ${newHostname} will be ready soon.`, 5000);
 			cloneSourceApp = null;
-		} else {
-			toasts.error(result.error || 'Failed to start clone operation', 7000);
 		}
 	}
 

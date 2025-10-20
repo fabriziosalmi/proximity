@@ -6,7 +6,7 @@
 	import { onMount } from 'svelte';
 	import { Server, Cpu, Network, Settings as SettingsIcon } from 'lucide-svelte';
 	import { pageTitleStore } from '$lib/stores/pageTitle';
-	import { SoundService } from '$lib/services/SoundService';
+	import { switchTab as switchTabAction } from '$lib/stores/actions';
 	import ProxmoxSettings from '$lib/components/settings/ProxmoxSettings.svelte';
 	import ResourceSettings from '$lib/components/settings/ResourceSettings.svelte';
 	import NetworkSettings from '$lib/components/settings/NetworkSettings.svelte';
@@ -47,7 +47,7 @@
 		const tab = tabs.find((t) => t.id === tabId);
 		if (tab && !tab.disabled) {
 			activeTab = tabId;
-			SoundService.play('click');
+			switchTabAction(tabId); // Use centralized action for sound feedback
 		}
 	}
 
