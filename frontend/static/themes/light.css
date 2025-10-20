@@ -1,0 +1,53 @@
+/* ============================================ */
+/* PROXIMITY 2.0 - LIGHT THEME */
+/* Professional daylight command center */
+/* ============================================ */
+
+:root {
+	/* === Command Deck Theming Contract === */
+	--bg-case: #f3f4f6;
+	--bg-rack-nav: linear-gradient(to bottom, #e5e7eb, #f9fafb);
+	--bg-top-bar: #ffffff;
+	--border-rack: #d1d5db;
+
+	/* === Core Palette === */
+	--color-text-primary: #111827;
+	--color-text-secondary: #6b7280;
+	--color-accent: #2563eb;
+	--color-accent-bright: #0ea5e9;
+
+	/* LED Status Colors */
+	--color-led-active: #10b981;
+	--color-led-inactive: #e5e7eb;
+	--color-led-warning: #f59e0b;
+	--color-led-danger: #dc2626;
+
+	/* === Component Backgrounds === */
+	--bg-main-canvas: transparent;
+	--bg-card: #ffffff;
+	--bg-card-hover: #f9fafb;
+	--card-bg-color: #ffffff;
+	--card-background: #ffffff;
+
+	/* === Borders and Dividers === */
+	--border-color-primary: #d1d5db;
+	--border-color-secondary: #e5e7eb;
+	--card-border-color: rgba(209, 213, 219, 0.6);
+
+	/* === Shadows and Glows === */
+	--shadow-glow-accent: 0 0 15px rgba(14, 165, 233, 0.3);
+	--shadow-glow-led: 0 0 12px rgba(16, 185, 129, 0.4);
+	--card-hover-shadow: 0 0 20px rgba(14, 165, 233, 0.2);
+
+	/* === Typography === */
+	--text-color-primary: #111827;
+	--text-color-secondary: #6b7280;
+	--card-title-color: #111827;
+	--card-text-color: #4b5563;
+
+	/* Legacy support */
+	--text-primary: #111827;
+	--text-secondary: #6b7280;
+	--glow-color: rgba(14, 165, 233, 0.2);
+	--background-color: #f9fafb;
+}

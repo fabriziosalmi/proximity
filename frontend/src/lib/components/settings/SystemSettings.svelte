@@ -8,6 +8,7 @@
 	import { api } from '$lib/api';
 	import { toasts } from '$lib/stores/toast';
 	import { ThemeService } from '$lib/services/ThemeService';
+	import ThemeSwitcher from '$lib/components/ThemeSwitcher.svelte';
 
 	let loading = true;
 	let saving = false;
@@ -18,10 +19,6 @@
 	let enableAiAgent = false;
 	let enableCommunityChat = false;
 	let enableMultiHost = false;
-
-	// Theme management
-	let currentTheme = '';
-	let availableThemes: Array<{id: string; name: string; description: string}> = [];
 
 	async function loadSettings() {
 		loading = true;
@@ -37,25 +34,11 @@
 				enableCommunityChat = settings.enable_community_chat || false;
 				enableMultiHost = settings.enable_multi_host || false;
 			}
-
-			// Load theme settings
-			currentTheme = ThemeService.getCurrentTheme();
-			availableThemes = ThemeService.getThemes();
 		} catch (err) {
 			console.error('Failed to load system settings:', err);
 			toasts.error('Failed to load system settings', 5000);
 		} finally {
 			loading = false;
-		}
-	}
-
-	async function handleThemeChange() {
-		try {
-			await ThemeService.setTheme(currentTheme);
-			toasts.success(`Theme changed to ${ThemeService.getThemeById(currentTheme)?.name}`, 3000);
-		} catch (err) {
-			console.error('Failed to change theme:', err);
-			toasts.error('Failed to change theme', 5000);
 		}
 	}
 
@@ -98,40 +81,8 @@
 				View and manage system-wide settings and feature flags.
 			</p>
 
-			<!-- Appearance Section -->
-			<div class="section-card">
-				<div class="section-header">
-					<Palette class="h-5 w-5 text-purple-400" />
-					<h3 class="section-title">Appearance</h3>
-				</div>
-
-				<div class="form-group">
-					<label for="current-theme" class="form-label">
-						Current Theme
-						<span class="text-red-400">*</span>
-					</label>
-					<select
-						id="current-theme"
-						bind:value={currentTheme}
-						on:change={handleThemeChange}
-						class="form-input"
-						data-testid="theme-selector"
-					>
-						{#each availableThemes as theme}
-							<option value={theme.id}>{theme.name}</option>
-						{/each}
-					</select>
-					<p class="form-hint">
-						{availableThemes.find(t => t.id === currentTheme)?.description || 'Select a theme'}
-					</p>
-				</div>
-
-				<div class="theme-preview-notice">
-					<p class="text-sm text-gray-400">
-						💡 <strong>Pro Tip:</strong> Theme changes are applied instantly and saved automatically.
-					</p>
-				</div>
-			</div>
+			<!-- Theme Switcher Component -->
+			<ThemeSwitcher />
 
 			<div class="form-grid">
 				<!-- Version (Read-only) -->

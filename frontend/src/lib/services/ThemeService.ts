@@ -27,20 +27,20 @@ class ThemeServiceClass {
 		{
 			id: 'dark',
 			name: 'Dark Mode',
-			description: 'Professional dark theme with cyan accents (Default)',
-			cssPath: '/src/assets/themes/dark_theme.css'
+			description: 'Classic command center experience',
+			cssPath: '/themes/dark.css'
 		},
 		{
 			id: 'light',
 			name: 'Light Mode',
-			description: 'Clean light theme with blue accents',
-			cssPath: '/src/assets/themes/light_theme.css'
+			description: 'Professional daylight interface',
+			cssPath: '/themes/light.css'
 		},
 		{
 			id: 'matrix',
 			name: 'Matrix',
-			description: 'Cyberpunk-inspired green-on-black theme',
-			cssPath: '/src/assets/themes/matrix_theme.css'
+			description: "Hacker's green phosphor terminal",
+			cssPath: '/themes/matrix.css'
 		}
 	];
 
@@ -109,7 +109,9 @@ class ThemeServiceClass {
 		// Update current theme and persist
 		this.currentTheme = themeId;
 		
+		// Set data-theme attribute on body for theme-specific CSS
 		if (typeof window !== 'undefined') {
+			document.body.setAttribute('data-theme', themeId);
 			localStorage.setItem(this.STORAGE_KEY, themeId);
 		}
 
