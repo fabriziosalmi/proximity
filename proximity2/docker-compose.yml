@@ -91,6 +91,7 @@ services:
     command: celery -A proximity worker -l info
     volumes:
       - ./backend:/app
+      - ./catalog_data:/catalog_data:ro
     environment:
       - DEBUG=True
       - SECRET_KEY=dev-secret-key-change-in-production
@@ -124,6 +125,7 @@ services:
     command: celery -A proximity beat -l info
     volumes:
       - ./backend:/app
+      - ./catalog_data:/catalog_data:ro
     environment:
       - DEBUG=True
       - SECRET_KEY=dev-secret-key-change-in-production
