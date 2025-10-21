@@ -255,6 +255,24 @@ class ApiClient {
 		return this.request(`/api/apps/${appId}/stats`);
 	}
 
+	// Container Discovery & Adoption
+	async discoverUnmanagedContainers(hostId?: number) {
+		const params = hostId ? `?host_id=${hostId}` : '';
+		return this.request(`/api/apps/discover${params}`);
+	}
+
+	async adoptContainer(data: {
+		vmid: number;
+		node_name: string;
+		suggested_type?: string;
+		port_to_expose?: number;
+	}) {
+		return this.request('/api/apps/adopt', {
+			method: 'POST',
+			body: JSON.stringify(data)
+		});
+	}
+
 	// Backups (placeholder)
 	async listBackups() {
 		return this.request('/api/backups/');

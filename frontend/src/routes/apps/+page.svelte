@@ -284,6 +284,16 @@
 					</div>
 				{/if}
 
+				<!-- Adopt Existing Button -->
+				<a
+					href="/adopt"
+					class="btn btn-outline btn-sm gap-2"
+					title="Import existing containers"
+				>
+					<Server class="h-4 w-4" />
+					<span>Adopt Existing</span>
+				</a>
+
 				<!-- Refresh Button -->
 				<button
 					on:click={handleRefresh}

@@ -646,6 +646,9 @@ def clone_app_task(self, source_app_id: str, new_hostname: str, owner_id: int) -
 def delete_app_task(self, app_id: str, force: bool = True) -> Dict[str, Any]:
     """
     Delete an application (destroy LXC container and release resources).
+    
+    For ADOPTED containers: Only removes the Proximity management record, leaves the container intact.
+    For DEPLOYED containers: Destroys the container and cleans up all resources.
 
     Args:
         app_id: Application ID
@@ -656,7 +659,40 @@ def delete_app_task(self, app_id: str, force: bool = True) -> Dict[str, Any]:
     """
     try:
         app = Application.objects.get(id=app_id)
-        log_deployment(app_id, 'info', 'Deleting application...', 'delete')
+        
+        # Check if this is an adopted container
+        is_adopted = app.config.get('adopted', False)
+        
+        if is_adopted:
+            logger.info(f"[{app.name}] 🔖 ADOPTED CONTAINER - Removing Proximity management only (container will remain on Proxmox)")
+            log_deployment(app_id, 'info', 'Removing adopted container from Proximity management (container preserved on Proxmox)', 'unadopt')
+            
+            app.status = 'removing'
+            app.save(update_fields=['status'])
+            
+            # Release ports allocated by Proximity
+            logger.info(f"[{app.name}] Releasing allocated ports...")
+            port_manager = PortManagerService()
+            port_manager.release_ports(app.public_port, app.internal_port)
+            
+            # Delete ONLY the Application record - leave container untouched
+            app_name = app.name
+            original_vmid = app.config.get('original_vmid', app.lxc_id)
+            app.delete()
+            
+            logger.info(f"[{app_name}] ✅ Adopted container un-managed successfully (VMID {original_vmid} preserved on Proxmox)")
+            log_deployment(app_id, 'info', f'Container {original_vmid} removed from Proximity, still running on Proxmox', 'unadopt_complete')
+            
+            return {
+                'success': True, 
+                'message': f'Adopted container {app_name} removed from Proximity (container preserved on Proxmox)',
+                'adopted': True,
+                'vmid_preserved': original_vmid
+            }
+        
+        # NORMAL DEPLOYED CONTAINER - Full deletion
+        logger.info(f"[{app.name}] 🗑️  DEPLOYED CONTAINER - Full deletion (destroying container)")
+        log_deployment(app_id, 'info', 'Deleting deployed application and container...', 'delete')
 
         app.status = 'removing'
         app.save(update_fields=['status'])
@@ -729,7 +765,7 @@ def delete_app_task(self, app_id: str, force: bool = True) -> Dict[str, Any]:
 
         logger.info(f"[{app_name}] ✅ Application deleted successfully (all 4 steps complete)")
 
-        return {'success': True, 'message': f'Application {app_name} deleted'}
+        return {'success': True, 'message': f'Application {app_name} deleted', 'adopted': False}
 
     except Application.DoesNotExist:
         logger.warning(f"Application {app_id} not found for deletion")
