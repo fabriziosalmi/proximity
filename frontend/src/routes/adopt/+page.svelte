@@ -6,7 +6,7 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { api } from '$lib/api';
-	import { addToast } from '$lib/stores/toast';
+	import { toasts } from '$lib/stores/toast';
 	import Icon from '@iconify/svelte';
 
 	interface UnmanagedContainer {
@@ -72,7 +72,7 @@
 			}
 		} catch (error) {
 			console.error('Failed to load data:', error);
-			addToast('Failed to load containers', 'error');
+			toasts.error('Failed to load containers');
 		} finally {
 			loading = false;
 		}
@@ -110,11 +110,11 @@
 	// Wizard navigation
 	function goToStep(step: WizardStep) {
 		if (step === 'configuration' && selectedCount === 0) {
-			addToast('Please select at least one container', 'warning');
+			toasts.warning('Please select at least one container');
 			return;
 		}
 		if (step === 'confirmation' && !allValid) {
-			addToast('Please configure all selected containers', 'warning');
+			toasts.warning('Please configure all selected containers');
 			return;
 		}
 		currentStep = step;
@@ -136,12 +136,12 @@
 				});
 
 				if (response.success) {
-					addToast(`✅ "${item.container.name}" adoption started`, 'success');
+					toasts.success(`✅ "${item.container.name}" adoption started`);
 				} else {
-					addToast(`❌ Failed to adopt "${item.container.name}": ${response.error}`, 'error');
+					toasts.error(`❌ Failed to adopt "${item.container.name}": ${response.error}`);
 				}
 			} catch (error) {
-				addToast(`💥 Error adopting "${item.container.name}"`, 'error');
+				toasts.error(`💥 Error adopting "${item.container.name}"`);
 			}
 
 			adoptionProgress++;
@@ -150,9 +150,8 @@
 		adopting = false;
 
 		// Show completion message
-		addToast(
-			`🎉 Adoption complete! ${adoptionTotal} container(s) are being imported. Redirecting to apps...`,
-			'success'
+		toasts.success(
+			`🎉 Adoption complete! ${adoptionTotal} container(s) are being imported. Redirecting to apps...`
 		);
 		
 		setTimeout(() => {

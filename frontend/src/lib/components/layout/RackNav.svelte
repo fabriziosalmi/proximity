@@ -10,6 +10,9 @@
 		{ href: '/settings', label: 'Settings', icon: Settings }
 	];
 
+	// Reactive declaration for current pathname - SAFE for SSR
+	$: currentPath = $page.url.pathname;
+
 	function isActive(href, pathname) {
 		return pathname === href || (href !== '/' && pathname.startsWith(href));
 	}
@@ -23,12 +26,12 @@
 	<ul class="nav-list">
 		{#each navItems as item}
 			<li class="nav-item">
-				<a href={item.href} class="nav-link" class:active={isActive(item.href, $page.url.pathname)}>
+				<a href={item.href} class="nav-link" class:active={isActive(item.href, currentPath)}>
 					<div class="icon">
 						<svelte:component this={item.icon} size={20} />
 					</div>
 					<span class="label">{item.label}</span>
-					<div class="led" class:led-active={isActive(item.href, $page.url.pathname)}></div>
+					<div class="led" class:led-active={isActive(item.href, currentPath)}></div>
 				</a>
 			</li>
 		{/each}

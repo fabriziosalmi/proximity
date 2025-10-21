@@ -16,6 +16,9 @@
 
 	let showUserMenu = false;
 
+	// Reactive declaration for current pathname - SAFE for SSR
+	$: currentPath = $page.url.pathname;
+
 	function isActive(href, pathname) {
 		return pathname === href || (href !== '/' && pathname.startsWith(href));
 	}
@@ -63,7 +66,7 @@
 			<!-- LED strip decoration -->
 			<div class="led-strip">
 				{#each navItems as item}
-					<div class="nav-led" class:active={isActive(item.href, $page.url.pathname)}></div>
+					<div class="nav-led" class:active={isActive(item.href, currentPath)}></div>
 				{/each}
 			</div>
 			
@@ -73,12 +76,12 @@
 					<a
 						href={item.href}
 						class="nav-button"
-						class:nav-button-active={isActive(item.href, $page.url.pathname)}
+						class:nav-button-active={isActive(item.href, currentPath)}
 						title={item.label}
 					>
 						<svelte:component this={item.icon} class="h-5 w-5" />
 						<span class="nav-label">{item.label}</span>
-						<div class="nav-indicator" class:active={isActive(item.href, $page.url.pathname)}></div>
+						<div class="nav-indicator" class:active={isActive(item.href, currentPath)}></div>
 					</a>
 				{/each}
 			</div>
@@ -152,11 +155,11 @@
 				<a
 					href={item.href}
 					class="mobile-nav-link"
-					class:mobile-nav-link-active={isActive(item.href, $page.url.pathname)}
+					class:mobile-nav-link-active={isActive(item.href, currentPath)}
 					title={item.label}
 				>
 					<svelte:component this={item.icon} class="h-5 w-5" />
-					<div class="mobile-led" class:mobile-led-active={isActive(item.href, $page.url.pathname)}></div>
+					<div class="mobile-led" class:mobile-led-active={isActive(item.href, currentPath)}></div>
 				</a>
 			</li>
 		{/each}
