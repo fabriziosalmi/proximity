@@ -120,6 +120,14 @@ function createAppsStore() {
 					...appsArray
 				];
 
+				console.log(`📦 [myAppsStore] Updated apps store:`, {
+					totalApps: finalApps.length,
+					apiApps: appsArray.length,
+					cloningPlaceholders: unresolvedCloningPlaceholders.length,
+					deployingPlaceholders: unresolvedDeployingPlaceholders.length,
+					hostnames: finalApps.map(app => app.hostname)
+				});
+
 				return {
 					...state,
 					apps: finalApps,
