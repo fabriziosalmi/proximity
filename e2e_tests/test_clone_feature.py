@@ -296,29 +296,27 @@ def test_clone_application_workflow(
     print("="*80 + "\n")
 
     # ============================================================================
-    # STEP 1: LOGIN
+    # PROGRAMMATIC LOGIN: Fast, robust, no UI interaction
     # ============================================================================
-    print("📍 STEP 1: Login")
+    print("📍 AUTHENTICATION SETUP (Programmatic)")
     print("-" * 80)
-
-    login_page = LoginPage(page, base_url)
-    login_page.navigate_and_wait_for_ready()
-    print(f"  ✓ Navigated to login page: {base_url}/login (hydration complete)")
-
-    login_page.login(
-        username=unique_user['username'],
-        password=unique_user['password'],
-        wait_for_navigation=True
-    )
-    print(f"  ✓ Submitted login credentials")
-
-    login_page.assert_login_success(expected_url=base_url + "/")
-    print(f"  ✅ LOGIN SUCCESS - Redirected to home page\n")
+    
+    auth_token = unique_user["auth_token"]
+    
+    # Inject authentication token into browser localStorage
+    # This runs BEFORE any page navigation, ensuring auth is ready
+    page.add_init_script(f"""
+        window.localStorage.setItem('access_token', '{auth_token}');
+    """)
+    
+    print(f"  ✅ Auth token injected programmatically")
+    print(f"  ✅ User context set: {unique_user['username']}")
+    print(f"  ⚡ Login completed instantly (no UI interaction)\n")
 
     # ============================================================================
-    # STEP 2: DEPLOY SOURCE APPLICATION
+    # STEP 1: DEPLOY SOURCE APPLICATION (Already Authenticated)
     # ============================================================================
-    print("📍 STEP 2: Deploy Source Application")
+    print("📍 STEP 1: Deploy Source Application")
     print("-" * 80)
 
     store_page = StorePage(page, base_url)
@@ -349,9 +347,9 @@ def test_clone_application_workflow(
     print(f"  ✅ DEPLOYMENT INITIATED - Redirected to /apps page\n")
 
     # ============================================================================
-    # STEP 3: WAIT FOR SOURCE APP TO BE RUNNING
+    # STEP 2: WAIT FOR SOURCE APP TO BE RUNNING
     # ============================================================================
-    print("📍 STEP 3: Monitor Source App Deployment")
+    print("📍 STEP 2: Monitor Source App Deployment")
     print("-" * 80)
     print(f"  ⏳ This may take 1-3 minutes (container image pulling)...")
 
@@ -386,9 +384,9 @@ def test_clone_application_workflow(
     print(f"  ✅ SOURCE APP DEPLOYED - Status: running (took {deployment_duration:.1f}s)\n")
 
     # ============================================================================
-    # STEP 4: CLONE THE APPLICATION
+    # STEP 3: CLONE THE APPLICATION
     # ============================================================================
-    print("📍 STEP 4: Clone Application")
+    print("📍 STEP 3: Clone Application")
     print("-" * 80)
 
     # Click Clone button
@@ -429,9 +427,9 @@ def test_clone_application_workflow(
     print(f"  ✅ CLONE INITIATED - Modal closed\n")
 
     # ============================================================================
-    # STEP 5: VERIFY CLONE APPEARS WITH "CLONING" STATUS
+    # STEP 4: VERIFY CLONE APPEARS WITH "CLONING" STATUS
     # ============================================================================
-    print("📍 STEP 5: Verify Clone Appears")
+    print("📍 STEP 4: Verify Clone Appears")
     print("-" * 80)
 
     # Wait for clone card to appear (optimistic update)

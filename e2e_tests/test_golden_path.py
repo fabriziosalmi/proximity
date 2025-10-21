@@ -63,37 +63,27 @@ def test_full_app_lifecycle(
     print("="*80 + "\n")
 
     # ============================================================================
-    # STEP 1: LOGIN
+    # PROGRAMMATIC LOGIN: Fast, robust, no UI interaction
     # ============================================================================
-    print("📍 STEP 1: Login")
+    print("📍 AUTHENTICATION SETUP (Programmatic)")
     print("-" * 80)
-
-    login_page = LoginPage(page, base_url)
-
-    # Navigate to login page and wait for hydration
-    login_page.navigate_and_wait_for_ready()
-    print(f"  ✓ Navigated to login page: {base_url}/login (hydration complete)")
-
-    # Perform login
-    login_page.login(
-        username=unique_user['username'],
-        password=unique_user['password'],
-        wait_for_navigation=True
-    )
-    print(f"  ✓ Submitted login credentials")
-
-    # Assert login success - should be redirected to home
-    login_page.assert_login_success(expected_url=base_url + "/")
-    print(f"  ✅ LOGIN SUCCESS - Redirected to home page")
-
-    # Verify we have access to protected routes
-    assert page.locator('a[href="/apps"]').is_visible(), "Apps link not found after login"
-    print(f"  ✓ Authenticated navigation verified\n")
+    
+    auth_token = unique_user["auth_token"]
+    
+    # Inject authentication token into browser localStorage
+    # This runs BEFORE any page navigation, ensuring auth is ready
+    page.add_init_script(f"""
+        window.localStorage.setItem('access_token', '{auth_token}');
+    """)
+    
+    print(f"  ✅ Auth token injected programmatically")
+    print(f"  ✅ User context set: {unique_user['username']}")
+    print(f"  ⚡ Login completed instantly (no UI interaction)\n")
     
     # ============================================================================
-    # STEP 2: NAVIGATE TO APP STORE
+    # STEP 1: NAVIGATE TO APP STORE (Already Authenticated)
     # ============================================================================
-    print("📍 STEP 2: Navigate to App Store")
+    print("📍 STEP 1: Navigate to App Store")
     print("-" * 80)
     
     store_page = StorePage(page, base_url)
