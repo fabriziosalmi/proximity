@@ -60,6 +60,15 @@ class ApplicationClone(BaseModel):
     new_hostname: str = Field(..., min_length=3, max_length=63, description="Hostname for the cloned application")
 
 
+class ApplicationAdopt(BaseModel):
+    """Adopt existing LXC container request."""
+    vmid: int = Field(..., description="VMID of the existing container to adopt")
+    node_name: str = Field(..., description="Node name where the container is running")
+    catalog_id: str = Field(..., description="Catalog app ID that matches this container")
+    hostname: Optional[str] = Field(None, min_length=3, max_length=63, description="Custom hostname (defaults to container name)")
+    container_port_to_expose: int = Field(..., description="Internal port the container is listening on (e.g., 80 for nginx)")
+
+
 class DeploymentLogResponse(BaseModel):
     """Deployment log entry."""
     id: int

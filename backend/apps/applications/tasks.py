@@ -828,3 +828,210 @@ def janitor_task(self) -> Dict[str, Any]:
             'success': False,
             'error': str(e)
         }
+
+
+@shared_task(bind=True, max_retries=3)
+def adopt_app_task(self, adoption_data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Adopt an existing LXC container into Proximity management.
+    
+    This is an asynchronous operation that:
+    1. Verifies the container exists on Proxmox
+    2. Allocates ports for the container
+    3. Creates an Application record with adoption metadata
+    4. Configures port mapping (future: reverse proxy setup)
+    
+    Args:
+        adoption_data: Dictionary containing:
+            - vmid: Container VMID to adopt
+            - node_name: Node where container is running
+            - catalog_id: Catalog app ID
+            - hostname: Optional custom hostname
+            - container_port_to_expose: Internal port the container listens on
+            
+    Returns:
+        Adoption result dictionary
+    """
+    vmid = adoption_data['vmid']
+    node_name = adoption_data['node_name']
+    catalog_id = adoption_data['catalog_id']
+    hostname = adoption_data.get('hostname')
+    container_port_to_expose = adoption_data['container_port_to_expose']
+    
+    logger.info(f"="*100)
+    logger.info(f"[ADOPT TASK START] --- Starting adoption for Container VMID: {vmid} ---")
+    logger.info(f"[ADOPT TASK START] Parameters: node={node_name}, catalog_id={catalog_id}, container_port={container_port_to_expose}")
+    logger.info(f"="*100)
+    
+    app = None
+    app_id = None
+    
+    try:
+        from apps.proxmox.models import ProxmoxNode
+        from apps.catalog.services import CatalogService
+        import uuid
+        
+        # Get node and host information
+        logger.info(f"[ADOPT {vmid}] STEP 1: Retrieving node information...")
+        try:
+            node = ProxmoxNode.objects.get(name=node_name)
+            host = node.host
+            logger.info(f"[ADOPT {vmid}] ✓ Found node '{node_name}' on host '{host.name}' (ID: {host.id})")
+        except ProxmoxNode.DoesNotExist:
+            logger.error(f"[ADOPT {vmid}] ❌ Node '{node_name}' not found in database")
+            raise Exception(f"Node '{node_name}' not found")
+        
+        # Initialize Proxmox service
+        logger.info(f"[ADOPT {vmid}] STEP 2: Connecting to Proxmox host...")
+        try:
+            proxmox_service = ProxmoxService(host_id=host.id)
+            logger.info(f"[ADOPT {vmid}] ✓ ProxmoxService initialized")
+        except Exception as e:
+            logger.error(f"[ADOPT {vmid}] ❌ Failed to connect to Proxmox: {e}", exc_info=True)
+            raise
+        
+        # Get container information from Proxmox
+        logger.info(f"[ADOPT {vmid}] STEP 3: Fetching container information from Proxmox...")
+        try:
+            containers = proxmox_service.get_lxc_containers(node_name)
+            container_info = next((c for c in containers if int(c.get('vmid')) == int(vmid)), None)
+            
+            if not container_info:
+                logger.error(f"[ADOPT {vmid}] ❌ Container {vmid} not found on node {node_name}")
+                raise Exception(f"Container {vmid} not found on node {node_name}")
+            
+            container_status = container_info.get('status', 'unknown')
+            container_name = container_info.get('name', f'container-{vmid}')
+            logger.info(f"[ADOPT {vmid}] ✓ Found container: name='{container_name}', status='{container_status}'")
+        except StopIteration:
+            logger.error(f"[ADOPT {vmid}] ❌ Container {vmid} not found")
+            raise Exception(f"Container {vmid} not found")
+        except Exception as e:
+            logger.error(f"[ADOPT {vmid}] ❌ Error fetching container info: {e}", exc_info=True)
+            raise
+        
+        # Get catalog app information
+        logger.info(f"[ADOPT {vmid}] STEP 4: Retrieving catalog information...")
+        try:
+            catalog_service = CatalogService()
+            catalog_app = catalog_service.get_app_by_id(catalog_id)
+            
+            if not catalog_app:
+                logger.error(f"[ADOPT {vmid}] ❌ Catalog app '{catalog_id}' not found")
+                raise Exception(f"Catalog app '{catalog_id}' not found")
+            
+            catalog_app_name = catalog_app.get('name', catalog_id)
+            logger.info(f"[ADOPT {vmid}] ✓ Catalog app found: '{catalog_app_name}'")
+        except Exception as e:
+            logger.error(f"[ADOPT {vmid}] ❌ Error fetching catalog info: {e}", exc_info=True)
+            raise
+        
+        # Use container name as hostname if not provided
+        if not hostname:
+            hostname = container_name
+            logger.info(f"[ADOPT {vmid}] 📝 Using container name as hostname: '{hostname}'")
+        
+        # Allocate ports
+        logger.info(f"[ADOPT {vmid}] STEP 5: Allocating ports...")
+        try:
+            port_manager = PortManagerService(host_id=host.id)
+            public_port = port_manager.allocate_port()
+            assigned_internal_port = port_manager.allocate_port()
+            logger.info(f"[ADOPT {vmid}] ✓ Allocated ports: public={public_port}, internal={assigned_internal_port}")
+            logger.info(f"[ADOPT {vmid}] 📌 Port mapping will be: {public_port} -> container:{container_port_to_expose}")
+        except Exception as e:
+            logger.error(f"[ADOPT {vmid}] ❌ Failed to allocate ports: {e}", exc_info=True)
+            raise
+        
+        # Generate application ID
+        app_id = f"{catalog_id}-{uuid.uuid4().hex[:8]}"
+        logger.info(f"[ADOPT {vmid}] 📋 Generated application ID: {app_id}")
+        
+        # Create Application record in 'adopting' state
+        logger.info(f"[ADOPT {vmid}] STEP 6: Creating Application record...")
+        try:
+            with transaction.atomic():
+                app = Application.objects.create(
+                    id=app_id,
+                    catalog_id=catalog_id,
+                    name=catalog_app_name,
+                    hostname=hostname,
+                    status='adopting',
+                    lxc_id=vmid,
+                    node=node_name,
+                    host_id=host.id,
+                    public_port=public_port,
+                    internal_port=assigned_internal_port,
+                    config={
+                        'adopted': True,
+                        'original_vmid': vmid,
+                        'adoption_date': timezone.now().isoformat(),
+                        'container_port_to_expose': container_port_to_expose
+                    },
+                    environment={}
+                )
+                
+                # Create adoption log
+                DeploymentLog.objects.create(
+                    application=app,
+                    level='INFO',
+                    message=f'Starting adoption of container {vmid} from Proxmox',
+                    step='adoption_start'
+                )
+                
+                logger.info(f"[ADOPT {vmid}] ✓ Application record created: {app_id}")
+        except Exception as e:
+            logger.error(f"[ADOPT {vmid}] ❌ Failed to create Application record: {e}", exc_info=True)
+            raise
+        
+        # Update status to match container's actual state
+        logger.info(f"[ADOPT {vmid}] STEP 7: Finalizing adoption...")
+        final_status = 'running' if container_status == 'running' else 'stopped'
+        app.status = final_status
+        app.save(update_fields=['status'])
+        
+        DeploymentLog.objects.create(
+            application=app,
+            level='INFO',
+            message=f'Successfully adopted container {vmid}. Status: {final_status}',
+            step='adoption_complete'
+        )
+        
+        logger.info(f"[ADOPT {vmid}] ✅ Adoption completed successfully! Status: {final_status}")
+        logger.info(f"[ADOPT {vmid}] 🎯 Application URL will be: http://{host.host}:{public_port}")
+        logger.info(f"="*100)
+        
+        return {
+            'success': True,
+            'app_id': app_id,
+            'vmid': vmid,
+            'hostname': hostname,
+            'status': final_status,
+            'public_port': public_port,
+            'container_port': container_port_to_expose
+        }
+        
+    except Exception as e:
+        logger.error(f"[ADOPT {vmid}] ❌ Adoption failed: {e}", exc_info=True)
+        
+        # Mark application as error if it was created
+        if app and app_id:
+            try:
+                app.status = 'error'
+                app.save(update_fields=['status'])
+                
+                DeploymentLog.objects.create(
+                    application=app,
+                    level='ERROR',
+                    message=f'Adoption failed: {str(e)}',
+                    step='adoption_error'
+                )
+            except Exception as log_error:
+                logger.error(f"[ADOPT {vmid}] Failed to log error: {log_error}")
+        
+        # Retry if possible
+        if self.request.retries < self.max_retries:
+            logger.info(f"[ADOPT {vmid}] 🔄 Retrying... (attempt {self.request.retries + 1}/{self.max_retries})")
+            raise self.retry(exc=e, countdown=60)  # Retry after 60 seconds
+        
+        raise

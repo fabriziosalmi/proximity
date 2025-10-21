@@ -14,9 +14,9 @@ from .models import Application, DeploymentLog
 from .schemas import (
     ApplicationCreate, ApplicationResponse, ApplicationListResponse,
     ApplicationAction, ApplicationLogsResponse, DeploymentLogResponse,
-    ApplicationClone
+    ApplicationClone, ApplicationAdopt
 )
-from .tasks import deploy_app_task, start_app_task, stop_app_task, restart_app_task, delete_app_task, clone_app_task
+from .tasks import deploy_app_task, start_app_task, stop_app_task, restart_app_task, delete_app_task, clone_app_task, adopt_app_task
 from .port_manager import PortManagerService
 from apps.proxmox.models import ProxmoxHost, ProxmoxNode
 
@@ -329,146 +329,72 @@ def discover_unmanaged_containers(request, host_id: int = None):
         raise HttpError(500, f"Unexpected error: {str(e)}")
 
 
-@router.post("/adopt", response=ApplicationResponse)
-def adopt_existing_container(request, payload: dict):
+@router.post("/adopt", response={202: dict})
+def adopt_existing_container(request, payload: ApplicationAdopt):
     """
     Adopt an existing LXC container into Proximity management.
     
-    This allows Proximity to take over management of a pre-existing container.
+    This endpoint validates the request and triggers an asynchronous adoption process.
+    The actual adoption happens in a background Celery task.
     
-    Payload:
-        vmid: The VMID of the container to adopt
-        node: The node name where the container is running
-        catalog_id: The catalog app ID that matches this container (e.g., 'adminer', 'adguard')
-        hostname: Optional custom hostname (defaults to container name)
-        internal_port: The internal port the app is listening on (required for port mapping)
+    Args:
+        payload: ApplicationAdopt schema containing:
+            - vmid: Container VMID to adopt
+            - node_name: Node where container is running
+            - catalog_id: Catalog app ID that matches this container
+            - hostname: Optional custom hostname (defaults to container name)
+            - container_port_to_expose: Internal port the container listens on
     
     Returns:
-        The newly created Application object
+        202 Accepted with adoption task information
     """
     import logging
-    from apps.proxmox.services import ProxmoxService, ProxmoxError
     from apps.catalog.services import CatalogService
     
     logger = logging.getLogger(__name__)
     
-    # Validate payload
-    vmid = payload.get('vmid')
-    node_name = payload.get('node')
-    catalog_id = payload.get('catalog_id')
-    hostname = payload.get('hostname')
-    internal_port = payload.get('internal_port')
-    
-    if not all([vmid, node_name, catalog_id]):
-        raise HttpError(400, "Missing required fields: vmid, node, catalog_id")
+    logger.info(f"[ADOPT API] Received adoption request for VMID {payload.vmid} on node {payload.node_name}")
     
     try:
-        # Check if container is already managed
-        existing = Application.objects.filter(lxc_id=vmid).first()
+        # Quick validation: Check if container is already managed
+        existing = Application.objects.filter(lxc_id=payload.vmid).first()
         if existing:
-            raise HttpError(409, f"Container {vmid} is already managed by Proximity")
+            logger.warning(f"[ADOPT API] Container {payload.vmid} already managed by Proximity as '{existing.hostname}'")
+            raise HttpError(409, f"Container {payload.vmid} is already managed by Proximity")
         
-        # Get Proxmox node
-        node = get_object_or_404(ProxmoxNode, name=node_name)
-        
-        # Get container info from Proxmox
-        service = ProxmoxService(host_id=node.host.id)
-        containers = service.get_lxc_containers(node_name)
-        container_info = next((c for c in containers if int(c.get('vmid')) == int(vmid)), None)
-        
-        if not container_info:
-            raise HttpError(404, f"Container {vmid} not found on node {node_name}")
-        
-        # Get catalog app info
+        # Quick validation: Verify catalog app exists
         catalog_service = CatalogService()
-        catalog_app = catalog_service.get_app_by_id(catalog_id)
+        catalog_app = catalog_service.get_app_by_id(payload.catalog_id)
         
         if not catalog_app:
-            raise HttpError(404, f"Catalog app '{catalog_id}' not found")
+            logger.warning(f"[ADOPT API] Catalog app '{payload.catalog_id}' not found")
+            raise HttpError(404, f"Catalog app '{payload.catalog_id}' not found")
         
-        # Use container name as hostname if not provided
-        if not hostname:
-            hostname = container_info.get('name', f'adopted-{vmid}')
+        # Quick validation: Verify node exists
+        node = get_object_or_404(ProxmoxNode, name=payload.node_name)
         
-        # Determine internal port
-        if not internal_port:
-            # Try to get from catalog
-            ports = catalog_app.get('ports', [])
-            internal_port = ports[0] if ports else 8080
-            logger.info(f"Using catalog default port: {internal_port}")
+        logger.info(f"[ADOPT API] Validations passed. Starting adoption task...")
         
-        # Allocate public and internal ports
-        port_manager = PortManagerService(host_id=node.host.id)
-        public_port = port_manager.allocate_port()
-        assigned_internal_port = port_manager.allocate_port()
+        # Start adoption task in background
+        adopt_app_task.delay(payload.dict())
         
-        logger.info(f"Allocated ports: public={public_port}, internal={assigned_internal_port}")
+        logger.info(f"[ADOPT API] Adoption task started successfully for VMID {payload.vmid}")
         
-        # Create Application record
-        with transaction.atomic():
-            app = Application.objects.create(
-                id=f"{catalog_id}-{uuid.uuid4().hex[:8]}",
-                catalog_id=catalog_id,
-                name=catalog_app.get('name', catalog_id),
-                hostname=hostname,
-                status='running',  # Assume running since it exists
-                lxc_id=vmid,
-                node=node_name,
-                host_id=node.host.id,
-                public_port=public_port,
-                internal_port=assigned_internal_port,
-                config={
-                    'adopted': True,
-                    'original_vmid': vmid,
-                    'adoption_date': timezone.now().isoformat(),
-                    'container_internal_port': internal_port
-                },
-                environment={}
-            )
-            
-            # Create adoption log
-            DeploymentLog.objects.create(
-                application=app,
-                level='INFO',
-                message=f'Container {vmid} adopted from Proxmox',
-                step='adoption'
-            )
-            
-            logger.info(f"Successfully adopted container {vmid} as {app.id}")
-        
-        # Return the application data
-        return {
-            "id": app.id,
-            "catalog_id": app.catalog_id,
-            "name": app.name,
-            "hostname": app.hostname,
-            "status": app.status,
-            "url": f"http://{node.host.host}:{public_port}" if public_port else None,
-            "iframe_url": None,
-            "public_port": public_port,
-            "internal_port": assigned_internal_port,
-            "lxc_id": vmid,
-            "node": node_name,
-            "host_id": node.host.id,
-            "created_at": app.created_at,
-            "updated_at": app.updated_at,
-            "config": app.config,
-            "environment": app.environment,
-            "cpu_usage": None,
-            "memory_used": None,
-            "memory_total": None,
-            "disk_used": None,
-            "disk_total": None
+        # Return 202 Accepted - operation is async
+        return 202, {
+            "success": True,
+            "message": f"Adoption of container {payload.vmid} started. This will take a few moments.",
+            "vmid": payload.vmid,
+            "node": payload.node_name,
+            "catalog_id": payload.catalog_id,
+            "hostname": payload.hostname or f"container-{payload.vmid}"
         }
         
     except HttpError:
         raise
-    except ProxmoxError as e:
-        logger.error(f"Proxmox error during adoption: {e}")
-        raise HttpError(500, f"Proxmox error: {str(e)}")
     except Exception as e:
-        logger.error(f"Unexpected error during adoption: {e}", exc_info=True)
-        raise HttpError(500, f"Adoption failed: {str(e)}")
+        logger.error(f"[ADOPT API] Unexpected error: {e}", exc_info=True)
+        raise HttpError(500, f"Failed to start adoption: {str(e)}")
 
 
 @router.get("/{app_id}", response=ApplicationResponse)
