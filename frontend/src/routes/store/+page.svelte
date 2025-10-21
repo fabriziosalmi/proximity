@@ -6,9 +6,9 @@
 	import { goto } from '$app/navigation';
 	import { Search, Loader2, Package, RefreshCw, ShoppingBag, Layers, Grid } from 'lucide-svelte';
 	import { api } from '$lib/api';
-	import { myAppsStore } from '$lib/stores/apps';
 	import { pageTitleStore } from '$lib/stores/pageTitle';
 	import { toasts } from '$lib/stores/toast';
+	import { deployApp } from '$lib/stores/actions'; // Import the centralized action
 	import RackCard from '$lib/components/RackCard.svelte';
 	import CategoryFilter from '$lib/components/CategoryFilter.svelte';
 	import DeploymentModal from '$lib/components/DeploymentModal.svelte';
@@ -114,19 +114,14 @@
 		// Close modal
 		isModalOpen = false;
 
-		// Show deploying toast
-		toasts.info(`Deploying ${appToDeploy.name}...`, 3000);
-
-		// Perform deployment
-		const result = await myAppsStore.deployApp(deploymentData);
+		// Use centralized deployApp action (handles toasts, sounds, and optimistic update)
+		const result = await deployApp(deploymentData);
 
 		if (result.success) {
-			toasts.success(`${appToDeploy.name} deployment started!`, 5000);
-			// Navigate to My Apps page
+			// Navigate to My Apps page to see the deploying app
 			goto('/apps');
-		} else {
-			toasts.error(result.error || `Failed to deploy ${appToDeploy.name}`, 7000);
 		}
+		// Error handling is done by the action
 	}
 
 	async function handleReload() {

@@ -370,7 +370,7 @@ function createAppsStore() {
 		}
 	}
 
-	// Deploy a new app
+	// Deploy a new app with OPTIMISTIC UPDATE
 	async function deployApp(deploymentData: {
 		catalog_id: string;
 		hostname: string;
@@ -379,13 +379,71 @@ function createAppsStore() {
 		ports?: Record<string, number>;
 		environment?: Record<string, string>;
 	}): Promise<{ success: boolean; data?: any; error?: string }> {
+		console.log('📦 [myAppsStore] deployApp called. Performing optimistic update...');
+
+		// 🔧 OPTIMISTIC UPDATE - BEFORE API CALL
+		// Create placeholder immediately for instant UI feedback
+		const optimisticId = `deploying-temp-${Date.now()}`;
+
+		// Create a placeholder app object with known data
+		const placeholderApp: DeployedApp = {
+			id: optimisticId,
+			catalog_app_id: deploymentData.catalog_id,
+			name: deploymentData.hostname, // Will be updated with real name from API
+			hostname: deploymentData.hostname,
+			status: 'deploying' as const,
+			icon: undefined,
+			category: undefined,
+			description: undefined,
+			host_id: 0, // Will be updated from API response
+			node_name: deploymentData.node || 'unknown',
+			vmid: undefined,
+			ports: deploymentData.ports || {},
+			environment: deploymentData.environment || {},
+			volumes: {},
+			created_at: new Date().toISOString(),
+			updated_at: new Date().toISOString(),
+			deployment_logs: []
+		};
+
+		console.log('📦 [myAppsStore] Optimistic placeholder created:', placeholderApp);
+
+		// Add placeholder to store immediately
+		update((state: AppsState) => {
+			console.log('📦 [myAppsStore] Adding deploying placeholder to apps array');
+			return {
+				...state,
+				apps: [...state.apps, placeholderApp]
+			};
+		});
+
+		// NOW make the API call
+		console.log('📦 [myAppsStore] Making API call to deploy app...');
 		const response = await api.deployApp(deploymentData);
 
 		if (response.success) {
-			// Refresh the list to include the new app
-			await fetchApps();
+			console.log('✅ [myAppsStore] Deployment API call succeeded');
+			
+			// Replace optimistic placeholder with real data from backend
+			// Use a short delay to allow the backend to process
+			setTimeout(() => {
+				console.log('🔄 [myAppsStore] Fetching apps to replace placeholder with real data');
+				fetchApps(); // This will replace the optimistic app with real data
+			}, 2000);
+
 			return { success: true, data: response.data };
 		} else {
+			console.error('❌ [myAppsStore] Deployment API call failed:', response.error);
+			
+			// ROLLBACK: Remove optimistic placeholder on error
+			update((state: AppsState) => {
+				console.log('🔄 [myAppsStore] Rolling back optimistic placeholder');
+				return {
+					...state,
+					apps: state.apps.filter((app: DeployedApp) => app.id !== optimisticId)
+				};
+			});
+			
 			return { success: false, error: response.error };
 		}
 	}

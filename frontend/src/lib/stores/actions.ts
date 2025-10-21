@@ -141,6 +141,48 @@ export async function cloneApp(appId: string, appName: string, newHostname: stri
 }
 
 /**
+ * Deploy a new application with optimistic UI update
+ * 
+ * This provides instant visual feedback by adding a placeholder card
+ * to the UI immediately, before the API call completes.
+ */
+export async function deployApp(deploymentData: {
+	catalog_id: string;
+	hostname: string;
+	node?: string;
+	config?: Record<string, any>;
+	ports?: Record<string, number>;
+	environment?: Record<string, string>;
+}) {
+	console.log('🚀 [Actions] deployApp called with data:', deploymentData);
+	SoundService.play('click');
+
+	try {
+		// Show toast immediately
+		toasts.info(`Deploying ${deploymentData.hostname}...`, 3000);
+		
+		// 🎯 OPTIMISTIC UPDATE: Add placeholder to UI immediately
+		console.log('🎯 [Actions] Triggering optimistic deployment update...');
+		const result = await myAppsStore.deployApp(deploymentData);
+
+		if (result.success) {
+			toasts.success(`Deployment started! ${deploymentData.hostname} will be ready soon.`, 5000);
+			// Success sound will be played when app reaches 'running' status
+		} else {
+			toasts.error(result.error || 'Failed to start deployment', 7000);
+			SoundService.play('error');
+		}
+
+		return result;
+	} catch (error) {
+		const message = error instanceof Error ? error.message : 'Unknown error';
+		toasts.error(`An error occurred: ${message}`, 7000);
+		SoundService.play('error');
+		return { success: false, error: message };
+	}
+}
+
+/**
  * Backup Actions
  */
 
