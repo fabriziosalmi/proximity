@@ -228,9 +228,50 @@ def context_with_storage(browser: Browser):
 def test_page(context_with_storage):
     """
     Creates a page from context_with_storage and ensures proper cleanup.
+    Also captures all console messages for debugging.
     """
     page = context_with_storage.new_page()
+    
+    # 🔍 CAPTURE ALL CONSOLE LOGS FOR DEBUGGING
+    console_logs = []
+    
+    def log_console_message(msg):
+        """Capture and print all console messages from the browser"""
+        # Store the message
+        console_logs.append({
+            'type': msg.type,
+            'text': msg.text,
+            'location': msg.location
+        })
+        
+        # Print numbered logs and important messages
+        text = msg.text
+        if any(emoji in text for emoji in ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟', 
+                                             '1️⃣1️⃣', '1️⃣2️⃣', '1️⃣3️⃣', '1️⃣4️⃣', '1️⃣5️⃣', '1️⃣6️⃣',
+                                             '🎪', '🏁', '🎬', '🚀', '🔐', '🏗️']):
+            print(f"   [{msg.type.upper()}] {text}")
+    
+    page.on("console", log_console_message)
+    
     yield page
+    
+    # Print summary of captured logs on test completion
+    print("\n" + "="*80)
+    print("📋 BROWSER CONSOLE LOG SUMMARY")
+    print("="*80)
+    numbered_logs = [log for log in console_logs if any(emoji in log['text'] for emoji in 
+                     ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟',
+                      '1️⃣1️⃣', '1️⃣2️⃣', '1️⃣3️⃣', '1️⃣4️⃣', '1️⃣5️⃣', '1️⃣6️⃣'])]
+    
+    if numbered_logs:
+        print("\n🔢 NUMBERED EVENT SEQUENCE:")
+        for log in numbered_logs:
+            print(f"   {log['text']}")
+    else:
+        print("\n⚠️  NO NUMBERED LOGS CAPTURED - Check if frontend code was rebuilt")
+    
+    print("\n" + "="*80 + "\n")
+    
     try:
         page.close()
     except Exception:
