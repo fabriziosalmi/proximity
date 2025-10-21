@@ -1,9 +1,9 @@
 """
-Pytest Fixtures for E2E Tests - "Indestructible Test Pattern"
+Pytest Fixtures for E2E Tests - "Indestructible Test Pattern" (Refactored)
 
 This module implements self-contained, self-cleaning test fixtures that ensure
-complete test isolation. Each test gets a unique user and all resources are
-automatically cleaned up after the test completes.
+complete test isolation. It now uses a UI-based login for realism and supports
+the new cookie-based authentication scheme.
 """
 import os
 import time
@@ -13,18 +13,18 @@ from typing import Dict, Generator
 from playwright.sync_api import Page, Browser
 
 
-# Configuration
+# --- Configuration ---
 BASE_URL = os.getenv("BASE_URL", "http://localhost:5173")
 API_URL = os.getenv("API_URL", "http://localhost:8000")
 
 
+# --- Core Fixtures ---
+
 @pytest.fixture(scope="session")
 def api_client() -> Generator[httpx.Client, None, None]:
     """
-    Provides an HTTP client for direct backend API interactions.
-    
-    This client is used for programmatic setup and teardown operations,
-    bypassing the UI layer for speed and reliability.
+    Provides a stateful HTTP client that manages cookies across requests,
+    essential for interacting with the cookie-based auth system.
     """
     with httpx.Client(base_url=API_URL, timeout=30.0) as client:
         yield client
@@ -33,525 +33,180 @@ def api_client() -> Generator[httpx.Client, None, None]:
 @pytest.fixture
 def unique_user(api_client: httpx.Client) -> Generator[Dict[str, str], None, None]:
     """
-    Creates a unique user for the test and ensures complete cleanup.
-    
-    This is the CORE of the "Indestructible Test Pattern":
-    1. Creates a new user with timestamp-based unique credentials
-    2. Yields the credentials to the test
-    3. In teardown: Deletes all apps created by the user
-    4. In teardown: Deletes the user account
-    
-    Returns:
-        dict: {
-            'email': str,
-            'password': str,
-            'username': str,
-            'auth_token': str (after successful registration/login)
-        }
+    Creates a unique user via API for the test and ensures complete cleanup.
+    This fixture now uses cookie-based authentication via dj-rest-auth.
     """
-    # Generate unique credentials
     timestamp = int(time.time() * 1000)
     user_data = {
         "email": f"testuser_{timestamp}@example.com",
         "username": f"testuser_{timestamp}",
         "password": "E2ETest123!Secure",
-        "first_name": "E2E",
-        "last_name": f"Test_{timestamp}"
     }
     
     print(f"\n🔧 Setting up unique user: {user_data['username']}")
     
-    # Create user via API
     try:
+        # Create user
         register_response = api_client.post(
-            "/api/core/auth/register",
+            "/api/auth/registration/",
             json={
-                "email": user_data["email"],
                 "username": user_data["username"],
+                "email": user_data["email"],
                 "password": user_data["password"],
-                "first_name": user_data["first_name"],
-                "last_name": user_data["last_name"]
+                "password2": user_data["password"],
             }
         )
-        
         if register_response.status_code not in [200, 201]:
-            print(f"❌ Registration failed: {register_response.status_code}")
-            print(f"Response: {register_response.text}")
-            pytest.fail(f"Failed to create test user: {register_response.text}")
-        
-        registration_data = register_response.json()
-        user_data["user_id"] = registration_data.get("id")
+            pytest.fail(f"Failed to create test user: {register_response.status_code} - {register_response.text}")
         
         print(f"✅ User created successfully: {user_data['username']}")
         
-        # Login to get auth token (registration doesn't return token)
+        # Log in to establish a session via cookies in the client
         login_response = api_client.post(
-            "/api/core/auth/login",
-            json={
-                "username": user_data["username"],
-                "password": user_data["password"]
-            }
+            "/api/auth/login/",
+            json={"username": user_data["username"], "password": user_data["password"]}
         )
-        
         if login_response.status_code != 200:
-            print(f"❌ Login failed: {login_response.status_code}")
-            print(f"Response: {login_response.text}")
-            pytest.fail(f"Failed to login test user: {login_response.text}")
+            pytest.fail(f"Failed to login test user: {login_response.status_code} - {login_response.text}")
         
         login_data = login_response.json()
-        user_data["auth_token"] = login_data.get("access_token", "")
+        user_data["user_id"] = login_data.get("user", {}).get("pk")
         
-        print(f"✅ User logged in successfully, token obtained")
+        print(f"✅ User logged in successfully, session cookie set in api_client.")
         
     except Exception as e:
-        pytest.fail(f"Failed to create test user: {str(e)}")
+        pytest.fail(f"Failed to create and log in test user: {str(e)}")
     
-    # Yield control to the test
     yield user_data
     
-    # TEARDOWN: Clean up all resources
-    print(f"\n🧹 Cleaning up user: {user_data['username']}")
-    
+    # --- TEARDOWN ---
+    print(f"\n🧹 Cleaning up user and resources: {user_data['username']}")
     try:
-        # Step 1: Delete all applications created by this user
-        # First, get auth token if we need to log in
-        if not user_data.get("auth_token"):
-            login_response = api_client.post(
-                "/api/core/auth/login",
-                json={
-                    "username": user_data["username"],
-                    "password": user_data["password"]
-                }
-            )
-            if login_response.status_code == 200:
-                user_data["auth_token"] = login_response.json().get("token", "")
-        
-        # Get list of user's applications
-        headers = {}
-        if user_data.get("auth_token"):
-            headers["Authorization"] = f"Bearer {user_data['auth_token']}"
-        
-        apps_response = api_client.get("/api/apps/", headers=headers)
-        
+        # The api_client is already authenticated with a session cookie
+        apps_response = api_client.get("/api/apps/")
         if apps_response.status_code == 200:
             apps_data = apps_response.json()
-            applications = apps_data.get("applications", [])
+            # Adjust based on actual API response structure
+            applications = apps_data.get("apps", [])
             
-            print(f"Found {len(applications)} applications to clean up")
-            
+            print(f"Found {len(applications)} applications to clean up.")
             for app in applications:
                 app_id = app.get("id")
                 hostname = app.get("hostname", "unknown")
-                print(f"  🗑️  Deleting application: {hostname} (ID: {app_id})")
-                
+                print(f"  ♲️  Deleting application: {hostname} (ID: {app_id})")
                 try:
-                    delete_response = api_client.delete(
-                        f"/api/apps/{app_id}",
-                        headers=headers
-                    )
+                    # Use the correct action endpoint
+                    delete_response = api_client.post(f"/api/apps/{app_id}/action", json={"action": "delete"})
                     if delete_response.status_code in [200, 202, 204]:
-                        print(f"    ✅ App {hostname} deleted")
+                        print(f"    ✅ App {hostname} deletion initiated")
                     else:
-                        print(f"    ⚠️  Failed to delete app {hostname}: {delete_response.status_code}")
+                        print(f"    ⚠️  Failed to delete app {hostname}: {delete_response.status_code} - {delete_response.text}")
                 except Exception as app_error:
                     print(f"    ⚠️  Error deleting app {hostname}: {str(app_error)}")
-        
-        # Step 2: Delete the user account
-        # Note: This requires a user deletion endpoint. If not available, we'll skip.
-        # In production, you'd implement DELETE /api/core/auth/user endpoint
-        try:
-            user_delete_response = api_client.delete(
-                f"/api/core/auth/user/{user_data.get('user_id')}",
-                headers=headers
-            )
-            if user_delete_response.status_code in [200, 204]:
-                print(f"✅ User {user_data['username']} deleted")
-            else:
-                print(f"⚠️  User deletion endpoint returned: {user_delete_response.status_code}")
-                print(f"   (This is acceptable if the endpoint doesn't exist yet)")
-        except Exception as user_error:
-            print(f"⚠️  Could not delete user account: {str(user_error)}")
-            print(f"   (This is acceptable if the endpoint doesn't exist yet)")
-        
+        else:
+            print(f"Could not fetch apps for cleanup, status: {apps_response.status_code}")
+
         print(f"✅ Cleanup completed for {user_data['username']}")
-        
     except Exception as cleanup_error:
         print(f"⚠️  Cleanup encountered an error: {str(cleanup_error)}")
-        # Don't fail the test on cleanup errors
         pass
 
+
+# --- Playwright Fixtures ---
 
 @pytest.fixture(scope="session")
 def base_url() -> str:
-    """Provides the frontend base URL."""
     return BASE_URL
-
-
-@pytest.fixture(scope="session")
-def api_url() -> str:
-    """Provides the backend API URL."""
-    return API_URL
-
 
 @pytest.fixture
 def context_with_storage(browser: Browser):
-    """
-    Creates a browser context with persistent storage and increased timeouts.
-
-    This allows cookies and localStorage to persist across page navigations,
-    which is crucial for maintaining authentication state.
-    """
     context = browser.new_context(
         viewport={"width": 1920, "height": 1080},
         locale="en-US",
-        timezone_id="America/New_York",
-        permissions=["clipboard-read", "clipboard-write"],
-        # Record videos for debugging failed tests
         record_video_dir="./test-results/videos" if os.getenv("RECORD_VIDEO") else None
     )
-    
-    # Increase default timeouts for slower CI environments
-    context.set_default_timeout(60000)  # 60 seconds
-    context.set_default_navigation_timeout(60000)
-    
+    context.set_default_timeout(60000)
     yield context
-    
-    # Safe cleanup: check if context is still open before closing
     try:
         context.close()
-    except Exception as e:
-        # Context may already be closed, ignore
+    except Exception:
         pass
-
 
 @pytest.fixture
 def test_page(context_with_storage):
-    """
-    Creates a page from context_with_storage and ensures proper cleanup.
-    Also captures all console messages for debugging.
-    """
     page = context_with_storage.new_page()
-    
-    # 🔍 CAPTURE ALL CONSOLE LOGS FOR DEBUGGING
-    console_logs = []
-    
-    def log_console_message(msg):
-        """Capture and print all console messages from the browser"""
-        # Store the message
-        console_logs.append({
-            'type': msg.type,
-            'text': msg.text,
-            'location': msg.location
-        })
-        
-        # Print numbered logs and important messages
-        text = msg.text
-        if any(emoji in text for emoji in ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟', 
-                                             '1️⃣1️⃣', '1️⃣2️⃣', '1️⃣3️⃣', '1️⃣4️⃣', '1️⃣5️⃣', '1️⃣6️⃣',
-                                             '🎪', '🏁', '🎬', '🚀', '🔐', '🏗️']):
-            print(f"   [{msg.type.upper()}] {text}")
-    
-    page.on("console", log_console_message)
-    
     yield page
-    
-    # Print summary of captured logs on test completion
-    print("\n" + "="*80)
-    print("📋 BROWSER CONSOLE LOG SUMMARY")
-    print("="*80)
-    numbered_logs = [log for log in console_logs if any(emoji in log['text'] for emoji in 
-                     ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟',
-                      '1️⃣1️⃣', '1️⃣2️⃣', '1️⃣3️⃣', '1️⃣4️⃣', '1️⃣5️⃣', '1️⃣6️⃣'])]
-    
-    if numbered_logs:
-        print("\n🔢 NUMBERED EVENT SEQUENCE:")
-        for log in numbered_logs:
-            print(f"   {log['text']}")
-    else:
-        print("\n⚠️  NO NUMBERED LOGS CAPTURED - Check if frontend code was rebuilt")
-    
-    print("\n" + "="*80 + "\n")
-    
     try:
         page.close()
     except Exception:
-        pass  # Page might already be closed
-
-
-@pytest.fixture(scope="function")
-def proxmox_host():
-    """
-    Creates a test Proxmox host and node via Django shell command in Docker.
-    
-    This fixture ensures that at least one Proxmox host with nodes exists
-    for deployment tests.
-    
-    Returns:
-        Dict containing host details
-    """
-    import subprocess
-    
-    # Create host and node via Django shell in Docker container
-    create_command = """
-from apps.proxmox.models import ProxmoxHost, ProxmoxNode
-host, created = ProxmoxHost.objects.get_or_create(
-    name='e2e-test-host',
-    defaults={
-        'host': '192.168.100.102',
-        'port': 8006,
-        'user': 'root@pam',
-        'password': 'invaders',
-        'verify_ssl': False,
-        'is_active': True,
-        'is_default': True
-    }
-)
-
-# Create test node (opti2 is the real Proxmox node name)
-node, node_created = ProxmoxNode.objects.get_or_create(
-    name='opti2',
-    host=host,
-    defaults={
-        'status': 'online',
-        'cpu_count': 8,
-        'cpu_usage': 10.5,
-        'memory_total': 32 * 1024 * 1024 * 1024,  # 32GB in bytes
-        'memory_used': 8 * 1024 * 1024 * 1024,    # 8GB in bytes
-        'storage_total': 500 * 1024 * 1024 * 1024,   # 500GB in bytes
-        'storage_used': 100 * 1024 * 1024 * 1024,    # 100GB in bytes
-        'uptime': 86400
-    }
-)
-print(f'{host.id},{host.name},{host.host},{host.port},{node.name}')
-"""
-    
-    try:
-        # Get the correct path to docker-compose.yml
-        import os
-        test_dir = os.path.dirname(os.path.abspath(__file__))
-        project_root = os.path.dirname(test_dir)
-        docker_compose_path = os.path.join(project_root, 'docker-compose.yml')
-        
-        result = subprocess.run(
-            ['docker-compose', '-f', docker_compose_path, 'exec', '-T', 'backend', 
-             'python', 'manage.py', 'shell', '-c', create_command],
-            capture_output=True,
-            text=True,
-            timeout=30,  # Increased timeout for Sentry overhead
-            env={**os.environ, 'SENTRY_DEBUG': 'False'}  # Disable Sentry debug output
-        )
-        
-        if result.returncode == 0:
-            # Parse output: id,name,host,port,node_name
-            output_line = result.stdout.strip().split('\n')[-1]
-            host_id, name, host, port, node_name = output_line.split(',')
-            
-            host_data = {
-                "id": int(host_id),
-                "name": name,
-                "host": host,
-                "port": int(port),
-                "url": f"{host}:{port}",
-                "node": node_name
-            }
-            
-            print(f"\n✅ Proxmox host ready: {name} (ID: {host_id})")
-            print(f"✅ Proxmox node ready: {node_name}")
-            return host_data
-        else:
-            pytest.fail(f"Failed to create Proxmox host: {result.stderr}")
-            
-    except subprocess.TimeoutExpired:
-        pytest.fail("Timeout creating Proxmox host")
-    except Exception as e:
-        pytest.fail(f"Error creating Proxmox host: {str(e)}")
-
+        pass
 
 @pytest.fixture
-def deployed_app(
-    api_client: httpx.Client,
-    unique_user: Dict[str, str],
-    proxmox_host: Dict[str, str]
-) -> Generator[Dict[str, any], None, None]:
+def logged_in_page(test_page: Page, unique_user: Dict[str, str], base_url: str) -> Page:
     """
-    Provides a deployed application ready for cloning tests.
+    Provides a Page object that has been authenticated via the UI.
+    This is the SOTA standard for E2E tests, as it follows the real user path.
+    """
+    page = test_page
+    print(f"\n☺️ Performing UI login for user: {unique_user['username']}")
     
-    This fixture:
-    1. Creates a unique app via API (bypassing UI for speed)
-    2. Waits for the app to reach 'running' status
-    3. Yields app details and auth token
-    4. In teardown: Deletes the app and any clones
+    page.goto(f"{base_url}/login")
+    page.locator('input[name="username"]').fill(unique_user["username"])
+    page.locator('input[name="password"]').fill(unique_user["password"])
+    page.locator('button[type="submit"]').click()
     
-    Returns:
-        dict: {
-            'id': int,
-            'hostname': str,
-            'auth_token': str,
-            'user': dict (user details)
-        }
+    # Wait for successful authentication by checking for the main rack element
+    page.wait_for_selector('#master-control-rack', state='visible', timeout=30000)
+    print(f"✅ UI Login successful.")
+    
+    return page
+
+
+# --- Application-Specific Fixtures ---
+
+@pytest.fixture
+def deployed_app(api_client: httpx.Client, unique_user: Dict[str, str]) -> Generator[Dict[str, any], None, None]:
+    """
+    Provides a deployed application by calling the API directly.
+    This now relies on the cookie-authenticated api_client.
     """
     timestamp = int(time.time() * 1000)
-    app_hostname = f"e2e-clone-source-{timestamp}"
-    
-    print(f"\n🚀 Deploying source app for clone test: {app_hostname}")
-    
-    headers = {"Authorization": f"Bearer {unique_user['auth_token']}"}
-    
-    # Ensure catalog is loaded
-    print(f"  ⏳ Reloading catalog...")
-    try:
-        reload_response = api_client.post("/api/catalog/reload", headers=headers)
-        if reload_response.status_code in [200, 201]:
-            print(f"  ✓ Catalog reloaded successfully")
-        else:
-            print(f"  ⚠️  Catalog reload returned {reload_response.status_code}, continuing anyway...")
-    except Exception as reload_error:
-        print(f"  ⚠️  Could not reload catalog: {str(reload_error)}, continuing anyway...")
-    
-    # Get available catalog apps
+    app_hostname = f"e2e-deployed-app-{timestamp}"
+    print(f"\n🌆 Deploying app for test: {app_hostname}")
+
+    # api_client is already logged in by the unique_user fixture
     catalog_response = api_client.get("/api/catalog/")
-    
     if catalog_response.status_code != 200:
         pytest.fail(f"Failed to fetch catalog: {catalog_response.status_code}")
     
-    catalog_data = catalog_response.json()
-    apps_list = catalog_data.get("applications", [])  # Fixed: API returns "applications", not "apps"
+    catalog_id = catalog_response.json()["applications"][0]["id"]
     
-    if not apps_list:
-        pytest.fail("No catalog apps available for deployment. Please ensure catalog JSON files exist.")
+    deploy_payload = {"catalog_id": catalog_id, "hostname": app_hostname}
+    deploy_response = api_client.post("/api/apps/", json=deploy_payload)
+    if deploy_response.status_code not in [200, 201, 202]:
+        pytest.fail(f"Failed to deploy app: {deploy_response.status_code} - {deploy_response.text}")
     
-    # Use the first catalog app
-    first_app = apps_list[0]
-    catalog_id = first_app.get("id")
-    catalog_name = first_app.get("name", "unknown")
+    app_data = deploy_response.json()
+    app_id = app_data.get("id")
+    print(f"✅ App created: {app_hostname} (ID: {app_id})")
     
-    print(f"  ✓ Using catalog app: {catalog_name} (ID: {catalog_id})")
-    
-    # Deploy application via API
-    deploy_payload = {
-        "catalog_id": catalog_id,
-        "hostname": app_hostname,
-        "node": proxmox_host["node"],
-        "config": {},
-        "environment": {}
-    }
-    
-    try:
-        deploy_response = api_client.post(
-            "/api/apps/",
-            json=deploy_payload,
-            headers=headers
-        )
-        
-        if deploy_response.status_code not in [200, 201, 202]:
-            pytest.fail(f"Failed to deploy source app: {deploy_response.status_code} - {deploy_response.text}")
-        
-        app_data = deploy_response.json()
-        app_id = app_data.get("id")
-        
-        print(f"✅ Source app created: {app_hostname} (ID: {app_id})")
-        print(f"⏳ Waiting for app to reach 'running' status (timeout: 3 minutes)...")
-        
-        # Poll for app status to reach 'running'
-        max_wait = 180  # 3 minutes
-        poll_interval = 3  # 3 seconds
-        elapsed = 0
-        
-        while elapsed < max_wait:
-            status_response = api_client.get(
-                f"/api/apps/{app_id}",
-                headers=headers
-            )
-            
-            if status_response.status_code == 200:
-                current_app = status_response.json()
-                current_status = current_app.get("status")
-                
-                print(f"  Status: {current_status} (elapsed: {elapsed}s)")
-                
-                if current_status == "running":
-                    print(f"✅ Source app is now running!")
-                    app_details = {
-                        "id": app_id,
-                        "hostname": app_hostname,
-                        "auth_token": unique_user["auth_token"],
-                        "user": unique_user,
-                        "status": current_status,
-                        "vmid": current_app.get("vmid"),
-                        "node": current_app.get("node")
-                    }
-                    break
-                elif current_status == "error":
-                    pytest.fail(f"Source app deployment failed with error status")
-                
-            time.sleep(poll_interval)
-            elapsed += poll_interval
-        else:
-            pytest.fail(f"Source app did not reach 'running' status within {max_wait} seconds")
-        
-    except Exception as e:
-        pytest.fail(f"Failed to deploy source app: {str(e)}")
-    
-    # Yield to test
+    # Poll for 'running' status
+    max_wait = 180
+    poll_interval = 5
+    elapsed = 0
+    app_details = {}
+    while elapsed < max_wait:
+        status_response = api_client.get(f"/api/apps/{app_id}")
+        if status_response.status_code == 200:
+            current_app = status_response.json()
+            if current_app.get("status") == "running":
+                print(f"✅ App is running!")
+                app_details = current_app
+                break
+        time.sleep(poll_interval)
+        elapsed += poll_interval
+    else:
+        pytest.fail(f"App did not reach 'running' status within {max_wait} seconds")
+
     yield app_details
-    
-    # TEARDOWN: Clean up source app (cloned apps will be cleaned by unique_user fixture)
-    print(f"\n🧹 Cleaning up source app: {app_hostname}")
-    
-    try:
-        delete_response = api_client.delete(
-            f"/api/apps/{app_id}",
-            headers=headers
-        )
-        
-        if delete_response.status_code in [200, 202, 204]:
-            print(f"✅ Source app {app_hostname} deleted")
-        else:
-            print(f"⚠️  Failed to delete source app: {delete_response.status_code}")
-    except Exception as cleanup_error:
-        print(f"⚠️  Error during source app cleanup: {str(cleanup_error)}")
-
-
-@pytest.fixture
-def authenticated_page(
-    context_with_storage, 
-    base_url: str, 
-    unique_user: Dict[str, str]
-) -> Generator[Page, None, None]:
-    """
-    Provides a Page object that's already authenticated.
-    
-    This fixture bypasses the UI login flow by directly injecting the auth token
-    into localStorage. This is faster and more reliable than UI-based login.
-    """
-    page = context_with_storage.new_page()
-    
-    # Navigate to a page to establish the domain context
-    page.goto(base_url)
-    
-    # Inject auth token into localStorage
-    # This simulates a successful login without going through the UI
-    # Note: The frontend uses 'access_token' key (see frontend/src/lib/api.ts)
-    page.evaluate(f"""
-        localStorage.setItem('access_token', '{unique_user["auth_token"]}');
-    """)
-    
-    print(f"✅ Authenticated page ready for user: {unique_user['username']}")
-    
-    yield page
-    
-    page.close()
-
-
-# Playwright configuration hooks
-def pytest_configure(config):
-    """Add custom markers."""
-    config.addinivalue_line(
-        "markers", "golden_path: The critical user journey test"
-    )
-    config.addinivalue_line(
-        "markers", "smoke: Quick smoke tests"
-    )
-    config.addinivalue_line(
-        "markers", "slow: Tests that take longer than 60 seconds"
-    )
+    # Cleanup is handled by the unique_user fixture's teardown

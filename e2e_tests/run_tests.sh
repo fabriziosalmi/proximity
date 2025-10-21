@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# SOTA standard: Make the script robust by changing to its own directory first.
+cd "$(dirname "$0")"
+
 # Quick Start Script for E2E Tests
 # This script sets up the environment and runs the tests
 
@@ -17,40 +20,40 @@ fi
 
 # Check if Docker stack is running
 echo "🔍 Checking if Docker stack is running..."
-if ! curl -s http://localhost:8000/api/core/health > /dev/null 2>&1; then
+if ! curl -s http://localhost:8000/api/health > /dev/null 2>&1; then
     echo "⚠️  Backend not responding at http://localhost:8000"
     echo "   Starting Docker stack..."
-    cd ..
-    docker-compose up -d
-    cd e2e_tests
+    # Go to project root to run docker-compose
+    (cd .. && docker-compose up -d)
     echo "   Waiting 30 seconds for services to start..."
     sleep 30
 else
     echo "✅ Backend is running"
 fi
 
-# Check if virtual environment exists
-if [ ! -d "venv" ]; then
-    echo "📦 Creating virtual environment..."
-    python3 -m venv venv
-fi
+# Define venv executable paths for robustness
+VENV_DIR="venv"
 
-# Activate virtual environment
-echo "🔧 Activating virtual environment..."
-source venv/bin/activate
+# SOTA standard: Always start with a fresh virtual environment
+echo "🔥 Removing old virtual environment to ensure a clean state..."
+rm -rf "$VENV_DIR"
 
-# Install dependencies
-echo "📦 Installing/updating dependencies..."
-pip install -q --upgrade pip
-pip install -q -r requirements.txt
+echo "📦 Creating fresh virtual environment..."
+python3 -m venv "$VENV_DIR"
+
+PYTHON="$VENV_DIR/bin/python"
+PIP="$VENV_DIR/bin/pip"
+PYTEST="$VENV_DIR/bin/pytest"
+PLAYWRIGHT="$VENV_DIR/bin/playwright"
+
+# Install dependencies using the venv pip
+echo "📦 Installing/updating dependencies into venv..."
+"$PIP" install -q --upgrade pip
+"$PIP" install -q -r requirements.txt
 
 # Install Playwright browsers if not already installed
-if [ ! -d "$HOME/.cache/ms-playwright" ]; then
-    echo "🎭 Installing Playwright browsers (this may take a few minutes)..."
-    playwright install
-else
-    echo "✅ Playwright browsers already installed"
-fi
+echo "🎭 Installing Playwright browsers..."
+"$PLAYWRIGHT" install
 
 # Create test-results directory if it doesn't exist
 mkdir -p test-results/videos
@@ -61,8 +64,8 @@ echo "✅ Setup complete! Running tests..."
 echo "=============================================="
 echo ""
 
-# Run tests with pytest
-pytest -v "$@"
+# Run tests with the venv pytest
+"$PYTEST" -v "$@"
 
 TEST_EXIT_CODE=$?
 

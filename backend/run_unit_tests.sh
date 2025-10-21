@@ -15,11 +15,10 @@ if [ -d "venv" ]; then
     source venv/bin/activate
 fi
 
-# Check if pytest is installed
-if ! python -c "import pytest" 2>/dev/null; then
-    echo "❌ pytest not found. Installing..."
-    pip install pytest pytest-django pytest-cov
-fi
+# Install/update all dependencies from requirements.txt
+# This ensures the test environment is always in sync.
+echo "⚙️ Installing dependencies from requirements.txt..."
+pip install -r requirements.txt
 
 # Run tests
 if [ $# -eq 0 ]; then

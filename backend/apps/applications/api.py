@@ -19,12 +19,11 @@ from .schemas import (
 from .tasks import deploy_app_task, start_app_task, stop_app_task, restart_app_task, delete_app_task, clone_app_task, adopt_app_task
 from .port_manager import PortManagerService
 from apps.proxmox.models import ProxmoxHost, ProxmoxNode
-from apps.core.auth import JWTAuth
 
 router = Router()
 
 
-@router.get("/", auth=JWTAuth(), response=ApplicationListResponse)
+@router.get("/", response=ApplicationListResponse)
 def list_applications(
     request,
     page: int = 1,
@@ -136,7 +135,7 @@ def list_applications(
     }
 
 
-@router.post("/", auth=JWTAuth(), response=ApplicationResponse)
+@router.post("/", response=ApplicationResponse)
 def create_application(request, payload: ApplicationCreate):
     """
     Create and deploy a new application.

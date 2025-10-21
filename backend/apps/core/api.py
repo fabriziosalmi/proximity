@@ -1,80 +1,18 @@
 """
-Core API endpoints - Authentication, health checks, system info
+Core API endpoints - Health checks, system info, and settings
 """
 from typing import Dict
 from ninja import Router
-from django.contrib.auth import authenticate
-from django.conf import settings
-import jwt
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from .schemas import (
-    LoginRequest, LoginResponse, RegisterRequest,
-    UserResponse, HealthResponse, SystemInfoResponse,
+    HealthResponse, SystemInfoResponse,
     ResourceSettingsRequest, ResourceSettingsResponse,
     NetworkSettingsRequest, NetworkSettingsResponse
 )
-from .models import User, SystemSettings
-from .auth import JWTAuth
-from ninja.errors import HttpError
+from .models import SystemSettings
 
 router = Router()
-
-
-@router.post("/auth/login", response={200: LoginResponse, 401: Dict})
-def login(request, payload: LoginRequest):
-    """
-    Authenticate user and return JWT tokens.
-    """
-    user = authenticate(username=payload.username, password=payload.password)
-    
-    if user is None:
-        return 401, {"error": "Invalid credentials"}
-    
-    # Generate JWT tokens
-    access_token = generate_jwt_token(user, 'access')
-    refresh_token = generate_jwt_token(user, 'refresh')
-    
-    return {
-        "access_token": access_token,
-        "refresh_token": refresh_token,
-        "user": {
-            "id": user.id,
-            "username": user.username,
-            "email": user.email,
-            "preferred_theme": user.preferred_theme,
-        }
-    }
-
-
-@router.post("/auth/register", response={200: UserResponse, 400: Dict})
-def register(request, payload: RegisterRequest):
-    """
-    Register a new user.
-    """
-    # Check if username exists
-    if User.objects.filter(username=payload.username).exists():
-        return 400, {"error": "Username already exists"}
-    
-    # Check if email exists (if provided)
-    if payload.email and User.objects.filter(email=payload.email).exists():
-        return 400, {"error": "Email already exists"}
-    
-    # Create user
-    user = User.objects.create_user(
-        username=payload.username,
-        email=payload.email,
-        password=payload.password,
-        first_name=payload.first_name or '',
-        last_name=payload.last_name or '',
-    )
-    
-    return {
-        "id": user.id,
-        "username": user.username,
-        "email": user.email,
-        "preferred_theme": user.preferred_theme,
-    }
 
 
 @router.get("/health", response=HealthResponse)
@@ -132,13 +70,13 @@ def get_resource_settings(request):
     }
 
 
-@router.post("/settings/resources", auth=JWTAuth(), response={200: ResourceSettingsResponse, 403: Dict})
+@router.post("/settings/resources", response={200: ResourceSettingsResponse, 403: Dict})
 def update_resource_settings(request, payload: ResourceSettingsRequest):
     """
     Update default resource settings.
     Requires admin privileges.
     """
-    # Check admin permissions (request.auth is the authenticated user from JWTAuth)
+    # The global JWTCookieAuthenticator populates request.auth if the user is authenticated.
     if not request.auth or not request.auth.is_staff:
         return 403, {"error": "Admin privileges required"}
 
@@ -178,13 +116,13 @@ def get_network_settings(request):
     }
 
 
-@router.post("/settings/network", auth=JWTAuth(), response={200: NetworkSettingsResponse, 400: Dict, 403: Dict})
+@router.post("/settings/network", response={200: NetworkSettingsResponse, 400: Dict, 403: Dict})
 def update_network_settings(request, payload: NetworkSettingsRequest):
     """
     Update default network settings.
     Requires admin privileges.
     """
-    # Check admin permissions (request.auth is the authenticated user from JWTAuth)
+    # The global JWTCookieAuthenticator populates request.auth if the user is authenticated.
     if not request.auth or not request.auth.is_staff:
         return 403, {"error": "Admin privileges required"}
 
@@ -224,32 +162,3 @@ def update_network_settings(request, payload: NetworkSettingsRequest):
         "default_bridge": settings_obj.default_bridge,
         "updated_at": settings_obj.updated_at.isoformat(),
     }
-
-
-# Utility functions
-
-def generate_jwt_token(user: User, token_type: str) -> str:
-    """
-    Generate JWT token for user.
-    
-    Args:
-        user: User instance
-        token_type: 'access' or 'refresh'
-    
-    Returns:
-        JWT token string
-    """
-    if token_type == 'access':
-        lifetime = settings.JWT_ACCESS_TOKEN_LIFETIME
-    else:
-        lifetime = settings.JWT_REFRESH_TOKEN_LIFETIME
-    
-    payload = {
-        'user_id': user.id,
-        'username': user.username,
-        'token_type': token_type,
-        'exp': datetime.utcnow() + lifetime,
-        'iat': datetime.utcnow(),
-    }
-    
-    return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)

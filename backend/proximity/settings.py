@@ -28,10 +28,18 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites', # Required by allauth
     
     # Third-party apps
     'corsheaders',
     'ninja',
+    'rest_framework',
+
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'dj_rest_auth',
+    'dj_rest_auth.registration',
     
     # Proximity 2.0 apps
     'apps.core',
@@ -49,6 +57,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'allauth.account.middleware.AccountMiddleware', # Required by django-allauth
     'apps.core.middleware.SentryUserContextMiddleware',  # Sentry user context enrichment
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -116,11 +125,55 @@ CORS_ALLOWED_ORIGINS = os.getenv(
 ).split(',')
 CORS_ALLOW_CREDENTIALS = True
 
-# JWT Configuration
-JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', SECRET_KEY)
-JWT_ALGORITHM = 'HS256'
-JWT_ACCESS_TOKEN_LIFETIME = timedelta(minutes=60)
-JWT_REFRESH_TOKEN_LIFETIME = timedelta(days=7)
+# =====================================================================
+# AUTHENTICATION SETTINGS (dj-rest-auth & simple-jwt)
+# =====================================================================
+# Use JWT for authentication instead of Django's session-based system.
+# dj-rest-auth will handle the endpoints, and simple-jwt will manage the tokens.
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        # Use JWT authentication. JWTCookieAuthentication sends tokens in HttpOnly cookies.
+        'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        # By default, require authentication for all endpoints.
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+}
+
+# Configure dj-rest-auth to use JWT and specify cookie names.
+REST_AUTH = {
+    'USE_JWT': True,
+    'JWT_AUTH_HTTPONLY': True, # Make cookies HttpOnly for security.
+    'JWT_AUTH_COOKIE': 'proximity-auth-cookie',
+    'JWT_AUTH_REFRESH_COOKIE': 'proximity-refresh-cookie',
+    'SESSION_LOGIN': False,  # We are a stateless API, no sessions needed.
+    'TOKEN_MODEL': None, # Using simple-jwt, so this is not needed.
+}
+
+# Configure simple-jwt token lifetimes and behavior.
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True, # Issue a new refresh token on every refresh.
+    'BLACKLIST_AFTER_ROTATION': True, # Blacklist old refresh tokens.
+    'UPDATE_LAST_LOGIN': True, # Update the user's last_login field on login.
+
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+}
+
+# Required for dj-rest-auth's registration feature
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Required by django-allauth
+SITE_ID = 1
+
 
 # Celery Configuration
 CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://redis:6379/0')

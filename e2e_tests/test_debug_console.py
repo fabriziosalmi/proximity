@@ -4,6 +4,7 @@ Quick debug test to capture console errors
 import pytest
 from playwright.sync_api import Page
 
+
 def test_console_errors(page: Page, base_url: str):
     """Capture any console errors when loading /apps"""
 
@@ -17,6 +18,7 @@ def test_console_errors(page: Page, base_url: str):
     page.on("pageerror", lambda err: page_errors.append(str(err)))
 
     print("\n🔍 Loading /apps page...")
+    # Correctly use the base_url fixture to construct a full URL
     page.goto(f"{base_url}/apps", wait_until="networkidle")
 
     print("\n📋 Console Messages:")
@@ -30,8 +32,5 @@ def test_console_errors(page: Page, base_url: str):
     else:
         print("  None")
 
-    # Check if API call was made
-    print("\n🌐 Checking if /api/apps was called...")
-    page.wait_for_timeout(2000)
-
-    assert len(page_errors) == 0, f"Page has {len(page_errors)} errors"
+    # The assertion will fail if any page errors were captured
+    assert len(page_errors) == 0, f"Page has {len(page_errors)} JavaScript errors"

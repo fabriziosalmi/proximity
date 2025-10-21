@@ -2,14 +2,18 @@
 
 # Django Core
 Django==5.0.1
+djangorestframework==3.15.1
 django-ninja==1.1.0
 django-cors-headers==4.3.1
 
 # Database
-psycopg2-binary==2.9.9
+psycopg2-binary
 dj-database-url==2.1.0
 
 # Authentication & Security
+dj-rest-auth==6.0.0
+django-allauth==0.61.1
+djangorestframework-simplejwt==5.3.1
 PyJWT==2.8.0
 bcrypt==4.1.2
 python-dotenv==1.0.0
@@ -27,8 +31,8 @@ proxmoxer==2.0.1
 requests==2.31.0
 
 # Utilities
-pydantic==2.5.3
-pydantic-settings==2.1.0
+pydantic
+pydantic-settings
 email-validator==2.1.0
 python-dateutil==2.8.2
 Pillow>=10.3.0

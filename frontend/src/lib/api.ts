@@ -1,13 +1,12 @@
 /**
- * API client library for Proximity 2.0 frontend.
+ * API client library for Proximity 2.0 frontend (Refactored for HttpOnly Cookies)
  * 
- * CRITICAL: This client subscribes to authStore as the SINGLE SOURCE OF TRUTH.
- * It NEVER accesses localStorage directly. All auth state flows through authStore.
+ * CRITICAL: This client is now stateless regarding authentication.
+ * It does NOT store tokens. It relies on the browser sending HttpOnly cookies.
  */
 
 import * as Sentry from '@sentry/sveltekit';
-import { authStore } from '$lib/stores/auth';
-import { get } from 'svelte/store';
+import type { User } from '$lib/stores/auth';
 
 const API_BASE_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -15,155 +14,95 @@ interface ApiResponse<T> {
 	success: boolean;
 	data?: T;
 	error?: string;
+	detail?: string; // dj-rest-auth often uses 'detail' for errors
 }
 
 class ApiClient {
 	private baseUrl: string;
-	private accessToken: string | null = null;
 
 	constructor(baseUrl: string = API_BASE_URL) {
 		this.baseUrl = baseUrl;
-		
-		console.log('🏗️ [ApiClient] Constructor called - setting up authStore subscription');
-		
-		// Subscribe to authStore - this is the ONLY way to get the token
-		if (typeof window !== 'undefined') {
-			authStore.subscribe(state => {
-				const previousToken = this.accessToken;
-				this.accessToken = state.token;
-				
-				console.log(`6️⃣ [ApiClient] Subscription fired - Auth state received:`, {
-					isInitialized: state.isInitialized,
-					isAuthenticated: state.isAuthenticated,
-					tokenChanged: previousToken !== this.accessToken,
-					tokenStatus: this.accessToken ? 'SET' : 'NULL',
-					tokenPrefix: this.accessToken ? this.accessToken.substring(0, 20) + '...' : 'NULL'
-				});
-				
-				// Log for debugging (never log the actual token!)
-				if (this.accessToken) {
-					console.log('7️⃣ [ApiClient] Token IS SET - Ready for authenticated requests');
-					// Signal to document that we're ready
-					if (state.isInitialized && typeof document !== 'undefined') {
-						document.body.setAttribute('data-api-client-ready', 'true');
-					}
-				} else {
-					console.log('7️⃣ [ApiClient] Token IS NULL - Operating in unauthenticated mode');
-				}
-			});
-		}
-	}
-
-	/**
-	 * @deprecated Use authStore.login() instead
-	 * This method is kept for backward compatibility but will be removed
-	 */
-	setToken(token: string) {
-		console.warn('⚠️ [ApiClient] setToken() is deprecated. Use authStore.login() instead.');
-		// Do nothing - the token should come through authStore
-	}
-
-	/**
-	 * @deprecated Use authStore.logout() instead
-	 */
-	clearToken() {
-		console.warn('⚠️ [ApiClient] clearToken() is deprecated. Use authStore.logout() instead.');
-		// Do nothing - logout should go through authStore
+		console.log('🏗️ [ApiClient] Constructor called. Now stateless, no auth subscription needed.');
 	}
 
 	private async request<T>(
 		endpoint: string,
 		options: RequestInit = {}
 	): Promise<ApiResponse<T>> {
-		console.log(`🚀 [ApiClient] request() called for ${options.method || 'GET'} ${endpoint}`, {
-			hasToken: !!this.accessToken,
-			tokenPrefix: this.accessToken ? this.accessToken.substring(0, 20) + '...' : 'NULL'
-		});
-		
 		const headers: Record<string, string> = {
 			'Content-Type': 'application/json',
 			...(options.headers as Record<string, string>)
 		};
 
-		// Get token from internal state (updated by authStore subscription)
-		if (this.accessToken) {
-			headers['Authorization'] = `Bearer ${this.accessToken}`;
-			console.log(`🔑 [ApiClient] Authorization header ADDED to request`);
-		} else {
-			console.log(`⚠️  [ApiClient] NO Authorization header - token is NULL`);
-		}
+		// CRITICAL: Ensure cookies are sent with every request.
+		const fetchOptions: RequestInit = {
+			...options,
+			headers,
+			credentials: 'include' 
+		};
 
 		try {
-			console.log(`📡 [ApiClient] Executing fetch to ${this.baseUrl}${endpoint}`);
-			const response = await fetch(`${this.baseUrl}${endpoint}`, {
-				...options,
-				headers
-			});
+			const response = await fetch(`${this.baseUrl}${endpoint}`, fetchOptions);
 
-			console.log(`🌐 API ${options.method || 'GET'} ${endpoint}:`, {
-				status: response.status,
-				ok: response.ok
-			});
+			// Handle responses that don't return a body (e.g., 204 No Content on logout)
+			if (response.status === 204) {
+				return { success: true };
+			}
 
 			const data = await response.json();
-			console.log(`📦 Response data:`, data);
 
 			if (!response.ok) {
 				console.error(`❌ API Error ${response.status}:`, data);
 				return {
 					success: false,
-					error: data.error || data.detail || 'An error occurred'
+					error: data.detail || data.error || 'An unknown error occurred'
 				};
 			}
 
-			return {
-				success: true,
-				data
-			};
+			return { success: true, data };
 		} catch (error) {
 			console.error(`💥 API Exception for ${endpoint}:`, error);
 			return {
 				success: false,
-				error: error instanceof Error ? error.message : 'Network error'
+				error: error instanceof Error ? error.message : 'A network error occurred'
 			};
 		}
 	}
 
-	// Authentication
+	// ===================================================================
+	// NEW AUTHENTICATION METHODS
+	// ===================================================================
+
 	async login(username: string, password: string) {
-		const response = await this.request<{ access_token: string; user: any }>('/api/core/auth/login', {
+		// dj-rest-auth returns user details and sets an HttpOnly cookie.
+		return this.request<{ user: User }>('/api/auth/login/', {
 			method: 'POST',
 			body: JSON.stringify({ username, password })
 		});
-
-		// NOTE: The actual login state management happens in the UI layer
-		// The login page calls authStore.login() with the response data
-		// We just return the response here
-		
-		if (response.success && response.data?.user) {
-			// Set Sentry user context for better error tracking
-			Sentry.setUser({
-				id: response.data.user.id,
-				username: response.data.user.username,
-				email: response.data.user.email
-			});
-		}
-
-		return response;
 	}
 
-	async register(username: string, email: string, password: string) {
-		return this.request('/api/core/auth/register', {
-			method: 'POST',
-			body: JSON.stringify({ username, email, password })
+	async logout() {
+		// This endpoint clears the HttpOnly cookie on the backend.
+		return this.request('/api/auth/logout/', {
+			method: 'POST'
 		});
 	}
 
-	logout() {
-		// Clear Sentry user context on logout
-		Sentry.setUser(null);
-		// NOTE: The actual logout happens through authStore.logout() in the UI
+	async register(username: string, email: string, password: string, password2: string) {
+		return this.request('/api/auth/registration/', {
+			method: 'POST',
+			body: JSON.stringify({ username, email, password, password2 })
+		});
 	}
+
+	async getUser() {
+		// This endpoint returns the user if the session cookie is valid.
+		return this.request<User>('/api/auth/user/');
+	}
+
+	// ===================================================================
+	// ALL OTHER API METHODS (UNCHANGED)
+	// ===================================================================
 
 	// System
 	async getSystemInfo() {
@@ -353,71 +292,6 @@ class ApiClient {
 	}
 
 	// Settings API
-	// These methods provide a convenience layer for managing system settings
-	
-	// Proxmox Settings (uses the default/primary host)
-	async getProxmoxSettings() {
-		const response = await this.listHosts();
-		if (response.success && response.data) {
-			// Return the default host or the first host
-			const hosts = Array.isArray(response.data) ? response.data : [];
-			const defaultHost = hosts.find((h: any) => h.is_default) || hosts[0];
-			return {
-				success: true,
-				data: defaultHost || null
-			};
-		}
-		return response;
-	}
-
-	async saveProxmoxSettings(data: {
-		name: string;
-		host: string;
-		port: number;
-		user: string;
-		password?: string;
-		verify_ssl: boolean;
-	}) {
-		// Get existing settings to determine if we're updating or creating
-		const existing = await this.getProxmoxSettings();
-		
-		if (existing.success && existing.data && existing.data.id) {
-			// Update existing host
-			return this.updateHost(existing.data.id, data);
-		} else {
-			// Create new host
-			return this.createHost({
-				...data,
-				is_default: true
-			});
-		}
-	}
-
-	async testProxmoxConnection(hostId?: number) {
-		// If no hostId provided, get the default host
-		if (!hostId) {
-			const settings = await this.getProxmoxSettings();
-			if (settings.success && settings.data) {
-				hostId = settings.data.id;
-			}
-		}
-		
-		if (!hostId) {
-			return {
-				success: false,
-				error: 'No Proxmox host configured'
-			};
-		}
-		
-		return this.testHostConnection(hostId);
-	}
-
-	// System Settings
-	async getSystemSettings() {
-		return this.getSystemInfo();
-	}
-
-	// Resource Settings
 	async getResourceSettings() {
 		return this.request('/api/core/settings/resources', {
 			method: 'GET'
