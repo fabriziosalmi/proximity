@@ -22,6 +22,12 @@ class ApiClient {
 		// Load token from localStorage if available
 		if (typeof window !== 'undefined') {
 			this.accessToken = localStorage.getItem('access_token');
+			
+			// Signal to E2E tests that API client is ready
+			if (this.accessToken) {
+				document.body.setAttribute('data-api-client-ready', 'true');
+				console.log('✅ [ApiClient] Auth token loaded. API client is ready for authenticated requests.');
+			}
 		}
 	}
 
@@ -29,6 +35,9 @@ class ApiClient {
 		this.accessToken = token;
 		if (typeof window !== 'undefined') {
 			localStorage.setItem('access_token', token);
+			// Signal that API client is now authenticated and ready
+			document.body.setAttribute('data-api-client-ready', 'true');
+			console.log('✅ [ApiClient] Token updated. API client is ready for authenticated requests.');
 		}
 	}
 

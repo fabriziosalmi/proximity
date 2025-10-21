@@ -12,6 +12,7 @@ import pytest
 import time
 from playwright.sync_api import expect, Page
 from pages import LoginPage, StorePage, AppsPage
+from utils.auth import programmatic_login
 
 
 @pytest.mark.clone
@@ -51,17 +52,12 @@ def test_clone_application_lifecycle(
         base_url: Frontend base URL
     """
     # ============================================================================
-    # PROGRAMMATIC LOGIN: Inject auth token before any navigation
+    # BULLETPROOF PROGRAMMATIC LOGIN:
+    # Injects token + waits for ApiClient readiness signal
     # ============================================================================
-    auth_token = deployed_app["auth_token"]
-    
-    # Inject token into localStorage using add_init_script
-    # This script runs before page load, ensuring authentication is ready
-    page.add_init_script(f"""
-        window.localStorage.setItem('access_token', '{auth_token}');
-    """)
-    
-    print(f"\n✅ Auth token injected programmatically (no UI login required)")
+    print(f"\n🔐 Performing bulletproof programmatic login...")
+    programmatic_login(page, deployed_app["auth_token"], base_url)
+    print(f"  ✅ ApiClient confirmed ready for authenticated requests")
     
     # ============================================================================
     # NOW THE PAGE IS READY FOR AUTHENTICATED NAVIGATION
@@ -296,22 +292,18 @@ def test_clone_application_workflow(
     print("="*80 + "\n")
 
     # ============================================================================
-    # PROGRAMMATIC LOGIN: Fast, robust, no UI interaction
+    # BULLETPROOF PROGRAMMATIC LOGIN:
+    # Injects token + waits for ApiClient readiness signal
     # ============================================================================
-    print("📍 AUTHENTICATION SETUP (Programmatic)")
+    print("📍 AUTHENTICATION SETUP (Bulletproof Programmatic)")
     print("-" * 80)
     
-    auth_token = unique_user["auth_token"]
+    # Use the bulletproof login helper that ensures ApiClient is ready
+    programmatic_login(page, unique_user["auth_token"], base_url)
     
-    # Inject authentication token into browser localStorage
-    # This runs BEFORE any page navigation, ensuring auth is ready
-    page.add_init_script(f"""
-        window.localStorage.setItem('access_token', '{auth_token}');
-    """)
-    
-    print(f"  ✅ Auth token injected programmatically")
-    print(f"  ✅ User context set: {unique_user['username']}")
-    print(f"  ⚡ Login completed instantly (no UI interaction)\n")
+    print(f"  ✅ User authenticated: {unique_user['username']}")
+    print(f"  ✅ ApiClient confirmed ready for authenticated requests")
+    print(f"  ⚡ All API calls will now include Authorization header\n")
 
     # ============================================================================
     # STEP 1: DEPLOY SOURCE APPLICATION (Already Authenticated)
