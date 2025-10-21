@@ -265,45 +265,47 @@
 					/>
 				</div>
 
-				<!-- Sort Label + Icon -->
-				<div class="sort-label">
-					<ArrowUpDown class="h-3.5 w-3.5" />
-				</div>
+				<!-- Sort Section -->
+				<div class="sort-container">
+					<div class="sort-label">
+						<ArrowUpDown class="h-3.5 w-3.5" />
+					</div>
 
-				<!-- Sort Buttons Grid (2x2) -->
-				<div class="sort-grid">
-					<button
-						class="sort-btn"
-						class:sort-btn-active={sortBy === 'created'}
-						on:click={() => (sortBy = 'created')}
-						title="Newest First"
-					>
-						<CalendarClock class="h-3.5 w-3.5" />
-					</button>
-					<button
-						class="sort-btn"
-						class:sort-btn-active={sortBy === 'name'}
-						on:click={() => (sortBy = 'name')}
-						title="Name (A-Z)"
-					>
-						<SortAsc class="h-3.5 w-3.5" />
-					</button>
-					<button
-						class="sort-btn"
-						class:sort-btn-active={sortBy === 'cpu'}
-						on:click={() => (sortBy = 'cpu')}
-						title="CPU Usage"
-					>
-						<Cpu class="h-3.5 w-3.5" />
-					</button>
-					<button
-						class="sort-btn"
-						class:sort-btn-active={sortBy === 'memory'}
-						on:click={() => (sortBy = 'memory')}
-						title="Memory Usage"
-					>
-						<MemoryStick class="h-3.5 w-3.5" />
-					</button>
+					<!-- Sort Buttons Grid (2x2) -->
+					<div class="sort-grid">
+						<button
+							class="sort-btn"
+							class:sort-btn-active={sortBy === 'created'}
+							on:click={() => (sortBy = 'created')}
+							title="Newest First"
+						>
+							<CalendarClock class="h-3.5 w-3.5" />
+						</button>
+						<button
+							class="sort-btn"
+							class:sort-btn-active={sortBy === 'name'}
+							on:click={() => (sortBy = 'name')}
+							title="Name (A-Z)"
+						>
+							<SortAsc class="h-3.5 w-3.5" />
+						</button>
+						<button
+							class="sort-btn"
+							class:sort-btn-active={sortBy === 'cpu'}
+							on:click={() => (sortBy = 'cpu')}
+							title="CPU Usage"
+						>
+							<Cpu class="h-3.5 w-3.5" />
+						</button>
+						<button
+							class="sort-btn"
+							class:sort-btn-active={sortBy === 'memory'}
+							on:click={() => (sortBy = 'memory')}
+							title="Memory Usage"
+						>
+							<MemoryStick class="h-3.5 w-3.5" />
+						</button>
+					</div>
 				</div>
 			</div>
 		</svelte:fragment>
@@ -606,6 +608,13 @@
 		color: var(--color-text-secondary);
 	}
 
+	/* Sort Container - Wrapper for label + grid */
+	.sort-container {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
 	/* Data-Rich Filter Chips */
 	.filter-chips {
 		display: flex;
@@ -746,8 +755,6 @@
 		gap: 0.2rem;
 		width: 2.5rem;
 		height: 2.5rem;
-		align-self: center;
-		margin-top: -0.125rem;
 	}
 
 	.sort-btn {
