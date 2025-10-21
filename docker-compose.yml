@@ -45,6 +45,7 @@ services:
     command: ["python", "manage.py", "runserver", "0.0.0.0:8000"]
     volumes:
       - ./backend:/app
+      - /app/venv  # Preserve the venv from the image, don't overwrite it
       - ./catalog_data:/catalog_data:ro
       - static_volume:/app/staticfiles
       - media_volume:/app/media
@@ -64,7 +65,6 @@ services:
       - SENTRY_ENVIRONMENT=development
       - SENTRY_TRACES_SAMPLE_RATE=0.1
       - SENTRY_PROFILES_SAMPLE_RATE=0.05
-      - SENTRY_DEBUG=True
       - SENTRY_RELEASE=proximity@2.0.0
       - PROXMOX_HOST=192.168.100.102
       - PROXMOX_USER=root@pam
@@ -91,6 +91,7 @@ services:
     command: celery -A proximity worker -l info
     volumes:
       - ./backend:/app
+      - /app/venv # Preserve the venv from the image
       - ./catalog_data:/catalog_data:ro
     environment:
       - DEBUG=True
@@ -125,6 +126,7 @@ services:
     command: celery -A proximity beat -l info
     volumes:
       - ./backend:/app
+      - /app/venv # Preserve the venv from the image
       - ./catalog_data:/catalog_data:ro
     environment:
       - DEBUG=True

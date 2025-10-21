@@ -18,18 +18,31 @@ if [ ! -f "requirements.txt" ]; then
     exit 1
 fi
 
-# Check if Docker stack is running
-echo "🔍 Checking if Docker stack is running..."
-if ! curl -s http://localhost:8000/api/health > /dev/null 2>&1; then
-    echo "⚠️  Backend not responding at http://localhost:8000"
+# Check if Docker stack is running and wait for it if necessary
+HEALTH_URL="http://localhost:8000/api/health"
+if ! curl -s --fail "$HEALTH_URL" > /dev/null 2>&1; then
+    echo "⚠️  Backend not responding at $HEALTH_URL"
     echo "   Starting Docker stack..."
-    # Go to project root to run docker-compose
-    (cd .. && docker-compose up -d)
-    echo "   Waiting 30 seconds for services to start..."
-    sleep 30
-else
-    echo "✅ Backend is running"
+    (cd .. && docker-compose up -d --build --remove-orphans)
+    
+    echo "   Waiting for backend to become healthy..."
+    WAIT_LIMIT=90 # 90 seconds timeout
+    WAIT_INTERVAL=5
+    ELAPSED=0
+    
+    while ! curl -s --fail "$HEALTH_URL" > /dev/null 2>&1; do
+        if [ $ELAPSED -ge $WAIT_LIMIT ]; then
+            echo "❌ Timeout: Backend did not become healthy within $WAIT_LIMIT seconds."
+            docker-compose logs backend
+            exit 1
+        fi
+        echo "   ... still waiting ($ELAPSED/$WAIT_LIMIT seconds)"
+        sleep $WAIT_INTERVAL
+        ELAPSED=$((ELAPSED + WAIT_INTERVAL))
+    done
 fi
+echo "✅ Backend is healthy and running at $HEALTH_URL"
+
 
 # Define venv executable paths for robustness
 VENV_DIR="venv"
@@ -51,7 +64,7 @@ echo "📦 Installing/updating dependencies into venv..."
 "$PIP" install -q --upgrade pip
 "$PIP" install -q -r requirements.txt
 
-# Install Playwright browsers if not already installed
+# Install Playwright browsers
 echo "🎭 Installing Playwright browsers..."
 "$PLAYWRIGHT" install
 
