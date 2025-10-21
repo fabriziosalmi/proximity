@@ -37,6 +37,7 @@
   "dependencies": {
     "@sentry/sveltekit": "^10.20.0",
     "@types/three": "^0.180.0",
+    "@xyflow/svelte": "^1.4.0",
     "bits-ui": "^0.11.8",
     "clsx": "^2.1.0",
     "lucide-svelte": "^0.303.0",
