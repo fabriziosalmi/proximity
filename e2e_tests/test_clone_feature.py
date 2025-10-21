@@ -10,6 +10,7 @@ Both tests ensure the EPIC 2 "Clone Application" feature works end-to-end.
 """
 import pytest
 import time
+import re
 from playwright.sync_api import expect, Page
 from pages import LoginPage, StorePage, AppsPage
 from utils.auth import programmatic_login
@@ -331,12 +332,32 @@ def test_clone_application_workflow(
     
     print(f"  ✓ Found app in catalog: {app_name}")
 
-    # Deploy the app
-    store_page.deploy_app(app_name, source_hostname)
+    # Click Deploy button and fill hostname
+    store_page.click_deploy(app_name)
     print(f"  ✓ Clicked Deploy button")
+    
+    store_page.fill_hostname(source_hostname)
     print(f"  ✓ Filled hostname: {source_hostname}")
-    print(f"  ✓ Confirmed deployment")
-    print(f"  ✅ DEPLOYMENT INITIATED - Redirected to /apps page\n")
+    
+    # ============================================================================
+    # CRITICAL: Wait for BOTH redirect AND initial API data load
+    # ============================================================================
+    print(f"  ⏳ Confirming deployment (waiting for redirect + API data)...")
+    
+    # Set up expectation for the API response BEFORE clicking confirm
+    # This ensures we catch the API call that happens after redirect
+    with page.expect_response(
+        lambda res: "/api/apps" in res.url and res.status == 200,
+        timeout=15000
+    ) as response_info:
+        # Click confirm - this will trigger: POST deploy → redirect → GET /api/apps
+        store_page.confirm_deployment(wait_for_redirect=True)
+    
+    # Get the intercepted response
+    api_response = response_info.value
+    print(f"  ✓ Redirect to /apps confirmed (Status: {api_response.status})")
+    print(f"  ✓ Initial app list loaded from API")
+    print(f"  ✅ DEPLOYMENT INITIATED - UI is now populated and ready for monitoring\n")
 
     # ============================================================================
     # STEP 2: WAIT FOR SOURCE APP TO BE RUNNING
@@ -347,9 +368,8 @@ def test_clone_application_workflow(
 
     apps_page = AppsPage(page, base_url)
     
-    # Ensure we're on the apps page and wait for it to load
-    page.wait_for_load_state("networkidle")
-    print(f"  ✓ Apps page loaded")
+    # Now the page has already loaded data, we can immediately look for the card
+    print(f"  ✓ Searching for newly deployed app: {source_hostname}")
 
     # Wait for app card to appear using page object method
     try:

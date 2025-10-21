@@ -14,6 +14,7 @@ to ensure perfect test isolation and reliability.
 """
 import pytest
 import time
+import re
 from playwright.sync_api import expect
 from pages import LoginPage, StorePage, AppsPage
 from utils.auth import programmatic_login
@@ -102,34 +103,44 @@ def test_full_app_lifecycle(
     print("📍 STEP 3: Deploy Application")
     print("-" * 80)
     
-    # Initiate deployment
-    store_page.deploy_app(
-        app_name="Adminer",
-        hostname=test_hostname,
-        wait_for_redirect=True
-    )
+    # Click Deploy and fill hostname
+    store_page.click_deploy("Adminer")
     print(f"  ✓ Clicked Deploy button")
+    
+    store_page.fill_hostname(test_hostname)
     print(f"  ✓ Filled hostname: {test_hostname}")
-    print(f"  ✓ Confirmed deployment")
     
-    # Verify redirect to /apps page
-    expect(page).to_have_url(base_url + "/apps", timeout=10000)
-    print(f"  ✅ DEPLOYMENT INITIATED - Redirected to /apps page\n")
+    # ============================================================================
+    # CRITICAL: Wait for BOTH redirect AND initial API data load
+    # ============================================================================
+    print(f"  ⏳ Confirming deployment (waiting for redirect + API data)...")
     
+    # Set up expectation for the API response BEFORE clicking confirm
+    with page.expect_response(
+        lambda res: "/api/apps" in res.url and res.status == 200,
+        timeout=15000
+    ) as response_info:
+        # Click confirm - this will trigger: POST deploy → redirect → GET /api/apps
+        store_page.confirm_deployment(wait_for_redirect=True)
+    
+    api_response = response_info.value
+    print(f"  ✓ Redirect to /apps confirmed (Status: {api_response.status})")
+    print(f"  ✓ Initial app list loaded from API")
+    print(f"  ✅ DEPLOYMENT INITIATED - UI is now populated and ready for monitoring\n")
+
     # ============================================================================
     # STEP 4: MONITOR DEPLOYMENT
     # ============================================================================
     print("📍 STEP 4: Monitor Deployment Progress")
     print("-" * 80)
     print(f"  ⏳ This may take 1-3 minutes (container image pulling)...")
-    
+
     apps_page = AppsPage(page, base_url)
     
-    # Verify the new app card is visible immediately
+    # Now the page has already loaded data, we can immediately look for the card
+    print(f"  ✓ Searching for newly deployed app: {test_hostname}")
     apps_page.assert_app_visible(test_hostname)
-    print(f"  ✓ Application card appeared: {test_hostname}")
-    
-    # Check initial status (should be 'deploying')
+    print(f"  ✓ Application card appeared: {test_hostname}")    # Check initial status (should be 'deploying')
     initial_status = apps_page.get_app_status(test_hostname)
     print(f"  ✓ Initial status: {initial_status}")
     
