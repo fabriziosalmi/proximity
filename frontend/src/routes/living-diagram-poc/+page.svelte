@@ -176,18 +176,13 @@
 		height: 100%;
 	}
 
-	:global(.svelvet-wrapper {
-		width: 100%;
-		height: 100%;
-	})
-
 	:global(.svelvet-container) {
 		width: 100% !important;
 		height: 100% !important;
-		background: linear-gradient(135deg, #0f172a 0%, #1a1f35 100%);
+		background: linear-gradient(135deg, #0f172a 0%, #1a1f35 100%) !important;
 	}
 
-	:global(.svelvet-panzoom) {
+	:global(.svelvet-canvas) {
 		background-color: transparent !important;
 	}
 

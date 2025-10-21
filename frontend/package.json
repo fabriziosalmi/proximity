@@ -40,7 +40,6 @@
     "bits-ui": "^0.11.8",
     "clsx": "^2.1.0",
     "lucide-svelte": "^0.303.0",
-    "svelte-cubed": "^0.2.1",
     "svelvet": "^11.0.5",
     "tailwind-merge": "^2.2.0",
     "tailwind-variants": "^0.1.19",
