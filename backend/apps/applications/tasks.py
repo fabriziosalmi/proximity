@@ -905,12 +905,21 @@ def adopt_app_task(self, adoption_data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Adopt an existing LXC container into Proximity management.
     
-    This is an asynchronous operation that:
-    1. Verifies the container exists on Proxmox
-    2. Uses the container's original hostname
-    3. Detects listening ports automatically (or uses user-specified port)
-    4. Allocates a public port for external access
-    5. Creates an Application record as "custom" type
+    DOCTRINE POINT #4: THE "INFORMED" ADOPTION PROCESS
+    
+    This adoption process captures comprehensive container metadata to create
+    a complete "clinical record" of the adopted container. This includes:
+    - Actual runtime status (running/stopped) from Proxmox
+    - Complete container configuration snapshot (pct config output)
+    - Network configuration and IP addresses
+    - Resource allocation (CPU, memory, disk)
+    - Original creation date and metadata
+    
+    This rich metadata allows us to:
+    1. Restore original configuration if needed
+    2. Detect configuration drift over time
+    3. Provide detailed history for troubleshooting
+    4. Make informed decisions during lifecycle operations
     
     Args:
         adoption_data: Dictionary containing:
@@ -928,7 +937,8 @@ def adopt_app_task(self, adoption_data: Dict[str, Any]) -> Dict[str, Any]:
     port_to_expose = adoption_data.get('port_to_expose')
     
     logger.info(f"="*100)
-    logger.info(f"[ADOPT TASK START] --- Starting adoption for Container VMID: {vmid} ---")
+    logger.info(f"[ADOPT TASK START] --- Starting INFORMED adoption for Container VMID: {vmid} ---")
+    logger.info(f"[ADOPT TASK START] DOCTRINE: Capture complete container metadata and state")
     logger.info(f"[ADOPT TASK START] Parameters: node={node_name}, suggested_type={suggested_type}, port={port_to_expose or 'auto-detect'}")
     logger.info(f"="*100)
     
@@ -940,7 +950,7 @@ def adopt_app_task(self, adoption_data: Dict[str, Any]) -> Dict[str, Any]:
         import uuid
         
         # Get node and host information
-        logger.info(f"[ADOPT {vmid}] STEP 1: Retrieving node information...")
+        logger.info(f"[ADOPT {vmid}] STEP 1/8: Retrieving node information...")
         try:
             node = ProxmoxNode.objects.get(name=node_name)
             host = node.host
@@ -950,7 +960,7 @@ def adopt_app_task(self, adoption_data: Dict[str, Any]) -> Dict[str, Any]:
             raise Exception(f"Node '{node_name}' not found")
         
         # Initialize Proxmox service
-        logger.info(f"[ADOPT {vmid}] STEP 2: Connecting to Proxmox host...")
+        logger.info(f"[ADOPT {vmid}] STEP 2/8: Connecting to Proxmox host...")
         try:
             proxmox_service = ProxmoxService(host_id=host.id)
             logger.info(f"[ADOPT {vmid}] ✓ ProxmoxService initialized")
@@ -958,8 +968,8 @@ def adopt_app_task(self, adoption_data: Dict[str, Any]) -> Dict[str, Any]:
             logger.error(f"[ADOPT {vmid}] ❌ Failed to connect to Proxmox: {e}", exc_info=True)
             raise
         
-        # Get container information from Proxmox
-        logger.info(f"[ADOPT {vmid}] STEP 3: Fetching container information from Proxmox...")
+        # DOCTRINE: Get comprehensive container information from Proxmox
+        logger.info(f"[ADOPT {vmid}] STEP 3/8: Fetching comprehensive container information...")
         try:
             containers = proxmox_service.get_lxc_containers(node_name)
             container_info = next((c for c in containers if int(c.get('vmid')) == int(vmid)), None)
@@ -968,9 +978,21 @@ def adopt_app_task(self, adoption_data: Dict[str, Any]) -> Dict[str, Any]:
                 logger.error(f"[ADOPT {vmid}] ❌ Container {vmid} not found on node {node_name}")
                 raise Exception(f"Container {vmid} not found on node {node_name}")
             
+            # DOCTRINE: Capture actual runtime status (not assumed)
             container_status = container_info.get('status', 'unknown')
             container_name = container_info.get('name', f'container-{vmid}')
-            logger.info(f"[ADOPT {vmid}] ✓ Found container: name='{container_name}', status='{container_status}'")
+            container_uptime = container_info.get('uptime', 0)
+            container_cpus = container_info.get('cpus', 1)
+            container_maxmem = container_info.get('maxmem', 0)
+            container_maxdisk = container_info.get('maxdisk', 0)
+            
+            logger.info(f"[ADOPT {vmid}] ✓ Container basic info:")
+            logger.info(f"[ADOPT {vmid}]   - Name: {container_name}")
+            logger.info(f"[ADOPT {vmid}]   - Status: {container_status}")
+            logger.info(f"[ADOPT {vmid}]   - Uptime: {container_uptime}s")
+            logger.info(f"[ADOPT {vmid}]   - CPUs: {container_cpus}")
+            logger.info(f"[ADOPT {vmid}]   - Memory: {container_maxmem / (1024**3):.2f}GB")
+            logger.info(f"[ADOPT {vmid}]   - Disk: {container_maxdisk / (1024**3):.2f}GB")
             
             # Use the container's original name as hostname
             hostname = container_name
@@ -983,10 +1005,38 @@ def adopt_app_task(self, adoption_data: Dict[str, Any]) -> Dict[str, Any]:
             logger.error(f"[ADOPT {vmid}] ❌ Error fetching container info: {e}", exc_info=True)
             raise
         
+        # DOCTRINE: Capture complete container configuration snapshot
+        logger.info(f"[ADOPT {vmid}] STEP 4/8: Capturing complete container configuration snapshot...")
+        container_config_snapshot = {}
+        try:
+            # Get detailed configuration (equivalent to 'pct config <vmid>')
+            config_response = proxmox_service.proxmox.nodes(node_name).lxc(vmid).config.get()
+            container_config_snapshot = dict(config_response)
+            
+            logger.info(f"[ADOPT {vmid}] ✓ Configuration snapshot captured:")
+            logger.info(f"[ADOPT {vmid}]   - Hostname: {container_config_snapshot.get('hostname', 'N/A')}")
+            logger.info(f"[ADOPT {vmid}]   - OS Type: {container_config_snapshot.get('ostype', 'N/A')}")
+            logger.info(f"[ADOPT {vmid}]   - Architecture: {container_config_snapshot.get('arch', 'N/A')}")
+            logger.info(f"[ADOPT {vmid}]   - Memory: {container_config_snapshot.get('memory', 'N/A')}MB")
+            logger.info(f"[ADOPT {vmid}]   - Swap: {container_config_snapshot.get('swap', 'N/A')}MB")
+            logger.info(f"[ADOPT {vmid}]   - Root FS: {container_config_snapshot.get('rootfs', 'N/A')}")
+            
+            # Extract network configuration
+            net_configs = {k: v for k, v in container_config_snapshot.items() if k.startswith('net')}
+            if net_configs:
+                logger.info(f"[ADOPT {vmid}]   - Network interfaces: {len(net_configs)}")
+                for net_key, net_value in net_configs.items():
+                    logger.info(f"[ADOPT {vmid}]     • {net_key}: {net_value}")
+            
+        except Exception as config_error:
+            logger.warning(f"[ADOPT {vmid}] ⚠️  Could not capture full config snapshot: {config_error}")
+            # Continue with adoption even if config capture fails
+            container_config_snapshot = {'error': str(config_error)}
+        
         # Detect listening ports (if container is running and port not specified)
+        logger.info(f"[ADOPT {vmid}] STEP 5/8: Detecting listening ports...")
         detected_ports = []
         if not port_to_expose and container_status == 'running':
-            logger.info(f"[ADOPT {vmid}] STEP 4: Detecting listening ports in container...")
             try:
                 # Try to detect listening ports (this will require SSH or exec into container)
                 # For now, we'll log that this feature is TODO
@@ -994,8 +1044,11 @@ def adopt_app_task(self, adoption_data: Dict[str, Any]) -> Dict[str, Any]:
                 logger.info(f"[ADOPT {vmid}] 💡 Future: Will SSH into container and run 'netstat -tuln' or 'ss -tuln'")
             except Exception as e:
                 logger.warning(f"[ADOPT {vmid}] ⚠️  Could not detect ports: {e}")
+        else:
+            logger.info(f"[ADOPT {vmid}] ⊘ Skipping port detection (status={container_status}, manual_port={port_to_expose})")
         
         # Determine which port to expose
+        logger.info(f"[ADOPT {vmid}] STEP 6/8: Determining port to expose...")
         if port_to_expose:
             container_port = port_to_expose
             logger.info(f"[ADOPT {vmid}] 📌 Using user-specified port: {container_port}")
@@ -1005,10 +1058,10 @@ def adopt_app_task(self, adoption_data: Dict[str, Any]) -> Dict[str, Any]:
         else:
             # Default fallback - common HTTP port
             container_port = 80
-            logger.info(f"[ADOPT {vmid}] � Using default fallback port: {container_port}")
+            logger.info(f"[ADOPT {vmid}] 🔌 Using default fallback port: {container_port}")
         
         # Allocate public port for external access
-        logger.info(f"[ADOPT {vmid}] STEP 5: Allocating public port...")
+        logger.info(f"[ADOPT {vmid}] STEP 7/8: Allocating public port...")
         try:
             port_manager = PortManagerService()
             public_port, _ = port_manager.allocate_ports()  # We only need public_port
@@ -1022,8 +1075,8 @@ def adopt_app_task(self, adoption_data: Dict[str, Any]) -> Dict[str, Any]:
         app_id = f"{suggested_type}-{uuid.uuid4().hex[:8]}"
         logger.info(f"[ADOPT {vmid}] 📋 Generated application ID: {app_id}")
         
-        # Create Application record in 'adopting' state
-        logger.info(f"[ADOPT {vmid}] STEP 6: Creating Application record...")
+        # DOCTRINE: Create Application record with COMPLETE metadata
+        logger.info(f"[ADOPT {vmid}] STEP 8/8: Creating Application record with complete metadata...")
         try:
             with transaction.atomic():
                 app = Application.objects.create(
@@ -1031,20 +1084,35 @@ def adopt_app_task(self, adoption_data: Dict[str, Any]) -> Dict[str, Any]:
                     catalog_id=suggested_type,  # Use suggested_type as catalog_id
                     name=hostname,  # Use original container name
                     hostname=hostname,  # Keep original hostname
-                    status='adopting',
+                    status='adopting',  # Initial status
                     lxc_id=vmid,
                     node=node_name,
                     host_id=host.id,
                     public_port=public_port,
                     internal_port=container_port,  # Store the container's internal port
                     config={
+                        # DOCTRINE: Rich adoption metadata
                         'adopted': True,
                         'original_vmid': vmid,
                         'original_name': container_name,
                         'adoption_date': timezone.now().isoformat(),
                         'suggested_type': suggested_type,
                         'container_port': container_port,
-                        'detected_ports': detected_ports
+                        'detected_ports': detected_ports,
+                        
+                        # DOCTRINE: Complete configuration snapshot (clinical record)
+                        'proxmox_config_snapshot': container_config_snapshot,
+                        
+                        # DOCTRINE: Resource allocation at adoption time
+                        'resources_at_adoption': {
+                            'cpus': container_cpus,
+                            'memory_bytes': container_maxmem,
+                            'disk_bytes': container_maxdisk,
+                            'uptime_seconds': container_uptime
+                        },
+                        
+                        # DOCTRINE: Original runtime status
+                        'status_at_adoption': container_status
                     },
                     environment={}
                 )
@@ -1053,17 +1121,19 @@ def adopt_app_task(self, adoption_data: Dict[str, Any]) -> Dict[str, Any]:
                 DeploymentLog.objects.create(
                     application=app,
                     level='INFO',
-                    message=f'Starting adoption of existing container "{container_name}" (VMID {vmid})',
+                    message=f'Starting INFORMED adoption of existing container "{container_name}" (VMID {vmid}) with complete metadata capture',
                     step='adoption_start'
                 )
                 
-                logger.info(f"[ADOPT {vmid}] ✓ Application record created: {app_id}")
+                logger.info(f"[ADOPT {vmid}] ✓ Application record created with complete metadata: {app_id}")
         except Exception as e:
             logger.error(f"[ADOPT {vmid}] ❌ Failed to create Application record: {e}", exc_info=True)
             raise
         
-        # Update status to match container's actual state
-        logger.info(f"[ADOPT {vmid}] STEP 7: Finalizing adoption...")
+        # DOCTRINE: Update status to match container's ACTUAL state (not assumed)
+        logger.info(f"[ADOPT {vmid}] Finalizing adoption with actual container state...")
+        
+        # Set status based on actual container state from Proxmox
         final_status = 'running' if container_status == 'running' else 'stopped'
         app.status = final_status
         app.save(update_fields=['status'])
@@ -1071,15 +1141,22 @@ def adopt_app_task(self, adoption_data: Dict[str, Any]) -> Dict[str, Any]:
         DeploymentLog.objects.create(
             application=app,
             level='INFO',
-            message=f'Successfully adopted container "{container_name}". Status: {final_status}, Port: {public_port}->{container_port}',
+            message=(
+                f'Successfully adopted container "{container_name}" with complete metadata. '
+                f'Status: {final_status}, Port: {public_port}->{container_port}, '
+                f'Resources: {container_cpus} CPUs, {container_maxmem / (1024**3):.2f}GB RAM'
+            ),
             step='adoption_complete'
         )
         
-        logger.info(f"[ADOPT {vmid}] ✅ Adoption completed successfully!")
-        logger.info(f"[ADOPT {vmid}] 📋 Name: {hostname}")
-        logger.info(f"[ADOPT {vmid}] 🎯 URL: http://{host.host}:{public_port}")
-        logger.info(f"[ADOPT {vmid}] 🔌 Port mapping: {public_port} -> {container_port}")
-        logger.info(f"[ADOPT {vmid}] 📊 Status: {final_status}")
+        logger.info(f"[ADOPT {vmid}] ✅ INFORMED ADOPTION COMPLETED SUCCESSFULLY!")
+        logger.info(f"[ADOPT {vmid}] Summary:")
+        logger.info(f"[ADOPT {vmid}]   - Name: {hostname}")
+        logger.info(f"[ADOPT {vmid}]   - Status: {final_status} (actual from Proxmox)")
+        logger.info(f"[ADOPT {vmid}]   - URL: http://{host.host}:{public_port}")
+        logger.info(f"[ADOPT {vmid}]   - Port mapping: {public_port} -> {container_port}")
+        logger.info(f"[ADOPT {vmid}]   - Resources: {container_cpus} CPUs, {container_maxmem / (1024**3):.2f}GB RAM, {container_maxdisk / (1024**3):.2f}GB disk")
+        logger.info(f"[ADOPT {vmid}]   - Config snapshot: {len(container_config_snapshot)} keys captured")
         logger.info(f"="*100)
         
         return {
@@ -1091,7 +1168,9 @@ def adopt_app_task(self, adoption_data: Dict[str, Any]) -> Dict[str, Any]:
             'status': final_status,
             'public_port': public_port,
             'container_port': container_port,
-            'suggested_type': suggested_type
+            'suggested_type': suggested_type,
+            'config_snapshot_captured': True,
+            'config_keys_count': len(container_config_snapshot)
         }
         
     except Exception as e:

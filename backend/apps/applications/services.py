@@ -297,21 +297,30 @@ class ApplicationService:
             }
 
     @staticmethod
+    @staticmethod
     def cleanup_stuck_applications() -> Dict[str, Any]:
         """
         Clean up applications stuck in transitional states for too long.
-
-        This "janitor" service scans for applications that have been in transitional
-        states (deploying, cloning, removing, restoring) for longer than the allowed
-        timeout period. These "zombie" applications are marked as error to prevent
-        them from being stuck in limbo indefinitely.
-
-        The reconciliation service will handle actual cleanup of orphaned containers.
-        This service focuses on ending the transitional state safely.
-
+        
+        DOCTRINE POINT #3: THE "CONSERVATIVE" JANITOR SERVICE
+        
+        This "janitor" service operates as a DOCTOR, not an EXECUTOR. Its SOLE
+        responsibility is to diagnose and mark applications that have been stuck
+        in transitional states for too long, moving them to 'error' state.
+        
+        CRITICAL CONSTRAINTS:
+        - NEVER attempts to delete containers from Proxmox
+        - NEVER performs cleanup operations on external resources
+        - ONLY updates application status in the database
+        - Lets the ReconciliationService handle container synchronization
+        
+        This separation of concerns prevents race conditions and ensures that:
+        1. The Janitor handles INTERNAL state health (DB status)
+        2. The Reconciler handles EXTERNAL state consistency (DB ↔ Proxmox)
+        
         Transitional states monitored:
         - deploying: New deployment in progress
-        - cloning: Clone operation in progress
+        - cloning: Clone operation in progress  
         - removing: Deletion in progress
         - updating: Update operation in progress
 
@@ -328,7 +337,8 @@ class ApplicationService:
         TRANSITIONAL_STATES = ['deploying', 'cloning', 'removing', 'updating']
 
         logger.info("=" * 100)
-        logger.info("[JANITOR] Starting stuck applications cleanup process...")
+        logger.info("[JANITOR] Starting CONSERVATIVE stuck applications cleanup process...")
+        logger.info("[JANITOR] DOCTRINE: Doctor mode - diagnose and mark only, never delete")
         logger.info(f"[JANITOR] Timeout threshold: {STUCK_TIMEOUT}")
         logger.info(f"[JANITOR] Monitored states: {TRANSITIONAL_STATES}")
         logger.info("=" * 100)
@@ -361,7 +371,7 @@ class ApplicationService:
             stuck_apps = transitional_apps.filter(state_changed_at__lt=cutoff_time)
             stuck_found = stuck_apps.count()
 
-            logger.info(f"[JANITOR] STEP 2/2: Found {stuck_found} stuck application(s)")
+            logger.info(f"[JANITOR] STEP 2/2: Found {stuck_found} stuck application(s) requiring diagnosis")
 
             if stuck_found == 0:
                 logger.info("[JANITOR] ✅ No stuck applications found - all transitions are within timeout")
@@ -373,7 +383,10 @@ class ApplicationService:
                     'errors': []
                 }
 
-            # Mark stuck applications as error
+            # DOCTRINE: Mark stuck applications as error (INTERNAL state management ONLY)
+            logger.info(f"[JANITOR] Diagnosing and marking {stuck_found} stuck application(s) as ERROR...")
+            logger.info(f"[JANITOR] ⚠️  NOTE: Container cleanup (if needed) will be handled by ReconciliationService")
+            
             for app in stuck_apps:
                 try:
                     time_stuck = timezone.now() - app.state_changed_at
@@ -381,7 +394,7 @@ class ApplicationService:
                     minutes_stuck = int((time_stuck.total_seconds() % 3600) / 60)
 
                     logger.warning(
-                        f"[JANITOR]   ⚠️  STUCK APP FOUND: '{app.hostname}' "
+                        f"[JANITOR]   🩺 DIAGNOSING: '{app.hostname}' "
                         f"(ID: {app.id}, Status: {app.status}) - "
                         f"Stuck for {hours_stuck}h {minutes_stuck}m"
                     )
@@ -393,23 +406,29 @@ class ApplicationService:
                         # Only update if still in a transitional state
                         if app_to_update.status in TRANSITIONAL_STATES:
                             old_status = app_to_update.status
+                            
+                            # DOCTRINE: ONLY change status to error, NEVER touch containers
                             app_to_update.status = 'error'
                             app_to_update.save(update_fields=['status'])
 
                             logger.info(
-                                f"[JANITOR]     ✓ Marked as ERROR: {app.hostname} "
+                                f"[JANITOR]     ✓ DIAGNOSED AS ERROR: {app.hostname} "
                                 f"(was: {old_status}, stuck since: {app.state_changed_at})"
+                            )
+                            logger.info(
+                                f"[JANITOR]       → Container (if any) will be handled by ReconciliationService"
                             )
                             stuck_marked_error += 1
 
-                            # Log to deployment logs
+                            # Log to deployment logs for audit trail
                             from apps.applications.models import DeploymentLog
                             DeploymentLog.objects.create(
                                 application=app_to_update,
                                 level='error',
                                 message=f'Operation timed out after {hours_stuck}h {minutes_stuck}m. '
-                                       f'Previous state: {old_status}',
-                                step='janitor_cleanup'
+                                       f'Previous state: {old_status}. '
+                                       f'Container cleanup (if needed) will be handled by reconciliation.',
+                                step='janitor_diagnosis'
                             )
                         else:
                             logger.info(
@@ -417,21 +436,22 @@ class ApplicationService:
                                 f"(now: {app_to_update.status})"
                             )
 
-                except Exception as cleanup_error:
+                except Exception as diagnosis_error:
                     logger.error(
-                        f"[JANITOR]     ✗ Failed to mark {app.hostname} as error: {cleanup_error}",
+                        f"[JANITOR]     ✗ Failed to diagnose {app.hostname}: {diagnosis_error}",
                         exc_info=True
                     )
-                    errors.append(f"Cleanup {app.hostname}: {str(cleanup_error)}")
+                    errors.append(f"Diagnosis {app.hostname}: {str(diagnosis_error)}")
 
             # Final summary
             logger.info("=" * 100)
-            logger.info("[JANITOR] ✅ CLEANUP COMPLETE")
+            logger.info("[JANITOR] ✅ CONSERVATIVE CLEANUP COMPLETE")
             logger.info(f"[JANITOR] Summary:")
             logger.info(f"[JANITOR]   - Total transitional apps: {total_transitional}")
             logger.info(f"[JANITOR]   - Stuck apps found: {stuck_found}")
             logger.info(f"[JANITOR]   - Stuck apps marked as error: {stuck_marked_error}")
             logger.info(f"[JANITOR]   - Errors: {len(errors)}")
+            logger.info(f"[JANITOR] 📝 Next: ReconciliationService will handle any orphaned containers")
             logger.info("=" * 100)
 
             return {
