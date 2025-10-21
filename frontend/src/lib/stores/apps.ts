@@ -85,7 +85,7 @@ function createAppsStore() {
 
 		if (response.success && response.data) {
 			// Extract apps array from response object
-			const appsArray = response.data.apps || response.data || [];
+			const appsArray = (response.data as any).apps || response.data || [];
 
 			// Detect state transitions and play appropriate sounds
 			appsArray.forEach((newApp: DeployedApp) => {
@@ -169,18 +169,20 @@ function createAppsStore() {
 		if (response.success && response.data) {
 			// Capture previous state for sound feedback
 			let previousApp: DeployedApp | undefined;
+			const appData = response.data as DeployedApp;
+			
 			update((state) => {
 				previousApp = state.apps.find(app => app.id === appId);
 				return state;
 			});
 
 			// Detect state transition and play appropriate sound
-			if (previousApp && previousApp.status !== response.data.status) {
+			if (previousApp && previousApp.status !== appData.status) {
 				if ((previousApp.status === 'deploying' || previousApp.status === 'cloning') &&
-				    response.data.status === 'running') {
+				    appData.status === 'running') {
 					// Success: deployment/clone completed
 					SoundService.play('success');
-				} else if (previousApp.status !== 'error' && response.data.status === 'error') {
+				} else if (previousApp.status !== 'error' && appData.status === 'error') {
 					// Error: app entered error state
 					SoundService.play('error');
 				}
@@ -188,7 +190,7 @@ function createAppsStore() {
 
 			update((state) => ({
 				...state,
-				apps: state.apps.map((app) => (app.id === appId ? response.data : app))
+				apps: state.apps.map((app) => (app.id === appId ? appData : app))
 			}));
 		}
 	}
