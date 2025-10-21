@@ -271,15 +271,15 @@
 						<ArrowUpDown class="h-3.5 w-3.5" />
 					</div>
 
-					<!-- Sort Buttons Grid (2x2) -->
-					<div class="sort-grid">
+					<!-- Sort Buttons Horizontal -->
+					<div class="sort-buttons">
 						<button
 							class="sort-btn"
 							class:sort-btn-active={sortBy === 'created'}
 							on:click={() => (sortBy = 'created')}
 							title="Newest First"
 						>
-							<CalendarClock class="h-3.5 w-3.5" />
+							<CalendarClock class="h-4 w-4" />
 						</button>
 						<button
 							class="sort-btn"
@@ -287,7 +287,7 @@
 							on:click={() => (sortBy = 'name')}
 							title="Name (A-Z)"
 						>
-							<SortAsc class="h-3.5 w-3.5" />
+							<SortAsc class="h-4 w-4" />
 						</button>
 						<button
 							class="sort-btn"
@@ -295,7 +295,7 @@
 							on:click={() => (sortBy = 'cpu')}
 							title="CPU Usage"
 						>
-							<Cpu class="h-3.5 w-3.5" />
+							<Cpu class="h-4 w-4" />
 						</button>
 						<button
 							class="sort-btn"
@@ -303,7 +303,7 @@
 							on:click={() => (sortBy = 'memory')}
 							title="Memory Usage"
 						>
-							<MemoryStick class="h-3.5 w-3.5" />
+							<MemoryStick class="h-4 w-4" />
 						</button>
 					</div>
 				</div>
@@ -608,14 +608,50 @@
 		color: var(--color-text-secondary);
 	}
 
-	/* Sort Container - Wrapper for label + grid */
+	/* Sort Container - Wrapper for label + buttons */
 	.sort-container {
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
 	}
 
-	/* Data-Rich Filter Chips */
+	/* Sort Buttons - Horizontal layout like filter chips */
+	.sort-buttons {
+		display: flex;
+		gap: 0.5rem;
+	}
+
+	.sort-btn {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0.5rem 0.75rem;
+		border-radius: 0.375rem;
+		border: 1px solid rgba(75, 85, 99, 0.3);
+		background: rgba(0, 0, 0, 0.3);
+		color: var(--color-text-secondary);
+		cursor: pointer;
+		transition: all 0.2s ease;
+		min-width: 2.5rem;
+	}
+
+	.sort-btn:hover {
+		border-color: rgba(14, 165, 233, 0.5);
+		background: rgba(14, 165, 233, 0.1);
+		color: var(--color-accent);
+		transform: translateY(-1px);
+	}
+
+	.sort-btn-active {
+		border-color: var(--color-accent);
+		background: rgba(14, 165, 233, 0.2);
+		color: var(--color-accent);
+		box-shadow: 0 0 10px rgba(14, 165, 233, 0.3);
+	}
+
+	.sort-btn:active {
+		transform: translateY(0);
+	}
 	.filter-chips {
 		display: flex;
 		align-items: center;
@@ -747,46 +783,8 @@
 		background: rgba(0, 0, 0, 0.4);
 	}
 
-	/* Sort Grid - 2x2 Button Layout */
-	.sort-grid {
-		display: grid;
-		grid-template-columns: repeat(2, 1fr);
-		grid-template-rows: repeat(2, 1fr);
-		gap: 0.2rem;
-		width: 2.5rem;
-		height: 2.5rem;
-	}
-
-	.sort-btn {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		padding: 0.2rem;
-		border-radius: 0.2rem;
-		border: 1px solid rgba(75, 85, 99, 0.3);
-		background: rgba(0, 0, 0, 0.3);
-		color: var(--color-text-secondary);
-		cursor: pointer;
-		transition: all 0.2s ease;
-	}
-
-	.sort-btn:hover {
-		border-color: rgba(14, 165, 233, 0.5);
-		background: rgba(14, 165, 233, 0.1);
-		color: var(--color-accent);
-		transform: scale(1.08);
-	}
-
-	.sort-btn-active {
-		border-color: var(--color-accent);
-		background: rgba(14, 165, 233, 0.2);
-		color: var(--color-accent);
-		box-shadow: 0 0 6px rgba(14, 165, 233, 0.4);
-	}
-
-	.sort-btn:active {
-		transform: scale(0.92);
-	}
+	/* DEPRECATED: Sort Grid 2x2 styles (replaced with horizontal layout) */
+	/* .sort-grid { ... } */
 
 	/* Sort Dropdown - DEPRECATED (kept for reference) */
 	.sort-select {
