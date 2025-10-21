@@ -1,9 +1,13 @@
 /**
  * API client library for Proximity 2.0 frontend.
- * Handles authentication and API communication.
+ * 
+ * CRITICAL: This client subscribes to authStore as the SINGLE SOURCE OF TRUTH.
+ * It NEVER accesses localStorage directly. All auth state flows through authStore.
  */
 
 import * as Sentry from '@sentry/sveltekit';
+import { authStore } from '$lib/stores/auth';
+import { get } from 'svelte/store';
 
 const API_BASE_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -19,33 +23,39 @@ class ApiClient {
 
 	constructor(baseUrl: string = API_BASE_URL) {
 		this.baseUrl = baseUrl;
-		// Load token from localStorage if available
+		
+		// Subscribe to authStore - this is the ONLY way to get the token
 		if (typeof window !== 'undefined') {
-			this.accessToken = localStorage.getItem('access_token');
-			
-			// Signal to E2E tests that API client is ready
-			if (this.accessToken) {
-				document.body.setAttribute('data-api-client-ready', 'true');
-				console.log('✅ [ApiClient] Auth token loaded. API client is ready for authenticated requests.');
-			}
+			authStore.subscribe(state => {
+				this.accessToken = state.token;
+				console.log(`🔄 [ApiClient] Auth state updated: token=${this.accessToken ? 'SET' : 'NULL'}`);
+				
+				// Log for debugging (never log the actual token!)
+				if (this.accessToken) {
+					console.log(`   → Token prefix: ${this.accessToken.substring(0, 20)}...`);
+					console.log('✅ [ApiClient] Ready for authenticated requests');
+				} else {
+					console.log('ℹ️ [ApiClient] No auth token - unauthenticated mode');
+				}
+			});
 		}
 	}
 
+	/**
+	 * @deprecated Use authStore.login() instead
+	 * This method is kept for backward compatibility but will be removed
+	 */
 	setToken(token: string) {
-		this.accessToken = token;
-		if (typeof window !== 'undefined') {
-			localStorage.setItem('access_token', token);
-			// Signal that API client is now authenticated and ready
-			document.body.setAttribute('data-api-client-ready', 'true');
-			console.log('✅ [ApiClient] Token updated. API client is ready for authenticated requests.');
-		}
+		console.warn('⚠️ [ApiClient] setToken() is deprecated. Use authStore.login() instead.');
+		// Do nothing - the token should come through authStore
 	}
 
+	/**
+	 * @deprecated Use authStore.logout() instead
+	 */
 	clearToken() {
-		this.accessToken = null;
-		if (typeof window !== 'undefined') {
-			localStorage.removeItem('access_token');
-		}
+		console.warn('⚠️ [ApiClient] clearToken() is deprecated. Use authStore.logout() instead.');
+		// Do nothing - logout should go through authStore
 	}
 
 	private async request<T>(
@@ -57,14 +67,7 @@ class ApiClient {
 			...(options.headers as Record<string, string>)
 		};
 
-		// Always check localStorage for the latest token (handles programmatic token injection)
-		if (typeof window !== 'undefined') {
-			const currentToken = localStorage.getItem('access_token');
-			if (currentToken) {
-				this.accessToken = currentToken;
-			}
-		}
-
+		// Get token from internal state (updated by authStore subscription)
 		if (this.accessToken) {
 			headers['Authorization'] = `Bearer ${this.accessToken}`;
 		}
@@ -106,22 +109,22 @@ class ApiClient {
 
 	// Authentication
 	async login(username: string, password: string) {
-		const response = await this.request('/api/core/auth/login', {
+		const response = await this.request<{ access_token: string; user: any }>('/api/core/auth/login', {
 			method: 'POST',
 			body: JSON.stringify({ username, password })
 		});
 
-		if (response.success && response.data) {
-			this.setToken(response.data.access_token);
-			
+		// NOTE: The actual login state management happens in the UI layer
+		// The login page calls authStore.login() with the response data
+		// We just return the response here
+		
+		if (response.success && response.data?.user) {
 			// Set Sentry user context for better error tracking
-			if (response.data.user) {
-				Sentry.setUser({
-					id: response.data.user.id,
-					username: response.data.user.username,
-					email: response.data.user.email
-				});
-			}
+			Sentry.setUser({
+				id: response.data.user.id,
+				username: response.data.user.username,
+				email: response.data.user.email
+			});
 		}
 
 		return response;
@@ -135,9 +138,9 @@ class ApiClient {
 	}
 
 	logout() {
-		this.clearToken();
 		// Clear Sentry user context on logout
 		Sentry.setUser(null);
+		// NOTE: The actual logout happens through authStore.logout() in the UI
 	}
 
 	// System

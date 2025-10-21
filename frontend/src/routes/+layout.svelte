@@ -5,9 +5,15 @@
 	import CommandDeck from '$lib/components/layout/CommandDeck.svelte';
 	import MasterControlRack from '$lib/components/layout/MasterControlRack.svelte';
 	import { ThemeService } from '$lib/services/ThemeService';
+	import { authStore } from '$lib/stores/auth';
 
-	// Initialize theme on app startup
+	// Initialize app on startup
 	onMount(async () => {
+		// CRITICAL: Initialize authStore FIRST to establish single source of truth
+		// This must happen before any API calls or component interactions
+		authStore.init();
+		
+		// Then initialize other services
 		await ThemeService.init();
 	});
 </script>
