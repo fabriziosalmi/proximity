@@ -17,7 +17,12 @@
 		Wifi,
 		Search,
 		Filter,
-		ArrowUpDown
+		ArrowUpDown,
+		PackagePlus,
+		CalendarClock,
+		SortAsc,
+		Cpu,
+		MemoryStick
 	} from 'lucide-svelte';
 	import { myAppsStore, hasDeployingApps } from '$lib/stores/apps';
 	import { pageTitleStore } from '$lib/stores/pageTitle';
@@ -204,24 +209,27 @@
 						class="filter-chip"
 						class:filter-chip-active={selectedFilter === 'all'}
 						on:click={() => (selectedFilter = 'all')}
+						title="All Apps"
 					>
-						<span>ALL</span>
+						<Server class="h-4 w-4 text-cyan-400" />
 						<span class="chip-count">{totalApps}</span>
 					</button>
 					<button
 						class="filter-chip"
 						class:filter-chip-active={selectedFilter === 'running'}
 						on:click={() => (selectedFilter = 'running')}
+						title="Running Apps"
 					>
-						<span>RUNNING</span>
+						<PlayCircle class="h-4 w-4 text-green-500" />
 						<span class="chip-count">{runningApps}</span>
 					</button>
 					<button
 						class="filter-chip"
 						class:filter-chip-active={selectedFilter === 'stopped'}
 						on:click={() => (selectedFilter = 'stopped')}
+						title="Stopped Apps"
 					>
-						<span>STOPPED</span>
+						<StopCircle class="h-4 w-4 text-red-500" />
 						<span class="chip-count">{stoppedApps}</span>
 					</button>
 					{#if transitionalApps > 0}
@@ -260,16 +268,43 @@
 				<!-- Sort Label + Icon -->
 				<div class="sort-label">
 					<ArrowUpDown class="h-3.5 w-3.5" />
-					<span>SORT BY:</span>
 				</div>
 
-				<!-- Sort Dropdown -->
-				<select bind:value={sortBy} class="sort-select">
-					<option value="created">Newest First</option>
-					<option value="name">Name (A-Z)</option>
-					<option value="cpu">CPU Usage (High)</option>
-					<option value="memory">Memory Usage (High)</option>
-				</select>
+				<!-- Sort Buttons Grid (2x2) -->
+				<div class="sort-grid">
+					<button
+						class="sort-btn"
+						class:sort-btn-active={sortBy === 'created'}
+						on:click={() => (sortBy = 'created')}
+						title="Newest First"
+					>
+						<CalendarClock class="h-3.5 w-3.5" />
+					</button>
+					<button
+						class="sort-btn"
+						class:sort-btn-active={sortBy === 'name'}
+						on:click={() => (sortBy = 'name')}
+						title="Name (A-Z)"
+					>
+						<SortAsc class="h-3.5 w-3.5" />
+					</button>
+					<button
+						class="sort-btn"
+						class:sort-btn-active={sortBy === 'cpu'}
+						on:click={() => (sortBy = 'cpu')}
+						title="CPU Usage"
+					>
+						<Cpu class="h-3.5 w-3.5" />
+					</button>
+					<button
+						class="sort-btn"
+						class:sort-btn-active={sortBy === 'memory'}
+						on:click={() => (sortBy = 'memory')}
+						title="Memory Usage"
+					>
+						<MemoryStick class="h-3.5 w-3.5" />
+					</button>
+				</div>
 			</div>
 		</svelte:fragment>
 
@@ -297,11 +332,10 @@
 				<!-- Adopt Existing Button -->
 				<a
 					href="/adopt"
-					class="btn btn-outline btn-sm gap-2"
-					title="Import existing containers"
+					class="filter-chip"
+					title="Adopt Existing Containers"
 				>
-					<Server class="h-4 w-4" />
-					<span>Adopt Existing</span>
+					<PackagePlus class="h-4 w-4 text-purple-400" />
 				</a>
 
 				<!-- Refresh Button -->
@@ -704,7 +738,50 @@
 		background: rgba(0, 0, 0, 0.4);
 	}
 
-	/* Sort Dropdown */
+	/* Sort Grid - 2x2 Button Layout */
+	.sort-grid {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		grid-template-rows: repeat(2, 1fr);
+		gap: 0.2rem;
+		width: 2.5rem;
+		height: 2.5rem;
+		align-self: center;
+		margin-top: -0.125rem;
+	}
+
+	.sort-btn {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0.2rem;
+		border-radius: 0.2rem;
+		border: 1px solid rgba(75, 85, 99, 0.3);
+		background: rgba(0, 0, 0, 0.3);
+		color: var(--color-text-secondary);
+		cursor: pointer;
+		transition: all 0.2s ease;
+	}
+
+	.sort-btn:hover {
+		border-color: rgba(14, 165, 233, 0.5);
+		background: rgba(14, 165, 233, 0.1);
+		color: var(--color-accent);
+		transform: scale(1.08);
+	}
+
+	.sort-btn-active {
+		border-color: var(--color-accent);
+		background: rgba(14, 165, 233, 0.2);
+		color: var(--color-accent);
+		box-shadow: 0 0 6px rgba(14, 165, 233, 0.4);
+	}
+
+	.sort-btn:active {
+		transform: scale(0.92);
+	}
+
+	/* Sort Dropdown - DEPRECATED (kept for reference) */
 	.sort-select {
 		padding: 0.5rem 0.75rem;
 		font-size: 0.875rem;
