@@ -645,54 +645,76 @@ def clone_app_task(self, source_app_id: str, new_hostname: str, owner_id: int) -
 @shared_task(bind=True)
 def delete_app_task(self, app_id: str, force: bool = True) -> Dict[str, Any]:
     """
-    Delete an application (destroy LXC container and release resources).
+    Delete an application with differentiated deletion based on adoption status.
     
-    For ADOPTED containers: Only removes the Proximity management record, leaves the container intact.
-    For DEPLOYED containers: Destroys the container and cleans up all resources.
+    DOCTRINE POINT #1: ADOPTION-AWARE DELETION
+    
+    For ADOPTED containers (is_adopted=True):
+        - SOFT DELETE: Release Proximity-managed resources only
+        - Container remains untouched on Proxmox
+        - Only removes database record and frees ports
+        
+    For NATIVE/DEPLOYED containers (is_adopted=False):
+        - HARD DELETE: Full container destruction
+        - Stops container, deletes from Proxmox, releases resources
+        - Complete cleanup of all artifacts
 
     Args:
         app_id: Application ID
-        force: Force deletion even if running
+        force: Force deletion even if running (applies to native containers only)
 
     Returns:
-        Operation result
+        Operation result with adoption status
     """
     try:
         app = Application.objects.get(id=app_id)
         
-        # Check if this is an adopted container
+        # DOCTRINE CHECK: Determine deletion strategy based on adoption status
         is_adopted = app.config.get('adopted', False)
         
         if is_adopted:
-            logger.info(f"[{app.name}] 🔖 ADOPTED CONTAINER - Removing Proximity management only (container will remain on Proxmox)")
-            log_deployment(app_id, 'info', 'Removing adopted container from Proximity management (container preserved on Proxmox)', 'unadopt')
+            # ═══════════════════════════════════════════════════════════════
+            # SOFT DELETE PATH: Adopted Container
+            # ═══════════════════════════════════════════════════════════════
+            logger.info(f"[{app.name}] 🔖 ADOPTION-AWARE DELETE: Performing SOFT delete (adopted container)")
+            logger.info(f"[{app.name}] Strategy: Release Proximity resources, preserve container on Proxmox")
+            log_deployment(app_id, 'info', 'SOFT DELETE: Removing Proximity management (container preserved)', 'soft_delete_start')
             
             app.status = 'removing'
             app.save(update_fields=['status'])
             
             # Release ports allocated by Proximity
-            logger.info(f"[{app.name}] Releasing allocated ports...")
+            logger.info(f"[{app.name}] → Releasing Proximity-allocated ports (public={app.public_port}, internal={app.internal_port})...")
             port_manager = PortManagerService()
             port_manager.release_ports(app.public_port, app.internal_port)
+            logger.info(f"[{app.name}] ✓ Ports released successfully")
             
-            # Delete ONLY the Application record - leave container untouched
+            # Delete ONLY the Application record - container remains untouched
             app_name = app.name
             original_vmid = app.config.get('original_vmid', app.lxc_id)
+            original_node = app.node
             app.delete()
             
-            logger.info(f"[{app_name}] ✅ Adopted container un-managed successfully (VMID {original_vmid} preserved on Proxmox)")
-            log_deployment(app_id, 'info', f'Container {original_vmid} removed from Proximity, still running on Proxmox', 'unadopt_complete')
+            logger.info(f"[{app_name}] ✅ SOFT DELETE COMPLETE")
+            logger.info(f"[{app_name}] - Proximity management record removed")
+            logger.info(f"[{app_name}] - Container VMID {original_vmid} preserved on node '{original_node}'")
+            logger.info(f"[{app_name}] - Container continues running independently on Proxmox")
             
             return {
                 'success': True, 
                 'message': f'Adopted container {app_name} removed from Proximity (container preserved on Proxmox)',
+                'deletion_type': 'soft',
                 'adopted': True,
-                'vmid_preserved': original_vmid
+                'vmid_preserved': original_vmid,
+                'node': original_node
             }
         
-        # NORMAL DEPLOYED CONTAINER - Full deletion
-        logger.info(f"[{app.name}] 🗑️  DEPLOYED CONTAINER - Full deletion (destroying container)")
-        log_deployment(app_id, 'info', 'Deleting deployed application and container...', 'delete')
+        # ═══════════════════════════════════════════════════════════════
+        # HARD DELETE PATH: Native/Deployed Container
+        # ═══════════════════════════════════════════════════════════════
+        logger.info(f"[{app.name}] 🗑️  ADOPTION-AWARE DELETE: Performing HARD delete (native container)")
+        logger.info(f"[{app.name}] Strategy: Stop container → Delete container → Release resources")
+        log_deployment(app_id, 'info', 'HARD DELETE: Destroying container and cleaning up resources', 'hard_delete_start')
 
         app.status = 'removing'
         app.save(update_fields=['status'])
@@ -701,7 +723,7 @@ def delete_app_task(self, app_id: str, force: bool = True) -> Dict[str, Any]:
         proxmox_service = ProxmoxService(host_id=app.host_id)
 
         # STEP 1/4: Issue STOP command and wait for task completion
-        logger.info(f"[{app.name}] STEP 1/4: Issuing STOP command for LXC {app.lxc_id}...")
+        logger.info(f"[{app.name}] HARD DELETE - STEP 1/4: Issuing STOP command for LXC {app.lxc_id}...")
         try:
             stop_task = proxmox_service.stop_lxc(app.node, app.lxc_id, force=True)
             logger.info(f"[{app.name}] ✓ STOP command issued successfully, UPID: {stop_task}")
@@ -716,7 +738,7 @@ def delete_app_task(self, app_id: str, force: bool = True) -> Dict[str, Any]:
             logger.warning(f"[{app.name}] Stop command failed (may already be stopped): {stop_error}")
 
         # STEP 2/4: VERIFY container is STOPPED (quick check after task completion)
-        logger.info(f"[{app.name}] STEP 2/4: Verifying LXC {app.lxc_id} is STOPPED...")
+        logger.info(f"[{app.name}] HARD DELETE - STEP 2/4: Verifying LXC {app.lxc_id} is STOPPED...")
         max_wait_seconds = 30  # Reduced since task should already be done
         wait_interval = 3
         elapsed_time = 0
@@ -725,15 +747,15 @@ def delete_app_task(self, app_id: str, force: bool = True) -> Dict[str, Any]:
             try:
                 status_info = proxmox_service.get_lxc_status(app.node, app.lxc_id)
                 current_status = status_info.get('status', 'unknown')
-                logger.info(f"[{app.name}]   -> Current status: '{current_status}' (waiting for 'stopped')")
+                logger.info(f"[{app.name}]   → Current status: '{current_status}' (waiting for 'stopped')")
 
                 if current_status == 'stopped':
-                    logger.info(f"[{app.name}]   -> ✅ CONFIRMED: Container {app.lxc_id} is STOPPED")
+                    logger.info(f"[{app.name}]   ✓ CONFIRMED: Container {app.lxc_id} is STOPPED")
                     break
 
             except Exception as status_error:
                 # Container might already be deleted or unreachable - treat as stopped
-                logger.warning(f"[{app.name}]   -> Status check failed (container may be gone): {status_error}")
+                logger.warning(f"[{app.name}]   → Status check failed (container may be gone): {status_error}")
                 break
 
             time.sleep(wait_interval)
@@ -745,27 +767,39 @@ def delete_app_task(self, app_id: str, force: bool = True) -> Dict[str, Any]:
             raise ProxmoxError(error_msg)
 
         # STEP 3/4: Delete LXC container (now guaranteed to be stopped)
-        logger.info(f"[{app.name}] STEP 3/4: Deleting LXC {app.lxc_id}...")
+        logger.info(f"[{app.name}] HARD DELETE - STEP 3/4: Deleting LXC {app.lxc_id} from Proxmox...")
         proxmox_service.delete_lxc(app.node, app.lxc_id, force=force)
-        logger.info(f"[{app.name}] ✓ Container deleted successfully")
+        logger.info(f"[{app.name}] ✓ Container deleted successfully from Proxmox")
 
         # Wait for deletion to complete
         time.sleep(5)
 
         # STEP 4/4: Release resources and cleanup
-        logger.info(f"[{app.name}] STEP 4/4: Releasing ports and cleaning up...")
+        logger.info(f"[{app.name}] HARD DELETE - STEP 4/4: Releasing ports and cleaning up database...")
 
         # Release ports
         port_manager = PortManagerService()
         port_manager.release_ports(app.public_port, app.internal_port)
+        logger.info(f"[{app.name}] ✓ Ports released")
 
         # Delete application record
         app_name = app.name
+        app_lxc_id = app.lxc_id
         app.delete()
+        logger.info(f"[{app_name}] ✓ Database record removed")
 
-        logger.info(f"[{app_name}] ✅ Application deleted successfully (all 4 steps complete)")
+        logger.info(f"[{app_name}] ✅ HARD DELETE COMPLETE")
+        logger.info(f"[{app_name}] - Container VMID {app_lxc_id} destroyed on Proxmox")
+        logger.info(f"[{app_name}] - All resources released")
+        logger.info(f"[{app_name}] - All 4 steps completed successfully")
 
-        return {'success': True, 'message': f'Application {app_name} deleted', 'adopted': False}
+        return {
+            'success': True, 
+            'message': f'Application {app_name} completely deleted',
+            'deletion_type': 'hard',
+            'adopted': False,
+            'vmid_destroyed': app_lxc_id
+        }
 
     except Application.DoesNotExist:
         logger.warning(f"Application {app_id} not found for deletion")
