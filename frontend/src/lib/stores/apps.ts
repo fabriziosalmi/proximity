@@ -1,10 +1,14 @@
 /**
  * Svelte store for managing deployed applications state.
  * Provides real-time polling and state management for deployed apps.
+ * 
+ * AUTH-AWARE: This store waits for authStore to be initialized before
+ * making any API calls, preventing 401 errors from race conditions.
  */
 
-import { writable, derived } from 'svelte/store';
+import { writable, derived, get } from 'svelte/store';
 import { api } from '../api';
+import { authStore } from './auth';
 import { SoundService } from '../services/SoundService';
 import type { Writable } from 'svelte/store';
 
@@ -48,8 +52,15 @@ function createAppsStore() {
 
 	let pollingInterval: number | null = null;
 
-	// Fetch all deployed apps
+	// Fetch all deployed apps (AUTH-AWARE)
 	async function fetchApps() {
+		// 🔐 SAFETY CHECK: Verify authStore is initialized before making API call
+		const currentAuthState = get(authStore);
+		if (!currentAuthState.isInitialized) {
+			console.warn('⚠️ [myAppsStore] fetchApps() called before authStore initialized. Skipping to avoid 401.');
+			return; // Don't fetch if auth isn't ready
+		}
+		
 		// Capture previous state for comparison
 		let previousApps: DeployedApp[] = [];
 		update((state) => {
@@ -123,8 +134,15 @@ function createAppsStore() {
 		}
 	}
 
-	// Fetch a single app (useful for updating status)
+	// Fetch a single app (useful for updating status) - AUTH-AWARE
 	async function refreshApp(appId: string) {
+		// 🔐 SAFETY CHECK: Verify authStore is initialized
+		const currentAuthState = get(authStore);
+		if (!currentAuthState.isInitialized) {
+			console.warn('⚠️ [myAppsStore] refreshApp() called before authStore initialized. Skipping.');
+			return;
+		}
+		
 		const response = await api.getApp(appId);
 
 		if (response.success && response.data) {
@@ -154,17 +172,43 @@ function createAppsStore() {
 		}
 	}
 
-	// Start polling for real-time updates
+	// Start polling for real-time updates (AUTH-AWARE)
 	function startPolling(intervalMs: number = 5000) {
 		stopPolling(); // Clear any existing interval
 
-		// Initial fetch
-		fetchApps();
-
-		// Set up polling
-		pollingInterval = setInterval(() => {
+		// 🔐 CRITICAL: Wait for authStore to be initialized before fetching
+		const currentAuthState = get(authStore);
+		
+		if (!currentAuthState.isInitialized) {
+			console.log('📦 [myAppsStore] Waiting for authStore to initialize...');
+			
+			// Subscribe to authStore and wait for initialization
+			const unsubscribe = authStore.subscribe((authState) => {
+				if (authState.isInitialized) {
+					console.log('✅ [myAppsStore] authStore is ready! Starting polling...');
+					unsubscribe(); // Stop listening once we're ready
+					
+					// Now we can safely fetch
+					fetchApps();
+					
+					// Set up polling interval
+					pollingInterval = setInterval(() => {
+						fetchApps();
+					}, intervalMs) as unknown as number;
+				}
+			});
+		} else {
+			// authStore is already initialized, proceed immediately
+			console.log('✅ [myAppsStore] authStore was already ready. Starting polling immediately...');
+			
+			// Initial fetch
 			fetchApps();
-		}, intervalMs) as unknown as number;
+
+			// Set up polling
+			pollingInterval = setInterval(() => {
+				fetchApps();
+			}, intervalMs) as unknown as number;
+		}
 	}
 
 	// Stop polling

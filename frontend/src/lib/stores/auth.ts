@@ -24,6 +24,7 @@ interface AuthState {
 	user: User | null;
 	token: string | null;
 	isAuthenticated: boolean;
+	isInitialized: boolean; // NEW: Signals when init() has completed
 }
 
 function createAuthStore() {
@@ -31,7 +32,8 @@ function createAuthStore() {
 	const initialState: AuthState = {
 		user: null,
 		token: null,
-		isAuthenticated: false
+		isAuthenticated: false,
+		isInitialized: false // Store is not ready until init() completes
 	};
 
 	const { subscribe, set, update } = writable<AuthState>(initialState);
@@ -57,7 +59,8 @@ function createAuthStore() {
 					const newState = {
 						token: storedToken,
 						user,
-						isAuthenticated: true
+						isAuthenticated: true,
+						isInitialized: true // CRITICAL: Signal that initialization is complete
 					};
 					set(newState);
 					console.log('✅ [AuthStore] Initialized with existing session:', { 
@@ -75,9 +78,13 @@ function createAuthStore() {
 					// Invalid stored data, clear it
 					localStorage.removeItem('access_token');
 					localStorage.removeItem('user');
+					// Still mark as initialized even if session is invalid
+					update(state => ({ ...state, isInitialized: true }));
 				}
 			} else {
 				console.log('ℹ️ [AuthStore] No existing session found');
+				// Mark as initialized even without a session
+				update(state => ({ ...state, isInitialized: true }));
 			}
 		},
 		
@@ -94,7 +101,8 @@ function createAuthStore() {
 			const newState = {
 				user,
 				token,
-				isAuthenticated: true
+				isAuthenticated: true,
+				isInitialized: true // Login also marks the store as initialized
 			};
 			
 			// Sync to localStorage
@@ -112,7 +120,7 @@ function createAuthStore() {
 		},
 		
 		/**
-		 * Logout: Clear everything
+		 * Logout: Clear everything (but keep isInitialized = true)
 		 */
 		logout: () => {
 			console.log('🔐 [AuthStore] Logging out...');
@@ -124,11 +132,12 @@ function createAuthStore() {
 				document.body.removeAttribute('data-api-client-ready');
 			}
 			
-			// Clear store
+			// Clear store but keep isInitialized = true (store is still ready to use)
 			set({
 				user: null,
 				token: null,
-				isAuthenticated: false
+				isAuthenticated: false,
+				isInitialized: true // Store remains initialized after logout
 			});
 			
 			console.log('✅ [AuthStore] Logout complete');
