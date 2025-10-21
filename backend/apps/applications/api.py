@@ -296,139 +296,6 @@ def create_application(request, payload: ApplicationCreate):
     }
 
 
-@router.get("/{app_id}", response=ApplicationResponse)
-def get_application(request, app_id: str):
-    """Get application details."""
-    app = get_object_or_404(Application, id=app_id)
-    
-    return {
-        "id": app.id,
-        "catalog_id": app.catalog_id,
-        "name": app.name,
-        "hostname": app.hostname,
-        "status": app.status,
-        "url": app.url,
-        "iframe_url": app.iframe_url,
-        "public_port": app.public_port,
-        "internal_port": app.internal_port,
-        "lxc_id": app.lxc_id,
-        "node": app.node,
-        "host_id": app.host_id,
-        "created_at": app.created_at.isoformat(),
-        "updated_at": app.updated_at.isoformat(),
-        "config": app.config,
-        "environment": app.environment,
-    }
-
-
-@router.post("/{app_id}/action")
-def app_action(request, app_id: str, payload: ApplicationAction):
-    """
-    Perform an action on an application.
-    
-    Actions: start, stop, restart, delete
-    """
-    app = get_object_or_404(Application, id=app_id)
-    
-    action = payload.action.lower()
-    
-    if action == 'start':
-        start_app_task.delay(app_id)
-        return {"success": True, "message": f"Starting {app.name}"}
-    
-    elif action == 'stop':
-        stop_app_task.delay(app_id)
-        return {"success": True, "message": f"Stopping {app.name}"}
-    
-    elif action == 'restart':
-        restart_app_task.delay(app_id)
-        return {"success": True, "message": f"Restarting {app.name}"}
-    
-    elif action == 'delete':
-        delete_app_task.delay(app_id)
-        return {"success": True, "message": f"Deleting {app.name}"}
-    
-    else:
-        return 400, {"error": f"Invalid action: {action}"}
-
-
-@router.post("/{app_id}/clone", response={202: dict})
-def clone_application(request, app_id: str, payload: ApplicationClone):
-    """
-    Clone an existing application.
-    
-    Creates a duplicate of the application with a new hostname.
-    Returns 202 Accepted immediately - the actual cloning happens in background.
-    
-    Args:
-        app_id: Source application ID to clone
-        payload: Contains new_hostname for the clone
-        
-    Returns:
-        202 Accepted with message and task information
-    """
-    import logging
-    logger = logging.getLogger(__name__)
-    
-    # Validate source application exists
-    source_app = get_object_or_404(Application, id=app_id)
-    
-    # Validate source app is in a stable state for cloning
-    if source_app.status not in ['running', 'stopped']:
-        raise HttpError(400, f"Cannot clone application in status '{source_app.status}'. Only running or stopped applications can be cloned.")
-    
-    # Validate new hostname is unique
-    if Application.objects.filter(hostname=payload.new_hostname).exists():
-        raise HttpError(400, f"Hostname '{payload.new_hostname}' already exists")
-    
-    # Get owner from request (use authenticated user or source app's owner)
-    owner_id = request.user.id if request.user.is_authenticated else source_app.owner_id
-    
-    logger.info(f"[CLONE API] Initiating clone of {source_app.name} (ID: {app_id}) to new hostname: {payload.new_hostname}")
-    
-    # Start clone task in background
-    clone_app_task.delay(
-        source_app_id=app_id,
-        new_hostname=payload.new_hostname,
-        owner_id=owner_id
-    )
-    
-    logger.info(f"[CLONE API] Clone task started successfully")
-    
-    # Return 202 Accepted - operation is async
-    return 202, {
-        "success": True,
-        "message": f"Cloning {source_app.name} to {payload.new_hostname}. This will take a few minutes.",
-        "source_app_id": app_id,
-        "new_hostname": payload.new_hostname
-    }
-
-
-@router.get("/{app_id}/logs", response=ApplicationLogsResponse)
-def get_application_logs(request, app_id: str, limit: int = 50):
-    """
-    Get deployment logs for an application.
-    
-    Query params:
-        limit: Maximum number of log entries (default: 50)
-    """
-    app = get_object_or_404(Application, id=app_id)
-    
-    logs = DeploymentLog.objects.filter(application=app).order_by('-timestamp')[:limit]
-    
-    return {
-        "app_id": app.id,
-        "logs": [{
-            "id": log.id,
-            "timestamp": log.timestamp.isoformat(),
-            "level": log.level,
-            "message": log.message,
-            "step": log.step,
-        } for log in logs],
-        "total": logs.count()
-    }
-
-
 @router.get("/discover", response=List[dict])
 def discover_unmanaged_containers(request, host_id: int = None):
     """
@@ -602,3 +469,136 @@ def adopt_existing_container(request, payload: dict):
     except Exception as e:
         logger.error(f"Unexpected error during adoption: {e}", exc_info=True)
         raise HttpError(500, f"Adoption failed: {str(e)}")
+
+
+@router.get("/{app_id}", response=ApplicationResponse)
+def get_application(request, app_id: str):
+    """Get application details."""
+    app = get_object_or_404(Application, id=app_id)
+    
+    return {
+        "id": app.id,
+        "catalog_id": app.catalog_id,
+        "name": app.name,
+        "hostname": app.hostname,
+        "status": app.status,
+        "url": app.url,
+        "iframe_url": app.iframe_url,
+        "public_port": app.public_port,
+        "internal_port": app.internal_port,
+        "lxc_id": app.lxc_id,
+        "node": app.node,
+        "host_id": app.host_id,
+        "created_at": app.created_at.isoformat(),
+        "updated_at": app.updated_at.isoformat(),
+        "config": app.config,
+        "environment": app.environment,
+    }
+
+
+@router.post("/{app_id}/action")
+def app_action(request, app_id: str, payload: ApplicationAction):
+    """
+    Perform an action on an application.
+    
+    Actions: start, stop, restart, delete
+    """
+    app = get_object_or_404(Application, id=app_id)
+    
+    action = payload.action.lower()
+    
+    if action == 'start':
+        start_app_task.delay(app_id)
+        return {"success": True, "message": f"Starting {app.name}"}
+    
+    elif action == 'stop':
+        stop_app_task.delay(app_id)
+        return {"success": True, "message": f"Stopping {app.name}"}
+    
+    elif action == 'restart':
+        restart_app_task.delay(app_id)
+        return {"success": True, "message": f"Restarting {app.name}"}
+    
+    elif action == 'delete':
+        delete_app_task.delay(app_id)
+        return {"success": True, "message": f"Deleting {app.name}"}
+    
+    else:
+        return 400, {"error": f"Invalid action: {action}"}
+
+
+@router.post("/{app_id}/clone", response={202: dict})
+def clone_application(request, app_id: str, payload: ApplicationClone):
+    """
+    Clone an existing application.
+    
+    Creates a duplicate of the application with a new hostname.
+    Returns 202 Accepted immediately - the actual cloning happens in background.
+    
+    Args:
+        app_id: Source application ID to clone
+        payload: Contains new_hostname for the clone
+        
+    Returns:
+        202 Accepted with message and task information
+    """
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    # Validate source application exists
+    source_app = get_object_or_404(Application, id=app_id)
+    
+    # Validate source app is in a stable state for cloning
+    if source_app.status not in ['running', 'stopped']:
+        raise HttpError(400, f"Cannot clone application in status '{source_app.status}'. Only running or stopped applications can be cloned.")
+    
+    # Validate new hostname is unique
+    if Application.objects.filter(hostname=payload.new_hostname).exists():
+        raise HttpError(400, f"Hostname '{payload.new_hostname}' already exists")
+    
+    # Get owner from request (use authenticated user or source app's owner)
+    owner_id = request.user.id if request.user.is_authenticated else source_app.owner_id
+    
+    logger.info(f"[CLONE API] Initiating clone of {source_app.name} (ID: {app_id}) to new hostname: {payload.new_hostname}")
+    
+    # Start clone task in background
+    clone_app_task.delay(
+        source_app_id=app_id,
+        new_hostname=payload.new_hostname,
+        owner_id=owner_id
+    )
+    
+    logger.info(f"[CLONE API] Clone task started successfully")
+    
+    # Return 202 Accepted - operation is async
+    return 202, {
+        "success": True,
+        "message": f"Cloning {source_app.name} to {payload.new_hostname}. This will take a few minutes.",
+        "source_app_id": app_id,
+        "new_hostname": payload.new_hostname
+    }
+
+
+@router.get("/{app_id}/logs", response=ApplicationLogsResponse)
+def get_application_logs(request, app_id: str, limit: int = 50):
+    """
+    Get deployment logs for an application.
+    
+    Query params:
+        limit: Maximum number of log entries (default: 50)
+    """
+    app = get_object_or_404(Application, id=app_id)
+    
+    logs = DeploymentLog.objects.filter(application=app).order_by('-timestamp')[:limit]
+    
+    return {
+        "app_id": app.id,
+        "logs": [{
+            "id": log.id,
+            "timestamp": log.timestamp.isoformat(),
+            "level": log.level,
+            "message": log.message,
+            "step": log.step,
+        } for log in logs],
+        "total": logs.count()
+    }
