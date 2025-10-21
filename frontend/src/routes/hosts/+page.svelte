@@ -14,9 +14,15 @@
 
 	interface ProxmoxNode {
 		id: number;
-		host_name: string;
 		name: string;
-		status: string;
+		host: string;
+		port?: number;
+		user?: string;
+		is_active?: boolean;
+		is_default?: boolean;
+		last_seen?: string | null;
+		// Optional node stats (might not be available)
+		status?: string;
 		cpu_count?: number;
 		cpu_usage?: number;
 		memory_total?: number;
@@ -24,7 +30,6 @@
 		storage_total?: number;
 		storage_used?: number;
 		uptime?: number;
-		ip_address?: string;
 		pve_version?: string;
 	}
 
@@ -40,13 +45,13 @@
 		error = '';
 
 		try {
-			const response = await api.getProxmoxNodes();
+			const response = await api.listHosts();
 
 			if (response.success && response.data) {
 				nodes = Array.isArray(response.data) ? response.data : [];
 				lastUpdated = new Date();
 			} else {
-				error = response.error || 'Failed to load Proxmox nodes';
+				error = response.error || 'Failed to load Proxmox hosts';
 				toasts.error(error, 5000);
 			}
 		} catch (err) {

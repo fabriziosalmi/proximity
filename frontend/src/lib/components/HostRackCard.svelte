@@ -7,9 +7,15 @@
 
 	export let host: {
 		id: number;
-		host_name: string;
 		name: string;
-		status: string;
+		host: string;
+		port?: number;
+		user?: string;
+		is_active?: boolean;
+		is_default?: boolean;
+		last_seen?: string | null;
+		// Optional stats
+		status?: string;
 		cpu_count?: number;
 		cpu_usage?: number;
 		memory_total?: number;
@@ -17,7 +23,6 @@
 		storage_total?: number;
 		storage_used?: number;
 		uptime?: number;
-		ip_address?: string;
 		pve_version?: string;
 	};
 
@@ -29,18 +34,21 @@
 	}
 
 	// Determine LED color based on status
-	function getLEDColor(status: string): string {
+	function getLEDColor(status?: string, isActive?: boolean): string {
+		// Use is_active if status is not provided
+		const effectiveStatus = status || (isActive ? 'online' : 'offline');
 		const colors: Record<string, string> = {
 			online: 'var(--color-led-active)',
 			offline: 'var(--color-led-danger)',
 			unknown: 'var(--color-led-inactive)'
 		};
-		return colors[status] || 'var(--color-led-inactive)';
+		return colors[effectiveStatus] || 'var(--color-led-inactive)';
 	}
 
 	// Determine if LED should pulse
-	function shouldPulse(status: string): boolean {
-		return status === 'online';
+	function shouldPulse(status?: string, isActive?: boolean): boolean {
+		const effectiveStatus = status || (isActive ? 'online' : 'offline');
+		return effectiveStatus === 'online';
 	}
 
 	// Format uptime in human-readable format
@@ -73,18 +81,19 @@
 		return `${Math.round(value)}%`;
 	}
 
-	$: ledColor = getLEDColor(host.status);
-	$: ledPulse = shouldPulse(host.status);
+	$: ledColor = getLEDColor(host.status, host.is_active);
+	$: ledPulse = shouldPulse(host.status, host.is_active);
 	$: cpuPercent = host.cpu_usage || 0;
 	$: memoryPercent = calculatePercent(host.memory_used, host.memory_total);
 	$: diskPercent = calculatePercent(host.storage_used, host.storage_total);
+	$: effectiveStatus = host.status || (host.is_active ? 'online' : 'offline');
 </script>
 
 <div
 	data-testid="host-rack-card-{host.id}"
 	data-host-id={host.id}
 	data-node-name={host.name}
-	data-status={host.status}
+	data-status={effectiveStatus}
 	class="card-container"
 	class:is-flipped={isFlipped}
 >
@@ -115,19 +124,17 @@
 						</div>
 					</div>
 
-					<!-- Center Section: Host Info -->
-					<div class="unit-center">
-						<div class="app-name" data-testid="host-name">{host.name}</div>
-						<div class="app-hostname" data-testid="host-hostname">{host.host_name}</div>
-						{#if host.ip_address}
-							<div class="app-meta">
-								<span class="meta-label">IP:</span>
-								<span class="meta-value">{host.ip_address}</span>
-							</div>
-						{/if}
-					</div>
-
-					<!-- Center-Right Section: Resource Gauges -->
+				<!-- Center Section: Host Info -->
+				<div class="unit-center">
+					<div class="app-name" data-testid="host-name">{host.name}</div>
+					<div class="app-hostname" data-testid="host-hostname">{host.host}</div>
+					{#if host.port}
+						<div class="app-meta">
+							<span class="meta-label">Port:</span>
+							<span class="meta-value">{host.port}</span>
+						</div>
+					{/if}
+				</div>					<!-- Center-Right Section: Resource Gauges -->
 					<div class="unit-stats">
 						<!-- CPU Usage -->
 						<div class="stat-gauge">
@@ -181,27 +188,25 @@
 						</div>
 					</div>
 
-					<!-- Right Section: Status Badge and Actions -->
-					<div class="unit-right">
-						<!-- Status Badge -->
-						<div class="status-display" data-testid="host-status-badge" data-status={host.status}>
-							{#if host.status === 'online'}
-								<Activity class="h-4 w-4 text-green-400" />
-							{:else if host.status === 'offline'}
-								<div class="status-dot" style="background-color: var(--color-led-danger);"></div>
-							{/if}
-							<span class="status-text">{host.status}</span>
-						</div>
-
-						<!-- Uptime Display (for online hosts) -->
-						{#if host.status === 'online' && host.uptime}
-							<div class="uptime-display">
-								<span class="uptime-label">UP</span>
-								<span class="uptime-value">{formatUptime(host.uptime)}</span>
-							</div>
+				<!-- Right Section: Status Badge and Actions -->
+				<div class="unit-right">
+					<!-- Status Badge -->
+					<div class="status-display" data-testid="host-status-badge" data-status={effectiveStatus}>
+						{#if effectiveStatus === 'online'}
+							<Activity class="h-4 w-4 text-green-400" />
+						{:else if effectiveStatus === 'offline'}
+							<div class="status-dot" style="background-color: var(--color-led-danger);"></div>
 						{/if}
+						<span class="status-text">{effectiveStatus}</span>
+					</div>
 
-						<!-- Flip Button -->
+					<!-- Uptime Display (for online hosts) -->
+					{#if effectiveStatus === 'online' && host.uptime}
+						<div class="uptime-display">
+							<span class="uptime-label">UP</span>
+							<span class="uptime-value">{formatUptime(host.uptime)}</span>
+						</div>
+					{/if}						<!-- Flip Button -->
 						<button
 							class="flip-button"
 							on:click={toggleFlip}
@@ -257,19 +262,19 @@
 						<div class="tech-item">
 							<span class="tech-label">Node Name:</span>
 							<span class="tech-value">{host.name}</span>
-						</div>
-						{#if host.ip_address}
-							<div class="tech-item">
-								<span class="tech-label">IP Address:</span>
-								<span class="tech-value">{host.ip_address}</span>
-							</div>
-						{/if}
+					</div>
+					{#if host.host}
 						<div class="tech-item">
-							<span class="tech-label">Status:</span>
-							<span class="tech-value" class:text-green-400={host.status === 'online'} class:text-red-400={host.status === 'offline'}>
-								{host.status.toUpperCase()}
-							</span>
+							<span class="tech-label">Host:</span>
+							<span class="tech-value">{host.host}</span>
 						</div>
+					{/if}
+					<div class="tech-item">
+						<span class="tech-label">Status:</span>
+						<span class="tech-value" class:text-green-400={effectiveStatus === 'online'} class:text-red-400={effectiveStatus === 'offline'}>
+							{effectiveStatus.toUpperCase()}
+						</span>
+					</div>
 						{#if host.pve_version}
 							<div class="tech-item">
 								<span class="tech-label">PVE Version:</span>

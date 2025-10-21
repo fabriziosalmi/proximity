@@ -1,7 +1,6 @@
-<!-- The Living Diagram PoC - Interactive Infrastructure Schematic (Svelvet Version) -->
+<!-- The Living Diagram PoC - Interactive Infrastructure Schematic (Simplified Version) -->
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { Svelvet, Node, Edge } from 'svelvet';
 	import { pageTitleStore } from '$lib/stores/pageTitle';
 
 	// Set page title
@@ -10,88 +9,123 @@
 	});
 
 	// Define nodes for the diagram
-	let nodes = [
+	interface DiagramNode {
+		id: string;
+		x: number;
+		y: number;
+		label: string;
+		icon: string;
+		type: 'internet' | 'infrastructure' | 'application';
+	}
+
+	interface DiagramEdge {
+		from: string;
+		to: string;
+	}
+
+	let nodes: DiagramNode[] = [
 		{
 			id: 'internet',
-			xPos: 350,
-			yPos: 50,
+			x: 50,
+			y: 10,
 			label: 'Internet',
 			icon: '☁️',
 			type: 'internet'
 		},
 		{
 			id: 'proxmox-opti2',
-			xPos: 300,
-			yPos: 200,
-			label: 'Proxmox Host\n(opti2)',
+			x: 50,
+			y: 35,
+			label: 'Proxmox Host (opti2)',
 			icon: '🖥️',
 			type: 'infrastructure'
 		},
 		{
 			id: 'app-adminer-clone',
-			xPos: 100,
-			yPos: 400,
+			x: 25,
+			y: 70,
 			label: 'adminer-clone',
 			icon: '📋',
 			type: 'application'
 		},
 		{
 			id: 'app-adminer-source',
-			xPos: 500,
-			yPos: 400,
+			x: 75,
+			y: 70,
 			label: 'adminer-source',
 			icon: '📋',
 			type: 'application'
 		}
 	];
 
-	// Define connections between nodes
-	let edges = [
-		{
-			id: 'internet-to-proxmox',
-			from: 'internet',
-			to: 'proxmox-opti2'
-		},
-		{
-			id: 'proxmox-to-adminer-clone',
-			from: 'proxmox-opti2',
-			to: 'app-adminer-clone'
-		},
-		{
-			id: 'proxmox-to-adminer-source',
-			from: 'proxmox-opti2',
-			to: 'app-adminer-source'
-		}
+	let edges: DiagramEdge[] = [
+		{ from: 'internet', to: 'proxmox-opti2' },
+		{ from: 'proxmox-opti2', to: 'app-adminer-clone' },
+		{ from: 'proxmox-opti2', to: 'app-adminer-source' }
 	];
+
+	let selectedNode: string | null = null;
+	let isDragging = false;
+	let dragNodeId: string | null = null;
+	let dragOffsetX = 0;
+	let dragOffsetY = 0;
 
 	// Log initialization
 	onMount(() => {
-		console.log('🎯 Living Diagram PoC initialized');
+		console.log('🎯 Living Diagram PoC initialized (Simplified SVG version)');
 		console.log('📊 Diagram contains:', nodes.length, 'nodes and', edges.length, 'connections');
-		console.log('Click on nodes to test interactivity');
+		console.log('Click and drag nodes to reposition them');
 	});
 
 	// Handle node click
 	function handleNodeClick(nodeId: string) {
+		selectedNode = nodeId;
 		const node = nodes.find(n => n.id === nodeId);
 		if (node) {
 			console.log(`✅ Node clicked: ${node.label}`);
-			console.log('Node data:', {
-				id: node.id,
-				label: node.label,
-				icon: node.icon,
-				type: node.type
-			});
+			console.log('Node data:', node);
 			console.log('---');
 		}
 	}
 
-	// Handle keyboard events for accessibility
-	function handleKeydown(event: KeyboardEvent, nodeId: string) {
-		if (event.key === 'Enter' || event.key === ' ') {
-			event.preventDefault();
-			handleNodeClick(nodeId);
-		}
+	// Drag handlers
+	function handleMouseDown(event: MouseEvent, nodeId: string) {
+		const node = nodes.find(n => n.id === nodeId);
+		if (!node) return;
+
+		isDragging = true;
+		dragNodeId = nodeId;
+		
+		const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+		dragOffsetX = event.clientX - rect.left - rect.width / 2;
+		dragOffsetY = event.clientY - rect.top - rect.height / 2;
+	}
+
+	function handleMouseMove(event: MouseEvent) {
+		if (!isDragging || !dragNodeId) return;
+
+		const container = document.querySelector('.svg-container') as HTMLElement;
+		if (!container) return;
+
+		const rect = container.getBoundingClientRect();
+		const x = ((event.clientX - rect.left - dragOffsetX) / rect.width) * 100;
+		const y = ((event.clientY - rect.top - dragOffsetY) / rect.height) * 100;
+
+		nodes = nodes.map(n => 
+			n.id === dragNodeId 
+				? { ...n, x: Math.max(0, Math.min(100, x)), y: Math.max(0, Math.min(100, y)) }
+				: n
+		);
+	}
+
+	function handleMouseUp() {
+		isDragging = false;
+		dragNodeId = null;
+	}
+
+	// Get node position
+	function getNode(id: string) {
+		return nodes.find(n => n.id === id);
 	}
 </script>
 
@@ -99,36 +133,47 @@
 	<title>Living Diagram PoC - Proximity</title>
 </svelte:head>
 
-<div class="diagram-container">
-	<!-- Svelvet Diagram -->
-	<div class="svelvet-wrapper">
-		<Svelvet bind:nodes bind:edges>
-			{#each nodes as nodeData (nodeData.id)}
-				<Node
-					id={nodeData.id}
-					xPos={nodeData.xPos}
-					yPos={nodeData.yPos}
-				>
-					<div
-						class="diagram-node"
-						class:internet={nodeData.type === 'internet'}
-						class:infrastructure={nodeData.type === 'infrastructure'}
-						class:application={nodeData.type === 'application'}
-						on:click={() => handleNodeClick(nodeData.id)}
-						on:keydown={(e) => handleKeydown(e, nodeData.id)}
-						role="button"
-						tabindex="0"
-					>
-						<div class="node-icon">{nodeData.icon}</div>
-						<div class="node-label">{nodeData.label}</div>
-					</div>
-				</Node>
-			{/each}
+<svelte:window on:mousemove={handleMouseMove} on:mouseup={handleMouseUp} />
 
-			{#each edges as edgeData (edgeData.id)}
-				<Edge id={edgeData.id} from={edgeData.from} to={edgeData.to} />
+<div class="diagram-container">
+	<!-- SVG Diagram -->
+	<div class="svg-container">
+		<svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+			<!-- Draw edges first (behind nodes) -->
+			{#each edges as edge}
+				{@const fromNode = getNode(edge.from)}
+				{@const toNode = getNode(edge.to)}
+				{#if fromNode && toNode}
+					<line
+						x1={fromNode.x}
+						y1={fromNode.y}
+						x2={toNode.x}
+						y2={toNode.y}
+						class="edge"
+					/>
+				{/if}
 			{/each}
-		</Svelvet>
+		</svg>
+
+		<!-- Nodes overlay (HTML for better styling) -->
+		{#each nodes as node (node.id)}
+			<div
+				class="diagram-node"
+				class:internet={node.type === 'internet'}
+				class:infrastructure={node.type === 'infrastructure'}
+				class:application={node.type === 'application'}
+				class:selected={selectedNode === node.id}
+				class:dragging={isDragging && dragNodeId === node.id}
+				style="left: {node.x}%; top: {node.y}%;"
+				on:click={() => handleNodeClick(node.id)}
+				on:mousedown={(e) => handleMouseDown(e, node.id)}
+				role="button"
+				tabindex="0"
+			>
+				<div class="node-icon">{node.icon}</div>
+				<div class="node-label">{node.label}</div>
+			</div>
+		{/each}
 	</div>
 
 	<!-- Info Overlay -->
@@ -180,31 +225,31 @@
 		overflow: hidden;
 	}
 
-	.svelvet-wrapper {
+	.svg-container {
+		position: relative;
 		width: 100%;
 		height: 100%;
 	}
 
-	:global(.svelvet-container) {
-		width: 100% !important;
-		height: 100% !important;
-		background: linear-gradient(135deg, #0f172a 0%, #1a1f35 100%) !important;
+	svg {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		z-index: 1;
 	}
 
-	:global(.svelvet-canvas) {
-		background-color: transparent !important;
-	}
-
-	:global(.svelvet-edge) {
+	.edge {
 		stroke: #4b5563;
-		stroke-width: 2;
-	}
-
-	:global(.svelvet-edge.selected) {
-		stroke: #3b82f6;
+		stroke-width: 0.5;
+		fill: none;
+		pointer-events: none;
 	}
 
 	.diagram-node {
+		position: absolute;
+		transform: translate(-50%, -50%);
 		display: flex;
 		flex-direction: column;
 		align-items: center;
@@ -214,22 +259,29 @@
 		border-radius: 0.5rem;
 		border: 2px solid #4b5563;
 		background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
-		cursor: pointer;
+		cursor: move;
 		transition: all 200ms ease;
 		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 		min-width: 120px;
 		text-align: center;
 		user-select: none;
+		z-index: 10;
+	}
+
+	.diagram-node.dragging {
+		cursor: grabbing;
+		box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+		transform: translate(-50%, -50%) scale(1.05);
+	}
+
+	.diagram-node.selected {
+		border-width: 3px;
+		box-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
 	}
 
 	.diagram-node:hover {
 		border-color: #3b82f6;
 		box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
-		transform: translateY(-2px);
-	}
-
-	.diagram-node:active {
-		transform: translateY(0);
 	}
 
 	/* Type-specific styling */
