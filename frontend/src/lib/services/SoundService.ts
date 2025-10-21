@@ -45,16 +45,21 @@ class SoundServiceClass {
 				audio.volume = this.config.volume;
 				audio.preload = 'auto';
 
-				// Handle loading errors gracefully
+				// Handle loading errors gracefully - suppress console warnings
 				audio.addEventListener('error', () => {
-					console.warn(`[SoundService] Failed to load sound: ${soundType}`);
+					// Silently fail - sounds are optional UI enhancement
+					// Remove the sound from the map so we don't try to play it
+					this.sounds.delete(soundType as SoundType);
 				});
 
 				this.sounds.set(soundType as SoundType, audio);
 			});
 
 			this.initialized = true;
-			console.log('[SoundService] Initialized with sounds:', Array.from(this.sounds.keys()));
+			// Only log if we successfully loaded at least one sound
+			if (this.sounds.size > 0) {
+				console.log('[SoundService] Initialized with', this.sounds.size, 'sound(s)');
+			}
 		} catch (error) {
 			console.error('[SoundService] Initialization error:', error);
 		}
@@ -69,7 +74,7 @@ class SoundServiceClass {
 
 		const sound = this.sounds.get(soundType);
 		if (!sound) {
-			console.warn(`[SoundService] Sound not found: ${soundType}`);
+			// Silently skip if sound file doesn't exist
 			return;
 		}
 
@@ -81,12 +86,12 @@ class SoundServiceClass {
 			// Play the sound (catch promise rejection for browsers that block autoplay)
 			const playPromise = sound.play();
 			if (playPromise !== undefined) {
-				playPromise.catch((error) => {
-					console.debug(`[SoundService] Playback prevented: ${error.message}`);
+				playPromise.catch(() => {
+					// Silently fail - autoplay blocked or other playback issue
 				});
 			}
 		} catch (error) {
-			console.warn(`[SoundService] Error playing sound: ${soundType}`, error);
+			// Silently fail - sounds are optional
 		}
 	}
 

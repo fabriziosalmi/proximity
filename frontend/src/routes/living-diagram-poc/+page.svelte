@@ -1,7 +1,7 @@
 <!-- The Living Diagram PoC - Interactive Infrastructure Schematic (Svelvet Version) -->
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import Svelvet, { Node, Edge } from 'svelvet';
+	import { Svelvet, Node, Edge } from 'svelvet';
 	import { pageTitleStore } from '$lib/stores/pageTitle';
 
 	// Set page title
