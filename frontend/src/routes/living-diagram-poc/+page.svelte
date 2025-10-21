@@ -1,10 +1,8 @@
 <!-- The Living Diagram PoC - Interactive Infrastructure Schematic (Svelvet Version) -->
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { Svelvet, Node, Edge } from 'svelvet';
-	import 'svelvet/styles.css';
+	import Svelvet, { Node, Edge } from 'svelvet';
 	import { pageTitleStore } from '$lib/stores/pageTitle';
-	import CustomNode from '$lib/components/LivingDiagram/CustomNode.svelte';
 
 	// Set page title
 	onMount(() => {
@@ -95,33 +93,34 @@
 
 <div class="diagram-container">
 	<!-- Svelvet Diagram -->
-	<Svelvet
-		{nodes}
-		{edges}
-		let:node
-		on:nodeClicked={(e) => handleNodeClick(e.detail.node.id)}
-	>
-		{#each nodes as nodeData (nodeData.id)}
-			<Node id={nodeData.id} xPos={nodeData.xPos} yPos={nodeData.yPos} let:dragging>
-				<div
-					class="diagram-node"
-					class:internet={nodeData.type === 'internet'}
-					class:infrastructure={nodeData.type === 'infrastructure'}
-					class:application={nodeData.type === 'application'}
-					on:click={() => handleNodeClick(nodeData.id)}
-					role="button"
-					tabindex="0"
+	<div class="svelvet-wrapper">
+		<Svelvet bind:nodes bind:edges>
+			{#each nodes as nodeData (nodeData.id)}
+				<Node
+					id={nodeData.id}
+					xPos={nodeData.xPos}
+					yPos={nodeData.yPos}
 				>
-					<div class="node-icon">{nodeData.icon}</div>
-					<div class="node-label">{nodeData.label}</div>
-				</div>
-			</Node>
-		{/each}
+					<div
+						class="diagram-node"
+						class:internet={nodeData.type === 'internet'}
+						class:infrastructure={nodeData.type === 'infrastructure'}
+						class:application={nodeData.type === 'application'}
+						on:click={() => handleNodeClick(nodeData.id)}
+						role="button"
+						tabindex="0"
+					>
+						<div class="node-icon">{nodeData.icon}</div>
+						<div class="node-label">{nodeData.label}</div>
+					</div>
+				</Node>
+			{/each}
 
-		{#each edges as edgeData (edgeData.id)}
-			<Edge from={edgeData.from} to={edgeData.to} />
-		{/each}
-	</Svelvet>
+			{#each edges as edgeData (edgeData.id)}
+				<Edge id={edgeData.id} from={edgeData.from} to={edgeData.to} />
+			{/each}
+		</Svelvet>
+	</div>
 
 	<!-- Info Overlay -->
 	<div class="info-overlay">
@@ -172,14 +171,24 @@
 		overflow: hidden;
 	}
 
-	:global(.svelvet-container) {
+	.svelvet-wrapper {
 		width: 100%;
 		height: 100%;
+	}
+
+	:global(.svelvet-wrapper {
+		width: 100%;
+		height: 100%;
+	})
+
+	:global(.svelvet-container) {
+		width: 100% !important;
+		height: 100% !important;
 		background: linear-gradient(135deg, #0f172a 0%, #1a1f35 100%);
 	}
 
 	:global(.svelvet-panzoom) {
-		background-color: transparent;
+		background-color: transparent !important;
 	}
 
 	:global(.svelvet-edge) {
