@@ -48,6 +48,14 @@ class ApiClient {
 			...options.headers
 		};
 
+		// Always check localStorage for the latest token (handles programmatic token injection)
+		if (typeof window !== 'undefined') {
+			const currentToken = localStorage.getItem('access_token');
+			if (currentToken) {
+				this.accessToken = currentToken;
+			}
+		}
+
 		if (this.accessToken) {
 			headers['Authorization'] = `Bearer ${this.accessToken}`;
 		}

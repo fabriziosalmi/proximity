@@ -329,13 +329,13 @@ def test_clone_application_workflow(
     print(f"  ✓ Catalog loaded: {app_count} application(s) available")
     
     # Get first available app name
-    # Find the first app card and extract its title
-    first_card = page.locator('[data-testid^="app-card-"]').first
+    # Find the first catalog card and extract its title
+    first_card = page.locator('[data-testid^="catalog-card-"]').first
     expect(first_card).to_be_visible(timeout=5000)
     
     # Get the app name from the card
-    app_title_locator = first_card.locator('.app-title, h3, h4').first
-    app_name = app_title_locator.inner_text().strip()
+    app_name_locator = first_card.locator('[data-testid="app-name"]').first
+    app_name = app_name_locator.inner_text().strip()
     
     print(f"  ✓ Found app in catalog: {app_name}")
 

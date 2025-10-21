@@ -19,11 +19,12 @@ from .schemas import (
 from .tasks import deploy_app_task, start_app_task, stop_app_task, restart_app_task, delete_app_task, clone_app_task, adopt_app_task
 from .port_manager import PortManagerService
 from apps.proxmox.models import ProxmoxHost, ProxmoxNode
+from apps.core.auth import JWTAuth
 
 router = Router()
 
 
-@router.get("/", response=ApplicationListResponse)
+@router.get("/", auth=JWTAuth(), response=ApplicationListResponse)
 def list_applications(
     request,
     page: int = 1,
@@ -33,6 +34,8 @@ def list_applications(
 ):
     """
     List all applications with optional filtering.
+    
+    Requires JWT authentication. Users see only their own apps (unless admin).
     
     Query params:
         page: Page number (default: 1)
@@ -133,11 +136,12 @@ def list_applications(
     }
 
 
-@router.post("/", response=ApplicationResponse)
+@router.post("/", auth=JWTAuth(), response=ApplicationResponse)
 def create_application(request, payload: ApplicationCreate):
     """
     Create and deploy a new application.
     
+    Requires JWT authentication. The app will be owned by the authenticated user.
     This triggers a Celery task for the actual deployment.
     """
     # DEBUG: Log received payload
