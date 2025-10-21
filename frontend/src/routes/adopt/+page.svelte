@@ -6,7 +6,7 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { api } from '$lib/api';
-	import { addToast } from '$lib/stores/toastStore';
+	import { addToast } from '$lib/stores/toast';
 	import Icon from '@iconify/svelte';
 
 	interface UnmanagedContainer {
@@ -217,7 +217,7 @@
 						class="btn btn-outline gap-2"
 						disabled={loading}
 					>
-						<Icon icon="mdi:refresh" class="w-5 h-5" class:animate-spin={loading} />
+						<Icon icon="mdi:refresh" class={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
 						Refresh
 					</button>
 				{/if}
