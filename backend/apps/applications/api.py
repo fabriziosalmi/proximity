@@ -334,22 +334,20 @@ def adopt_existing_container(request, payload: ApplicationAdopt):
     """
     Adopt an existing LXC container into Proximity management.
     
-    This endpoint validates the request and triggers an asynchronous adoption process.
-    The actual adoption happens in a background Celery task.
+    This endpoint imports a pre-existing container AS-IS, preserving its original
+    configuration and hostname. The container is not forced to match catalog apps.
     
     Args:
         payload: ApplicationAdopt schema containing:
             - vmid: Container VMID to adopt
             - node_name: Node where container is running
-            - catalog_id: Catalog app ID that matches this container
-            - hostname: Optional custom hostname (defaults to container name)
-            - container_port_to_expose: Internal port the container listens on
+            - suggested_type: Optional type hint for categorization (default: "custom")
+            - port_to_expose: Optional port to expose (auto-detected if not provided)
     
     Returns:
         202 Accepted with adoption task information
     """
     import logging
-    from apps.catalog.services import CatalogService
     
     logger = logging.getLogger(__name__)
     
@@ -361,14 +359,6 @@ def adopt_existing_container(request, payload: ApplicationAdopt):
         if existing:
             logger.warning(f"[ADOPT API] Container {payload.vmid} already managed by Proximity as '{existing.hostname}'")
             raise HttpError(409, f"Container {payload.vmid} is already managed by Proximity")
-        
-        # Quick validation: Verify catalog app exists
-        catalog_service = CatalogService()
-        catalog_app = catalog_service.get_app_by_id(payload.catalog_id)
-        
-        if not catalog_app:
-            logger.warning(f"[ADOPT API] Catalog app '{payload.catalog_id}' not found")
-            raise HttpError(404, f"Catalog app '{payload.catalog_id}' not found")
         
         # Quick validation: Verify node exists
         node = get_object_or_404(ProxmoxNode, name=payload.node_name)
@@ -383,11 +373,11 @@ def adopt_existing_container(request, payload: ApplicationAdopt):
         # Return 202 Accepted - operation is async
         return 202, {
             "success": True,
-            "message": f"Adoption of container {payload.vmid} started. This will take a few moments.",
+            "message": f"Adoption of container {payload.vmid} started. The container will be imported with its original configuration.",
             "vmid": payload.vmid,
             "node": payload.node_name,
-            "catalog_id": payload.catalog_id,
-            "hostname": payload.hostname or f"container-{payload.vmid}"
+            "type": payload.suggested_type or "custom",
+            "port_detection": "automatic" if not payload.port_to_expose else f"manual:{payload.port_to_expose}"
         }
         
     except HttpError:

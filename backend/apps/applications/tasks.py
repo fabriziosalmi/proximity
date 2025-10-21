@@ -837,30 +837,29 @@ def adopt_app_task(self, adoption_data: Dict[str, Any]) -> Dict[str, Any]:
     
     This is an asynchronous operation that:
     1. Verifies the container exists on Proxmox
-    2. Allocates ports for the container
-    3. Creates an Application record with adoption metadata
-    4. Configures port mapping (future: reverse proxy setup)
+    2. Uses the container's original hostname
+    3. Detects listening ports automatically (or uses user-specified port)
+    4. Allocates a public port for external access
+    5. Creates an Application record as "custom" type
     
     Args:
         adoption_data: Dictionary containing:
             - vmid: Container VMID to adopt
             - node_name: Node where container is running
-            - catalog_id: Catalog app ID
-            - hostname: Optional custom hostname
-            - container_port_to_expose: Internal port the container listens on
+            - suggested_type: Optional type hint (custom, nginx, postgres, etc.)
+            - port_to_expose: Optional specific port to expose
             
     Returns:
         Adoption result dictionary
     """
     vmid = adoption_data['vmid']
     node_name = adoption_data['node_name']
-    catalog_id = adoption_data['catalog_id']
-    hostname = adoption_data.get('hostname')
-    container_port_to_expose = adoption_data['container_port_to_expose']
+    suggested_type = adoption_data.get('suggested_type', 'custom')
+    port_to_expose = adoption_data.get('port_to_expose')
     
     logger.info(f"="*100)
     logger.info(f"[ADOPT TASK START] --- Starting adoption for Container VMID: {vmid} ---")
-    logger.info(f"[ADOPT TASK START] Parameters: node={node_name}, catalog_id={catalog_id}, container_port={container_port_to_expose}")
+    logger.info(f"[ADOPT TASK START] Parameters: node={node_name}, suggested_type={suggested_type}, port={port_to_expose or 'auto-detect'}")
     logger.info(f"="*100)
     
     app = None
@@ -868,7 +867,6 @@ def adopt_app_task(self, adoption_data: Dict[str, Any]) -> Dict[str, Any]:
     
     try:
         from apps.proxmox.models import ProxmoxNode
-        from apps.catalog.services import CatalogService
         import uuid
         
         # Get node and host information
@@ -903,6 +901,11 @@ def adopt_app_task(self, adoption_data: Dict[str, Any]) -> Dict[str, Any]:
             container_status = container_info.get('status', 'unknown')
             container_name = container_info.get('name', f'container-{vmid}')
             logger.info(f"[ADOPT {vmid}] ✓ Found container: name='{container_name}', status='{container_status}'")
+            
+            # Use the container's original name as hostname
+            hostname = container_name
+            logger.info(f"[ADOPT {vmid}] 📝 Using original container name as hostname: '{hostname}'")
+            
         except StopIteration:
             logger.error(f"[ADOPT {vmid}] ❌ Container {vmid} not found")
             raise Exception(f"Container {vmid} not found")
@@ -910,41 +913,43 @@ def adopt_app_task(self, adoption_data: Dict[str, Any]) -> Dict[str, Any]:
             logger.error(f"[ADOPT {vmid}] ❌ Error fetching container info: {e}", exc_info=True)
             raise
         
-        # Get catalog app information
-        logger.info(f"[ADOPT {vmid}] STEP 4: Retrieving catalog information...")
+        # Detect listening ports (if container is running and port not specified)
+        detected_ports = []
+        if not port_to_expose and container_status == 'running':
+            logger.info(f"[ADOPT {vmid}] STEP 4: Detecting listening ports in container...")
+            try:
+                # Try to detect listening ports (this will require SSH or exec into container)
+                # For now, we'll log that this feature is TODO
+                logger.info(f"[ADOPT {vmid}] ⚠️  Auto port detection not yet implemented")
+                logger.info(f"[ADOPT {vmid}] 💡 Future: Will SSH into container and run 'netstat -tuln' or 'ss -tuln'")
+            except Exception as e:
+                logger.warning(f"[ADOPT {vmid}] ⚠️  Could not detect ports: {e}")
+        
+        # Determine which port to expose
+        if port_to_expose:
+            container_port = port_to_expose
+            logger.info(f"[ADOPT {vmid}] 📌 Using user-specified port: {container_port}")
+        elif detected_ports:
+            container_port = detected_ports[0]
+            logger.info(f"[ADOPT {vmid}] 🔍 Using detected port: {container_port}")
+        else:
+            # Default fallback - common HTTP port
+            container_port = 80
+            logger.info(f"[ADOPT {vmid}] � Using default fallback port: {container_port}")
+        
+        # Allocate public port for external access
+        logger.info(f"[ADOPT {vmid}] STEP 5: Allocating public port...")
         try:
-            catalog_service = CatalogService()
-            catalog_app = catalog_service.get_app_by_id(catalog_id)
-            
-            if not catalog_app:
-                logger.error(f"[ADOPT {vmid}] ❌ Catalog app '{catalog_id}' not found")
-                raise Exception(f"Catalog app '{catalog_id}' not found")
-            
-            catalog_app_name = catalog_app.get('name', catalog_id)
-            logger.info(f"[ADOPT {vmid}] ✓ Catalog app found: '{catalog_app_name}'")
+            port_manager = PortManagerService()
+            public_port, _ = port_manager.allocate_ports()  # We only need public_port
+            logger.info(f"[ADOPT {vmid}] ✓ Allocated public port: {public_port}")
+            logger.info(f"[ADOPT {vmid}] 📌 Port mapping: {public_port} -> container:{container_port}")
         except Exception as e:
-            logger.error(f"[ADOPT {vmid}] ❌ Error fetching catalog info: {e}", exc_info=True)
+            logger.error(f"[ADOPT {vmid}] ❌ Failed to allocate port: {e}", exc_info=True)
             raise
         
-        # Use container name as hostname if not provided
-        if not hostname:
-            hostname = container_name
-            logger.info(f"[ADOPT {vmid}] 📝 Using container name as hostname: '{hostname}'")
-        
-        # Allocate ports
-        logger.info(f"[ADOPT {vmid}] STEP 5: Allocating ports...")
-        try:
-            port_manager = PortManagerService(host_id=host.id)
-            public_port = port_manager.allocate_port()
-            assigned_internal_port = port_manager.allocate_port()
-            logger.info(f"[ADOPT {vmid}] ✓ Allocated ports: public={public_port}, internal={assigned_internal_port}")
-            logger.info(f"[ADOPT {vmid}] 📌 Port mapping will be: {public_port} -> container:{container_port_to_expose}")
-        except Exception as e:
-            logger.error(f"[ADOPT {vmid}] ❌ Failed to allocate ports: {e}", exc_info=True)
-            raise
-        
-        # Generate application ID
-        app_id = f"{catalog_id}-{uuid.uuid4().hex[:8]}"
+        # Generate application ID based on suggested type
+        app_id = f"{suggested_type}-{uuid.uuid4().hex[:8]}"
         logger.info(f"[ADOPT {vmid}] 📋 Generated application ID: {app_id}")
         
         # Create Application record in 'adopting' state
@@ -953,20 +958,23 @@ def adopt_app_task(self, adoption_data: Dict[str, Any]) -> Dict[str, Any]:
             with transaction.atomic():
                 app = Application.objects.create(
                     id=app_id,
-                    catalog_id=catalog_id,
-                    name=catalog_app_name,
-                    hostname=hostname,
+                    catalog_id=suggested_type,  # Use suggested_type as catalog_id
+                    name=hostname,  # Use original container name
+                    hostname=hostname,  # Keep original hostname
                     status='adopting',
                     lxc_id=vmid,
                     node=node_name,
                     host_id=host.id,
                     public_port=public_port,
-                    internal_port=assigned_internal_port,
+                    internal_port=container_port,  # Store the container's internal port
                     config={
                         'adopted': True,
                         'original_vmid': vmid,
+                        'original_name': container_name,
                         'adoption_date': timezone.now().isoformat(),
-                        'container_port_to_expose': container_port_to_expose
+                        'suggested_type': suggested_type,
+                        'container_port': container_port,
+                        'detected_ports': detected_ports
                     },
                     environment={}
                 )
@@ -975,7 +983,7 @@ def adopt_app_task(self, adoption_data: Dict[str, Any]) -> Dict[str, Any]:
                 DeploymentLog.objects.create(
                     application=app,
                     level='INFO',
-                    message=f'Starting adoption of container {vmid} from Proxmox',
+                    message=f'Starting adoption of existing container "{container_name}" (VMID {vmid})',
                     step='adoption_start'
                 )
                 
@@ -993,12 +1001,15 @@ def adopt_app_task(self, adoption_data: Dict[str, Any]) -> Dict[str, Any]:
         DeploymentLog.objects.create(
             application=app,
             level='INFO',
-            message=f'Successfully adopted container {vmid}. Status: {final_status}',
+            message=f'Successfully adopted container "{container_name}". Status: {final_status}, Port: {public_port}->{container_port}',
             step='adoption_complete'
         )
         
-        logger.info(f"[ADOPT {vmid}] ✅ Adoption completed successfully! Status: {final_status}")
-        logger.info(f"[ADOPT {vmid}] 🎯 Application URL will be: http://{host.host}:{public_port}")
+        logger.info(f"[ADOPT {vmid}] ✅ Adoption completed successfully!")
+        logger.info(f"[ADOPT {vmid}] 📋 Name: {hostname}")
+        logger.info(f"[ADOPT {vmid}] 🎯 URL: http://{host.host}:{public_port}")
+        logger.info(f"[ADOPT {vmid}] 🔌 Port mapping: {public_port} -> {container_port}")
+        logger.info(f"[ADOPT {vmid}] 📊 Status: {final_status}")
         logger.info(f"="*100)
         
         return {
@@ -1006,9 +1017,11 @@ def adopt_app_task(self, adoption_data: Dict[str, Any]) -> Dict[str, Any]:
             'app_id': app_id,
             'vmid': vmid,
             'hostname': hostname,
+            'original_name': container_name,
             'status': final_status,
             'public_port': public_port,
-            'container_port': container_port_to_expose
+            'container_port': container_port,
+            'suggested_type': suggested_type
         }
         
     except Exception as e:

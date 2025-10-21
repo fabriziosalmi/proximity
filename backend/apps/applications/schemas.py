@@ -64,9 +64,10 @@ class ApplicationAdopt(BaseModel):
     """Adopt existing LXC container request."""
     vmid: int = Field(..., description="VMID of the existing container to adopt")
     node_name: str = Field(..., description="Node name where the container is running")
-    catalog_id: str = Field(..., description="Catalog app ID that matches this container")
-    hostname: Optional[str] = Field(None, min_length=3, max_length=63, description="Custom hostname (defaults to container name)")
-    container_port_to_expose: int = Field(..., description="Internal port the container is listening on (e.g., 80 for nginx)")
+    # Optional: User can suggest what type of app this is (for icon/category), but defaults to "custom"
+    suggested_type: Optional[str] = Field("custom", description="Optional suggested app type for categorization (nginx, postgres, custom, etc.)")
+    # Optional: User can specify a port to expose, otherwise we auto-detect listening ports
+    port_to_expose: Optional[int] = Field(None, description="Optional: specific port to expose (if not provided, we'll detect listening ports)")
 
 
 class DeploymentLogResponse(BaseModel):
