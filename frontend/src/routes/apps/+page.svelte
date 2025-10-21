@@ -38,16 +38,25 @@
 	let sortBy: 'name' | 'created' | 'cpu' | 'memory' = 'created';
 
 	onMount(() => {
+		console.log('🏁 [AppsPage] Component mounted - onMount() executing');
+		
 		// Set page title
 		pageTitleStore.setTitle('My Apps');
 
 		// Start polling for real-time updates
+		console.log('🚦 [AppsPage] Calling myAppsStore.startPolling(5000)');
 		myAppsStore.startPolling(5000);
+		
+		console.log('✅ [AppsPage] onMount() complete');
 	});
 
 	onDestroy(() => {
+		console.log('🛑 [AppsPage] Component unmounting - onDestroy() executing');
+		
 		// Stop polling when leaving the page
 		myAppsStore.stopPolling();
+		
+		console.log('✅ [AppsPage] onDestroy() complete');
 	});
 
 	async function handleAction(appId: string, appName: string, action: 'start' | 'stop' | 'restart' | 'delete') {

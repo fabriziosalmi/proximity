@@ -24,18 +24,31 @@ class ApiClient {
 	constructor(baseUrl: string = API_BASE_URL) {
 		this.baseUrl = baseUrl;
 		
+		console.log('🏗️ [ApiClient] Constructor called - setting up authStore subscription');
+		
 		// Subscribe to authStore - this is the ONLY way to get the token
 		if (typeof window !== 'undefined') {
 			authStore.subscribe(state => {
+				const previousToken = this.accessToken;
 				this.accessToken = state.token;
-				console.log(`🔄 [ApiClient] Auth state updated: token=${this.accessToken ? 'SET' : 'NULL'}`);
+				
+				console.log(`6️⃣ [ApiClient] Subscription fired - Auth state received:`, {
+					isInitialized: state.isInitialized,
+					isAuthenticated: state.isAuthenticated,
+					tokenChanged: previousToken !== this.accessToken,
+					tokenStatus: this.accessToken ? 'SET' : 'NULL',
+					tokenPrefix: this.accessToken ? this.accessToken.substring(0, 20) + '...' : 'NULL'
+				});
 				
 				// Log for debugging (never log the actual token!)
 				if (this.accessToken) {
-					console.log(`   → Token prefix: ${this.accessToken.substring(0, 20)}...`);
-					console.log('✅ [ApiClient] Ready for authenticated requests');
+					console.log('7️⃣ [ApiClient] Token IS SET - Ready for authenticated requests');
+					// Signal to document that we're ready
+					if (state.isInitialized && typeof document !== 'undefined') {
+						document.body.setAttribute('data-api-client-ready', 'true');
+					}
 				} else {
-					console.log('ℹ️ [ApiClient] No auth token - unauthenticated mode');
+					console.log('7️⃣ [ApiClient] Token IS NULL - Operating in unauthenticated mode');
 				}
 			});
 		}
@@ -62,6 +75,11 @@ class ApiClient {
 		endpoint: string,
 		options: RequestInit = {}
 	): Promise<ApiResponse<T>> {
+		console.log(`🚀 [ApiClient] request() called for ${options.method || 'GET'} ${endpoint}`, {
+			hasToken: !!this.accessToken,
+			tokenPrefix: this.accessToken ? this.accessToken.substring(0, 20) + '...' : 'NULL'
+		});
+		
 		const headers: Record<string, string> = {
 			'Content-Type': 'application/json',
 			...(options.headers as Record<string, string>)
@@ -70,9 +88,13 @@ class ApiClient {
 		// Get token from internal state (updated by authStore subscription)
 		if (this.accessToken) {
 			headers['Authorization'] = `Bearer ${this.accessToken}`;
+			console.log(`🔑 [ApiClient] Authorization header ADDED to request`);
+		} else {
+			console.log(`⚠️  [ApiClient] NO Authorization header - token is NULL`);
 		}
 
 		try {
+			console.log(`📡 [ApiClient] Executing fetch to ${this.baseUrl}${endpoint}`);
 			const response = await fetch(`${this.baseUrl}${endpoint}`, {
 				...options,
 				headers

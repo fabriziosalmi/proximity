@@ -48,10 +48,16 @@ function createAuthStore() {
 		init: () => {
 			if (!browser) return;
 			
-			console.log('🔐 [AuthStore] Initializing from localStorage...');
+			console.log('1️⃣ [AuthStore] init() called - Starting initialization from localStorage');
 			
 			const storedToken = localStorage.getItem('access_token');
 			const storedUser = localStorage.getItem('user');
+			
+			console.log('2️⃣ [AuthStore] Checked localStorage:', {
+				hasToken: !!storedToken,
+				hasUser: !!storedUser,
+				tokenPrefix: storedToken ? storedToken.substring(0, 20) + '...' : 'NULL'
+			});
 			
 			if (storedToken && storedUser) {
 				try {
@@ -62,8 +68,9 @@ function createAuthStore() {
 						isAuthenticated: true,
 						isInitialized: true // CRITICAL: Signal that initialization is complete
 					};
+					console.log('3️⃣ [AuthStore] Token FOUND in localStorage. Setting state with authenticated session.');
 					set(newState);
-					console.log('✅ [AuthStore] Initialized with existing session:', { 
+					console.log('4️⃣ [AuthStore] State updated. isInitialized=true, isAuthenticated=true', { 
 						userId: user.id, 
 						username: user.username,
 						tokenPrefix: storedToken.substring(0, 20) + '...'
@@ -72,6 +79,7 @@ function createAuthStore() {
 					// Signal to E2E tests that we're ready
 					if (browser) {
 						document.body.setAttribute('data-api-client-ready', 'true');
+						console.log('5️⃣ [AuthStore] Set data-api-client-ready="true" on body element');
 					}
 				} catch (e) {
 					console.error('❌ [AuthStore] Invalid stored data, clearing:', e);
@@ -79,12 +87,15 @@ function createAuthStore() {
 					localStorage.removeItem('access_token');
 					localStorage.removeItem('user');
 					// Still mark as initialized even if session is invalid
+					console.log('3️⃣ [AuthStore] Token was invalid. Clearing and marking as initialized (unauthenticated).');
 					update(state => ({ ...state, isInitialized: true }));
+					console.log('4️⃣ [AuthStore] State updated. isInitialized=true, isAuthenticated=false');
 				}
 			} else {
-				console.log('ℹ️ [AuthStore] No existing session found');
+				console.log('3️⃣ [AuthStore] Token NOT FOUND in localStorage. Marking as initialized (unauthenticated).');
 				// Mark as initialized even without a session
 				update(state => ({ ...state, isInitialized: true }));
+				console.log('4️⃣ [AuthStore] State updated. isInitialized=true, isAuthenticated=false');
 			}
 		},
 		
@@ -92,7 +103,7 @@ function createAuthStore() {
 		 * Login: Store token and user, sync to localStorage
 		 */
 		login: (token: string, user: User) => {
-			console.log('🔐 [AuthStore] Logging in:', { 
+			console.log('� [AuthStore] login() called - Starting login process:', { 
 				userId: user.id, 
 				username: user.username,
 				tokenPrefix: token.substring(0, 20) + '...'
@@ -107,6 +118,7 @@ function createAuthStore() {
 			
 			// Sync to localStorage
 			if (browser) {
+				console.log('💾 [AuthStore] Saving token and user to localStorage');
 				localStorage.setItem('access_token', token);
 				localStorage.setItem('user', JSON.stringify(user));
 				// Signal readiness to E2E tests
@@ -114,6 +126,7 @@ function createAuthStore() {
 			}
 			
 			// Update store (this will trigger all subscribers including ApiClient)
+			console.log('📢 [AuthStore] Updating store state - will notify all subscribers');
 			set(newState);
 			
 			console.log('✅ [AuthStore] Login complete - all subscribers notified');

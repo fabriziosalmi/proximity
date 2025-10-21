@@ -56,12 +56,22 @@ function createAppsStore() {
 
 	// Fetch all deployed apps (AUTH-AWARE)
 	async function fetchApps() {
+		console.log('🎯 [myAppsStore] fetchApps() called');
+		
 		// 🔐 SAFETY CHECK: Verify authStore is initialized before making API call
 		const currentAuthState = get(authStore);
+		console.log('8️⃣ [myAppsStore] Checked authStore state:', {
+			isInitialized: currentAuthState.isInitialized,
+			isAuthenticated: currentAuthState.isAuthenticated,
+			hasToken: !!currentAuthState.token
+		});
+		
 		if (!currentAuthState.isInitialized) {
 			console.warn('⚠️ [myAppsStore] fetchApps() called before authStore initialized. Skipping to avoid 401.');
 			return; // Don't fetch if auth isn't ready
 		}
+		
+		console.log('9️⃣ [myAppsStore] Auth check passed - proceeding with API call');
 		
 		// Capture previous state for comparison
 		let previousApps: DeployedApp[] = [];
@@ -70,6 +80,7 @@ function createAppsStore() {
 			return { ...state, loading: true, error: null };
 		});
 
+		console.log('🔟 [myAppsStore] Calling api.listApps()...');
 		const response = await api.listApps();
 
 		if (response.success && response.data) {
@@ -184,7 +195,7 @@ function createAppsStore() {
 
 	// Start polling for real-time updates (AUTH-AWARE)
 	function startPolling(intervalMs: number = 5000) {
-		console.log('📦 [myAppsStore] startPolling() called');
+		console.log('🎬 [myAppsStore] startPolling() called with interval:', intervalMs);
 		
 		stopPolling(); // Clear any existing interval
 		isPollingActive = true; // Mark that we want polling to be active
@@ -192,13 +203,24 @@ function createAppsStore() {
 		// 🔐 CRITICAL: Wait for authStore to be initialized before fetching
 		const currentAuthState = get(authStore);
 		
+		console.log('1️⃣1️⃣ [myAppsStore] Checked authStore for initialization:', {
+			isInitialized: currentAuthState.isInitialized,
+			isAuthenticated: currentAuthState.isAuthenticated,
+			hasToken: !!currentAuthState.token
+		});
+		
 		if (!currentAuthState.isInitialized) {
-			console.log('⏳ [myAppsStore] Waiting for authStore to initialize...');
+			console.log('1️⃣2️⃣ [myAppsStore] Auth NOT initialized yet - subscribing to wait for it...');
 			
 			// Subscribe to authStore and wait for initialization
 			authUnsubscribe = authStore.subscribe((authState) => {
+				console.log('1️⃣3️⃣ [myAppsStore] Auth subscription callback fired:', {
+					isInitialized: authState.isInitialized,
+					isPollingActive: isPollingActive
+				});
+				
 				if (authState.isInitialized && isPollingActive) {
-					console.log('✅ [myAppsStore] authStore is ready! Starting polling...');
+					console.log('1️⃣4️⃣ [myAppsStore] Auth is NOW ready! Starting polling...');
 					
 					// Clean up subscription
 					if (authUnsubscribe) {
@@ -207,6 +229,7 @@ function createAppsStore() {
 					}
 					
 					// Now we can safely fetch
+					console.log('1️⃣5️⃣ [myAppsStore] Triggering initial fetchApps()...');
 					fetchApps();
 					
 					// Set up polling interval
@@ -214,14 +237,15 @@ function createAppsStore() {
 						fetchApps();
 					}, intervalMs) as unknown as number;
 					
-					console.log(`🔄 [myAppsStore] Polling started with ${intervalMs}ms interval`);
+					console.log(`1️⃣6️⃣ [myAppsStore] Polling interval set - will fetch every ${intervalMs}ms`);
 				}
 			});
 		} else {
 			// authStore is already initialized, proceed immediately
-			console.log('✅ [myAppsStore] authStore was already ready. Starting polling immediately...');
+			console.log('1️⃣2️⃣ [myAppsStore] Auth ALREADY initialized - starting polling immediately');
 			
 			// Initial fetch
+			console.log('1️⃣3️⃣ [myAppsStore] Triggering initial fetchApps()...');
 			fetchApps();
 
 			// Set up polling
@@ -229,7 +253,7 @@ function createAppsStore() {
 				fetchApps();
 			}, intervalMs) as unknown as number;
 			
-			console.log(`🔄 [myAppsStore] Polling started with ${intervalMs}ms interval`);
+			console.log(`1️⃣4️⃣ [myAppsStore] Polling interval set - will fetch every ${intervalMs}ms`);
 		}
 	}
 

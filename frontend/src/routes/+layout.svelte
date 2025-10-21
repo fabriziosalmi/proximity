@@ -9,12 +9,20 @@
 
 	// Initialize app on startup
 	onMount(async () => {
+		console.log('🎪 [RootLayout] Root +layout.svelte mounted - initializing app');
+		
 		// CRITICAL: Initialize authStore FIRST to establish single source of truth
 		// This must happen before any API calls or component interactions
+		console.log('🔐 [RootLayout] Calling authStore.init()...');
 		authStore.init();
+		console.log('✅ [RootLayout] authStore.init() completed');
 		
 		// Then initialize other services
+		console.log('🎨 [RootLayout] Initializing ThemeService...');
 		await ThemeService.init();
+		console.log('✅ [RootLayout] ThemeService initialized');
+		
+		console.log('🎉 [RootLayout] All initialization complete');
 	});
 </script>
 
