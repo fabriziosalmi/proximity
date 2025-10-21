@@ -151,3 +151,26 @@ def list_nodes(request, host_id: int = None):
         "memory_used": n.memory_used,
         "uptime": n.uptime,
     } for n in nodes]
+
+
+@router.get("/discover")
+def discover_unmanaged_containers(request, host_id: int = None):
+    """
+    Discover LXC containers that exist on Proxmox but are not managed by Proximity.
+    
+    Args:
+        host_id: Optional host ID to discover from. If not provided, uses default host.
+        
+    Returns:
+        List of unmanaged containers with their basic information
+    """
+    try:
+        service = ProxmoxService(host_id=host_id)
+        containers = service.discover_unmanaged_lxc()
+        return {
+            "success": True,
+            "containers": containers,
+            "total": len(containers)
+        }
+    except ProxmoxError as e:
+        return 500, {"success": False, "message": str(e), "containers": []}

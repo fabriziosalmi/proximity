@@ -1115,3 +1115,92 @@ class ProxmoxService:
             if not allow_nonzero_exit:
                 raise ProxmoxError(error_msg)
             return ""
+    
+    def discover_unmanaged_lxc(self) -> List[Dict[str, Any]]:
+        """
+        Discover LXC containers that exist on Proxmox but are not managed by Proximity.
+        
+        Returns:
+            List of unmanaged container information dictionaries
+        """
+        try:
+            from apps.applications.models import Application
+            
+            # Get all nodes for this host
+            nodes_data = self.get_nodes()
+            host = self.get_host()
+            
+            # Get all managed VMIDs from database
+            managed_vmids = set(
+                Application.objects.filter(
+                    host_id=host.id
+                ).exclude(
+                    lxc_id__isnull=True
+                ).values_list('lxc_id', flat=True)
+            )
+            
+            logger.info(f"Managed VMIDs: {managed_vmids}")
+            
+            # Discover containers on all nodes
+            unmanaged_containers = []
+            
+            for node_data in nodes_data:
+                node_name = node_data.get('node')
+                
+                try:
+                    # Get all LXC containers on this node
+                    containers = self.get_lxc_containers(node_name)
+                    
+                    for container in containers:
+                        vmid = container.get('vmid')
+                        
+                        # Skip if already managed
+                        if vmid in managed_vmids:
+                            continue
+                        
+                        # Get detailed container config
+                        try:
+                            config = self.get_lxc_config(node_name, vmid)
+                            
+                            unmanaged_containers.append({
+                                'vmid': vmid,
+                                'name': container.get('name', f'ct-{vmid}'),
+                                'hostname': config.get('hostname', container.get('name', f'ct-{vmid}')),
+                                'status': container.get('status', 'unknown'),
+                                'node': node_name,
+                                'uptime': container.get('uptime', 0),
+                                'memory_used': container.get('mem', 0),
+                                'memory_total': container.get('maxmem', 0),
+                                'disk_used': container.get('disk', 0),
+                                'disk_total': container.get('maxdisk', 0),
+                                'cpu_usage': container.get('cpu', 0),
+                                'cores': config.get('cores', 1),
+                                'ostype': config.get('ostype', 'unknown'),
+                                'host_id': host.id,
+                                'host_name': host.name,
+                            })
+                            
+                            logger.info(f"Found unmanaged container: {vmid} ({container.get('name')}) on {node_name}")
+                            
+                        except Exception as e:
+                            logger.warning(f"Failed to get config for container {vmid}: {e}")
+                            # Add with basic info only
+                            unmanaged_containers.append({
+                                'vmid': vmid,
+                                'name': container.get('name', f'ct-{vmid}'),
+                                'hostname': container.get('name', f'ct-{vmid}'),
+                                'status': container.get('status', 'unknown'),
+                                'node': node_name,
+                                'host_id': host.id,
+                                'host_name': host.name,
+                            })
+                    
+                except Exception as e:
+                    logger.error(f"Failed to get containers from node {node_name}: {e}")
+                    continue
+            
+            logger.info(f"Discovered {len(unmanaged_containers)} unmanaged containers")
+            return unmanaged_containers
+            
+        except Exception as e:
+            raise ProxmoxError(f"Failed to discover unmanaged containers: {e}")

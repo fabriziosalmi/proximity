@@ -426,3 +426,139 @@ def get_application_logs(request, app_id: str, limit: int = 50):
         } for log in logs],
         "total": logs.count()
     }
+
+
+@router.post("/adopt")
+def adopt_existing_container(
+    request,
+    vmid: int,
+    node: str,
+    catalog_id: str,
+    hostname: str = None,
+    host_id: int = None
+):
+    """
+    Adopt an existing LXC container into Proximity management.
+    
+    This allows importing pre-existing containers that were created outside of Proximity.
+    
+    Args:
+        vmid: The Proxmox VMID of the existing container
+        node: The Proxmox node name where the container resides
+        catalog_id: The catalog app ID to associate this container with
+        hostname: Optional custom hostname (defaults to container's current hostname)
+        host_id: Optional Proxmox host ID (defaults to default host)
+        
+    Returns:
+        The newly created Application object managing this container
+    """
+    import logging
+    from apps.proxmox.services import ProxmoxService, ProxmoxError
+    from apps.catalog.views import load_catalog
+    
+    logger = logging.getLogger(__name__)
+    
+    try:
+        # 1. Verify container is not already managed
+        if Application.objects.filter(lxc_id=vmid).exists():
+            raise HttpError(400, f"Container with VMID {vmid} is already managed by Proximity")
+        
+        # 2. Get Proxmox service and verify node exists
+        proxmox_service = ProxmoxService(host_id=host_id)
+        host = proxmox_service.get_host()
+        
+        # Verify node exists
+        node_obj = ProxmoxNode.objects.filter(host=host, name=node).first()
+        if not node_obj:
+            raise HttpError(404, f"Node '{node}' not found on host '{host.name}'")
+        
+        # 3. Get container info from Proxmox
+        try:
+            config = proxmox_service.get_lxc_config(node, vmid)
+            status_info = proxmox_service.get_lxc_status(node, vmid)
+        except ProxmoxError as e:
+            raise HttpError(404, f"Container {vmid} not found on node {node}: {str(e)}")
+        
+        # 4. Get catalog app info
+        catalog = load_catalog()
+        catalog_app = next((app for app in catalog if app['id'] == catalog_id), None)
+        if not catalog_app:
+            raise HttpError(404, f"Catalog app '{catalog_id}' not found")
+        
+        # 5. Determine hostname
+        final_hostname = hostname or config.get('hostname', f'adopted-{vmid}')
+        
+        # Check hostname uniqueness
+        if Application.objects.filter(hostname=final_hostname).exists():
+            raise HttpError(400, f"Hostname '{final_hostname}' already exists")
+        
+        # 6. Allocate ports
+        port_manager = PortManagerService()
+        
+        # Get internal ports from catalog app
+        internal_ports = catalog_app.get('ports', [])
+        if not internal_ports:
+            # Default to common ports if not specified
+            internal_ports = [8080]
+        
+        # Allocate public ports
+        try:
+            public_port = port_manager.allocate_port()
+            internal_port = port_manager.allocate_internal_port()
+        except Exception as e:
+            raise HttpError(500, f"Failed to allocate ports: {str(e)}")
+        
+        # 7. Create Application record
+        app_id = f"{catalog_id}-{uuid.uuid4().hex[:8]}"
+        
+        with transaction.atomic():
+            app = Application.objects.create(
+                id=app_id,
+                catalog_id=catalog_id,
+                name=catalog_app.get('name', catalog_id),
+                hostname=final_hostname,
+                status=status_info.get('status', 'running'),
+                lxc_id=vmid,
+                node=node,
+                host_id=host.id,
+                public_port=public_port,
+                internal_port=internal_port,
+                config=catalog_app.get('docker_compose', {}),
+                environment=catalog_app.get('environment', {}),
+                owner_id=request.user.id if request.user.is_authenticated else None,
+            )
+            
+            # Create adoption log
+            DeploymentLog.objects.create(
+                application=app,
+                level='info',
+                message=f'Container {vmid} adopted from Proxmox node {node}',
+                step='adoption'
+            )
+        
+        logger.info(f"✅ Adopted container {vmid} as application {app_id} ({final_hostname})")
+        
+        # 8. Return application info
+        return {
+            "success": True,
+            "message": f"Successfully adopted container {vmid}",
+            "app": {
+                "id": app.id,
+                "catalog_id": app.catalog_id,
+                "name": app.name,
+                "hostname": app.hostname,
+                "status": app.status,
+                "lxc_id": app.lxc_id,
+                "node": app.node,
+                "host_id": app.host_id,
+                "public_port": app.public_port,
+                "internal_port": app.internal_port,
+                "created_at": app.created_at.isoformat(),
+            }
+        }
+        
+    except HttpError:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to adopt container {vmid}: {e}", exc_info=True)
+        raise HttpError(500, f"Failed to adopt container: {str(e)}")
