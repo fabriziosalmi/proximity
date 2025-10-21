@@ -25,6 +25,7 @@
 	import { startApp, stopApp, restartApp, deleteApp, cloneApp } from '$lib/stores/actions';
 	import RackCard from '$lib/components/RackCard.svelte';
 	import CloneModal from '$lib/components/CloneModal.svelte';
+	import EmptyRackCard from '$lib/components/EmptyRackCard.svelte';
 	import NavigationRack from '$lib/components/layout/NavigationRack.svelte';
 	import OperationalRack from '$lib/components/layout/OperationalRack.svelte';
 
@@ -355,14 +356,13 @@
 			</button>
 		</div>
 	{:else if $myAppsStore.apps.length === 0}
-		<!-- Empty State -->
-		<div class="flex min-h-[400px] flex-col items-center justify-center rounded-lg border-2 border-gray-700/50 bg-gray-800/30 p-8">
-			<Server class="mb-4 h-16 w-16 text-gray-600" />
-			<p class="mb-2 text-xl font-semibold text-gray-400">No Deployed Apps</p>
-			<p class="text-sm text-gray-500">
-				Visit the <a href="/store" class="text-cyan-400 hover:underline">App Store</a> to deploy your first application
-			</p>
-		</div>
+		<!-- Empty State - Bare Metal Rack Card -->
+		<EmptyRackCard 
+			label="NO APPS INSTALLED"
+			buttonText="INSTALL APP"
+			buttonHref="/store"
+			icon={Server}
+		/>
 	{:else if filteredApps.length === 0}
 		<!-- No Results State (after filtering/searching) -->
 		<div class="flex min-h-[400px] flex-col items-center justify-center rounded-lg border-2 border-gray-700/50 bg-gray-800/30 p-8">
