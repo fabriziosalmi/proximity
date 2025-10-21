@@ -1,97 +1,70 @@
-<!-- The Living Diagram PoC - Interactive Infrastructure Schematic -->
+<!-- The Living Diagram PoC - Interactive Infrastructure Schematic (Svelvet Version) -->
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { SvelteFlow, Controls, Background, MiniMap } from '@xyflow/svelte';
-	import '@xyflow/svelte/dist/style.css';
+	import { Svelvet, Node, Edge } from 'svelvet';
+	import 'svelvet/styles.css';
 	import { pageTitleStore } from '$lib/stores/pageTitle';
 	import CustomNode from '$lib/components/LivingDiagram/CustomNode.svelte';
-
-	// Type definitions
-	interface Node {
-		id: string;
-		position: { x: number; y: number };
-		data: {
-			label: string;
-			icon: string;
-			type: 'internet' | 'infrastructure' | 'application';
-		};
-	}
-
-	interface Edge {
-		id: string;
-		source: string;
-		target: string;
-		animated?: boolean;
-	}
 
 	// Set page title
 	onMount(() => {
 		pageTitleStore.setTitle('Living Diagram PoC');
 	});
 
-	// Define the diagram: 4 nodes (Internet, Proxmox Host, 2 Apps) with connections
-	const nodes: Node[] = [
+	// Define nodes for the diagram
+	let nodes = [
 		{
 			id: 'internet',
-			position: { x: 250, y: 0 },
-			data: {
-				label: 'Internet',
-				icon: '☁️',
-				type: 'internet'
-			}
+			xPos: 350,
+			yPos: 50,
+			label: 'Internet',
+			icon: '☁️',
+			type: 'internet'
 		},
 		{
 			id: 'proxmox-opti2',
-			position: { x: 200, y: 150 },
-			data: {
-				label: 'Proxmox Host\n(opti2)',
-				icon: '🖥️',
-				type: 'infrastructure'
-			}
+			xPos: 300,
+			yPos: 200,
+			label: 'Proxmox Host\n(opti2)',
+			icon: '🖥️',
+			type: 'infrastructure'
 		},
 		{
 			id: 'app-adminer-clone',
-			position: { x: 50, y: 320 },
-			data: {
-				label: 'adminer-clone',
-				icon: '📋',
-				type: 'application'
-			}
+			xPos: 100,
+			yPos: 400,
+			label: 'adminer-clone',
+			icon: '📋',
+			type: 'application'
 		},
 		{
 			id: 'app-adminer-source',
-			position: { x: 350, y: 320 },
-			data: {
-				label: 'adminer-source',
-				icon: '📋',
-				type: 'application'
-			}
+			xPos: 500,
+			yPos: 400,
+			label: 'adminer-source',
+			icon: '📋',
+			type: 'application'
 		}
 	];
 
 	// Define connections between nodes
-	const edges: Edge[] = [
+	let edges = [
 		{
 			id: 'internet-to-proxmox',
-			source: 'internet',
-			target: 'proxmox-opti2',
-			animated: true
+			from: 'internet',
+			to: 'proxmox-opti2'
 		},
 		{
 			id: 'proxmox-to-adminer-clone',
-			source: 'proxmox-opti2',
-			target: 'app-adminer-clone'
+			from: 'proxmox-opti2',
+			to: 'app-adminer-clone'
 		},
 		{
 			id: 'proxmox-to-adminer-source',
-			source: 'proxmox-opti2',
-			target: 'app-adminer-source'
+			from: 'proxmox-opti2',
+			to: 'app-adminer-source'
 		}
 	];
-
-	let nodeTypes = {
-		default: CustomNode
-	};
 
 	// Log initialization
 	onMount(() => {
@@ -99,6 +72,21 @@
 		console.log('📊 Diagram contains:', nodes.length, 'nodes and', edges.length, 'connections');
 		console.log('Click on nodes to test interactivity');
 	});
+
+	// Handle node click
+	function handleNodeClick(nodeId: string) {
+		const node = nodes.find(n => n.id === nodeId);
+		if (node) {
+			console.log(`✅ Node clicked: ${node.label}`);
+			console.log('Node data:', {
+				id: node.id,
+				label: node.label,
+				icon: node.icon,
+				type: node.type
+			});
+			console.log('---');
+		}
+	}
 </script>
 
 <svelte:head>
@@ -106,17 +94,34 @@
 </svelte:head>
 
 <div class="diagram-container">
-	<!-- SvelteFlow Diagram -->
-	<SvelteFlow {nodes} {edges} {nodeTypes} fitView>
-		<!-- Background grid -->
-		<Background color="#1f2937" gap={16} />
+	<!-- Svelvet Diagram -->
+	<Svelvet
+		{nodes}
+		{edges}
+		let:node
+		on:nodeClicked={(e) => handleNodeClick(e.detail.node.id)}
+	>
+		{#each nodes as nodeData (nodeData.id)}
+			<Node id={nodeData.id} xPos={nodeData.xPos} yPos={nodeData.yPos} let:dragging>
+				<div
+					class="diagram-node"
+					class:internet={nodeData.type === 'internet'}
+					class:infrastructure={nodeData.type === 'infrastructure'}
+					class:application={nodeData.type === 'application'}
+					on:click={() => handleNodeClick(nodeData.id)}
+					role="button"
+					tabindex="0"
+				>
+					<div class="node-icon">{nodeData.icon}</div>
+					<div class="node-label">{nodeData.label}</div>
+				</div>
+			</Node>
+		{/each}
 
-		<!-- Control buttons (zoom, fit view, etc.) -->
-		<Controls />
-
-		<!-- Minimap for navigation -->
-		<MiniMap pannable zoomable />
-	</SvelteFlow>
+		{#each edges as edgeData (edgeData.id)}
+			<Edge from={edgeData.from} to={edgeData.to} />
+		{/each}
+	</Svelvet>
 
 	<!-- Info Overlay -->
 	<div class="info-overlay">
@@ -134,7 +139,7 @@
 			<ul>
 				<li>👆 Drag nodes to reposition</li>
 				<li>🔍 Scroll to zoom in/out</li>
-				<li>🖱️ Middle-click + drag to pan</li>
+				<li>🖱️ Hold Space + drag to pan</li>
 				<li>🎯 Click nodes to log to console</li>
 			</ul>
 			<p style="margin-top: 1rem; font-size: 0.875rem; color: #9ca3af;">
@@ -154,12 +159,108 @@
 </div>
 
 <style>
+	:global(body) {
+		margin: 0;
+		padding: 0;
+	}
+
 	.diagram-container {
 		position: relative;
 		width: 100%;
 		height: 100vh;
 		background: linear-gradient(135deg, #0f172a 0%, #1a1f35 100%);
 		overflow: hidden;
+	}
+
+	:global(.svelvet-container) {
+		width: 100%;
+		height: 100%;
+		background: linear-gradient(135deg, #0f172a 0%, #1a1f35 100%);
+	}
+
+	:global(.svelvet-panzoom) {
+		background-color: transparent;
+	}
+
+	:global(.svelvet-edge) {
+		stroke: #4b5563;
+		stroke-width: 2;
+	}
+
+	:global(.svelvet-edge.selected) {
+		stroke: #3b82f6;
+	}
+
+	.diagram-node {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		padding: 1rem;
+		border-radius: 0.5rem;
+		border: 2px solid #4b5563;
+		background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+		cursor: pointer;
+		transition: all 200ms ease;
+		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+		min-width: 120px;
+		text-align: center;
+		user-select: none;
+	}
+
+	.diagram-node:hover {
+		border-color: #3b82f6;
+		box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
+		transform: translateY(-2px);
+	}
+
+	.diagram-node:active {
+		transform: translateY(0);
+	}
+
+	/* Type-specific styling */
+	.diagram-node.internet {
+		background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+		border-color: #60a5fa;
+	}
+
+	.diagram-node.internet:hover {
+		border-color: #93c5fd;
+		box-shadow: 0 0 12px rgba(147, 197, 253, 0.4);
+	}
+
+	.diagram-node.infrastructure {
+		background: linear-gradient(135deg, #1f3a3a 0%, #0f2626 100%);
+		border-color: #10b981;
+	}
+
+	.diagram-node.infrastructure:hover {
+		border-color: #6ee7b7;
+		box-shadow: 0 0 12px rgba(110, 231, 183, 0.4);
+	}
+
+	.diagram-node.application {
+		background: linear-gradient(135deg, #3a2f1f 0%, #261a0f 100%);
+		border-color: #f59e0b;
+	}
+
+	.diagram-node.application:hover {
+		border-color: #fcd34d;
+		box-shadow: 0 0 12px rgba(252, 211, 77, 0.4);
+	}
+
+	.node-icon {
+		font-size: 2rem;
+		line-height: 1;
+	}
+
+	.node-label {
+		font-size: 0.875rem;
+		font-weight: 600;
+		color: #e5e7eb;
+		white-space: normal;
+		line-height: 1.2;
 	}
 
 	.info-overlay {
