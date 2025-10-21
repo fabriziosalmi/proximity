@@ -192,18 +192,30 @@
 		<!-- Operational Control Panel Rack -->
 		<div class="px-6 pb-6">
 			<OperationalRack title="Application Fleet Operations">
-		<!-- ========================================== -->
-		<!-- LEFT SECTION: Data-Rich Filters & Search/Sort -->
-		<!-- ========================================== -->
-		<svelte:fragment slot="stats">
-			<div class="filters-group">
-				<!-- Filter Label + Icon -->
+	<!-- ========================================== -->
+	<!-- LEFT SECTION: Search, Filters & Sort -->
+	<!-- ========================================== -->
+	<svelte:fragment slot="stats">
+		<div class="filters-group">
+			<!-- 1. Search Input (primo) -->
+			<div class="search-container">
+				<Search class="search-icon h-4 w-4" />
+				<input
+					type="text"
+					bind:value={searchQuery}
+					placeholder="Search apps..."
+					class="search-input"
+				/>
+			</div>
+
+			<!-- 2. Filter Section (secondo) -->
+			<div class="filter-container">
+				<!-- Filter Icon (senza scritta FILTER BY:) -->
 				<div class="filter-label">
 					<Filter class="h-3.5 w-3.5" />
-					<span>FILTER BY:</span>
 				</div>
 
-				<!-- Data-Rich Filter Chips -->
+				<!-- Filter Chips -->
 				<div class="filter-chips">
 					<button
 						class="filter-chip"
@@ -253,64 +265,52 @@
 						</button>
 					{/if}
 				</div>
+			</div>
 
-				<!-- Search Input -->
-				<div class="search-container">
-					<Search class="search-icon h-4 w-4" />
-					<input
-						type="text"
-						bind:value={searchQuery}
-						placeholder="Search apps..."
-						class="search-input"
-					/>
+			<!-- 3. Sort Section (terzo) -->
+			<div class="sort-container">
+				<div class="sort-label">
+					<ArrowUpDown class="h-3.5 w-3.5" />
 				</div>
 
-				<!-- Sort Section -->
-				<div class="sort-container">
-					<div class="sort-label">
-						<ArrowUpDown class="h-3.5 w-3.5" />
-					</div>
-
-					<!-- Sort Buttons Horizontal -->
-					<div class="sort-buttons">
-						<button
-							class="sort-btn"
-							class:sort-btn-active={sortBy === 'created'}
-							on:click={() => (sortBy = 'created')}
-							title="Newest First"
-						>
-							<CalendarClock class="h-4 w-4" />
-						</button>
-						<button
-							class="sort-btn"
-							class:sort-btn-active={sortBy === 'name'}
-							on:click={() => (sortBy = 'name')}
-							title="Name (A-Z)"
-						>
-							<SortAsc class="h-4 w-4" />
-						</button>
-						<button
-							class="sort-btn"
-							class:sort-btn-active={sortBy === 'cpu'}
-							on:click={() => (sortBy = 'cpu')}
-							title="CPU Usage"
-						>
-							<Cpu class="h-4 w-4" />
-						</button>
-						<button
-							class="sort-btn"
-							class:sort-btn-active={sortBy === 'memory'}
-							on:click={() => (sortBy = 'memory')}
-							title="Memory Usage"
-						>
-							<MemoryStick class="h-4 w-4" />
-						</button>
-					</div>
+				<!-- Sort Buttons Horizontal -->
+				<div class="sort-buttons">
+					<button
+						class="sort-btn"
+						class:sort-btn-active={sortBy === 'created'}
+						on:click={() => (sortBy = 'created')}
+						title="Newest First"
+					>
+						<CalendarClock class="h-4 w-4" />
+					</button>
+					<button
+						class="sort-btn"
+						class:sort-btn-active={sortBy === 'name'}
+						on:click={() => (sortBy = 'name')}
+						title="Name (A-Z)"
+					>
+						<SortAsc class="h-4 w-4" />
+					</button>
+					<button
+						class="sort-btn"
+						class:sort-btn-active={sortBy === 'cpu'}
+						on:click={() => (sortBy = 'cpu')}
+						title="CPU Usage"
+					>
+						<Cpu class="h-4 w-4" />
+					</button>
+					<button
+						class="sort-btn"
+						class:sort-btn-active={sortBy === 'memory'}
+						on:click={() => (sortBy = 'memory')}
+						title="Memory Usage"
+					>
+						<MemoryStick class="h-4 w-4" />
+					</button>
 				</div>
 			</div>
-		</svelte:fragment>
-
-		<!-- ========================================== -->
+		</div>
+	</svelte:fragment>		<!-- ========================================== -->
 		<!-- RIGHT SECTION: System Actions -->
 		<!-- ========================================== -->
 		<svelte:fragment slot="actions">
@@ -596,6 +596,14 @@
 		color: var(--color-text-secondary);
 	}
 
+	/* Filter Container - wraps icon + chips */
+	.filter-container {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		height: 100%;
+	}
+
 	/* Sort Label */
 	.sort-label {
 		display: flex;
@@ -613,11 +621,13 @@
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
+		height: 100%;
 	}
 
 	/* Sort Buttons - Horizontal layout like filter chips */
 	.sort-buttons {
 		display: flex;
+		align-items: center;
 		gap: 0.5rem;
 	}
 
