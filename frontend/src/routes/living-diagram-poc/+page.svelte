@@ -85,6 +85,14 @@
 			console.log('---');
 		}
 	}
+
+	// Handle keyboard events for accessibility
+	function handleKeydown(event: KeyboardEvent, nodeId: string) {
+		if (event.key === 'Enter' || event.key === ' ') {
+			event.preventDefault();
+			handleNodeClick(nodeId);
+		}
+	}
 </script>
 
 <svelte:head>
@@ -107,6 +115,7 @@
 						class:infrastructure={nodeData.type === 'infrastructure'}
 						class:application={nodeData.type === 'application'}
 						on:click={() => handleNodeClick(nodeData.id)}
+						on:keydown={(e) => handleKeydown(e, nodeData.id)}
 						role="button"
 						tabindex="0"
 					>
