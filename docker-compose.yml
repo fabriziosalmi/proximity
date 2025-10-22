@@ -45,7 +45,6 @@ services:
     command: ["python", "manage.py", "runserver", "0.0.0.0:8000"]
     volumes:
       - ./backend:/app
-      - /app/venv  # Preserve the venv from the image, don't overwrite it
       - ./catalog_data:/catalog_data:ro
       - static_volume:/app/staticfiles
       - media_volume:/app/media
