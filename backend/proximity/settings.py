@@ -327,6 +327,23 @@ CATALOG_DATA_PATH = BASE_DIR.parent / 'catalog_data'
 
 
 # ======================================================================
+# CSRF SETTINGS FOR HTTPS
+# ======================================================================
+
+# Trust origins for CSRF protection with HTTPS
+CSRF_TRUSTED_ORIGINS = [
+    'https://localhost:5173',
+    'https://127.0.0.1:5173',
+    'https://localhost:8000',
+    'https://127.0.0.1:8000',
+]
+
+# Cookie settings for HTTPS
+CSRF_COOKIE_SECURE = False  # Set to False for local development with self-signed certs
+SESSION_COOKIE_SECURE = False  # Set to False for local development with self-signed certs
+
+
+# ======================================================================
 # TESTING SETTINGS
 # ======================================================================
 

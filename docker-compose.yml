@@ -45,6 +45,7 @@ services:
       - ./backend:/app
       - ./backend/cert.pem:/app/cert.pem:ro
       - ./backend/key.pem:/app/key.pem:ro
+      - ./catalog_data:/catalog_data:ro
     ports:
       - "8000:8000"
     environment:

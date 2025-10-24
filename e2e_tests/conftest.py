@@ -81,6 +81,12 @@ def api_client() -> Generator[httpx.Client, None, None]:
         verify=False  # Accept self-signed certificates
     )
     
+    # Set headers for HTTPS/CSRF compatibility
+    client.headers.update({
+        'Referer': API_URL,
+        'Origin': API_URL,
+    })
+    
     # Get CSRF token by making an initial request
     try:
         # Request the login page to get CSRF token
@@ -139,10 +145,15 @@ def unique_user(api_client: httpx.Client) -> Generator[Dict[str, str], None, Non
         user_data["user_id"] = login_data.get("user", {}).get("pk")
         user_data["access_token"] = login_data.get("access")  # JWT access token for programmatic login
         
-        # Update CSRF token after login
+        # Update CSRF token after login (critical for POST requests)
         csrf_token = api_client.cookies.get("csrftoken")
         if csrf_token:
             api_client.headers["X-CSRFToken"] = csrf_token
+            print(f"✅ CSRF token updated: {csrf_token[:20]}...")
+        else:
+            print("⚠️  Warning: No CSRF token found in cookies")
+            # Try to get it from response headers
+            print(f"Available cookies: {list(api_client.cookies.keys())}")
         
         print(f"✅ User logged in successfully, session cookie set in api_client.")
         
