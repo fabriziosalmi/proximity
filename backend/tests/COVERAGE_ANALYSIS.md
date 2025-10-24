@@ -4,7 +4,7 @@
 
 **Totale righe di codice backend**: ~4,854 righe  
 **Test attualmente implementati**: 75 passing + 17 skipped = 92 tests  
-**Coverage stimata**: ~25-30% (fondamenta solide)
+**Coverage stimata**: ~25-30% 
 
 ---
 

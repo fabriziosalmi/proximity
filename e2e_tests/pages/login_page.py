@@ -250,7 +250,7 @@ class LoginPage:
     
     def login_with_api(self, username: str, password: str, api_base_url: str = "http://localhost:8000") -> 'LoginPage':
         """
-        Login using direct API call and set the token in browser localStorage.
+        Login using direct API call and set the token/cookie in browser.
         This bypasses the frontend form and is more reliable for E2E tests.
         
         Args:
@@ -263,9 +263,9 @@ class LoginPage:
         """
         import requests
         
-        # Call the API directly
+        # Call the correct dj-rest-auth login endpoint
         response = requests.post(
-            f"{api_base_url}/api/core/auth/login",
+            f"{api_base_url}/api/auth/login/",
             json={"username": username, "password": password},
             headers={"Content-Type": "application/json"}
         )

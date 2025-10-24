@@ -6,12 +6,6 @@ FROM python:3.12-slim
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-# Set path for the virtual environment
-ENV VENV_PATH=/app/venv
-
-# Create the virtual environment
-RUN python -m venv $VENV_PATH
-
 # Set the working directory
 WORKDIR /app
 
@@ -26,9 +20,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy requirements file
 COPY requirements.txt .
 
-# SOTA FIX: Use the absolute path to the venv's pip to install dependencies.
-# This is the most explicit and robust method, avoiding any PATH ambiguity.
-RUN $VENV_PATH/bin/pip install --no-cache-dir -r requirements.txt
+# Install dependencies directly (no venv needed in container)
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application code
 COPY . .

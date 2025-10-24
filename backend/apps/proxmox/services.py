@@ -48,7 +48,7 @@ class ProxmoxService:
                 # Fallback to any active host
                 host = ProxmoxHost.objects.filter(is_active=True).first()
             if not host:
-                raise ProxmoxError("No active Proxmox host configured")
+                raise ProxmoxError("No active Proxmox host")
             return host
     
     def get_client(self) -> ProxmoxAPI:

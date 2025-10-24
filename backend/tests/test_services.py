@@ -175,6 +175,10 @@ class TestProxmoxService:
     def test_get_host_with_no_active_host(self, db):
         """Test getting host when no active host exists."""
         from apps.proxmox.services import ProxmoxService, ProxmoxError
+        from apps.proxmox.models import ProxmoxHost
+        
+        # Ensure no active hosts exist
+        ProxmoxHost.objects.all().delete()
         
         service = ProxmoxService()
         

@@ -25,9 +25,23 @@ def api_client() -> Generator[httpx.Client, None, None]:
     """
     Provides a stateful HTTP client that manages cookies across requests,
     essential for interacting with the cookie-based auth system.
+    Also handles CSRF tokens automatically for Django.
     """
-    with httpx.Client(base_url=API_URL, timeout=30.0) as client:
-        yield client
+    client = httpx.Client(base_url=API_URL, timeout=30.0)
+    
+    # Get CSRF token by making an initial request
+    try:
+        # Request the login page to get CSRF token
+        response = client.get("/api/auth/login/")
+        csrf_token = client.cookies.get("csrftoken")
+        if csrf_token:
+            # Set CSRF token in default headers
+            client.headers["X-CSRFToken"] = csrf_token
+    except Exception as e:
+        print(f"Warning: Could not get initial CSRF token: {e}")
+    
+    yield client
+    client.close()
 
 
 @pytest.fixture
@@ -52,7 +66,7 @@ def unique_user(api_client: httpx.Client) -> Generator[Dict[str, str], None, Non
             json={
                 "username": user_data["username"],
                 "email": user_data["email"],
-                "password": user_data["password"],
+                "password1": user_data["password"],
                 "password2": user_data["password"],
             }
         )
@@ -71,6 +85,11 @@ def unique_user(api_client: httpx.Client) -> Generator[Dict[str, str], None, Non
         
         login_data = login_response.json()
         user_data["user_id"] = login_data.get("user", {}).get("pk")
+        
+        # Update CSRF token after login
+        csrf_token = api_client.cookies.get("csrftoken")
+        if csrf_token:
+            api_client.headers["X-CSRFToken"] = csrf_token
         
         print(f"✅ User logged in successfully, session cookie set in api_client.")
         
