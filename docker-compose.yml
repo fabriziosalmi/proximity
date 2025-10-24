@@ -88,7 +88,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: proximity2_celery_worker
-    command: celery -A proximity worker -l info
+    command: ["python", "-m", "celery", "-A", "proximity", "worker", "-l", "info"]
     volumes:
       - ./backend:/app
       - /app/venv # Preserve the venv from the image
@@ -124,7 +124,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: proximity2_celery_beat
-    command: celery -A proximity beat -l info
+    command: ["python", "-m", "celery", "-A", "proximity", "beat", "-l", "info"]
     volumes:
       - ./backend:/app
       - /app/venv # Preserve the venv from the image
