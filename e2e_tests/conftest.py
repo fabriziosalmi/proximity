@@ -22,6 +22,17 @@ BASE_URL = os.getenv("BASE_URL", "https://localhost:5173")  # HTTPS for secure a
 API_URL = os.getenv("API_URL", "https://localhost:8000")     # HTTPS backend
 
 
+# --- Playwright Configuration ---
+
+@pytest.fixture(scope="session")
+def browser_context_args(browser_context_args):
+    """Configure browser context to accept self-signed SSL certificates."""
+    return {
+        **browser_context_args,
+        "ignore_https_errors": True,  # Accept self-signed certificates
+    }
+
+
 # --- Mock Services Setup ---
 
 @pytest.fixture(autouse=True, scope="session")
