@@ -12,7 +12,7 @@ def test_pure_playwright_only(page):
     
     # Navigate
     print("   Navigating to login...")
-    page.goto("http://localhost:5173/login")
+    page.goto("https://localhost:5173/login")
     
     print("   ✅ Navigation successful!")
     

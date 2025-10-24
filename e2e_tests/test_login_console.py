@@ -92,7 +92,7 @@ def test_login_with_console_logs(page, unique_user, base_url):
     print(f"\n📜 Total console messages: {len(console_messages)}")
     
     # Check if redirected
-    if current_url == "http://localhost:5173/":
+    if current_url == "https://localhost:5173/":
         print("✅ Successfully redirected to home!")
     else:
         print(f"❌ Still on login page or elsewhere: {current_url}")

@@ -12,7 +12,7 @@ from playwright.sync_api import Page
 logger = logging.getLogger(__name__)
 
 
-def cookie_login(page: Page, session_cookies: List[Dict[str, Any]], base_url: str = "http://localhost:5173", initial_page: str = "/", access_token: Optional[str] = None) -> None:
+def cookie_login(page: Page, session_cookies: List[Dict[str, Any]], base_url: str = "https://localhost:5173", initial_page: str = "/", access_token: Optional[str] = None) -> None:
     """
     Perform cookie-based authentication by injecting session cookies into the browser.
     This works with HttpOnly cookie-based auth (the current Proximity 2.0 architecture).
@@ -20,7 +20,7 @@ def cookie_login(page: Page, session_cookies: List[Dict[str, Any]], base_url: st
     Args:
         page: Playwright Page instance
         session_cookies: List of cookie dicts with 'name', 'value', 'domain', 'path'
-        base_url: Base URL of the frontend application
+        base_url: Base URL of the frontend application (HTTPS required)
         initial_page: Initial page to navigate to (default: "/" for homepage)
         access_token: Optional JWT access token to inject into localStorage (for hybrid auth)
         
@@ -128,7 +128,7 @@ def cookie_login(page: Page, session_cookies: List[Dict[str, Any]], base_url: st
     logger.info("🎉 [COOKIE-LOGIN] Authentication completed successfully!")
 
 
-def programmatic_login(page: Page, auth_token: str, base_url: str = "http://localhost:5173", initial_page: str = "/") -> None:
+def programmatic_login(page: Page, auth_token: str, base_url: str = "https://localhost:5173", initial_page: str = "/") -> None:
     """
     Perform bulletproof programmatic login using the authStore single source of truth:
     1. Inject the auth token into localStorage before any page loads
@@ -142,7 +142,7 @@ def programmatic_login(page: Page, auth_token: str, base_url: str = "http://loca
     Args:
         page: Playwright Page instance
         auth_token: JWT authentication token from user fixture
-        base_url: Base URL of the frontend application
+        base_url: Base URL of the frontend application (HTTPS required)
         initial_page: Initial page to navigate to (default: "/" for homepage)
         
     Raises:

@@ -17,7 +17,6 @@ import time
 import re
 from playwright.sync_api import expect
 from pages import LoginPage, StorePage, AppsPage
-from utils.auth import programmatic_login
 
 
 @pytest.mark.golden_path
@@ -65,18 +64,27 @@ def test_full_app_lifecycle(
     print("="*80 + "\n")
 
     # ============================================================================
-    # BULLETPROOF PROGRAMMATIC LOGIN: 
-    # Injects token + waits for ApiClient readiness signal
+    # AUTHENTICATION SETUP: UI-Based Login (Cookie-based Auth)
     # ============================================================================
-    print("📍 AUTHENTICATION SETUP (Bulletproof Programmatic)")
+    print("📍 AUTHENTICATION SETUP (UI-Based Login)")
     print("-" * 80)
     
-    # Use the bulletproof login helper that ensures ApiClient is ready
-    programmatic_login(page, unique_user["auth_token"], base_url)
+    # Use proper UI-based login flow that works with HttpOnly cookies
+    login_page = LoginPage(page, base_url)
+    login_page.navigate_and_wait_for_ready()
+    print(f"  ✓ Navigated to login page")
+    
+    # Use the complete login method which handles the full flow
+    login_page.login(unique_user["username"], unique_user["password"], wait_for_navigation=True)
+    print(f"  ✓ Login completed for: {unique_user['username']}")
+    print(f"  ✓ Current URL: {page.url}")
+    
+    # Wait for authStore to initialize with the session
+    page.wait_for_timeout(1000)
     
     print(f"  ✅ User authenticated: {unique_user['username']}")
-    print(f"  ✅ ApiClient confirmed ready for authenticated requests")
-    print(f"  ⚡ All API calls will now include Authorization header\n")
+    print(f"  ✅ Session established with HttpOnly cookies")
+    print(f"  ⚡ All API calls will now include session cookies\n")
     
     # ============================================================================
     # STEP 1: NAVIGATE TO APP STORE (Already Authenticated)

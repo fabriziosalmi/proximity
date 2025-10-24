@@ -34,9 +34,6 @@
 		<!-- Mobile-only vertical navigation rack (integrated in MasterControlRack) -->
 		<MasterControlRack />
 	</svelte:fragment>
-	<svelte:fragment slot="top-bar">
-		<!-- TopBar ELIMINATED - functionality merged into MasterControlRack -->
-	</svelte:fragment>
 	<svelte:fragment slot="main-canvas">
 		<!-- Main content area - MasterControlRack will be sticky at top -->
 		<slot />

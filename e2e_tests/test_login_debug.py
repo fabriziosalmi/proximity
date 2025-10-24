@@ -5,9 +5,9 @@ import pytest
 from playwright.sync_api import Page, expect
 
 
-def test_login_debug(page: Page):
-    """Debug login page behavior"""
-    base_url = "http://localhost:5173"
+def test_login_debug(page):
+    """Debug the login page to understand the structure"""
+    base_url = "https://localhost:5173"
     
     # Capture console messages
     console_messages = []

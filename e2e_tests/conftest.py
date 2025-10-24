@@ -206,6 +206,7 @@ def context_with_storage(browser: Browser):
     context = browser.new_context(
         viewport={"width": 1920, "height": 1080},
         locale="en-US",
+        ignore_https_errors=True,  # Accept self-signed certificates
         record_video_dir="./test-results/videos" if os.getenv("RECORD_VIDEO") else None
     )
     context.set_default_timeout(60000)

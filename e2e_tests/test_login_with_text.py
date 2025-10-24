@@ -13,8 +13,8 @@ def test_login_with_text_selector(page: Page, unique_user):
     password = unique_user['password']
     
     # Navigate to login
-    page.goto("http://localhost:5173/login")
-    expect(page).to_have_url("http://localhost:5173/login")
+    page.goto("https://localhost:5173/login")
+    expect(page).to_have_url("https://localhost:5173/login")
     
     # Wait for Svelte to hydrate (wait for vite connected message)
     page.wait_for_load_state("networkidle")
@@ -62,10 +62,10 @@ def test_login_with_text_selector(page: Page, unique_user):
     page.wait_for_timeout(5000)
     
     print(f"\n✓ Current URL: {page.url}")
-    print(f"✓ Expected URL: http://localhost:5173/")
+    print(f"✓ Expected URL: https://localhost:5173/")
     
     # Check if we're on homepage
-    if page.url == "http://localhost:5173/":
+    if page.url == "https://localhost:5173/":
         print("✅ Login successful - redirected to homepage!")
     else:
         print(f"❌ Still on login page")

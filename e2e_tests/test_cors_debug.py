@@ -5,11 +5,9 @@ import pytest
 from playwright.sync_api import Page
 
 
-def test_store_page_cors(page: Page):
-    """Test that store page can load catalog from API"""
-    
-    # Navigate to store
-    page.goto("http://localhost:5173/store")
+def test_cors_debug(page):
+    """Debug test for CORS issues"""
+    page.goto("https://localhost:5173/store")
     
     # Wait a bit for page to load
     page.wait_for_timeout(2000)

@@ -5,9 +5,9 @@ import pytest
 from playwright.sync_api import Page
 
 
-def test_login_with_button(page: Page):
-    """Test login using button click"""
-    base_url = "http://localhost:5173"
+def test_button_selector(page):
+    """Test that we can find the login button"""
+    base_url = "https://localhost:5173"
     
     # Capture console and errors
     messages = []

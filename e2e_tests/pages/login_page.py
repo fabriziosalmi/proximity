@@ -248,18 +248,14 @@ class LoginPage:
         
         return False
     
-    def login_with_api(self, username: str, password: str, api_base_url: str = "http://localhost:8000") -> 'LoginPage':
+    def login_with_api(self, username: str, password: str, api_base_url: str = "https://localhost:8000") -> 'LoginPage':
         """
-        Login using direct API call and set the token/cookie in browser.
-        This bypasses the frontend form and is more reliable for E2E tests.
+        Login using direct API calls (alternative to UI login).
         
         Args:
-            username: Username to login with
-            password: Password
-            api_base_url: Base URL of the API (default: http://localhost:8000)
-        
-        Returns:
-            self for chaining
+            username: Username for login
+            password: Password for login
+            api_base_url: Base URL of the API (default: https://localhost:8000)
         """
         import requests
         
