@@ -5,8 +5,6 @@ Starts Django with SSL certificate for local HTTPS testing
 """
 import os
 import sys
-import django
-from django.core.management import execute_from_command_line
 
 if __name__ == '__main__':
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'proximity.settings')
@@ -24,12 +22,15 @@ if __name__ == '__main__':
     print(f"   Certificate: {cert_file}")
     print(f"   Key: {key_file}")
     
-    # Run Django with SSL
+    # Import after setting environment
+    from django.core.management import execute_from_command_line
+    
+    # Run Django with SSL using django-extensions runserver_plus
     sys.argv = [
         'manage.py',
-        'runsslserver',
+        'runserver_plus',
         '0.0.0.0:8000',
-        '--certificate', cert_file,
-        '--key', key_file
+        '--cert-file', cert_file,
+        '--key-file', key_file
     ]
     execute_from_command_line(sys.argv)

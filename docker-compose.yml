@@ -146,19 +146,19 @@ services:
 
   # SvelteKit Frontend
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    build: ./frontend
     container_name: proximity2_frontend
-    command: npm run dev -- --host 0.0.0.0
+    command: npm run dev
     volumes:
       - ./frontend:/app
+      - ./frontend/cert.pem:/app/cert.pem:ro
+      - ./frontend/key.pem:/app/key.pem:ro
       - /app/node_modules  # Prevent overwriting node_modules
     ports:
       - "5173:5173"
     environment:
-      - PUBLIC_API_URL=http://localhost:8000
-      - VITE_API_URL=http://backend:8000
+      - PUBLIC_API_URL=https://localhost:8000
+      - VITE_API_URL=https://backend:8000
       - VITE_SENTRY_DSN=https://dbee00d4782d131ab54ffe60b16d969b@o149725.ingest.us.sentry.io/4510189390266368
       - VITE_SENTRY_ENVIRONMENT=development
       - VITE_SENTRY_TRACES_SAMPLE_RATE=1.0

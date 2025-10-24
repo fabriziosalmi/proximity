@@ -1,6 +1,8 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vitest/config';
 import { sentrySvelteKit } from '@sentry/sveltekit';
+import * as fs from 'fs';
+import * as path from 'path';
 
 export default defineConfig({
 	plugins: [
@@ -18,6 +20,10 @@ export default defineConfig({
 	},
 	server: {
 		host: true,
-		port: 5173
+		port: 5173,
+		https: {
+			key: fs.readFileSync(path.resolve(__dirname, 'key.pem')),
+			cert: fs.readFileSync(path.resolve(__dirname, 'cert.pem')),
+		}
 	}
 });

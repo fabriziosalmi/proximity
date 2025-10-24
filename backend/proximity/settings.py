@@ -34,7 +34,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'ninja',
     'rest_framework',
-    'sslserver',  # For HTTPS development server
+    'django_extensions',  # For HTTPS development server
 
     'allauth',
     'allauth.account',
