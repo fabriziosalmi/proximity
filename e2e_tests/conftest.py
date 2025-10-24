@@ -4,6 +4,10 @@ Pytest Fixtures for E2E Tests - "Indestructible Test Pattern" (Refactored)
 This module implements self-contained, self-cleaning test fixtures that ensure
 complete test isolation. It now uses a UI-based login for realism and supports
 the new cookie-based authentication scheme.
+
+MOCK SERVICES:
+E2E tests use MockProxmoxService to avoid dependency on real infrastructure.
+This enables fast, reliable tests that run anywhere (local, CI/CD).
 """
 import os
 import time
@@ -16,6 +20,38 @@ from playwright.sync_api import Page, Browser
 # --- Configuration ---
 BASE_URL = os.getenv("BASE_URL", "http://localhost:5173")
 API_URL = os.getenv("API_URL", "http://localhost:8000")
+
+
+# --- Mock Services Setup ---
+
+@pytest.fixture(autouse=True, scope="session")
+def mock_proxmox_service(request):
+    """
+    Automatically replace the real ProxmoxService with MockProxmoxService
+    for all E2E tests. This ensures tests don't depend on real infrastructure.
+    
+    The mock simulates all Proxmox operations (create, clone, start, stop, delete)
+    with realistic delays and state management.
+    
+    This uses environment variable-based patching to avoid Django import issues.
+    
+    autouse=True: Applied automatically to all tests
+    scope="session": Set up once for the entire test session
+    """
+    # Set environment variable to signal backend to use mock service
+    os.environ['E2E_TESTING'] = '1'
+    os.environ['USE_MOCK_PROXMOX'] = '1'
+    
+    print("\n🎭 MOCK ACTIVATED: E2E_TESTING=1, USE_MOCK_PROXMOX=1")
+    print("   Backend will use MockProxmoxService (no real Proxmox API calls)")
+    print("   All Proxmox operations will be simulated with realistic delays\n")
+    
+    yield
+    
+    # Clean up
+    os.environ.pop('E2E_TESTING', None)
+    os.environ.pop('USE_MOCK_PROXMOX', None)
+    print("\n🎭 MOCK DEACTIVATED: Environment variables cleared\n")
 
 
 # --- Core Fixtures ---
@@ -182,6 +218,26 @@ def logged_in_page(test_page: Page, unique_user: Dict[str, str], base_url: str) 
 
 
 # --- Application-Specific Fixtures ---
+
+@pytest.fixture
+def proxmox_host(api_client: httpx.Client) -> Dict[str, any]:
+    """
+    Provides a mock Proxmox host configuration for tests.
+    
+    With MockProxmoxService active, this doesn't need to create a real host.
+    It just returns mock host data that tests can reference.
+    """
+    print("\n🎭 MOCK: Using mock Proxmox host configuration")
+    return {
+        "id": 1,
+        "name": "mock-proxmox-host",
+        "host": "mock-proxmox.local",
+        "port": 8006,
+        "user": "root@pam",
+        "is_active": True,
+        "is_default": True,
+    }
+
 
 @pytest.fixture
 def deployed_app(api_client: httpx.Client, unique_user: Dict[str, str]) -> Generator[Dict[str, any], None, None]:

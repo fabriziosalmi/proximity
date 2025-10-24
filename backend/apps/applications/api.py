@@ -43,7 +43,7 @@ def list_applications(
         search: Search by name or hostname
     """
     import logging
-    from apps.proxmox.services import ProxmoxService
+    from apps.proxmox import ProxmoxService
     
     logger = logging.getLogger(__name__)
     
@@ -313,7 +313,7 @@ def discover_unmanaged_containers(request, host_id: int = None):
         List of unmanaged containers with their basic information
     """
     import logging
-    from apps.proxmox.services import ProxmoxService, ProxmoxError
+    from apps.proxmox import ProxmoxService, ProxmoxError
     
     logger = logging.getLogger(__name__)
     

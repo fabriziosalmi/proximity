@@ -10,7 +10,7 @@ from django.utils import timezone
 from django.conf import settings
 from django.db import transaction
 
-from apps.proxmox.services import ProxmoxService, ProxmoxError
+from apps.proxmox import ProxmoxService, ProxmoxError
 from apps.applications.models import Application, DeploymentLog
 from apps.applications.port_manager import PortManagerService
 

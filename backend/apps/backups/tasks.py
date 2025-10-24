@@ -8,7 +8,7 @@ from celery import shared_task
 from django.utils import timezone
 from django.db import transaction
 
-from apps.proxmox.services import ProxmoxService, ProxmoxError
+from apps.proxmox import ProxmoxService, ProxmoxError
 from apps.backups.models import Backup
 from apps.applications.models import Application
 

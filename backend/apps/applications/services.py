@@ -7,7 +7,7 @@ from typing import Dict, Any, Set
 from django.db import transaction
 from django.utils import timezone
 
-from apps.proxmox.services import ProxmoxService, ProxmoxError
+from apps.proxmox import ProxmoxService, ProxmoxError
 from apps.proxmox.models import ProxmoxHost
 from apps.applications.models import Application
 from apps.applications.port_manager import PortManagerService
