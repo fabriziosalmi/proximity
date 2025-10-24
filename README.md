@@ -1,59 +1,89 @@
-# Proximity 2.0
+# Proximity: Your Personal Cloud's Command Deck
 
-**The Definitive Rewrite**
+<p align="center">
+  <img src="https://raw.githubusercontent.com/your-username/proximity/main/docs/assets/proximity-banner.png" alt="Proximity Banner" width="800"/>
+</p>
 
-Proximity 2.0 is a complete architectural rewrite of the Proximity platform, built with modern best practices and designed for massive scalability.
+<p align="center">
+  <strong>Proximity is an open-source, immersive management layer for personal cloud infrastructure, starting with Proxmox VE.</strong>
+  <br />
+  It transforms server management from a chore into a delightful, "gamified" experience.
+</p>
 
-## Architecture Stack
+<p align="center">
+  <a href="https://github.com/your-username/proximity/blob/main/LICENSE"><img src="https://img.shields.io/github/license/your-username/proximity" alt="License"></a>
+  <a href="https://github.com/your-username/proximity/releases"><img src="https://img.shields.io/github/v/release/your-username/proximity" alt="Release"></a>
+  <a href="https://github.com/your-username/proximity/actions"><img src="https://img.shields.io/github/actions/workflow/status/your-username/proximity/ci.yml?branch=main" alt="CI Status"></a>
+</p>
 
-### Backend
-- **Django 5.x** - Robust ORM, migrations, admin panel
-- **Django Ninja** - Fast, Pydantic-driven REST API
-- **Celery + Redis** - Asynchronous task processing
-- **Django Channels** - WebSocket support for real-time features
-- **PostgreSQL** - Production-grade database (SQLite for dev)
+---
 
-### Frontend
-- **SvelteKit** - Blazingly fast, compiler-first framework
-- **Tailwind CSS** - Utility-first styling
-- **shadcn-svelte** - Beautiful, accessible component primitives
+## ✨ Key Features
 
-### DevOps
-- **Docker Compose** - Single-command development environment
-- **pytest + pytest-django** - Backend testing
-- **Vitest + Playwright** - Frontend testing
-- **GitHub Actions** - CI/CD pipeline
+*   **"Casa Digitale" (Digital Homestead):** An immersive, skeuomorphic "Command Deck" UI. We are building a virtual data center, not a web form.
+*   **"Divertimento" (Fun):** A "gamified" UX with tactile interactions, animations, and audio feedback.
+*   **"Tranquillità by Default" (Peace of Mind):** Self-healing backend, zero-downtime operations, and safety-first design.
+*   **One-Click App Deployment:** Deploy from a curated catalog of applications in seconds.
+*   **Container Adoption:** Discover and manage existing LXC containers on your Proxmox host.
+*   **Real-time Monitoring:** Live metrics for CPU, RAM, and disk usage integrated directly into the UI.
+*   **Automated Backups:** Configure and forget with scheduled, automatic backups.
 
-## Quick Start
+## 🚀 Quick Start
 
-```bash
-# Start the entire stack
-docker-compose up
+Get Proximity up and running in under 5 minutes.
 
-# Backend: http://localhost:8000
-# Frontend: http://localhost:5173
-# Django Admin: http://localhost:8000/admin
-```
+### Prerequisites
 
-## Project Philosophy
+*   Docker & Docker Compose
+*   Git
+*   A running Proxmox VE host (v7.0+)
 
-### "Divertimento"
-We transform tedious infrastructure management into an engaging, almost gamified experience.
+### Installation
 
-### "Casa Digitale"
-Proximity is not a tool; it's a personal digital environment - your unified command center.
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/your-username/proximity.git
+    cd proximity
+    ```
 
-### "Tranquillità by Default"
-Advanced features like security, backups, and reliability are built-in, not optional.
+2.  **Configure your environment:**
+    ```bash
+    cp .env.example .env
+    nano .env
+    ```
+    Update the `.env` file with your Proxmox host credentials and a new `SECRET_KEY`.
 
-## Development
+3.  **Launch the stack:**
+    ```bash
+    docker-compose up -d --build
+    ```
 
-See the `/docs` directory for detailed documentation on:
-- Architecture & Design Decisions
-- Development Workflow
-- Testing Strategy
-- Deployment Guide
+4.  **Initialize the database:**
+    ```bash
+    docker-compose exec backend python manage.py migrate
+    docker-compose exec backend python manage.py createsuperuser
+    ```
 
-## License
+5.  **Access Proximity:**
+    *   **Frontend:** `https://localhost:5173`
+    *   **Backend API:** `https://localhost:8000/api/docs`
 
-MIT License - See LICENSE file for details
+For more detailed instructions, see the [Installation Guide](docs/2-installation.md).
+
+## 📚 Documentation
+
+*   [**Introduction**](docs/1-introduction.md): What is Proximity?
+*   [**Installation**](docs/2-installation.md): Detailed setup instructions.
+*   [**Configuration**](docs/3-configuration.md): Environment variable reference.
+*   [**Architecture**](docs/4-architecture.md): A look under the hood.
+*   [**Usage Guide**](docs/5-usage-guide.md): How to use Proximity.
+*   [**Development**](docs/6-development.md): How to contribute.
+*   [**API Reference**](docs/7-api-reference.md): Guide to the backend API.
+
+## 🤝 Contributing
+
+Proximity is built by the community, for the community. We welcome contributions of all kinds! Please read our [Contributing Guide](CONTRIBUTING.md) to get started.
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
