@@ -24,12 +24,12 @@
 			console.log('📥 Login response:', response);
 
 			if (response.success && response.data) {
-				// Extract user info and token
-				const { access_token, user } = response.data;
+				// Extract user info - HttpOnly cookies are set automatically by the browser
+				const { user } = response.data;
 				console.log('✅ Login successful, redirecting...', { user });
 				
-				// Update auth store
-				authStore.login(access_token, user);
+				// Update auth store (no token needed - using HttpOnly cookies)
+				authStore.login(user);
 				
 				// Show success message
 				toasts.success(`Welcome back, ${user.username}!`, 3000);

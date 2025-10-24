@@ -74,6 +74,13 @@ class LoginPage:
             # Wait for both username and password fields to be visible and enabled
             self.page.wait_for_selector(self.USERNAME_INPUT, state="visible", timeout=30000)
             self.page.wait_for_selector(self.PASSWORD_INPUT, state="visible", timeout=5000)
+            
+            # CRITICAL: Wait for network to be idle to ensure hydration is complete
+            self.page.wait_for_load_state("networkidle", timeout=10000)
+            
+            # Extra wait for JavaScript to fully initialize event handlers
+            self.page.wait_for_timeout(2000)
+            
             logger.info("✓ Login form is ready and interactive")
         except Exception as e:
             # Debug: Check what's actually on the page

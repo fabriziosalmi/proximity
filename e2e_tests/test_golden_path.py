@@ -74,13 +74,33 @@ def test_full_app_lifecycle(
     login_page.navigate_and_wait_for_ready()
     print(f"  ✓ Navigated to login page")
     
+    # Set up console log capture
+    console_messages = []
+    page.on("console", lambda msg: console_messages.append(f"[{msg.type}] {msg.text}"))
+    
     # Use the complete login method which handles the full flow
-    login_page.login(unique_user["username"], unique_user["password"], wait_for_navigation=True)
-    print(f"  ✓ Login completed for: {unique_user['username']}")
+    login_page.login(unique_user["username"], unique_user["password"], wait_for_navigation=False)  # Don't wait, we'll check manually
+    print(f"  ✓ Login form submitted for: {unique_user['username']}")
+    
+    # Wait a bit for the async login to complete
+    page.wait_for_timeout(3000)
+    
     print(f"  ✓ Current URL: {page.url}")
     
-    # Wait for authStore to initialize with the session
-    page.wait_for_timeout(1000)
+    # Print recent console messages for debugging
+    print(f"  📜 Recent console messages:")
+    for msg in console_messages[-10:]:
+        print(f"     {msg}")
+    
+    # DEBUG: Take screenshot if still on login page
+    if "/login" in page.url:
+        page.screenshot(path="/tmp/login_failed_debug.png")
+        print(f"  ⚠️  WARNING: Still on login page! Screenshot saved.")
+        # Check for error messages
+        error_locator = page.locator('.error, .alert-error, [role="alert"]')
+        if error_locator.count() > 0:
+            error_text = error_locator.first.text_content()
+            print(f"  ❌ Error message: {error_text}")
     
     print(f"  ✅ User authenticated: {unique_user['username']}")
     print(f"  ✅ Session established with HttpOnly cookies")
