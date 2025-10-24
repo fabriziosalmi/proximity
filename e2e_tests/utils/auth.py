@@ -45,23 +45,26 @@ def cookie_login(page: Page, session_cookies: List[Dict[str, Any]], base_url: st
         page.context.add_cookies([cookie])
         logger.info(f"    ✓ Cookie injected: {cookie['name']}")
     
-    # Step 2.5: CRITICAL - Also inject access_token into localStorage
+    # Step 3: Navigate to the target page (authStore will init and verify cookies)
+    target_url = f"{base_url}{initial_page}"
+    logger.info(f"  → Navigating to {target_url} (authStore will verify session)...")
+    page.goto(target_url, wait_until="domcontentloaded")
+    
+    # Step 3.5: CRITICAL - Inject access_token into localStorage AFTER navigation
     # The frontend uses HYBRID auth - checks both cookies AND localStorage
     if access_token:
-        logger.info(f"  → Injecting JWT access_token into localStorage (hybrid auth)...")
+        logger.info(f"  → Injecting JWT access_token into localStorage (AFTER page load)...")
         page.evaluate(f"""
             () => {{
                 localStorage.setItem('access_token', '{access_token}');
                 console.log('✓ JWT access_token injected into localStorage');
             }}
         """)
+        # Reload to trigger authStore re-init with the token
+        logger.info(f"  → Reloading page to apply token...")
+        page.reload(wait_until="domcontentloaded")
     else:
         logger.warning("  ⚠️  No access_token provided - frontend may fail auth checks!")
-    
-    # Step 3: Navigate to the target page (authStore will init and verify cookies)
-    target_url = f"{base_url}{initial_page}"
-    logger.info(f"  → Navigating to {target_url} (authStore will verify session)...")
-    page.goto(target_url, wait_until="domcontentloaded")
     
     # Step 4: Wait for authStore to initialize and verify the session
     try:

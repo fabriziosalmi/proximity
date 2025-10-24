@@ -18,8 +18,8 @@ from playwright.sync_api import Page, Browser
 
 
 # --- Configuration ---
-BASE_URL = os.getenv("BASE_URL", "http://localhost:5173")
-API_URL = os.getenv("API_URL", "http://localhost:8000")
+BASE_URL = os.getenv("BASE_URL", "https://localhost:5173")  # HTTPS for secure auth
+API_URL = os.getenv("API_URL", "https://localhost:8000")     # HTTPS backend
 
 
 # --- Mock Services Setup ---
@@ -62,8 +62,13 @@ def api_client() -> Generator[httpx.Client, None, None]:
     Provides a stateful HTTP client that manages cookies across requests,
     essential for interacting with the cookie-based auth system.
     Also handles CSRF tokens automatically for Django.
+    Configured to trust self-signed SSL certificates.
     """
-    client = httpx.Client(base_url=API_URL, timeout=30.0)
+    client = httpx.Client(
+        base_url=API_URL, 
+        timeout=30.0,
+        verify=False  # Accept self-signed certificates
+    )
     
     # Get CSRF token by making an initial request
     try:

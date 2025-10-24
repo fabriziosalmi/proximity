@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'ninja',
     'rest_framework',
+    'sslserver',  # For HTTPS development server
 
     'allauth',
     'allauth.account',
@@ -145,7 +146,7 @@ REST_FRAMEWORK = {
 # Configure dj-rest-auth to use JWT and specify cookie names.
 REST_AUTH = {
     'USE_JWT': True,
-    'JWT_AUTH_HTTPONLY': True, # Make cookies HttpOnly for security.
+    'JWT_AUTH_HTTPONLY': False, # Allow JS access for hybrid auth (token in body + cookie)
     'JWT_AUTH_COOKIE': 'proximity-auth-cookie',
     'JWT_AUTH_REFRESH_COOKIE': 'proximity-refresh-cookie',
     'SESSION_LOGIN': False,  # We are a stateless API, no sessions needed.

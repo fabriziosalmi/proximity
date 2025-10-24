@@ -26,6 +26,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the application code
 COPY . .
 
+# Copy SSL certificates if they exist (for HTTPS)
+COPY cert.pem key.pem ./
+
 # Ensure the entrypoint is executable
 COPY ./entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
