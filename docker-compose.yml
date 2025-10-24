@@ -101,6 +101,7 @@ services:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
       - TESTING_MODE=False
+      - USE_MOCK_PROXMOX=1  # Enable mock service for Celery workers
       - SENTRY_DSN=https://dbee00d4782d131ab54ffe60b16d969b@o149725.ingest.us.sentry.io/4510189390266368
       - SENTRY_ENVIRONMENT=development
       - SENTRY_TRACES_SAMPLE_RATE=0.1
@@ -135,6 +136,7 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - USE_MOCK_PROXMOX=1  # Enable mock service for Celery Beat
       - SENTRY_DSN=https://dbee00d4782d131ab54ffe60b16d969b@o149725.ingest.us.sentry.io/4510189390266368
       - SENTRY_ENVIRONMENT=development
       - SENTRY_TRACES_SAMPLE_RATE=0.1

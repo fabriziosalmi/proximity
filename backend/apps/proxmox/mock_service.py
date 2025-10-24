@@ -11,6 +11,9 @@ from typing import Dict, List, Any, Optional
 
 logger = logging.getLogger(__name__)
 
+# Print immediately when this module is imported
+print("🎭 MOCK MODULE IMPORTED: MockProxmoxService is loading...")
+
 
 class ProxmoxError(Exception):
     """Mock exception matching the real ProxmoxError."""
@@ -72,6 +75,7 @@ class MockProxmoxService:
     def create_lxc(self, node_name: str, vmid: int, hostname: str, ostemplate: str,
                    password: str, memory: int = 2048, cores: int = 2, disk_size: str = "8",
                    storage: str = "local-lvm", network_bridge: str = "vmbr0", **kwargs) -> Dict[str, Any]:
+        print(f"🎭🎭🎭 MOCK CREATE_LXC CALLED: vmid={vmid}, hostname={hostname} 🎭🎭🎭")
         logger.info(f"🎭 MOCK: create_lxc(vmid={vmid}, hostname={hostname}) - STARTING")
         time.sleep(5)  # Simulate deployment delay
         
