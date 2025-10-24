@@ -55,10 +55,15 @@ def programmatic_login(page: Page, auth_token: str, base_url: str = "http://loca
     logger.info(f"  → Navigating to {target_url}")
     page.goto(target_url, wait_until="domcontentloaded")
     
-    # Step 3: Wait for authStore to initialize and propagate to ApiClient
+    # Step 3: Reload to ensure authStore picks up the localStorage changes
+    # Sometimes tokens injected via add_init_script aren't detected on first mount
+    logger.info(f"  → Reloading page to trigger authStore.init() with fresh token...")
+    page.reload(wait_until="domcontentloaded")
+    
+    # Step 4: Wait for authStore to initialize and propagate to ApiClient
     try:
         # Wait a moment for the app to mount and authStore.init() to run
-        page.wait_for_timeout(1000)
+        page.wait_for_timeout(1500)  # Increased from 1000ms to 1500ms
         
         # Check the current auth state
         auth_status = page.evaluate("""
