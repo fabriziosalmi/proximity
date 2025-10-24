@@ -98,9 +98,14 @@ def deploy_app_task(
         logger.info(f"[{app_id}] STEP 0 COMPLETE: Application status set to 'deploying'")
         
         # TESTING MODE: Simulate deployment without Proxmox
-        if settings.TESTING_MODE:
-            logger.warning(f"[{app_id}] ⚠️  TESTING MODE ACTIVE - Simulating deployment (NO REAL PROXMOX DEPLOYMENT)")
-            log_deployment(app_id, 'info', '[TEST MODE] Simulating deployment...', 'test_mode')
+        # Also activate when USE_MOCK_PROXMOX=1 for E2E tests
+        import os
+        is_mock_mode = os.getenv('USE_MOCK_PROXMOX') == '1'
+        
+        if settings.TESTING_MODE or is_mock_mode:
+            mode_name = 'TEST MODE' if settings.TESTING_MODE else 'MOCK MODE'
+            logger.warning(f"[{app_id}] ⚠️  {mode_name} ACTIVE - Simulating deployment (NO REAL PROXMOX DEPLOYMENT)")
+            log_deployment(app_id, 'info', f'[{mode_name}] Simulating deployment...', 'test_mode')
             time.sleep(2)  # Simulate deployment time
 
             # Assign unique fake VMID (find next available starting from 9000)

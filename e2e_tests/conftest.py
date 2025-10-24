@@ -121,6 +121,7 @@ def unique_user(api_client: httpx.Client) -> Generator[Dict[str, str], None, Non
         
         login_data = login_response.json()
         user_data["user_id"] = login_data.get("user", {}).get("pk")
+        user_data["access_token"] = login_data.get("access")  # JWT access token for programmatic login
         
         # Update CSRF token after login
         csrf_token = api_client.cookies.get("csrftoken")
@@ -283,5 +284,8 @@ def deployed_app(api_client: httpx.Client, unique_user: Dict[str, str]) -> Gener
     else:
         pytest.fail(f"App did not reach 'running' status within {max_wait} seconds")
 
+    # Add auth token to app details for programmatic login
+    app_details['auth_token'] = unique_user['access_token']
+    
     yield app_details
     # Cleanup is handled by the unique_user fixture's teardown
