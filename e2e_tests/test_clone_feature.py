@@ -13,7 +13,7 @@ import time
 import re
 from playwright.sync_api import expect, Page
 from pages import LoginPage, StorePage, AppsPage
-from utils.auth import programmatic_login
+from utils.auth import cookie_login  # Use cookie-based auth instead of JWT
 
 
 @pytest.mark.clone
@@ -53,11 +53,11 @@ def test_clone_application_lifecycle(
         base_url: Frontend base URL
     """
     # ============================================================================
-    # BULLETPROOF PROGRAMMATIC LOGIN:
-    # Injects token + waits for ApiClient readiness signal
+    # BULLETPROOF COOKIE-BASED LOGIN:
+    # Injects session cookies + JWT token + waits for ApiClient readiness signal
     # ============================================================================
-    print(f"\n🔐 Performing bulletproof programmatic login...")
-    programmatic_login(page, deployed_app["auth_token"], base_url)
+    print(f"\n🔐 Performing hybrid authentication (cookies + JWT)...")
+    cookie_login(page, deployed_app["session_cookies"], base_url, access_token=deployed_app["auth_token"])
     print(f"  ✅ ApiClient confirmed ready for authenticated requests")
     
     # ============================================================================

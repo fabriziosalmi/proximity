@@ -285,7 +285,18 @@ def deployed_app(api_client: httpx.Client, unique_user: Dict[str, str]) -> Gener
         pytest.fail(f"App did not reach 'running' status within {max_wait} seconds")
 
     # Add auth token to app details for programmatic login
-    app_details['auth_token'] = unique_user['access_token']
+    # Also add session cookies for cookie-based auth (HttpOnly)
+    app_details['auth_token'] = unique_user['access_token']  # JWT for hybrid auth
+    app_details['session_cookies'] = []  # Convert httpx cookies to Playwright format
+    
+    for cookie_name, cookie_value in api_client.cookies.items():
+        app_details['session_cookies'].append({
+            'name': cookie_name,
+            'value': cookie_value,
+            'domain': 'localhost',
+            'path': '/',
+            'httpOnly': True if cookie_name in ['sessionid', 'csrftoken'] else False
+        })
     
     yield app_details
     # Cleanup is handled by the unique_user fixture's teardown

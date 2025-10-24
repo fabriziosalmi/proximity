@@ -6,9 +6,115 @@ the frontend ApiClient is fully initialized and authenticated before any test
 interactions occur.
 """
 import logging
+from typing import List, Dict, Any
 from playwright.sync_api import Page
 
 logger = logging.getLogger(__name__)
+
+
+def cookie_login(page: Page, session_cookies: List[Dict[str, Any]], base_url: str = "http://localhost:5173", initial_page: str = "/", access_token: str = None) -> None:
+    """
+    Perform cookie-based authentication by injecting session cookies into the browser.
+    This works with HttpOnly cookie-based auth (the current Proximity 2.0 architecture).
+    
+    Args:
+        page: Playwright Page instance
+        session_cookies: List of cookie dicts with 'name', 'value', 'domain', 'path'
+        base_url: Base URL of the frontend application
+        initial_page: Initial page to navigate to (default: "/" for homepage)
+        access_token: Optional JWT access token to inject into localStorage (for hybrid auth)
+        
+    Raises:
+        TimeoutError: If authStore fails to initialize within timeout
+    """
+    logger.info("🍪 [COOKIE-LOGIN] Starting cookie-based authentication...")
+    
+    # Capture browser console logs for debugging
+    console_messages = []
+    def handle_console(msg):
+        console_messages.append(f"[{msg.type}] {msg.text}")
+    page.on("console", handle_console)
+    
+    # Step 1: Navigate to the base URL to establish context
+    logger.info(f"  → Navigating to {base_url} to establish browser context...")
+    page.goto(base_url, wait_until="domcontentloaded")
+    
+    # Step 2: Inject session cookies into the browser
+    logger.info(f"  → Injecting {len(session_cookies)} session cookies...")
+    for cookie in session_cookies:
+        page.context.add_cookies([cookie])
+        logger.info(f"    ✓ Cookie injected: {cookie['name']}")
+    
+    # Step 2.5: CRITICAL - Also inject access_token into localStorage
+    # The frontend uses HYBRID auth - checks both cookies AND localStorage
+    if access_token:
+        logger.info(f"  → Injecting JWT access_token into localStorage (hybrid auth)...")
+        page.evaluate(f"""
+            () => {{
+                localStorage.setItem('access_token', '{access_token}');
+                console.log('✓ JWT access_token injected into localStorage');
+            }}
+        """)
+    else:
+        logger.warning("  ⚠️  No access_token provided - frontend may fail auth checks!")
+    
+    # Step 3: Navigate to the target page (authStore will init and verify cookies)
+    target_url = f"{base_url}{initial_page}"
+    logger.info(f"  → Navigating to {target_url} (authStore will verify session)...")
+    page.goto(target_url, wait_until="domcontentloaded")
+    
+    # Step 4: Wait for authStore to initialize and verify the session
+    try:
+        page.wait_for_timeout(2000)  # Give authStore time to call api.getUser()
+        
+        # Check auth status
+        auth_status = page.evaluate("""
+            () => {
+                const cookies = document.cookie;
+                return {
+                    hasCookies: cookies.length > 0,
+                    apiReady: document.body.getAttribute('data-api-client-ready'),
+                    url: window.location.href
+                };
+            }
+        """)
+        logger.info(f"  → Auth status: cookies={auth_status['hasCookies']}, ready={auth_status['apiReady']}")
+        
+        # Wait for the ready signal
+        page.wait_for_selector(
+            'body[data-api-client-ready="true"]',
+            timeout=10000,
+            state="attached"
+        )
+        logger.info("  ✅ authStore initialized, ApiClient ready!")
+        
+    except Exception as e:
+        logger.error(f"  ❌ authStore/ApiClient failed: {e}")
+        ready_attr = page.evaluate('document.body.getAttribute("data-api-client-ready")')
+        logger.error(f"  → Body attribute: {ready_attr}")
+        
+        # Log captured console messages
+        logger.error(f"  → Browser console ({len(console_messages)} messages):")
+        for msg in console_messages[-20:]:  # Last 20 messages
+            logger.error(f"      {msg}")
+        
+        # Check if authStore exists
+        authstore_exists = page.evaluate("""
+            () => {
+                return {
+                    hasAuthStore: typeof window.authStore !== 'undefined',
+                    hasApiClient: typeof window.ApiClient !== 'undefined'
+                };
+            }
+        """)
+        logger.error(f"  → Stores: {authstore_exists}")
+        
+        raise TimeoutError(
+            f"authStore/ApiClient did not signal readiness within 10 seconds. "
+            f"Ready attribute: {ready_attr}"
+        ) from e
+    
+    logger.info("🎉 [COOKIE-LOGIN] Authentication completed successfully!")
 
 
 def programmatic_login(page: Page, auth_token: str, base_url: str = "http://localhost:5173", initial_page: str = "/") -> None:
