@@ -62,8 +62,7 @@ function createAppsStore() {
 		const currentAuthState = get(authStore);
 		console.log('8️⃣ [myAppsStore] Checked authStore state:', {
 			isInitialized: currentAuthState.isInitialized,
-			isAuthenticated: currentAuthState.isAuthenticated,
-			hasToken: !!currentAuthState.token
+			hasUser: !!currentAuthState.user
 		});
 		
 		if (!currentAuthState.isInitialized) {
@@ -207,8 +206,7 @@ function createAppsStore() {
 		
 		console.log('1️⃣1️⃣ [myAppsStore] Checked authStore for initialization:', {
 			isInitialized: currentAuthState.isInitialized,
-			isAuthenticated: currentAuthState.isAuthenticated,
-			hasToken: !!currentAuthState.token
+			hasUser: !!currentAuthState.user
 		});
 		
 		if (!currentAuthState.isInitialized) {

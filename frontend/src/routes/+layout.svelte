@@ -11,11 +11,12 @@
 	onMount(async () => {
 		console.log('🎪 [RootLayout] Root +layout.svelte mounted - initializing app');
 		
-		// CRITICAL: Initialize authStore FIRST to establish single source of truth
-		// This must happen before any API calls or component interactions
+		// CRITICAL: Initialize authStore FIRST and WAIT for it to complete
+		// This ensures the authentication state is fully resolved before any components
+		// or stores make API calls, preventing race conditions and 401/422 errors
 		console.log('🔐 [RootLayout] Calling authStore.init()...');
-		authStore.init();
-		console.log('✅ [RootLayout] authStore.init() completed');
+		await authStore.init(); // ⚠️ AWAIT is critical - don't proceed until auth is ready
+		console.log('✅ [RootLayout] authStore.init() completed - auth state is now reliable');
 		
 		// Then initialize other services
 		console.log('🎨 [RootLayout] Initializing ThemeService...');

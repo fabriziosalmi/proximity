@@ -4,11 +4,12 @@ Test login con cattura console logs
 import pytest
 
 
-def test_login_with_console_logs(page, unique_user):
+def test_login_with_console_logs(page, unique_user, base_url):
     """Test login e cattura tutti i console.log del browser."""
     print(f"\n🧪 Testing login with console capture")
     print(f"   Username: {unique_user['username']}")
     print(f"   Password: {unique_user['password']}")
+    print(f"   Base URL: {base_url}")
     
     # Capture console messages
     console_messages = []
@@ -47,7 +48,7 @@ def test_login_with_console_logs(page, unique_user):
     
     # Navigate to login
     print("\n📍 Navigating to login page...")
-    page.goto("http://localhost:5173/login")
+    page.goto(f"{base_url}/auth/login")
     page.wait_for_load_state("domcontentloaded")
     
     # Fill form

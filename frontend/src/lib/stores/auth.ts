@@ -1,9 +1,11 @@
 /**
- * Authentication Store - Single Source of Truth (Refactored for HttpOnly Cookies)
+ * Authentication Store - Atomic State Management (Refactored)
  *
  * Key Principles:
- * - Manages user state and authentication status, NOT tokens.
- * - The browser's cookie jar is the single source of truth for the session.
+ * - ATOMIC STATE: User state is updated in a single synchronous operation.
+ * - DERIVED AUTHENTICATION: isAuthenticated is computed from user state, not stored separately.
+ * - NO RACE CONDITIONS: Authentication status is always consistent with user data.
+ * - HttpOnly cookies are the source of truth for the session.
  * - The store hydrates itself by calling a 'user' endpoint on startup.
  */
 import { writable, derived } from 'svelte/store';
@@ -20,25 +22,31 @@ export interface User {
 	last_name: string;
 }
 
+/**
+ * Core authentication state - SIMPLIFIED
+ * The ONLY source of truth is the user object.
+ * isInitialized tracks whether init() has completed.
+ */
 interface AuthState {
 	user: User | null;
-	isAuthenticated: boolean;
-	isInitialized: boolean; // Signals when init() has completed
+	isInitialized: boolean;
 }
 
 function createAuthStore() {
 	const initialState: AuthState = {
 		user: null,
-		isAuthenticated: false,
 		isInitialized: false
 	};
 
 	const { subscribe, set, update } = writable<AuthState>(initialState);
 
-	// Function to set the user state and handle Sentry context
-	const setUserState = (user: User | null) => {
+	/**
+	 * ATOMIC STATE UPDATE: Sets user and handles Sentry in a single operation.
+	 * This ensures state consistency - no intermediate states possible.
+	 */
+	const setUserState = (user: User | null, isInitialized: boolean = true) => {
+		// Update Sentry context
 		if (user) {
-			set({ user, isAuthenticated: true, isInitialized: true });
 			Sentry.setUser({
 				id: user.pk || user.id,
 				username: user.username,
@@ -46,10 +54,12 @@ function createAuthStore() {
 			});
 			console.log('✅ [AuthStore] Session is valid. User set:', user.username);
 		} else {
-			set({ user: null, isAuthenticated: false, isInitialized: true });
 			Sentry.setUser(null);
 			console.log('🔐 [AuthStore] Session is invalid or ended. User cleared.');
 		}
+		
+		// ATOMIC UPDATE: Single operation, no intermediate state
+		set({ user, isInitialized });
 	};
 
 	return {
@@ -58,6 +68,7 @@ function createAuthStore() {
 		/**
 		 * Initialize the store by verifying the session with the backend.
 		 * This is the ONLY way to confirm authentication status on startup.
+		 * CRITICAL: This function is async and MUST complete before any API calls.
 		 */
 		init: async () => {
 			if (!browser) return;
@@ -67,10 +78,12 @@ function createAuthStore() {
 
 			if (response.success && response.data) {
 				// The HttpOnly cookie was valid, backend returned user data.
-				setUserState(response.data);
+				// ATOMIC: User and initialized status set together
+				setUserState(response.data, true);
 			} else {
 				// No valid cookie, or an error occurred.
-				setUserState(null);
+				// ATOMIC: Clear user and mark as initialized
+				setUserState(null, true);
 			}
 		},
 
@@ -80,7 +93,8 @@ function createAuthStore() {
 		 */
 		login: (user: User) => {
 			console.log('🟢 [AuthStore] login() called - Setting user state.');
-			setUserState(user);
+			// ATOMIC: User is set in one operation
+			setUserState(user, true);
 		},
 
 		/**
@@ -89,7 +103,8 @@ function createAuthStore() {
 		logout: async () => {
 			console.log('👋 [AuthStore] logout() called - Logging out via API...');
 			await api.logout(); // Tell backend to delete the cookie
-			setUserState(null); // Clear the state in the frontend
+			// ATOMIC: User is cleared in one operation
+			setUserState(null, true);
 		},
 
 		/**
@@ -97,6 +112,14 @@ function createAuthStore() {
 		 */
 		updateUser: (user: User) => {
 			update(state => {
+				// Preserve isInitialized, update user
+				if (user) {
+					Sentry.setUser({
+						id: user.pk || user.id,
+						username: user.username,
+						email: user.email
+					});
+				}
 				return { ...state, user };
 			});
 		}
@@ -105,8 +128,24 @@ function createAuthStore() {
 
 export const authStore = createAuthStore();
 
-// Derived store for easy access to authentication status
-export const isAuthenticated = derived(authStore, $authStore => $authStore.isAuthenticated);
+/**
+ * DERIVED STORE: isAuthenticated
+ * 
+ * This is the KEY to atomic state management. Instead of storing isAuthenticated
+ * as a separate piece of state, we DERIVE it from the user object.
+ * 
+ * This guarantees that:
+ * - If isAuthenticated is true, user is ALWAYS non-null
+ * - If isAuthenticated is false, user is ALWAYS null
+ * - NO RACE CONDITIONS are possible
+ * 
+ * Components and stores should subscribe to this derived store instead of
+ * checking a stored isAuthenticated flag.
+ */
+export const isAuthenticated = derived(
+	authStore,
+	$authStore => $authStore.user !== null
+);
 
-// Derived store for current user
+// Derived store for current user (convenience accessor)
 export const currentUser = derived(authStore, $authStore => $authStore.user);

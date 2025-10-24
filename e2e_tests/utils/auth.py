@@ -6,13 +6,13 @@ the frontend ApiClient is fully initialized and authenticated before any test
 interactions occur.
 """
 import logging
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from playwright.sync_api import Page
 
 logger = logging.getLogger(__name__)
 
 
-def cookie_login(page: Page, session_cookies: List[Dict[str, Any]], base_url: str = "http://localhost:5173", initial_page: str = "/", access_token: str = None) -> None:
+def cookie_login(page: Page, session_cookies: List[Dict[str, Any]], base_url: str = "http://localhost:5173", initial_page: str = "/", access_token: Optional[str] = None) -> None:
     """
     Perform cookie-based authentication by injecting session cookies into the browser.
     This works with HttpOnly cookie-based auth (the current Proximity 2.0 architecture).
@@ -28,6 +28,7 @@ def cookie_login(page: Page, session_cookies: List[Dict[str, Any]], base_url: st
         TimeoutError: If authStore fails to initialize within timeout
     """
     logger.info("🍪 [COOKIE-LOGIN] Starting cookie-based authentication...")
+    print("🍪 [COOKIE-LOGIN] Starting cookie-based authentication...")  # DEBUG
     
     # Capture browser console logs for debugging
     console_messages = []
@@ -37,10 +38,12 @@ def cookie_login(page: Page, session_cookies: List[Dict[str, Any]], base_url: st
     
     # Step 1: Navigate to the base URL to establish context
     logger.info(f"  → Navigating to {base_url} to establish browser context...")
+    print(f"  → Navigating to {base_url} to establish browser context...")  # DEBUG
     page.goto(base_url, wait_until="domcontentloaded")
     
     # Step 2: Inject session cookies into the browser
     logger.info(f"  → Injecting {len(session_cookies)} session cookies...")
+    print(f"  → Injecting {len(session_cookies)} session cookies...")  # DEBUG
     for cookie in session_cookies:
         page.context.add_cookies([cookie])
         logger.info(f"    ✓ Cookie injected: {cookie['name']}")
@@ -48,12 +51,16 @@ def cookie_login(page: Page, session_cookies: List[Dict[str, Any]], base_url: st
     # Step 3: Navigate to the target page (authStore will init and verify cookies)
     target_url = f"{base_url}{initial_page}"
     logger.info(f"  → Navigating to {target_url} (authStore will verify session)...")
+    print(f"  → Navigating to {target_url} (authStore will verify session)...")  # DEBUG
     page.goto(target_url, wait_until="domcontentloaded")
     
     # Step 3.5: CRITICAL - Inject access_token into localStorage AFTER navigation
     # The frontend uses HYBRID auth - checks both cookies AND localStorage
+    logger.info(f"  → DEBUG: access_token type={type(access_token)}, value={bool(access_token)}")
+    print(f"  → DEBUG: access_token type={type(access_token)}, value={bool(access_token)}")  # DEBUG
     if access_token:
         logger.info(f"  → Injecting JWT access_token into localStorage (AFTER page load)...")
+        logger.info(f"  → Token preview: {access_token[:50]}...")
         page.evaluate(f"""
             () => {{
                 localStorage.setItem('access_token', '{access_token}');
@@ -65,6 +72,7 @@ def cookie_login(page: Page, session_cookies: List[Dict[str, Any]], base_url: st
         page.reload(wait_until="domcontentloaded")
     else:
         logger.warning("  ⚠️  No access_token provided - frontend may fail auth checks!")
+        logger.warning(f"  ⚠️  access_token value: {access_token}")
     
     # Step 4: Wait for authStore to initialize and verify the session
     try:

@@ -8,7 +8,7 @@
 import * as Sentry from '@sentry/sveltekit';
 import type { User } from '$lib/stores/auth';
 
-const API_BASE_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.PUBLIC_API_URL || 'https://localhost:8000';
 
 interface ApiResponse<T> {
 	success: boolean;

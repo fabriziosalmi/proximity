@@ -267,7 +267,8 @@ class LoginPage:
         response = requests.post(
             f"{api_base_url}/api/auth/login/",
             json={"username": username, "password": password},
-            headers={"Content-Type": "application/json"}
+            headers={"Content-Type": "application/json"},
+            verify=False  # Accept self-signed certificates for local development
         )
         
         if not response.ok:

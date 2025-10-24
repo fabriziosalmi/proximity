@@ -57,6 +57,7 @@ def test_clone_application_lifecycle(
     # Injects session cookies + JWT token + waits for ApiClient readiness signal
     # ============================================================================
     print(f"\n🔐 Performing hybrid authentication (cookies + JWT)...")
+    print(f"DEBUG: auth_token = {deployed_app.get('auth_token', 'NOT FOUND')[:50] if deployed_app.get('auth_token') else 'NONE'}")
     cookie_login(page, deployed_app["session_cookies"], base_url, access_token=deployed_app["auth_token"])
     print(f"  ✅ ApiClient confirmed ready for authenticated requests")
     
