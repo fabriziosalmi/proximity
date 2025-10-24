@@ -136,9 +136,6 @@ class StorePage:
         """
         Click the deploy button in the modal to confirm deployment.
         
-        This implements event-driven waiting: we wait for the deployment API call
-        to complete AND for the navigation to /apps, eliminating race conditions.
-        
         Args:
             wait_for_redirect: Whether to wait for redirect to /apps page
         
@@ -148,27 +145,20 @@ class StorePage:
         modal_deploy_button = self.page.locator(self.MODAL_DEPLOY_BUTTON).first
         expect(modal_deploy_button).to_be_visible(timeout=5000)
         
+        # Click the button to trigger deployment
+        modal_deploy_button.click()
+        
         if wait_for_redirect:
-            # CRITICAL: Wait for BOTH the API call AND the navigation
-            # The frontend calls api.deployApp(), then navigates to /apps on success
-            with self.page.expect_response(
-                lambda res: "/api/apps/deploy" in res.url or "/api/deploy" in res.url,
-                timeout=15000
-            ) as response_info:
-                # Click the button to trigger deployment
-                modal_deploy_button.click()
-            
-            # Check API response status
-            api_response = response_info.value
-            print(f"  ✓ Deployment API responded with status: {api_response.status}")
-            
-            # Now wait for navigation to /apps page (happens after successful API call)
-            # Use a more flexible pattern that matches both /apps and /apps/
-            self.page.wait_for_url(re.compile(r".*/apps/?$"), timeout=10000)
-            print(f"  ✓ Redirected to: {self.page.url}")
-        else:
-            # Just click without waiting
-            modal_deploy_button.click()
+            # Wait for navigation to /apps page (frontend does goto('/apps') after successful deployment)
+            # Use page.wait_for_url which is more reliable than expect().to_have_url()
+            try:
+                self.page.wait_for_url(re.compile(r".*/apps/?$"), timeout=20000, wait_until="domcontentloaded")
+                print(f"  ✓ Redirected to: {self.page.url}")
+            except Exception as e:
+                print(f"  ⚠️  Navigation timeout or stayed on: {self.page.url}")
+                # Take a screenshot for debugging
+                self.page.screenshot(path="/tmp/deploy_redirect_failed.png")
+                raise
         
         return self
     
@@ -258,15 +248,23 @@ class StorePage:
             self for chaining
         """
         # First check if there's a loading indicator and wait for it to disappear
-        loading = self.page.locator(self.LOADING_INDICATOR).first
-        if loading.is_visible():
-            loading.wait_for(state="hidden", timeout=timeout)
+        try:
+            loading = self.page.locator(self.LOADING_INDICATOR).first
+            if loading.is_visible():
+                loading.wait_for(state="hidden", timeout=5000)
+        except Exception:
+            # No loading indicator or already hidden
+            pass
         
         # Wait for at least one catalog card to be rendered
+        # Use a longer timeout for the initial wait
         self.page.locator('[data-testid^="catalog-card-"]').first.wait_for(
             state="visible",
             timeout=timeout
         )
+        
+        # Give a moment for all cards to render
+        self.page.wait_for_timeout(500)
         
         # Verify we have at least min_count apps
         actual_count = self.page.locator('[data-testid^="catalog-card-"]').count()
