@@ -329,6 +329,39 @@ class ApiClient {
 			body: JSON.stringify(data)
 		});
 	}
+
+	// Proxmox Settings (convenience methods)
+	async getProxmoxSettings() {
+		// Get the primary Proxmox host configuration
+		const response = await this.listHosts();
+		if (response.success && Array.isArray(response.data) && response.data.length > 0) {
+			return { success: true, data: response.data[0] };
+		}
+		return { success: false, error: 'No Proxmox host configured' };
+	}
+
+	async saveProxmoxSettings(data: any) {
+		// Update the primary Proxmox host configuration
+		const response = await this.listHosts();
+		if (response.success && Array.isArray(response.data) && response.data.length > 0) {
+			const hostId = response.data[0].id;
+			return this.updateHost(hostId, data);
+		}
+		// If no host exists, create one
+		return this.createHost(data);
+	}
+
+	async testProxmoxConnection(hostId?: number) {
+		if (hostId) {
+			return this.testHostConnection(hostId);
+		}
+		// Test the primary host
+		const response = await this.listHosts();
+		if (response.success && Array.isArray(response.data) && response.data.length > 0) {
+			return this.testHostConnection(response.data[0].id);
+		}
+		return { success: false, error: 'No Proxmox host configured' };
+	}
 }
 
 export const api = new ApiClient();

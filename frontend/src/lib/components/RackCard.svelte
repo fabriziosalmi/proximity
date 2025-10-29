@@ -318,6 +318,51 @@
 							</div>
 						{/if}
 
+						<!-- Ports Mapping -->
+						{#if app.ports && Object.keys(app.ports).length > 0}
+							<div class="tech-section">
+								<span class="tech-label">Ports:</span>
+								<div class="tech-mappings">
+									{#each Object.entries(app.ports) as [key, value]}
+										<div class="mapping-item">
+											<span class="mapping-key">{key}:</span>
+											<span class="mapping-value">{value}</span>
+										</div>
+									{/each}
+								</div>
+							</div>
+						{/if}
+
+						<!-- Environment Variables -->
+						{#if app.environment && Object.keys(app.environment).length > 0}
+							<div class="tech-section">
+								<span class="tech-label">Environment:</span>
+								<div class="tech-mappings">
+									{#each Object.entries(app.environment) as [key, value]}
+										<div class="mapping-item">
+											<span class="mapping-key">{key}:</span>
+											<span class="mapping-value">{value}</span>
+										</div>
+									{/each}
+								</div>
+							</div>
+						{/if}
+
+						<!-- Volumes -->
+						{#if app.volumes && Object.keys(app.volumes).length > 0}
+							<div class="tech-section">
+								<span class="tech-label">Volumes:</span>
+								<div class="tech-mappings">
+									{#each Object.entries(app.volumes) as [key, value]}
+										<div class="mapping-item">
+											<span class="mapping-key">{key}:</span>
+											<span class="mapping-value">{value}</span>
+										</div>
+									{/each}
+								</div>
+							</div>
+						{/if}
+
 						<!-- View Details Button (deployed apps only) -->
 						{#if variant === 'deployed'}
 							<div class="view-details-container">
@@ -842,6 +887,52 @@
 		font-family: 'Courier New', monospace;
 		color: var(--color-accent-bright);
 		font-weight: 600;
+	}
+
+	/* Tech Sections for Complex Data (Ports, Environment, Volumes) */
+	.tech-section {
+		grid-column: 1 / -1;
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		padding: 0.75rem;
+		background: rgba(0, 0, 0, 0.4);
+		border: 1px solid rgba(255, 255, 255, 0.05);
+		border-radius: 0.25rem;
+	}
+
+	.tech-mappings {
+		display: flex;
+		flex-direction: column;
+		gap: 0.375rem;
+	}
+
+	.mapping-item {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 0.375rem;
+		font-size: 0.75rem;
+		background: rgba(0, 0, 0, 0.3);
+		border-radius: 0.125rem;
+		border-left: 2px solid var(--color-accent);
+	}
+
+	.mapping-key {
+		font-family: 'Courier New', monospace;
+		color: var(--color-text-secondary);
+		font-weight: 600;
+		text-transform: uppercase;
+		flex-shrink: 0;
+	}
+
+	.mapping-value {
+		font-family: 'Courier New', monospace;
+		color: var(--color-accent-bright);
+		word-break: break-all;
+		flex: 1;
+		text-align: right;
 	}
 
 	.view-details-container {
