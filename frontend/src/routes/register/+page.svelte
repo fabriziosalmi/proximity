@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { authStore } from '$lib/stores/auth';
-	import api from '$lib/api';
+	import { api } from '$lib/api';
 	import { toasts } from '$lib/stores/toast';
 	
 	let username = '';

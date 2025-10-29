@@ -25,17 +25,17 @@
 		if (catalogResponse.success && catalogResponse.data) {
 			catalogStats = {
 				total: catalogResponse.data.total_apps || 0,
-				categories: catalogResponse.data.categories_count || 0
+				categories: catalogResponse.data.total_categories || 0
 			};
 		}
 
 		// Load hosts stats
 		const hostsResponse = await api.listHosts();
 		if (hostsResponse.success && hostsResponse.data) {
-			const hosts = hostsResponse.data.hosts || [];
+			const hosts = Array.isArray(hostsResponse.data) ? hostsResponse.data : [];
 			hostsStats = {
 				total: hosts.length,
-				online: hosts.filter((h: any) => h.status === 'online').length,
+				online: hosts.filter((h: any) => h.is_active === true).length,
 				cpuUsage: '0%', // TODO: Calculate from hosts data
 				memoryUsage: '0%' // TODO: Calculate from hosts data
 			};

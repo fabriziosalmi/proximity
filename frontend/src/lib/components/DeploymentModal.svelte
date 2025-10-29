@@ -57,9 +57,13 @@
 	}
 
 	async function fetchNodes(hostId: number) {
-		const response = await api.syncNodes(hostId);
+		// First sync the nodes from Proxmox
+		await api.syncNodes(hostId);
+
+		// Then fetch the synced nodes list
+		const response = await api.getProxmoxNodes(hostId);
 		if (response.success && response.data) {
-			nodes = response.data.nodes || [];
+			nodes = Array.isArray(response.data) ? response.data : [];
 			// Auto-select first node
 			if (nodes.length > 0) {
 				selectedNode = nodes[0].name;
