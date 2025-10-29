@@ -93,9 +93,7 @@
 			return;
 		}
 
-		loading = true;
-		error = '';
-
+		// Check if all required fields are set
 		const deploymentData = {
 			catalog_id: app.id,
 			hostname,
@@ -106,9 +104,9 @@
 
 		console.log('📤 Deploying:', deploymentData);
 
+		// Dispatch to parent - parent will handle modal closing and state updates
+		// Don't set loading = false here as component might be unmounting
 		dispatch('deploy', deploymentData);
-
-		loading = false;
 	}
 
 	function handleClose() {

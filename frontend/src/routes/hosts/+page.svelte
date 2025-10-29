@@ -110,30 +110,44 @@
 		}
 	});
 
+	// Helper function to safely calculate average CPU usage
+	function calculateAvgCpuUsage(): number {
+		const onlineNodesWithCpu = nodes.filter(
+			n => n.status === 'online' && n.cpu_usage !== undefined && n.cpu_usage !== null
+		);
+
+		if (onlineNodesWithCpu.length === 0) return 0;
+
+		const total = onlineNodesWithCpu.reduce((sum, n) => sum + (n.cpu_usage || 0), 0);
+		return Math.round(total / onlineNodesWithCpu.length);
+	}
+
+	// Helper function to safely calculate average memory usage
+	function calculateAvgMemoryUsage(): number {
+		const onlineNodesWithMem = nodes.filter(
+			n => n.status === 'online' &&
+			     n.memory_used !== undefined &&
+			     n.memory_used !== null &&
+			     n.memory_total !== undefined &&
+			     n.memory_total !== null &&
+			     n.memory_total > 0
+		);
+
+		if (onlineNodesWithMem.length === 0) return 0;
+
+		const total = onlineNodesWithMem.reduce(
+			(sum, n) => sum + ((n.memory_used! / n.memory_total!) * 100),
+			0
+		);
+		return Math.round(total / onlineNodesWithMem.length);
+	}
+
 	// Reactive stats
 	$: onlineNodes = nodes.filter((n) => n.status === 'online').length;
 	$: offlineNodes = nodes.filter((n) => n.status === 'offline').length;
 	$: totalNodes = nodes.length;
-	
-	// Aggregate CPU usage (average of online nodes)
-	$: avgCpuUsage = onlineNodes > 0 
-		? Math.round(
-			nodes
-				.filter(n => n.status === 'online' && n.cpu_usage !== undefined)
-				.reduce((sum, n) => sum + (n.cpu_usage || 0), 0) / 
-			nodes.filter(n => n.status === 'online' && n.cpu_usage !== undefined).length
-		)
-		: 0;
-	
-	// Aggregate Memory usage (average of online nodes)
-	$: avgMemoryUsage = onlineNodes > 0
-		? Math.round(
-			nodes
-				.filter(n => n.status === 'online' && n.memory_used !== undefined && n.memory_total !== undefined)
-				.reduce((sum, n) => sum + ((n.memory_used || 0) / (n.memory_total || 1) * 100), 0) /
-			nodes.filter(n => n.status === 'online' && n.memory_used !== undefined && n.memory_total !== undefined).length
-		)
-		: 0;
+	$: avgCpuUsage = calculateAvgCpuUsage();
+	$: avgMemoryUsage = calculateAvgMemoryUsage();
 	
 	function handleAddHost() {
 		goto('/settings/proxmox');

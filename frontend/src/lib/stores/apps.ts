@@ -197,53 +197,61 @@ function createAppsStore() {
 	// Start polling for real-time updates (AUTH-AWARE)
 	function startPolling(intervalMs: number = 5000) {
 		console.log('🎬 [myAppsStore] startPolling() called with interval:', intervalMs);
-		
-		stopPolling(); // Clear any existing interval
+
+		stopPolling(); // Clear any existing interval and subscriptions
 		isPollingActive = true; // Mark that we want polling to be active
 
 		// 🔐 CRITICAL: Wait for authStore to be initialized before fetching
 		const currentAuthState = get(authStore);
-		
+
 		console.log('1️⃣1️⃣ [myAppsStore] Checked authStore for initialization:', {
 			isInitialized: currentAuthState.isInitialized,
 			hasUser: !!currentAuthState.user
 		});
-		
+
 		if (!currentAuthState.isInitialized) {
 			console.log('1️⃣2️⃣ [myAppsStore] Auth NOT initialized yet - subscribing to wait for it...');
-			
+
 			// Subscribe to authStore and wait for initialization
-			authUnsubscribe = authStore.subscribe((authState) => {
+			// Store reference so we can clean up
+			let unsubscribeAuth: (() => void) | null = authStore.subscribe((authState) => {
 				console.log('1️⃣3️⃣ [myAppsStore] Auth subscription callback fired:', {
 					isInitialized: authState.isInitialized,
 					isPollingActive: isPollingActive
 				});
-				
-				if (authState.isInitialized && isPollingActive) {
+
+				if (authState.isInitialized && isPollingActive && unsubscribeAuth) {
 					console.log('1️⃣4️⃣ [myAppsStore] Auth is NOW ready! Starting polling...');
-					
-					// Clean up subscription
-					if (authUnsubscribe) {
-						authUnsubscribe();
-						authUnsubscribe = null;
-					}
-					
+
+					// Clean up this subscription
+					unsubscribeAuth();
+					unsubscribeAuth = null;
+					authUnsubscribe = null; // Clear the global reference too
+
 					// Now we can safely fetch
 					console.log('1️⃣5️⃣ [myAppsStore] Triggering initial fetchApps()...');
 					fetchApps();
-					
+
 					// Set up polling interval
 					pollingInterval = setInterval(() => {
 						fetchApps();
 					}, intervalMs) as unknown as number;
-					
+
 					console.log(`1️⃣6️⃣ [myAppsStore] Polling interval set - will fetch every ${intervalMs}ms`);
+				} else if (!isPollingActive && unsubscribeAuth) {
+					// Polling was stopped before auth initialized
+					console.log('🛑 [myAppsStore] Polling stopped before auth initialized, cleaning up subscription');
+					unsubscribeAuth();
+					unsubscribeAuth = null;
+					authUnsubscribe = null;
 				}
 			});
+
+			authUnsubscribe = unsubscribeAuth;
 		} else {
 			// authStore is already initialized, proceed immediately
 			console.log('1️⃣2️⃣ [myAppsStore] Auth ALREADY initialized - starting polling immediately');
-			
+
 			// Initial fetch
 			console.log('1️⃣3️⃣ [myAppsStore] Triggering initial fetchApps()...');
 			fetchApps();
@@ -252,7 +260,7 @@ function createAppsStore() {
 			pollingInterval = setInterval(() => {
 				fetchApps();
 			}, intervalMs) as unknown as number;
-			
+
 			console.log(`1️⃣4️⃣ [myAppsStore] Polling interval set - will fetch every ${intervalMs}ms`);
 		}
 	}

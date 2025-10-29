@@ -126,6 +126,11 @@
 		adoptionProgress = 0;
 		adoptionTotal = selectedContainers.length;
 
+		// Track results for summary
+		let successCount = 0;
+		let failureCount = 0;
+		const failures: Array<{ name: string; error: string }> = [];
+
 		for (const item of selectedContainers) {
 			try {
 				const response = await api.adoptContainer({
@@ -137,11 +142,20 @@
 
 				if (response.success) {
 					toasts.success(`✅ "${item.container.name}" adoption started`);
+					successCount++;
 				} else {
-					toasts.error(`❌ Failed to adopt "${item.container.name}": ${response.error}`);
+					const errorMsg = response.error || 'Unknown error';
+					toasts.error(`❌ Failed to adopt "${item.container.name}": ${errorMsg}`);
+					failureCount++;
+					failures.push({ name: item.container.name, error: errorMsg });
+					console.error(`Adoption failed for ${item.container.name}:`, errorMsg);
 				}
 			} catch (error) {
-				toasts.error(`💥 Error adopting "${item.container.name}"`);
+				const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+				toasts.error(`💥 Error adopting "${item.container.name}": ${errorMsg}`);
+				failureCount++;
+				failures.push({ name: item.container.name, error: errorMsg });
+				console.error(`Exception adopting ${item.container.name}:`, error);
 			}
 
 			adoptionProgress++;
@@ -149,14 +163,32 @@
 
 		adopting = false;
 
-		// Show completion message
-		toasts.success(
-			`🎉 Adoption complete! ${adoptionTotal} container(s) are being imported. Redirecting to apps...`
-		);
-		
+		// Show completion message with accurate summary
+		if (failureCount === 0) {
+			// All succeeded
+			toasts.success(
+				`🎉 Success! All ${successCount} container(s) adopted and are being imported. Redirecting...`,
+				4000
+			);
+		} else if (successCount === 0) {
+			// All failed
+			toasts.error(
+				`❌ Adoption failed for all containers. Check errors above. Staying on this page...`,
+				5000
+			);
+			adopting = false;
+			return; // Don't redirect on complete failure
+		} else {
+			// Partial success
+			toasts.warning(
+				`⚠️ Adoption partially completed: ${successCount} succeeded, ${failureCount} failed. Redirecting...`,
+				4000
+			);
+		}
+
 		setTimeout(() => {
 			goto('/apps');
-		}, 2500);
+		}, 4500);
 	}
 
 	// Formatting helpers
