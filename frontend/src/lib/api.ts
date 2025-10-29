@@ -25,6 +25,20 @@ class ApiClient {
 		console.log('🏗️ [ApiClient] Constructor called. Now stateless, no auth subscription needed.');
 	}
 
+	private getCsrfToken(): string | null {
+		// Try to get CSRF token from cookie
+		const name = 'csrftoken';
+		const value = `; ${document.cookie}`;
+		const parts = value.split(`; ${name}=`);
+		if (parts.length === 2) {
+			return parts.pop()?.split(';').shift() || null;
+		}
+
+		// Try to get from meta tag
+		const meta = document.querySelector('meta[name="csrf-token"]');
+		return meta ? meta.getAttribute('content') : null;
+	}
+
 	private async request<T>(
 		endpoint: string,
 		options: RequestInit = {}
@@ -34,11 +48,23 @@ class ApiClient {
 			...(options.headers as Record<string, string>)
 		};
 
+		// Add CSRF token for state-changing requests (POST, PUT, DELETE, PATCH)
+		const method = options.method?.toUpperCase() || 'GET';
+		if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
+			const csrfToken = this.getCsrfToken();
+			if (csrfToken) {
+				headers['X-CSRFToken'] = csrfToken;
+				console.log(`🔐 [ApiClient] CSRF token added for ${method} ${endpoint}`);
+			} else {
+				console.warn(`⚠️ [ApiClient] No CSRF token found for ${method} ${endpoint}`);
+			}
+		}
+
 		// CRITICAL: Ensure cookies are sent with every request.
 		const fetchOptions: RequestInit = {
 			...options,
 			headers,
-			credentials: 'include' 
+			credentials: 'include'
 		};
 
 		try {
