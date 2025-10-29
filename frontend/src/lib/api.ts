@@ -160,6 +160,11 @@ class ApiClient {
 		return this.request(`/api/proxmox/nodes${params}`);
 	}
 
+	// Alias for convenience (list all nodes with statistics)
+	async listNodes() {
+		return this.getProxmoxNodes();
+	}
+
 	// Catalog API
 	async getCatalogApps() {
 		return this.request('/api/catalog/');

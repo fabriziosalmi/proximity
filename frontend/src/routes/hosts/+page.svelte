@@ -45,13 +45,32 @@
 		error = '';
 
 		try {
-			const response = await api.listHosts();
+			const response = await api.listNodes();
 
 			if (response.success && response.data) {
-				nodes = Array.isArray(response.data) ? response.data : [];
+				// Map API response to component model
+				// API returns ProxmoxNodeResponse, but component expects ProxmoxNode
+				const nodeData = Array.isArray(response.data) ? response.data : [];
+				nodes = nodeData.map((node: any) => ({
+					id: node.id,
+					name: node.name,
+					host: node.host_name || 'Unknown',  // host_name -> host
+					status: node.status,
+					cpu_count: node.cpu_count,
+					cpu_usage: node.cpu_usage || 0,
+					memory_total: node.memory_total,
+					memory_used: node.memory_used,
+					uptime: node.uptime,
+					// Add default values for missing fields
+					port: 8006,
+					user: 'root@pam',
+					is_active: node.status === 'online',
+					storage_total: 0,  // Not available from API yet
+					storage_used: 0    // Not available from API yet
+				}));
 				lastUpdated = new Date();
 			} else {
-				error = response.error || 'Failed to load Proxmox hosts';
+				error = response.error || 'Failed to load Proxmox nodes';
 				toasts.error(error, 5000);
 			}
 		} catch (err) {
