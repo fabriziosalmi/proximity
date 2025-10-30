@@ -5,6 +5,7 @@ from django.db import models
 from django.utils import timezone
 from apps.core.models import User
 from apps.proxmox.models import ProxmoxHost
+from apps.core.fields import EncryptedCharField
 
 
 class Application(models.Model):
@@ -43,7 +44,7 @@ class Application(models.Model):
     
     # LXC Configuration
     lxc_id = models.IntegerField(unique=True, db_index=True, null=True, blank=True)
-    lxc_root_password = models.CharField(max_length=500, null=True, blank=True)
+    lxc_root_password = EncryptedCharField(max_length=500, null=True, blank=True)
     
     # Proxmox references
     host = models.ForeignKey(

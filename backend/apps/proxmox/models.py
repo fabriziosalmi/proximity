@@ -4,6 +4,7 @@ Proxmox models - Host configurations and node management
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from apps.core.models import User
+from apps.core.fields import EncryptedCharField
 
 
 class ProxmoxHost(models.Model):
@@ -35,7 +36,7 @@ class ProxmoxHost(models.Model):
         default='root@pam',
         help_text='Proxmox user (e.g., root@pam)'
     )
-    password = models.CharField(
+    password = EncryptedCharField(
         max_length=500,
         help_text='Encrypted password for Proxmox API'
     )
