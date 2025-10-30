@@ -364,8 +364,17 @@ def adopt_existing_container(request, payload: ApplicationAdopt):
 @router.get("/{app_id}", response=ApplicationResponse)
 def get_application(request, app_id: str):
     """Get application details."""
-    app = get_object_or_404(Application, id=app_id)
-    
+    # 🔐 AUTHORIZATION: Only owner or admin can view application
+    queryset = Application.objects.all()
+    if request.user.is_authenticated and not request.user.is_staff:
+        # Regular users can only see their own applications
+        queryset = queryset.filter(owner=request.user)
+    elif not request.user.is_authenticated:
+        # Unauthenticated users cannot access any applications
+        raise HttpError(401, "Authentication required")
+
+    app = get_object_or_404(queryset, id=app_id)
+
     return {
         "id": app.id,
         "catalog_id": app.catalog_id,
@@ -390,29 +399,38 @@ def get_application(request, app_id: str):
 def app_action(request, app_id: str, payload: ApplicationAction):
     """
     Perform an action on an application.
-    
+
     Actions: start, stop, restart, delete
     """
-    app = get_object_or_404(Application, id=app_id)
-    
+    # 🔐 AUTHORIZATION: Only owner or admin can control application
+    queryset = Application.objects.all()
+    if request.user.is_authenticated and not request.user.is_staff:
+        # Regular users can only control their own applications
+        queryset = queryset.filter(owner=request.user)
+    elif not request.user.is_authenticated:
+        # Unauthenticated users cannot control applications
+        raise HttpError(401, "Authentication required")
+
+    app = get_object_or_404(queryset, id=app_id)
+
     action = payload.action.lower()
-    
+
     if action == 'start':
         start_app_task.delay(app_id)
         return {"success": True, "message": f"Starting {app.name}"}
-    
+
     elif action == 'stop':
         stop_app_task.delay(app_id)
         return {"success": True, "message": f"Stopping {app.name}"}
-    
+
     elif action == 'restart':
         restart_app_task.delay(app_id)
         return {"success": True, "message": f"Restarting {app.name}"}
-    
+
     elif action == 'delete':
         delete_app_task.delay(app_id)
         return {"success": True, "message": f"Deleting {app.name}"}
-    
+
     else:
         return 400, {"error": f"Invalid action: {action}"}
 
@@ -421,22 +439,31 @@ def app_action(request, app_id: str, payload: ApplicationAction):
 def clone_application(request, app_id: str, payload: ApplicationClone):
     """
     Clone an existing application.
-    
+
     Creates a duplicate of the application with a new hostname.
     Returns 202 Accepted immediately - the actual cloning happens in background.
-    
+
     Args:
         app_id: Source application ID to clone
         payload: Contains new_hostname for the clone
-        
+
     Returns:
         202 Accepted with message and task information
     """
     import logging
     logger = logging.getLogger(__name__)
-    
+
+    # 🔐 AUTHORIZATION: Only owner or admin can clone application
+    queryset = Application.objects.all()
+    if request.user.is_authenticated and not request.user.is_staff:
+        # Regular users can only clone their own applications
+        queryset = queryset.filter(owner=request.user)
+    elif not request.user.is_authenticated:
+        # Unauthenticated users cannot clone applications
+        raise HttpError(401, "Authentication required")
+
     # Validate source application exists
-    source_app = get_object_or_404(Application, id=app_id)
+    source_app = get_object_or_404(queryset, id=app_id)
     
     # Validate source app is in a stable state for cloning
     if source_app.status not in ['running', 'stopped']:
@@ -473,14 +500,23 @@ def clone_application(request, app_id: str, payload: ApplicationClone):
 def get_application_logs(request, app_id: str, limit: int = 50):
     """
     Get deployment logs for an application.
-    
+
     Query params:
         limit: Maximum number of log entries (default: 50)
     """
-    app = get_object_or_404(Application, id=app_id)
-    
+    # 🔐 AUTHORIZATION: Only owner or admin can view application logs
+    queryset = Application.objects.all()
+    if request.user.is_authenticated and not request.user.is_staff:
+        # Regular users can only view their own application logs
+        queryset = queryset.filter(owner=request.user)
+    elif not request.user.is_authenticated:
+        # Unauthenticated users cannot view logs
+        raise HttpError(401, "Authentication required")
+
+    app = get_object_or_404(queryset, id=app_id)
+
     logs = DeploymentLog.objects.filter(application=app).order_by('-timestamp')[:limit]
-    
+
     return {
         "app_id": app.id,
         "logs": [{

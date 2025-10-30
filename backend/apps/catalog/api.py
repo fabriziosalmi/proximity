@@ -98,13 +98,16 @@ def get_stats(request):
 def reload_catalog(request):
     """
     Reload the catalog from disk.
-    
+
     This endpoint can be called to refresh the catalog without
     restarting the application.
-    
+
     Requires admin authentication.
     """
-    # TODO: Add permission check for admin users
+    # 🔐 AUTHORIZATION: Only admin users can reload catalog
+    if not request.user.is_authenticated or not request.user.is_staff:
+        raise HttpError(403, "Admin privileges required to reload catalog")
+
     catalog_service.reload()
     stats = catalog_service.get_stats()
     return {
