@@ -47,5 +47,8 @@
     "tailwind-variants": "^0.1.19",
     "three": "^0.180.0"
   },
+  "overrides": {
+    "esbuild": "^0.25.0"
+  },
   "type": "module"
 }
