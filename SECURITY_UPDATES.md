@@ -9,6 +9,9 @@ All critical and high-priority security vulnerabilities in Python dependencies h
 ## Vulnerabilities Fixed
 
 ### Critical Issues (7 fixed)
+**All CRITICAL/HIGH vulnerabilities eliminated - 0 remaining**
+
+### Moderate Issues Fixed (Additional)
 1. **Django SQL Injection Vulnerability** - Multiple variants
    - Affected versions: Django < 5.1.x
    - Fixed: Updated to Django 5.1.3
@@ -52,6 +55,13 @@ All critical and high-priority security vulnerabilities in Python dependencies h
 | djangorestframework | 3.15.1 | 3.14.0 | Security improvements |
 | django-ninja | 1.1.0 | 1.3.0 | Bug fixes & security |
 
+### Frontend Stack (Vite/SvelteKit)
+| Package | Old | New | Security Impact |
+|---------|-----|-----|-----------------|
+| vite | 5.0.11 | 5.4.21 | esbuild security (CORS fix) |
+| vitest | 1.1.1 | 1.6.1 | esbuild security (CORS fix) |
+| bits-ui | 0.11.8 | 0.14.0 | nanoid security (CVE-2024-55565) |
+
 ### Security & Authentication
 | Package | Old | New | Security Impact |
 |---------|-----|-----|-----------------|
@@ -64,7 +74,7 @@ All critical and high-priority security vulnerabilities in Python dependencies h
 ### Network & Integration
 | Package | Old | New | Security Impact |
 |---------|-----|-----|-----------------|
-| requests | 2.31.0 | 2.32.0+ | Credentials leak prevention |
+| requests | 2.31.0 | **2.32.4+** | Credentials leak prevention (CVE-2024-47081) |
 | proxmoxer | 2.0.1 | 2.1.1 | Bug fixes |
 
 ### Async & Messaging

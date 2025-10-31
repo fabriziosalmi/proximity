@@ -28,4 +28,4 @@ pydantic>=2.5.0
 pydantic-settings>=2.1.0
 
 # For mocking Proxmox API
-requests>=2.32.0
+requests>=2.32.4
