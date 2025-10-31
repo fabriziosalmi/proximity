@@ -1,10 +1,10 @@
 # Requirements for unit testing
 # Lighter version without PostgreSQL dependency
-# Last updated: 2025-10-31
-# Security: All critical vulnerabilities patched
+# Last updated: 2025-10-31 (Final Security Patch)
+# Security: All critical vulnerabilities patched to latest versions
 
-# Core Django (5.1.x - latest LTS)
-Django==5.1.3
+# Core Django (5.1.x - latest with ALL security patches)
+Django==5.1.13
 django-ninja==1.3.0
 django-cors-headers==4.4.0
 
