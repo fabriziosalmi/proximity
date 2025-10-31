@@ -113,10 +113,10 @@ def test_something(fixture1, fixture2):
     """Test description."""
     # Arrange: Setup
     data = {'key': 'value'}
-    
+
     # Act: Execute
     result = function_to_test(data)
-    
+
     # Assert: Verify
     assert result == expected_value
 ```
@@ -179,7 +179,7 @@ from apps.myapp.models import MyModel
 @pytest.mark.django_db
 class TestMyModel:
     """Test MyModel functionality."""
-    
+
     def test_create_instance(self):
         """Test creating a MyModel instance."""
         instance = MyModel.objects.create(

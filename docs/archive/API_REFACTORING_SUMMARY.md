@@ -72,11 +72,11 @@ async def get_app_status(
 ):
     """
     Get unified application status.
-    
+
     Returns intelligent status based on app state:
     - For running/stopped apps: Simple status response
     - For deploying/updating apps: Rich status with progress and current step
-    
+
     This is the single source of truth for application state.
     """
 ```

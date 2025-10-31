@@ -24,12 +24,12 @@ if ! curl -s --fail "$HEALTH_URL" > /dev/null 2>&1; then
     echo "⚠️  Backend not responding at $HEALTH_URL"
     echo "   Starting Docker stack..."
     (cd .. && docker-compose up -d --build --remove-orphans)
-    
+
     echo "   Waiting for backend to become healthy..."
     WAIT_LIMIT=90 # 90 seconds timeout
     WAIT_INTERVAL=5
     ELAPSED=0
-    
+
     while ! curl -s --fail "$HEALTH_URL" > /dev/null 2>&1; do
         if [ $ELAPSED -ge $WAIT_LIMIT ]; then
             echo "❌ Timeout: Backend did not become healthy within $WAIT_LIMIT seconds."

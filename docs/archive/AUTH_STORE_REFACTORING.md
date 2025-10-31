@@ -114,7 +114,7 @@ authStore.subscribe(state => {
 onMount(async () => {
     // CRITICAL: Initialize authStore FIRST
     authStore.init();
-    
+
     // Then initialize other services
     await ThemeService.init();
 });
@@ -135,7 +135,7 @@ const response = await api.login(username, password);
 if (response.success && response.data) {
     // Update authStore (this propagates to ApiClient automatically)
     authStore.login(response.data.access_token, response.data.user);
-    
+
     // Navigate to home
     goto('/');
 }
@@ -147,7 +147,7 @@ function handleLogout() {
     // Clear auth state through authStore
     authStore.logout(); // This updates ApiClient automatically
     api.logout();       // This only clears Sentry context
-    
+
     goto('/login');
 }
 ```

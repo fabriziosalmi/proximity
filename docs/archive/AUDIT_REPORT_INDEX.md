@@ -87,7 +87,7 @@ Plus:
 
 **Impact:** Unauthorized access to all tenant resources
 
-**Files:** 
+**Files:**
 - `apps/applications/api.py` lines 365-494
 - `apps/backups/api.py` lines 42-313
 

@@ -73,23 +73,23 @@ class CatalogAppSchema(BaseModel):
     name: str                         # Display name
     version: str                      # App version
     description: str                  # Short description
-    
+
     # Visual and categorization
     icon: Optional[str]               # Icon URL
     category: str                     # Category for grouping
-    
+
     # Docker configuration
     docker_compose: Dict[str, Any]    # Full docker-compose config
-    
+
     # Resource requirements
     ports: List[int]                  # Exposed ports
     volumes: List[Any]                # Volume definitions
     environment: Dict[str, str]       # Default env vars
-    
+
     # System requirements
     min_memory: int                   # Minimum memory in MB (≥ 0)
     min_cpu: int                      # Minimum CPU cores (≥ 1)
-    
+
     # Metadata
     tags: List[str]                   # Search/filter tags
     author: Optional[str]             # App author
@@ -122,28 +122,28 @@ Responsibilities:
 class CatalogService:
     _instance: Optional['CatalogService'] = None
     _initialized: bool = False
-    
+
     def __init__(self):
         """Initialize singleton, load catalog from disk."""
-        
+
     def get_all_apps() -> List[CatalogAppSchema]
         """Get all apps, sorted by name."""
-        
+
     def get_app_by_id(app_id: str) -> Optional[CatalogAppSchema]
         """Get single app by ID."""
-        
+
     def get_categories() -> List[str]
         """Get unique categories, sorted."""
-        
+
     def search_apps(query: str) -> List[CatalogAppSchema]
         """Search apps by name, description, or tags (case-insensitive)."""
-        
+
     def filter_by_category(category: str) -> List[CatalogAppSchema]
         """Filter by category (case-insensitive)."""
-        
+
     def get_stats() -> Dict[str, int]
         """Get catalog statistics (total_apps, total_categories)."""
-        
+
     def reload() -> None
         """Reload catalog from disk."""
 ```
@@ -538,12 +538,12 @@ The singleton implementation uses class variables but no locking:
 class CatalogService:
     _instance: Optional['CatalogService'] = None
     _initialized: bool = False
-    
+
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
-    
+
     def __init__(self):
         if CatalogService._initialized:
             return

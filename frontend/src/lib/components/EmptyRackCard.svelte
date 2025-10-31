@@ -128,7 +128,7 @@
 		left: 0;
 		right: 0;
 		bottom: 0;
-		background-image: 
+		background-image:
 			linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
 			linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
 		background-size: 20px 20px;
@@ -151,7 +151,7 @@
 		font-weight: 700;
 		letter-spacing: 0.15em;
 		color: #4a5568;
-		text-shadow: 
+		text-shadow:
 			0 1px 2px rgba(0, 0, 0, 0.8),
 			0 0 10px rgba(74, 85, 104, 0.3);
 		padding: 0.5rem 1.5rem;
@@ -194,7 +194,7 @@
 	.install-button:hover {
 		border-color: rgba(14, 165, 233, 0.8);
 		background: linear-gradient(180deg, rgba(14, 165, 233, 0.25) 0%, rgba(14, 165, 233, 0.15) 100%);
-		box-shadow: 
+		box-shadow:
 			0 0 20px rgba(14, 165, 233, 0.3),
 			inset 0 1px 2px rgba(255, 255, 255, 0.1);
 		transform: translateY(-1px);
@@ -206,7 +206,7 @@
 
 	.install-button:active {
 		transform: translateY(0);
-		box-shadow: 
+		box-shadow:
 			0 0 10px rgba(14, 165, 233, 0.2),
 			inset 0 1px 3px rgba(0, 0, 0, 0.3);
 	}

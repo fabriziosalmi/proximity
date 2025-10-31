@@ -1,7 +1,8 @@
 """
 Pydantic schemas for Backup API.
 """
-from typing import Optional, Union, Any
+
+from typing import Optional, Any
 from datetime import datetime
 from pydantic import BaseModel, Field, ConfigDict, field_validator
 
@@ -12,7 +13,7 @@ class BackupSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
-    application_id: str = Field(alias='application')
+    application_id: str = Field(alias="application")
     file_name: str
     storage_name: str
     size: Optional[int] = None
@@ -28,7 +29,7 @@ class BackupSchema(BaseModel):
     is_completed: bool
     is_in_progress: bool
 
-    @field_validator('application_id', mode='before')
+    @field_validator("application_id", mode="before")
     @classmethod
     def convert_application_to_id(cls, v: Any) -> str:
         """Convert Application object to its ID string."""
@@ -38,7 +39,7 @@ class BackupSchema(BaseModel):
         if isinstance(v, str):
             return v
         # If it's an object with an 'id' attribute, extract the ID
-        if hasattr(v, 'id'):
+        if hasattr(v, "id"):
             return str(v.id)
         # Otherwise return the string representation
         return str(v)
@@ -46,24 +47,25 @@ class BackupSchema(BaseModel):
 
 class BackupListSchema(BaseModel):
     """Schema for list of backups."""
+
     backups: list[BackupSchema]
     total: int
 
 
 class BackupCreateRequest(BaseModel):
     """Request schema for creating a backup."""
+
     backup_type: str = Field(
-        default='snapshot',
-        description='Backup mode: snapshot (fastest), suspend, or stop'
+        default="snapshot", description="Backup mode: snapshot (fastest), suspend, or stop"
     )
     compression: str = Field(
-        default='zstd',
-        description='Compression algorithm: zstd, gzip, or lzo'
+        default="zstd", description="Compression algorithm: zstd, gzip, or lzo"
     )
 
 
 class BackupCreateResponse(BaseModel):
     """Response schema for backup creation."""
+
     id: int
     status: str
     message: str
@@ -71,6 +73,7 @@ class BackupCreateResponse(BaseModel):
 
 class BackupRestoreResponse(BaseModel):
     """Response schema for backup restore operation."""
+
     backup_id: int
     application_id: str
     status: str
@@ -79,6 +82,7 @@ class BackupRestoreResponse(BaseModel):
 
 class BackupDeleteResponse(BaseModel):
     """Response schema for backup deletion."""
+
     backup_id: int
     status: str
     message: str
@@ -86,6 +90,7 @@ class BackupDeleteResponse(BaseModel):
 
 class BackupStatsSchema(BaseModel):
     """Schema for backup statistics."""
+
     total_backups: int
     completed_backups: int
     failed_backups: int

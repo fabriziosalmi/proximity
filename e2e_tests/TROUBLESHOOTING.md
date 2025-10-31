@@ -215,7 +215,7 @@ curl -X POST http://localhost:8000/api/core/auth/login \
 ```
 
 **Solution**:
-This is **not critical**. The user deletion endpoint may not be implemented yet. 
+This is **not critical**. The user deletion endpoint may not be implemented yet.
 
 To manually clean up test users:
 ```bash

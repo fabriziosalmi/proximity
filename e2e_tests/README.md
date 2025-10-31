@@ -124,15 +124,15 @@ export RECORD_VIDEO=1
 
 Our tests follow a unique pattern that ensures perfect isolation:
 
-1. **Before Test**: 
+1. **Before Test**:
    - Create a unique user via API (e.g., `testuser_1697654321000@e2etest.local`)
    - User gets unique credentials
-   
-2. **During Test**: 
+
+2. **During Test**:
    - Use the unique user to perform all operations
    - Deploy apps with unique hostnames (e.g., `e2e-adminer-1697654321000`)
-   
-3. **After Test**: 
+
+3. **After Test**:
    - Automatically delete all apps created by the user
    - Automatically delete the user account
    - Leave the system in a clean state
@@ -276,28 +276,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Start Application Stack
         run: |
           docker-compose up -d
           sleep 30  # Wait for services to be ready
-      
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-      
+
       - name: Install dependencies
         run: |
           cd e2e_tests
           pip install -r requirements.txt
           playwright install --with-deps
-      
+
       - name: Run E2E Tests
         run: |
           cd e2e_tests
           pytest -v
-      
+
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v3
@@ -336,12 +336,12 @@ jobs:
    ```python
    # pages/settings_page.py
    from playwright.sync_api import Page, expect
-   
+
    class SettingsPage:
        def __init__(self, page: Page, base_url: str):
            self.page = page
            self.base_url = base_url
-       
+
        # Add your methods here
    ```
 

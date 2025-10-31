@@ -38,7 +38,7 @@
 		// This will automatically update ApiClient via subscription
 		authStore.logout();
 		api.logout(); // This just clears Sentry context
-		
+
 		// Navigate to login
 		await goto('/login');
 		showUserMenu = false;
@@ -60,7 +60,7 @@
 		<div class="mounting-ear-left">
 			<div class="screw"></div>
 		</div>
-		
+
 		<!-- Navigation content -->
 		<div class="nav-rack-body">
 			<!-- LED strip decoration -->
@@ -69,7 +69,7 @@
 					<div class="nav-led" class:active={isActive(item.href, currentPath)}></div>
 				{/each}
 			</div>
-			
+
 			<!-- Navigation buttons -->
 			<div class="nav-buttons-container">
 				{#each navItems as item}
@@ -85,12 +85,12 @@
 					</a>
 				{/each}
 			</div>
-			
+
 			<!-- System Status LCD Display -->
 			<div class="status-display">
 				<SystemStatusLCD />
 			</div>
-			
+
 			<!-- Action Buttons -->
 			<div class="action-buttons">
 				<!-- Deploy Button -->
@@ -120,11 +120,11 @@
 					{/if}
 				</div>
 			</div>
-			
+
 			<!-- Title label -->
 			<div class="rack-title">COMMAND DECK</div>
 		</div>
-		
+
 		<!-- Right mounting ear -->
 		<div class="mounting-ear-right">
 			<div class="screw"></div>
@@ -174,25 +174,25 @@
 	/* ============================================ */
 	/* RESPONSIVE VISIBILITY CONTROL */
 	/* ============================================ */
-	
+
 	/* Ensure mobile nav is hidden on desktop */
 	@media (min-width: 1024px) {
 		nav.flex {
 			display: none !important;
 		}
 	}
-	
+
 	/* Ensure desktop nav is hidden on mobile */
 	@media (max-width: 1023px) {
 		.horizontal-nav-rack {
 			display: none !important;
 		}
 	}
-	
+
 	/* ============================================ */
 	/* DESKTOP HORIZONTAL NAVIGATION RACK */
 	/* ============================================ */
-	
+
 	.horizontal-nav-rack {
 		display: flex;
 		align-items: stretch;
@@ -201,11 +201,11 @@
 		border: 1px solid var(--border-rack, #4b5563);
 		border-radius: 0.25rem;
 		position: relative;
-		box-shadow: 
+		box-shadow:
 			0 2px 4px rgba(0, 0, 0, 0.3),
 			inset 0 1px 0 rgba(255, 255, 255, 0.1);
 	}
-	
+
 	.mounting-ear-left,
 	.mounting-ear-right {
 		width: 32px;
@@ -216,12 +216,12 @@
 		justify-content: center;
 		position: relative;
 	}
-	
+
 	.mounting-ear-right {
 		border-right: none;
 		border-left: 1px solid #1f2937;
 	}
-	
+
 	.nav-rack-body {
 		flex: 1;
 		display: flex;
@@ -230,7 +230,7 @@
 		padding: 0 1.5rem;
 		position: relative;
 	}
-	
+
 	.led-strip {
 		display: flex;
 		gap: 0.25rem;
@@ -239,7 +239,7 @@
 		border-radius: 0.25rem;
 		border: 1px solid rgba(0, 0, 0, 0.5);
 	}
-	
+
 	.nav-led {
 		width: 6px;
 		height: 6px;
@@ -247,18 +247,18 @@
 		background: var(--color-led-inactive, #374151);
 		transition: all 0.3s ease;
 	}
-	
+
 	.nav-led.active {
 		background: var(--color-led-active, #4ade80);
 		box-shadow: 0 0 8px var(--color-led-active, #4ade80);
 	}
-	
+
 	.nav-buttons-container {
 		display: flex;
 		gap: 0.5rem;
 		flex: 1;
 	}
-	
+
 	.rack-title {
 		font-size: 0.625rem;
 		font-weight: 700;
@@ -270,7 +270,7 @@
 		border-radius: 0.25rem;
 		border: 1px solid rgba(0, 0, 0, 0.5);
 	}
-	
+
 	.nav-button {
 		display: flex;
 		align-items: center;

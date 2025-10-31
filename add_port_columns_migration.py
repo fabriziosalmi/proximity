@@ -12,10 +12,11 @@ import sys
 import os
 
 # Add backend directory to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'backend'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "backend"))
 
-from sqlalchemy import Column, Integer, text
-from models.database import engine, Base, SessionLocal
+from sqlalchemy import text
+from models.database import engine
+
 
 def run_migration():
     """Add public_port and internal_port columns to apps table"""
@@ -33,33 +34,33 @@ def run_migration():
             result = connection.execute(text("PRAGMA table_info(apps)"))
             columns = [row[1] for row in result.fetchall()]
 
-            if 'public_port' in columns and 'internal_port' in columns:
+            if "public_port" in columns and "internal_port" in columns:
                 print("✓ Columns already exist - migration already applied")
                 print()
                 return
 
             # Add public_port column
-            if 'public_port' not in columns:
+            if "public_port" not in columns:
                 print("  Adding column: public_port (Integer, nullable, unique, index)")
-                connection.execute(text(
-                    "ALTER TABLE apps ADD COLUMN public_port INTEGER"
-                ))
+                connection.execute(text("ALTER TABLE apps ADD COLUMN public_port INTEGER"))
                 # Note: SQLite doesn't support adding UNIQUE constraints to existing tables
                 # in ALTER TABLE, so we'll add a unique index instead
-                connection.execute(text(
-                    "CREATE UNIQUE INDEX IF NOT EXISTS ix_apps_public_port ON apps(public_port)"
-                ))
+                connection.execute(
+                    text(
+                        "CREATE UNIQUE INDEX IF NOT EXISTS ix_apps_public_port ON apps(public_port)"
+                    )
+                )
                 print("  ✓ public_port column added")
 
             # Add internal_port column
-            if 'internal_port' not in columns:
+            if "internal_port" not in columns:
                 print("  Adding column: internal_port (Integer, nullable, unique, index)")
-                connection.execute(text(
-                    "ALTER TABLE apps ADD COLUMN internal_port INTEGER"
-                ))
-                connection.execute(text(
-                    "CREATE UNIQUE INDEX IF NOT EXISTS ix_apps_internal_port ON apps(internal_port)"
-                ))
+                connection.execute(text("ALTER TABLE apps ADD COLUMN internal_port INTEGER"))
+                connection.execute(
+                    text(
+                        "CREATE UNIQUE INDEX IF NOT EXISTS ix_apps_internal_port ON apps(internal_port)"
+                    )
+                )
                 print("  ✓ internal_port column added")
 
             # Commit transaction
@@ -77,6 +78,7 @@ def run_migration():
             trans.rollback()
             print(f"❌ Migration failed: {e}")
             raise
+
 
 if __name__ == "__main__":
     run_migration()

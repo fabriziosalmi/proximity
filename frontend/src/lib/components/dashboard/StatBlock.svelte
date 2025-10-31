@@ -13,8 +13,8 @@
 	export let pulse: boolean = false;
 </script>
 
-<div 
-	class="stat-block" 
+<div
+	class="stat-block"
 	style="--stat-border: {borderColor}; --stat-led: {ledColor};"
 	data-testid="stat-block-{label.toLowerCase().replace(/\s+/g, '-')}"
 >

@@ -281,7 +281,7 @@ Authorization: Bearer {your_jwt_token}
 
 ### v2.0 - API Unification (October 15, 2025)
 - ✅ **Unified App Status**: Consolidated duplicate endpoints into single `/apps/{app_id}/status`
-  - **Removed:** `GET /apps/deploy/{app_id}/status` 
+  - **Removed:** `GET /apps/deploy/{app_id}/status`
   - **Removed:** `GET /apps/{app_id}/deployment-status`
   - **Added:** `GET /apps/{app_id}/status` (single source of truth)
 - ✅ **Backup Endpoints**: Already properly nested under `/apps/{app_id}/backups` (no changes needed)

@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
             name="ssh_key_path",
             field=models.CharField(
                 blank=True,
-                help_text='Path to SSH private key for key-based authentication (optional)',
+                help_text="Path to SSH private key for key-based authentication (optional)",
                 max_length=500,
                 null=True,
             ),

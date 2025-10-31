@@ -18,6 +18,7 @@ Should NEVER see (OLD BUG - now impossible):
 import asyncio
 from playwright.async_api import async_playwright
 
+
 async def manual_test_atomic_authstore():
     """
     Opens a browser to manually verify the atomic authStore refactoring.
@@ -26,19 +27,18 @@ async def manual_test_atomic_authstore():
         browser = await p.chromium.launch(
             headless=False,
             slow_mo=500,  # Slow down for visibility
-            args=['--ignore-certificate-errors']  # Accept self-signed certs
+            args=["--ignore-certificate-errors"],  # Accept self-signed certs
         )
-        
+
         context = await browser.new_context(
-            viewport={'width': 1920, 'height': 1080},
-            ignore_https_errors=True
+            viewport={"width": 1920, "height": 1080}, ignore_https_errors=True
         )
-        
+
         page = await context.new_page()
-        
-        print("\n" + "="*70)
+
+        print("\n" + "=" * 70)
         print("🔍 ATOMIC AUTHSTORE MANUAL VERIFICATION TEST")
-        print("="*70)
+        print("=" * 70)
         print("\nInstructions:")
         print("1. A browser window will open to the Proximity login page")
         print("2. Open the browser console (F12 or Cmd+Option+I)")
@@ -52,15 +52,15 @@ async def manual_test_atomic_authstore():
         print("\n5. Now log in and watch the atomic state update")
         print("6. After login, you should see: { isInitialized: true, hasUser: true }")
         print("\n7. Press Ctrl+C in this terminal when done")
-        print("="*70 + "\n")
-        
+        print("=" * 70 + "\n")
+
         # Navigate to login page
-        await page.goto('https://localhost:5173/auth/login')
-        
+        await page.goto("https://localhost:5173/auth/login")
+
         print("✅ Browser opened! Check the console logs...")
         print("   The page is now at: https://localhost:5173/auth/login")
         print("\n   Press Ctrl+C when you're done verifying\n")
-        
+
         # Keep the browser open until user presses Ctrl+C
         try:
             await asyncio.sleep(3600)  # Wait for 1 hour (or until Ctrl+C)
@@ -69,6 +69,7 @@ async def manual_test_atomic_authstore():
         finally:
             await browser.close()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     print("\n🚀 Starting manual verification test...")
     asyncio.run(manual_test_atomic_authstore())

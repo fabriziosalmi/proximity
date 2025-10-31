@@ -62,7 +62,7 @@ Proximity is a modern, application-centric delivery platform for Proxmox built w
 ```python
 User (extends AbstractUser)
   - avatar, bio, preferred_theme
-  
+
 SystemSettings (singleton)
   - Resource defaults: cpu_cores, memory_mb, disk_gb, swap_mb
   - Network defaults: subnet, gateway, dns_primary/secondary, bridge
@@ -510,7 +510,7 @@ ProxmoxHost
   - verify_ssl, is_active, is_default
   - last_seen, total_cpu, total_memory, total_storage
   - created_at, updated_at, created_by (FK User)
-  
+
 ProxmoxNode
   Fields:
   - host (FK ProxmoxHost), name, status, node_type
@@ -532,7 +532,7 @@ Application
   - config (JSONField), ports (JSONField), volumes (JSONField)
   - environment (JSONField)
   - owner (FK User), created_at, updated_at, state_changed_at
-  
+
 DeploymentLog
   Fields:
   - application (FK), timestamp, level, message, step
@@ -763,7 +763,7 @@ Task completes → Database updated → Client sees final state
 ```python
 class ProxmoxService:
     """Wraps ProxmoxAPI with connection pooling and error handling."""
-    
+
     Methods:
     - get_client() → ProxmoxAPI (cached in Redis)
     - test_connection() → bool
@@ -788,12 +788,12 @@ class ProxmoxService:
 ```python
 class PortManagerService:
     """Allocates unique port pairs for applications."""
-    
+
     Methods:
     - allocate_ports() → Tuple[public_port, internal_port]
     - release_ports(public_port, internal_port) → None
     - is_port_available(port) → bool
-    
+
     Port Ranges:
     - Public: 8000-9000 (routable to internet)
     - Internal: 80-9000 (container-internal)
@@ -803,7 +803,7 @@ class PortManagerService:
 ```python
 class CatalogService:
     """Loads and searches application catalog from JSON files."""
-    
+
     Methods:
     - get_all_apps() → List[CatalogAppSchema]
     - get_app_by_id(app_id) → Optional[CatalogAppSchema]
@@ -812,7 +812,7 @@ class CatalogService:
     - get_categories() → List[str]
     - get_stats() → dict
     - reload() → None (reload from disk)
-    
+
     Source: /Users/fab/GitHub/proximity/catalog_data/
 ```
 
@@ -842,7 +842,7 @@ Level: DEBUG (dev) | INFO (prod)
 Loggers:
   - django.* → INFO
   - apps.* → DEBUG (dev) | INFO (prod)
-  
+
 Format: {levelname} {asctime} {module} {message}
 Output: Console (stdout)
 ```
@@ -1063,4 +1063,3 @@ pydantic - Validation
 | Backups API | `/Users/fab/GitHub/proximity/backend/apps/backups/api.py` |
 | Catalog API | `/Users/fab/GitHub/proximity/backend/apps/catalog/api.py` |
 | Catalog Service | `/Users/fab/GitHub/proximity/backend/apps/catalog/services.py` |
-

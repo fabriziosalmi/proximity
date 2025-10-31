@@ -59,7 +59,7 @@ if is_adopted:
     # ONLY remove from Proximity - leave container on Proxmox
     release_ports()
     app.delete()  # Delete DB record only
-    
+
 else:
     # FULL deletion - destroy container
     stop_container()

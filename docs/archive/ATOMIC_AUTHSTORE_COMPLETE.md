@@ -64,7 +64,7 @@ const setUserState = (user: User | null, isInitialized: boolean = true) => {
   } else {
     Sentry.setUser(null);
   }
-  
+
   // ATOMIC: Single operation, no intermediate state
   set({ user, isInitialized });
 };
@@ -107,21 +107,21 @@ This will:
 ```javascript
 // ✅ CORRECT (what you should see):
 [AuthStore] init() called
-[myAppsStore] Checked authStore state: { 
-  isInitialized: true, 
-  hasUser: false 
+[myAppsStore] Checked authStore state: {
+  isInitialized: true,
+  hasUser: false
 }
 
 // After login:
-[myAppsStore] Checked authStore state: { 
-  isInitialized: true, 
-  hasUser: true 
+[myAppsStore] Checked authStore state: {
+  isInitialized: true,
+  hasUser: true
 }
 
 // ❌ IMPOSSIBLE NOW (old bug):
-{ 
-  isAuthenticated: true, 
-  hasToken: false 
+{
+  isAuthenticated: true,
+  hasToken: false
 }
 ```
 

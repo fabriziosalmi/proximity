@@ -5,6 +5,7 @@ from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 
 User = get_user_model()
 
+
 class JWTCookieAuthenticator(APIKeyCookie):
     param_name = "proximity-auth-cookie"  # As defined in settings.py REST_AUTH
 
@@ -24,10 +25,10 @@ class JWTCookieAuthenticator(APIKeyCookie):
                 # The key is the access token. We use simple-jwt's AccessToken
                 # class to validate it and get the payload.
                 token = AccessToken(key)
-                
+
                 # The payload contains the user_id claim we configured in settings.py.
-                user_id = token.get('user_id')
-                
+                user_id = token.get("user_id")
+
                 if user_id:
                     # Retrieve the user from the database.
                     user = User.objects.get(id=user_id)
@@ -36,6 +37,6 @@ class JWTCookieAuthenticator(APIKeyCookie):
                 # This handles cases where the token is expired, malformed,
                 # or the user it refers to no longer exists.
                 return None
-        
+
         # If no key is provided, authentication fails.
         return None

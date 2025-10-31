@@ -36,9 +36,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "host",
-                    models.CharField(
-                        help_text="Hostname or IP address", max_length=255
-                    ),
+                    models.CharField(help_text="Hostname or IP address", max_length=255),
                 ),
                 (
                     "port",
@@ -66,15 +64,11 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "verify_ssl",
-                    models.BooleanField(
-                        default=False, help_text="Verify SSL certificate"
-                    ),
+                    models.BooleanField(default=False, help_text="Verify SSL certificate"),
                 ),
                 (
                     "is_active",
-                    models.BooleanField(
-                        default=True, help_text="Enable/disable this host"
-                    ),
+                    models.BooleanField(default=True, help_text="Enable/disable this host"),
                 ),
                 (
                     "is_default",

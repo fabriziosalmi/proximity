@@ -42,13 +42,13 @@
 
 State Management:
   Svelte Stores → Real-time Polling → Reactive UI
-  
+
 API Layer:
   Centralized Client → Token Management → Error Handling
-  
+
 Component Design:
   RackCard (Slots) → Reusable → Themeable via CSS Variables
-  
+
 Real-time Updates:
   myAppsStore polls /api/apps/ every 5 seconds
   Automatic start/stop on page mount/unmount
@@ -272,13 +272,13 @@ Using My Apps:
 
   // Start polling on mount
   onMount(() => myAppsStore.startPolling(5000));
-  
+
   // Stop app
   await myAppsStore.performAction(appId, 'stop');
-  
+
   // Delete app
   await myAppsStore.performAction(appId, 'delete');
-  
+
   // Cleanup on unmount
   onDestroy(() => myAppsStore.stopPolling());
   ```

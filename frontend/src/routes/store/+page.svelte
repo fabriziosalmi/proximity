@@ -107,7 +107,7 @@
 
 	async function handleDeploy(event: CustomEvent) {
 		const deploymentData = event.detail;
-		
+
 		// Save app reference before closing modal
 		const appToDeploy = selectedApp;
 
@@ -154,31 +154,31 @@
 		<div class="px-6 pt-6">
 			<NavigationRack />
 		</div>
-		
+
 		<!-- Operational Control Panel Rack -->
 		<div class="px-6 pb-6">
 			<OperationalRack title="Application Catalog">
 		<!-- Stats Slot -->
 		<svelte:fragment slot="stats">
-			<StatBlock 
-				label="Available Apps" 
-				value={availableApps} 
+			<StatBlock
+				label="Available Apps"
+				value={availableApps}
 				icon={ShoppingBag}
 				ledColor="var(--color-accent)"
 				borderColor="var(--color-accent)"
 			/>
-			
-			<StatBlock 
-				label="Categories" 
-				value={uniqueCategories} 
+
+			<StatBlock
+				label="Categories"
+				value={uniqueCategories}
 				icon={Layers}
 				ledColor="var(--color-led-active)"
 				borderColor="rgba(16, 185, 129, 0.3)"
 			/>
-			
-			<StatBlock 
-				label="Filtered" 
-				value={filteredApps.length} 
+
+			<StatBlock
+				label="Filtered"
+				value={filteredApps.length}
 				icon={Grid}
 				ledColor="var(--color-accent)"
 				borderColor="var(--border-color-secondary)"

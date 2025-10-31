@@ -70,7 +70,7 @@
   cd e2e_tests
   pytest -v
   ```
-  
+
 - [ ] **Key Test Cases**
   - [ ] `test_full_app_lifecycle` - Must pass without 401 errors
   - [ ] `test_golden_path` - Must complete successfully
@@ -86,7 +86,7 @@
   ```bash
   docker-compose up
   ```
-  
+
 - [ ] **Run E2E Tests and Monitor**
   - [ ] Watch backend logs for incoming requests
   - [ ] Verify all POST /api/apps/ calls have Authorization header
@@ -225,10 +225,10 @@ After deployment, monitor these metrics:
    ```bash
    # Run all checks
    python3 verify_auth_refactoring.py
-   
+
    # Build frontend
    cd frontend && npm run build
-   
+
    # Run E2E tests locally
    cd ../e2e_tests && pytest -v
    ```
@@ -242,9 +242,9 @@ After deployment, monitor these metrics:
    git add e2e_tests/utils/auth.py
    git add docs/AUTH_STORE_REFACTORING.md
    git add verify_auth_refactoring.py
-   
+
    git commit -m "refactor: implement authStore as single source of truth for authentication
-   
+
    - Create singleton authStore with explicit init() method
    - Refactor ApiClient to subscribe to authStore
    - Remove all direct localStorage access from ApiClient
@@ -252,7 +252,7 @@ After deployment, monitor these metrics:
    - Enhance E2E programmatic login to work with authStore
    - Add comprehensive logging for debugging
    - Document authStore pattern and principles
-   
+
    Fixes: Intermittent 401 Unauthorized errors in E2E tests
    Closes: #<issue-number>"
    ```
@@ -261,7 +261,7 @@ After deployment, monitor these metrics:
    ```bash
    # Push to repository
    git push origin main
-   
+
    # Rebuild and restart services
    docker-compose down
    docker-compose up --build -d
@@ -271,11 +271,11 @@ After deployment, monitor these metrics:
    ```bash
    # Wait for services to start
    sleep 30
-   
+
    # Run E2E tests against deployed environment
    cd e2e_tests
    pytest -v --tb=short
-   
+
    # Check for any 401 errors
    docker-compose logs backend | grep "401"
    ```

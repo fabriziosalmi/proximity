@@ -379,7 +379,7 @@ Create `Caddyfile`:
 ```caddy
 proximity.example.com {
     reverse_proxy localhost:8765
-    
+
     # Automatic HTTPS with Let's Encrypt
     tls your-email@example.com
 }

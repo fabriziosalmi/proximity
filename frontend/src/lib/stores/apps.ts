@@ -1,7 +1,7 @@
 /**
  * Svelte store for managing deployed applications state.
  * Provides real-time polling and state management for deployed apps.
- * 
+ *
  * AUTH-AWARE: This store waits for authStore to be initialized before
  * making any API calls, preventing 401 errors from race conditions.
  */
@@ -62,21 +62,21 @@ function createAppsStore() {
 	// Fetch all deployed apps (AUTH-AWARE)
 	async function fetchApps() {
 		logger.debug('🎯 [myAppsStore] fetchApps() called');
-		
+
 		// 🔐 SAFETY CHECK: Verify authStore is initialized before making API call
 		const currentAuthState = get(authStore);
 		logger.debug('8️⃣ [myAppsStore] Checked authStore state:', {
 			isInitialized: currentAuthState.isInitialized,
 			hasUser: !!currentAuthState.user
 		});
-		
+
 		if (!currentAuthState.isInitialized) {
 			logger.warn('⚠️ [myAppsStore] fetchApps() called before authStore initialized. Skipping to avoid 401.');
 			return; // Don't fetch if auth isn't ready
 		}
-		
+
 		logger.debug('9️⃣ [myAppsStore] Auth check passed - proceeding with API call');
-		
+
 		// Capture previous state for comparison
 		let previousApps: DeployedApp[] = [];
 		update((state) => {
@@ -203,7 +203,7 @@ function createAppsStore() {
 			// Capture previous state for sound feedback
 			let previousApp: DeployedApp | undefined;
 			const appData = response.data;
-			
+
 			update((state) => {
 				previousApp = state.apps.find(app => app.id === appId);
 				return state;
@@ -472,7 +472,7 @@ function createAppsStore() {
 
 		if (response.success) {
 			logger.debug('✅ [myAppsStore] Deployment API call succeeded');
-			
+
 			// Replace optimistic placeholder with real data from backend
 			// Use a short delay to allow the backend to process
 			setTimeout(() => {
@@ -483,7 +483,7 @@ function createAppsStore() {
 			return { success: true, data: response.data };
 		} else {
 			logger.error('❌ [myAppsStore] Deployment API call failed:', response.error);
-			
+
 			// ROLLBACK: Remove optimistic placeholder on error
 			update((state: AppsState) => {
 				logger.debug('🔄 [myAppsStore] Rolling back optimistic placeholder');
@@ -492,7 +492,7 @@ function createAppsStore() {
 					apps: state.apps.filter((app: DeployedApp) => app.id !== optimisticId)
 				};
 			});
-			
+
 			return { success: false, error: response.error };
 		}
 	}

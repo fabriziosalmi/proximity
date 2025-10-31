@@ -84,6 +84,6 @@
 		</div>
 	</header>
 	<!-- END: Sticky Header -->
-	
+
 	<!-- Note: Dashboard is a single-screen overview with no additional scrollable content -->
 </div>

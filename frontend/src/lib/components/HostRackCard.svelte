@@ -57,7 +57,7 @@
 		const days = Math.floor(seconds / 86400);
 		const hours = Math.floor((seconds % 86400) / 3600);
 		const minutes = Math.floor((seconds % 3600) / 60);
-		
+
 		if (days > 0) return `${days}d ${hours}h`;
 		if (hours > 0) return `${hours}h ${minutes}m`;
 		return `${minutes}m`;
@@ -143,8 +143,8 @@
 								<span class="stat-label">CPU</span>
 							</div>
 							<div class="progress-bar">
-								<div 
-									class="progress-fill" 
+								<div
+									class="progress-fill"
 									class:progress-warn={cpuPercent > 80}
 									class:progress-danger={cpuPercent > 90}
 									style="width: {cpuPercent}%"
@@ -160,7 +160,7 @@
 								<span class="stat-label">RAM</span>
 							</div>
 							<div class="progress-bar">
-								<div 
+								<div
 									class="progress-fill"
 									class:progress-warn={memoryPercent > 80}
 									class:progress-danger={memoryPercent > 90}
@@ -177,7 +177,7 @@
 								<span class="stat-label">DISK</span>
 							</div>
 							<div class="progress-bar">
-								<div 
+								<div
 									class="progress-fill"
 									class:progress-warn={diskPercent > 80}
 									class:progress-danger={diskPercent > 90}

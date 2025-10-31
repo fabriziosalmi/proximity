@@ -58,29 +58,29 @@
 				Applications
 			</h3>
 			<div class="stats-grid grid-4">
-				<StatCard 
-					label="Total Apps" 
-					value={totalApps} 
+				<StatCard
+					label="Total Apps"
+					value={totalApps}
 					icon={Server}
 					variant="compact"
 				/>
-				<StatCard 
-					label="Running" 
-					value={runningApps} 
+				<StatCard
+					label="Running"
+					value={runningApps}
 					icon={Activity}
 					variant="compact"
 					ledColor="var(--color-led-active)"
 				/>
-				<StatCard 
-					label="Stopped" 
-					value={stoppedApps} 
+				<StatCard
+					label="Stopped"
+					value={stoppedApps}
 					icon={Server}
 					variant="compact"
 					ledColor="#ef4444"
 				/>
-				<StatCard 
-					label="Deploying" 
-					value={deployingApps} 
+				<StatCard
+					label="Deploying"
+					value={deployingApps}
 					icon={Activity}
 					variant="compact"
 					ledColor="#f59e0b"
@@ -97,15 +97,15 @@
 					App Catalog
 				</h3>
 				<div class="stats-grid grid-2">
-					<StatCard 
-						label="Available Apps" 
-						value={availableApps} 
+					<StatCard
+						label="Available Apps"
+						value={availableApps}
 						icon={ShoppingBag}
 						variant="compact"
 					/>
-					<StatCard 
-						label="Categories" 
-						value={categories} 
+					<StatCard
+						label="Categories"
+						value={categories}
 						icon={Layers}
 						variant="compact"
 					/>
@@ -119,28 +119,28 @@
 					Infrastructure
 				</h3>
 				<div class="stats-grid grid-2x2">
-					<StatCard 
-						label="Total Hosts" 
-						value={totalHosts} 
+					<StatCard
+						label="Total Hosts"
+						value={totalHosts}
 						icon={HardDrive}
 						variant="compact"
 					/>
-					<StatCard 
-						label="Online Hosts" 
-						value={onlineHosts} 
+					<StatCard
+						label="Online Hosts"
+						value={onlineHosts}
 						icon={HardDrive}
 						variant="compact"
 						ledColor="var(--color-led-active)"
 					/>
-					<StatCard 
-						label="CPU Usage" 
-						value={cpuUsage} 
+					<StatCard
+						label="CPU Usage"
+						value={cpuUsage}
 						icon={Cpu}
 						variant="compact"
 					/>
-					<StatCard 
-						label="Memory Usage" 
-						value={memoryUsage} 
+					<StatCard
+						label="Memory Usage"
+						value={memoryUsage}
 						icon={Activity}
 						variant="compact"
 					/>
@@ -171,7 +171,7 @@
 		border: 2px solid rgba(75, 85, 99, 0.4);
 		border-radius: 0.5rem;
 		padding: 3rem 4rem;
-		box-shadow: 
+		box-shadow:
 			0 4px 6px rgba(0, 0, 0, 0.3),
 			0 10px 30px rgba(0, 0, 0, 0.5),
 			inset 0 1px 0 rgba(255, 255, 255, 0.05),
@@ -194,7 +194,7 @@
 		padding: 1rem 0;
 		z-index: 2;
 		/* Match RackCard shadow */
-		box-shadow: 
+		box-shadow:
 			inset 1px 0 2px rgba(255, 255, 255, 0.1),
 			inset -1px 0 2px rgba(0, 0, 0, 0.5);
 	}
@@ -218,7 +218,7 @@
 		background: radial-gradient(circle, #4a4a4a 0%, #2a2a2a 70%);
 		border-radius: 50%;
 		border: 1px solid rgba(0, 0, 0, 0.8);
-		box-shadow: 
+		box-shadow:
 			inset 0 1px 2px rgba(255, 255, 255, 0.3),
 			inset 0 -1px 2px rgba(0, 0, 0, 0.5);
 		position: relative;
@@ -256,7 +256,7 @@
 
 	.led-active {
 		background: var(--color-led-active, #22c55e);
-		box-shadow: 
+		box-shadow:
 			0 0 8px var(--color-led-active, #22c55e),
 			inset 0 1px 2px rgba(255, 255, 255, 0.3);
 		animation: pulse-led 2s ease-in-out infinite;

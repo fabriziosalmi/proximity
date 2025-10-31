@@ -36,9 +36,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="systemsettings",
             name="default_dns_primary",
-            field=models.GenericIPAddressField(
-                default="8.8.8.8", help_text="Primary DNS server"
-            ),
+            field=models.GenericIPAddressField(default="8.8.8.8", help_text="Primary DNS server"),
         ),
         migrations.AddField(
             model_name="systemsettings",

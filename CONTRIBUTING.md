@@ -273,15 +273,15 @@ Example:
 ```python
 async def create_lxc(self, node: str, vmid: int, config: Dict[str, Any]) -> Dict[str, Any]:
     """Create a new LXC container.
-    
+
     Args:
         node: Proxmox node name
         vmid: Virtual machine ID
         config: Container configuration
-        
+
     Returns:
         Dict containing task information
-        
+
     Raises:
         ProxmoxError: If container creation fails
     """

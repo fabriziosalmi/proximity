@@ -35,7 +35,7 @@
 				// Map backend field names to frontend variables
 				defaultSubnet = response.data.default_subnet || '10.0.0.0/24';
 				defaultGateway = response.data.default_gateway || '10.0.0.1';
-				
+
 				// Handle DNS servers - backend provides separate fields
 				const dnsPrimary = response.data.default_dns_primary || '8.8.8.8';
 				const dnsSecondary = response.data.default_dns_secondary || '8.8.4.4';

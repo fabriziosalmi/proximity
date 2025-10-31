@@ -40,7 +40,7 @@ class EncryptedTextField(models.TextField):
         if isinstance(value, str):
             # Only decrypt if it looks like an encrypted token (starts with 'gAAAAA')
             # which is Fernet's default format
-            if value.startswith('gAAAAA'):
+            if value.startswith("gAAAAA"):
                 return EncryptionManager.decrypt(value)
         return value
 
@@ -78,6 +78,6 @@ class EncryptedCharField(models.CharField):
         """
         if isinstance(value, str):
             # Only decrypt if it looks like an encrypted token (starts with 'gAAAAA')
-            if value.startswith('gAAAAA'):
+            if value.startswith("gAAAAA"):
                 return EncryptionManager.decrypt(value)
         return value

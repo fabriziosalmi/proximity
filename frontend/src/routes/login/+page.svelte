@@ -4,7 +4,7 @@
 	import { api } from '$lib/api';
 	import { toasts } from '$lib/stores/toast';
 	import { logger } from '$lib/logger';
-	
+
 	let username = '';
 	let password = '';
 	let isLoading = false;
@@ -28,13 +28,13 @@
 				// Extract user info - HttpOnly cookies are set automatically by the browser
 				const { user } = response.data;
 				logger.debug('✅ Login successful, redirecting...', { user });
-				
+
 				// Update auth store (no token needed - using HttpOnly cookies)
 				authStore.login(user);
-				
+
 				// Show success message
 				toasts.success(`Welcome back, ${user.username}!`, 3000);
-				
+
 				// Redirect to home page
 				goto('/');
 			} else {
@@ -92,8 +92,8 @@
 						bind:value={username}
 						on:keypress={handleKeyPress}
 						disabled={isLoading}
-						class="w-full px-4 py-3 bg-rack-darker border border-rack-primary/30 rounded-lg 
-						       text-white placeholder-gray-500 
+						class="w-full px-4 py-3 bg-rack-darker border border-rack-primary/30 rounded-lg
+						       text-white placeholder-gray-500
 						       focus:outline-none focus:ring-2 focus:ring-rack-primary focus:border-transparent
 						       disabled:opacity-50 disabled:cursor-not-allowed
 						       transition-all"
@@ -115,8 +115,8 @@
 						bind:value={password}
 						on:keypress={handleKeyPress}
 						disabled={isLoading}
-						class="w-full px-4 py-3 bg-rack-darker border border-rack-primary/30 rounded-lg 
-						       text-white placeholder-gray-500 
+						class="w-full px-4 py-3 bg-rack-darker border border-rack-primary/30 rounded-lg
+						       text-white placeholder-gray-500
 						       focus:outline-none focus:ring-2 focus:ring-rack-primary focus:border-transparent
 						       disabled:opacity-50 disabled:cursor-not-allowed
 						       transition-all"

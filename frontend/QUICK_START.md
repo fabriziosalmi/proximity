@@ -236,7 +236,7 @@ Then apply the theme:
 ```svelte
 <script>
   import RackCard from '$lib/components/RackCard.svelte';
-  
+
   const app = {
     id: 'adminer',
     name: 'Adminer',
@@ -258,13 +258,13 @@ Then apply the theme:
 <script>
   import { myAppsStore } from '$lib/stores/apps';
   import { toasts } from '$lib/stores/toast';
-  
+
   // Start polling
   onMount(() => myAppsStore.startPolling(5000));
-  
+
   // Stop polling
   onDestroy(() => myAppsStore.stopPolling());
-  
+
   // Show toast
   toasts.success('App started!');
 </script>
@@ -294,7 +294,7 @@ In any component:
 ```svelte
 <script>
   import { myAppsStore } from '$lib/stores/apps';
-  
+
   $: console.log('Store state:', $myAppsStore);
 </script>
 ```
@@ -304,7 +304,7 @@ In any component:
 ```svelte
 <script>
   import { myAppsStore } from '$lib/stores/apps';
-  
+
   myAppsStore.subscribe(state => {
     console.log('Store updated:', state.lastUpdated);
   });
@@ -331,7 +331,7 @@ In any component:
 
 3. **Use derived stores**: For computed values
    ```typescript
-   const runningApps = derived(myAppsStore, $store => 
+   const runningApps = derived(myAppsStore, $store =>
      $store.apps.filter(app => app.status === 'running')
    );
    ```

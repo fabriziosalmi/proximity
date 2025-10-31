@@ -92,7 +92,7 @@ test_metadata:
   - test_name: Full Sentry Integration Test
   - test_timestamp: 2025-10-19T12:XX:XX
   - test_purpose: Verify Sentry observability stack
-  
+
 system_info:
   - django_debug: True
   - sentry_dsn_configured: True
@@ -157,7 +157,7 @@ You should see **TWO** new issues:
 Title: ZeroDivisionError: division by zero
 Environment: development
 User: sentry_test_user (sentry.test@proximity.local)
-Tags: 
+Tags:
   • environment: development
   • service: proximity-backend
   • test_type: integration_test

@@ -47,15 +47,11 @@ class Migration(migrations.Migration):
                 ("iframe_url", models.URLField(blank=True, max_length=512, null=True)),
                 (
                     "public_port",
-                    models.IntegerField(
-                        blank=True, db_index=True, null=True, unique=True
-                    ),
+                    models.IntegerField(blank=True, db_index=True, null=True, unique=True),
                 ),
                 (
                     "internal_port",
-                    models.IntegerField(
-                        blank=True, db_index=True, null=True, unique=True
-                    ),
+                    models.IntegerField(blank=True, db_index=True, null=True, unique=True),
                 ),
                 ("lxc_id", models.IntegerField(db_index=True, unique=True)),
                 (

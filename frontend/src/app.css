@@ -107,11 +107,11 @@ body {
 		grid-template-rows: 1fr;
 		grid-template-areas: "main-canvas";
 	}
-	
+
 	.rack-nav-area {
 		display: none !important;
 	}
-	
+
 	.main-canvas-area {
 		padding: 0;
 		/* No padding - content manages its own spacing */
@@ -719,4 +719,3 @@ select:focus-visible {
 	width: 1rem;
 	height: 1rem;
 }
-

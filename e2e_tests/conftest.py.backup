@@ -81,7 +81,7 @@ def browser_context_args(browser_context_args) -> dict:
     """
     Context arguments for browser isolation.
     This is used by pytest-playwright's context fixture.
-    
+
     CRITICAL: Sets storage_state to None to ensure localStorage/sessionStorage
     are cleared between tests, preventing JWT token leakage.
     """
@@ -99,7 +99,7 @@ def context(browser):
     """
     Create a new browser context for each test.
     This ensures complete isolation between tests with fresh storage.
-    
+
     Note: Overrides pytest-playwright's default context fixture to use
     function scope instead of session scope for better isolation.
     """
@@ -109,9 +109,9 @@ def context(browser):
         user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
         storage_state=None,  # No saved state
     )
-    
+
     yield context
-    
+
     # CRITICAL CLEANUP: Ensure all pages are closed before closing context
     # This prevents Chromium from staying open
     print("\n🧹 [Cleanup] Closing browser context and all pages")
@@ -127,7 +127,7 @@ def context(browser):
                 print(f"  ⚠️  Error closing page: {e}")
     except Exception as e:
         print(f"  ⚠️  Error accessing pages: {e}")
-    
+
     # Close context
     try:
         context.close()
@@ -142,7 +142,7 @@ def page(context: BrowserContext, base_url: str) -> Generator[Page, None, None]:
     Create a new page for each test.
     Automatically navigates to base URL and sets timeout.
     Note: 'context' is provided by pytest-playwright.
-    
+
     CRITICAL: This fixture ensures test isolation by:
     1. Creating a fresh page
     2. Clearing all storage before navigation
@@ -152,17 +152,17 @@ def page(context: BrowserContext, base_url: str) -> Generator[Page, None, None]:
     """
     page = context.new_page()
     page.set_default_timeout(int(os.getenv("TIMEOUT", "30000")))
-    
+
     # Clear all storage BEFORE navigating to ensure clean state
     page.goto(base_url, wait_until="domcontentloaded")
     page.evaluate("window.localStorage.clear(); window.sessionStorage.clear();")
-    
+
     # Reload to ensure the cleared state takes effect
     page.reload(wait_until="domcontentloaded")
-    
+
     # Wait for app to initialize
     page.wait_for_load_state("networkidle")
-    
+
     # Force show auth modal if not authenticated (with proper Bootstrap modal display)
     page.evaluate("""
         if (typeof Auth !== 'undefined' && !Auth.isAuthenticated()) {
@@ -176,7 +176,7 @@ def page(context: BrowserContext, base_url: str) -> Generator[Page, None, None]:
                 modal.style.display = 'block';
                 modal.classList.add('show');
                 document.body.classList.add('modal-open');
-                
+
                 // Add backdrop if not present
                 if (!document.querySelector('.modal-backdrop')) {
                     const backdrop = document.createElement('div');
@@ -186,9 +186,9 @@ def page(context: BrowserContext, base_url: str) -> Generator[Page, None, None]:
             }
         }
     """)
-    
+
     yield page
-    
+
     # CRITICAL CLEANUP: Ensure page is properly closed
     print("\n🧹 [Cleanup] Closing page fixture")
     try:
@@ -199,7 +199,7 @@ def page(context: BrowserContext, base_url: str) -> Generator[Page, None, None]:
                 print("  ✓ Storage cleared")
             except Exception:
                 pass  # Page might be in bad state
-            
+
             # Close the page
             page.close()
             print("  ✓ Page closed successfully")
@@ -217,7 +217,7 @@ def page(context: BrowserContext, base_url: str) -> Generator[Page, None, None]:
 def authenticated_page(page: Page, base_url: str) -> Generator[Page, None, None]:
     """
     Provides a page with an authenticated user session - BULLETPROOF VERSION.
-    
+
     This fixture is INDESTRUCTIBLE:
     1. ✅ Clears ALL storage (localStorage + sessionStorage) BEFORE starting
     2. ✅ Creates user via API (not UI) - eliminates registration flakiness
@@ -226,9 +226,9 @@ def authenticated_page(page: Page, base_url: str) -> Generator[Page, None, None]
     5. ✅ Navigates to dashboard and waits for VISIBLE elements
     6. ✅ Verifies authentication with multiple checks
     7. ✅ Cleans up perfectly at the end
-    
+
     Use this when tests require a logged-in user.
-    
+
     WHY THIS IS BETTER:
     - No UI interaction for auth = no race conditions
     - API calls are deterministic and fast
@@ -239,11 +239,11 @@ def authenticated_page(page: Page, base_url: str) -> Generator[Page, None, None]
     from utils.test_data import generate_test_user
     from playwright.sync_api import expect
     import time
-    
+
     print("\n" + "="*80)
     print("🔐 [authenticated_page] Starting BULLETPROOF authentication")
     print("="*80)
-    
+
     # ========================================================================
     # STEP 1: CLEAR ALL STORAGE - ABSOLUTE CLEAN SLATE
     # ========================================================================
@@ -254,35 +254,35 @@ def authenticated_page(page: Page, base_url: str) -> Generator[Page, None, None]
     print("   ✓ localStorage cleared")
     print("   ✓ sessionStorage cleared")
     print("   ✓ cookies cleared")
-    
+
     # ========================================================================
     # STEP 2: CREATE USER VIA API (NOT UI!)
     # ========================================================================
     print("\n👤 STEP 2: Creating test user via API")
     test_user = generate_test_user()
     api_base = base_url.replace(":8765", ":8765/api/v1")
-    
+
     register_data = {
         "username": test_user["username"],
         "email": test_user.get("email", f"{test_user['username']}@test.com"),
         "password": test_user["password"],
         "role": "user"
     }
-    
+
     print(f"   Creating user: {register_data['username']}")
-    
+
     try:
         register_response = requests.post(
             f"{api_base}/auth/register",
             json=register_data,
             timeout=10
         )
-        
+
         if register_response.status_code in [200, 201]:
             print(f"   ✅ User created successfully (status: {register_response.status_code})")
             register_json = register_response.json()
             token = register_json.get("access_token")
-            
+
             if token:
                 print("   ✅ Token received from registration")
             else:
@@ -296,13 +296,13 @@ def authenticated_page(page: Page, base_url: str) -> Generator[Page, None, None]
     except Exception as e:
         print(f"   ❌ Registration failed: {e}")
         token = None
-    
+
     # ========================================================================
     # STEP 3: GET TOKEN VIA LOGIN API IF NEEDED
     # ========================================================================
     if not token:
         print("\n🔑 STEP 3: Getting token via login API")
-        
+
         try:
             login_response = requests.post(
                 f"{api_base}/auth/login",
@@ -312,64 +312,64 @@ def authenticated_page(page: Page, base_url: str) -> Generator[Page, None, None]
                 },
                 timeout=10
             )
-            
+
             if login_response.status_code == 200:
                 login_json = login_response.json()
                 token = login_json.get("access_token")
-                
+
                 if token:
                     print("   ✅ Token obtained via login")
                 else:
                     raise Exception("Login succeeded but no token in response")
             else:
                 raise Exception(f"Login failed with status {login_response.status_code}: {login_response.text[:200]}")
-        
+
         except Exception as e:
             print(f"   ❌ Login failed: {e}")
             raise Exception(f"AUTHENTICATION FAILED: Could not get token. Registration status: {register_response.status_code if 'register_response' in locals() else 'N/A'}. Error: {e}")
-    
+
     # ========================================================================
     # STEP 4: INJECT TOKEN INTO LOCALSTORAGE
     # ========================================================================
     print("\n� STEP 4: Injecting token into localStorage")
-    
+
     if not token:
         raise Exception("CRITICAL ERROR: No token available to inject!")
-    
+
     # Navigate to base URL first (localStorage needs a context)
     page.goto(base_url, wait_until="domcontentloaded")
-    
+
     # Inject token
     page.evaluate(f"window.localStorage.setItem('proximity_token', '{token}');")
-    
+
     # Verify token was saved
     saved_token = page.evaluate("window.localStorage.getItem('proximity_token')")
-    
+
     if saved_token == token:
         print(f"   ✅ Token injected successfully (length: {len(token)} chars)")
     else:
         raise Exception("Token injection failed - localStorage.getItem returned different value!")
-    
+
     # ========================================================================
     # STEP 5: NAVIGATE TO DASHBOARD
     # ========================================================================
     print("\n🏠 STEP 5: Navigating to dashboard")
-    
+
     # Reload page to trigger app initialization with token
     page.reload(wait_until="domcontentloaded")
     page.wait_for_load_state("networkidle")
-    
+
     # Wait for app initialization
     time.sleep(1)
-    
+
     # Verify we're on dashboard view
     print("   ✓ Page reloaded with token")
-    
+
     # ========================================================================
     # STEP 6: VERIFY AUTHENTICATION - MULTIPLE CHECKS
     # ========================================================================
     print("\n✅ STEP 6: Verifying authentication state")
-    
+
     # Check 1: Dashboard container must be visible
     try:
         dashboard = page.locator('[data-view="dashboard"]')
@@ -377,7 +377,7 @@ def authenticated_page(page: Page, base_url: str) -> Generator[Page, None, None]
         print("   ✅ Check 1/4: Dashboard container visible")
     except Exception as e:
         raise Exception(f"VERIFICATION FAILED: Dashboard not visible. Error: {e}")
-    
+
     # Check 2: User display must be visible (proves we're logged in)
     try:
         user_display = page.locator('.user-display, .user-info, [data-user-display]')
@@ -385,7 +385,7 @@ def authenticated_page(page: Page, base_url: str) -> Generator[Page, None, None]
         print("   ✅ Check 2/4: User display visible")
     except Exception as e:
         print(f"   ⚠️  Check 2/4: User display not found (might be acceptable): {e}")
-    
+
     # Check 3: Auth modal must NOT be visible
     try:
         auth_modal = page.locator('#authModal')
@@ -393,14 +393,14 @@ def authenticated_page(page: Page, base_url: str) -> Generator[Page, None, None]
         print("   ✅ Check 3/4: Auth modal is hidden")
     except Exception as e:
         print(f"   ⚠️  Check 3/4: Auth modal check inconclusive: {e}")
-    
+
     # Check 4: Token still in localStorage
     final_token = page.evaluate("window.localStorage.getItem('proximity_token')")
     if final_token == token:
         print("   ✅ Check 4/4: Token persisted in localStorage")
     else:
         raise Exception("VERIFICATION FAILED: Token was cleared from localStorage!")
-    
+
     # Force close any modals that might be open
     page.evaluate("""
         // Force close any modal
@@ -413,13 +413,13 @@ def authenticated_page(page: Page, base_url: str) -> Generator[Page, None, None]
         document.body.style.overflow = '';
         document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
     """)
-    
+
     print("\n" + "="*80)
     print("🎉 AUTHENTICATION COMPLETE - Page ready for testing")
     print("="*80 + "\n")
-    
+
     yield page
-    
+
     # ========================================================================
     # CLEANUP: CLEAR SESSION
     # ========================================================================
@@ -438,31 +438,31 @@ def authenticated_page(page: Page, base_url: str) -> Generator[Page, None, None]
 def admin_authenticated_page(page: Page, base_url: str) -> Generator[Page, None, None]:
     """
     Provides a page with an authenticated admin user session.
-    
+
     Useful for tests that require admin privileges.
     """
     from pages.login_page import LoginPage
     from pages.dashboard_page import DashboardPage
-    
+
     # Use a consistent admin user (assuming it exists)
     # In production, you might want to create this via API or migration
     admin_username = os.getenv("E2E_ADMIN_USERNAME", "admin")
     admin_password = os.getenv("E2E_ADMIN_PASSWORD", "admin123")
-    
+
     login_page = LoginPage(page)
     dashboard_page = DashboardPage(page)
-    
+
     # Navigate to app
     page.goto(base_url)
-    
+
     # Login as admin
     login_page.login(admin_username, admin_password)
-    
+
     # Verify we're on the dashboard
     dashboard_page.wait_for_dashboard_load()
-    
+
     yield page
-    
+
     # Cleanup: Clear session on teardown
     try:
         page.evaluate("window.localStorage.clear(); window.sessionStorage.clear();")
@@ -481,7 +481,7 @@ def pytest_runtest_makereport(item, call):
     """
     outcome = yield
     rep = outcome.get_result()
-    
+
     if rep.when == "call" and rep.failed:
         # Mark the page object to trigger screenshot
         if "page" in item.funcargs:
@@ -495,13 +495,13 @@ def ensure_browser_cleanup(request):
     """
     Final safety net to ensure browser resources are cleaned up after each test,
     even if the test fails or is interrupted.
-    
+
     This runs AFTER other fixture teardowns as a last resort cleanup.
     """
     yield
-    
+
     print("\n🛡️  [Safety Net] Final cleanup check")
-    
+
     # Force cleanup of any remaining browser resources
     if "page" in request.fixturenames:
         try:
@@ -515,7 +515,7 @@ def ensure_browser_cleanup(request):
                     print(f"  ⚠️  Error closing page: {e}")
         except Exception as e:
             print(f"  ⚠️  Error accessing page: {e}")
-    
+
     if "context" in request.fixturenames:
         try:
             context = request.getfixturevalue("context")
@@ -547,9 +547,9 @@ def log_test_info(request):
     print(f"\n{'='*80}")
     print(f"Starting test: {test_name}")
     print(f"{'='*80}")
-    
+
     yield
-    
+
     print(f"\n{'='*80}")
     print(f"Finished test: {test_name}")
     print(f"{'='*80}\n")

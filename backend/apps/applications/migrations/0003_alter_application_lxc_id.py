@@ -12,8 +12,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="application",
             name="lxc_id",
-            field=models.IntegerField(
-                blank=True, db_index=True, null=True, unique=True
-            ),
+            field=models.IntegerField(blank=True, db_index=True, null=True, unique=True),
         ),
     ]

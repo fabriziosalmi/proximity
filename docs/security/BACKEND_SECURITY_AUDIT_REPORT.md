@@ -3,7 +3,7 @@
 ## Executive Summary
 
 **Framework**: Django 5.0.1 with Django Ninja REST API
-**Key Components**: 
+**Key Components**:
 - JWT Authentication (djangorestframework-simplejwt)
 - Proxmox Integration (proxmoxer library)
 - Celery Task Queue
@@ -97,7 +97,7 @@ The application handles sensitive infrastructure operations (container deploymen
 
 ### Key Data Flows
 
-1. **Deployment Flow**: 
+1. **Deployment Flow**:
    - API → Celery Task → ProxmoxService → Create LXC → SSH exec inside container
 
 2. **Authentication Flow**:
@@ -141,7 +141,7 @@ docker_setup_command = "sh -c 'whoami; cat /etc/proxmox/pve/authkey.pub' > /tmp/
 ---
 
 #### 2. **Plaintext Password Storage in Database**
-**Files**: 
+**Files**:
 - `/Users/fab/GitHub/proximity/backend/apps/proxmox/api.py` (lines 46, 52)
 - `/Users/fab/GitHub/proximity/backend/apps/proxmox/services.py` (line 77)
 **Severity**: CRITICAL (Credential Disclosure)
@@ -165,7 +165,7 @@ password = EncryptedCharField(max_length=500)
 
 However, the TODOs suggest the decryption may not work properly at retrieval time. The encryption logic uses Fernet with SHA256 hash of SECRET_KEY, which is reasonable but has issues (see below).
 
-**Actual Risk**: 
+**Actual Risk**:
 - Passwords are encrypted at database level (good)
 - BUT: TODOs indicate developers are unsure if it's working (red flag)
 - SECRET_KEY is in `.env` file and committed to repo
@@ -273,7 +273,7 @@ DEBUG = os.getenv('DEBUG', 'False') == 'True'  # In settings.py
 
 ```python
 CORS_ALLOWED_ORIGINS = os.getenv(
-    'CORS_ALLOWED_ORIGINS', 
+    'CORS_ALLOWED_ORIGINS',
     'http://localhost:5173'  # Only localhost
 ).split(',')
 CORS_ALLOW_CREDENTIALS = True  # Cookies sent with CORS requests
@@ -301,7 +301,7 @@ router = Router()  # TODO: Add auth=AuthBearer() when implemented
 # But this suggests alternative auth methods aren't implemented
 ```
 
-**Issue**: 
+**Issue**:
 - Comment suggests auth was planned but incomplete
 - Backup APIs rely on global auth only
 - No secondary authorization checks in some endpoints
@@ -494,7 +494,7 @@ SENTRY_DSN=https://dbee00d4782d131ab54ffe60b16d969b@o149725.ingest.us.sentry.io/
 ## 7. Recommendations (Priority Order)
 
 ### Immediate (Critical)
-1. **Fix SSH Command Injection**: 
+1. **Fix SSH Command Injection**:
    - Use `shlex.quote()` for command arguments
    - Or better: Pass commands as array to paramiko
    - Test with various payloads
@@ -539,7 +539,7 @@ SENTRY_DSN=https://dbee00d4782d131ab54ffe60b16d969b@o149725.ingest.us.sentry.io/
      class IsAppOwner(BasePermission):
          def has_permission(self, request):
              return request.user.is_authenticated
-         
+
          def has_object_permission(self, request, obj):
              return obj.owner == request.user or request.user.is_staff
      ```
@@ -619,4 +619,3 @@ The three main security gaps are:
 3. **Insecure SSH implementation without host verification** (CRITICAL MITM)
 
 All other issues are important but less immediately dangerous. Priority should be fixing these three issues, then implementing the "Short Term" recommendations before any production deployment.
-

@@ -319,7 +319,7 @@ Thread 1: E2E Test
               └─ ApiClient receives token ✅
 ```
 
-**Key Difference:** 
+**Key Difference:**
 - Old: ApiClient reads **once** at construction time
 - New: ApiClient **subscribes** to authStore and receives updates
 

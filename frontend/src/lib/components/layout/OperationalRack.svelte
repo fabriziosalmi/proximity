@@ -5,7 +5,7 @@
 	 * Styled identically to RackCard for seamless visual integration
 	 */
 	import { onMount } from 'svelte';
-	
+
 	// Optional title prop for accessibility
 	export let title: string = 'Operations';
 </script>
@@ -54,7 +54,7 @@
 		background: var(--bg-rack-nav, linear-gradient(to bottom, #374151, #1f2937));
 		border-top: 1px solid rgba(255, 255, 255, 0.1);
 		border-bottom: 1px solid rgba(0, 0, 0, 0.3);
-		box-shadow: 
+		box-shadow:
 			0 2px 4px rgba(0, 0, 0, 0.3),
 			inset 0 1px 0 rgba(255, 255, 255, 0.05);
 		transition: all 0.3s ease;
@@ -75,7 +75,7 @@
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		box-shadow: 
+		box-shadow:
 			inset 0 1px 2px rgba(255, 255, 255, 0.1),
 			inset 0 -1px 2px rgba(0, 0, 0, 0.3);
 	}
@@ -95,7 +95,7 @@
 		border-radius: 50%;
 		background: radial-gradient(circle at 30% 30%, #4a5568, #1a202c);
 		border: 1px solid rgba(0, 0, 0, 0.4);
-		box-shadow: 
+		box-shadow:
 			inset 0 1px 2px rgba(0, 0, 0, 0.5),
 			0 1px 1px rgba(255, 255, 255, 0.1);
 		position: relative;

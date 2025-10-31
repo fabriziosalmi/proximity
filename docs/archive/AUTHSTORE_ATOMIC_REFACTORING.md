@@ -204,7 +204,7 @@ const setUserState = (user: User | null, isInitialized: boolean = true) => {
   } else {
     Sentry.setUser(null);
   }
-  
+
   // ATOMIC: Single set() call, no intermediate state
   set({ user, isInitialized });
 };

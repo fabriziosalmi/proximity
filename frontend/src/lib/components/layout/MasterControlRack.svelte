@@ -63,7 +63,7 @@
 		// This will automatically update ApiClient via subscription
 		authStore.logout();
 		api.logout(); // This just clears Sentry context
-		
+
 		// Navigate to login
 		await goto('/login');
 		showUserMenu = false;

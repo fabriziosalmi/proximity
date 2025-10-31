@@ -256,7 +256,7 @@ python migrations/add_lxc_password_column.py
 
 **Cause**: `JWT_SECRET_KEY` in `.env` was modified after passwords were encrypted.
 
-**Solution**: 
+**Solution**:
 - Restore original `JWT_SECRET_KEY`, OR
 - Redeploy affected containers (new passwords will be generated)
 

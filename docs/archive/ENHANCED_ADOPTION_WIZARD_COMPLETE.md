@@ -27,17 +27,17 @@ The **Enhanced Adoption Wizard** has been successfully implemented as the premiu
 ```typescript
 function guessPortFromName(name: string): number {
   const nameLower = name.toLowerCase();
-  
+
   // Web Servers
   if (nameLower.includes('nginx')) return 80;
   if (nameLower.includes('traefik')) return 8080;
-  
+
   // Databases
   if (nameLower.includes('postgres')) return 5432;
   if (nameLower.includes('mysql')) return 3306;
   if (nameLower.includes('redis')) return 6379;
   // ... 20+ patterns implemented
-  
+
   return 80; // Safe fallback
 }
 ```

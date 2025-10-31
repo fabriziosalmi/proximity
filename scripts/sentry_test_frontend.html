@@ -114,7 +114,7 @@
 
         // Initialize Sentry
         const SENTRY_DSN = 'https://dbee00d4782d131ab54ffe60b16d969b@o149725.ingest.us.sentry.io/4510189390266368';
-        
+
         Sentry.init({
             dsn: SENTRY_DSN,
             environment: 'development',
@@ -207,7 +207,7 @@
                 test_purpose: 'Verify Sentry observability stack (frontend)',
                 expected_outcome: 'Error captured with full context'
             });
-            
+
             Sentry.setContext('browser_info', {
                 user_agent: navigator.userAgent,
                 language: navigator.language,

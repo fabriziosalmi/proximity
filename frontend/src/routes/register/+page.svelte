@@ -5,7 +5,7 @@
 	import { toasts } from '$lib/stores/toast';
 	import { sanitizeError, parseValidationErrors, getDisplayError } from '$lib/errors';
 	import { logger } from '$lib/logger';
-	
+
 	let username = '';
 	let email = '';
 	let password = '';
@@ -140,8 +140,8 @@
 						bind:value={username}
 						on:keypress={handleKeyPress}
 						disabled={isLoading}
-						class="w-full px-4 py-3 bg-rack-darker border border-rack-primary/30 rounded-lg 
-						       text-white placeholder-gray-500 
+						class="w-full px-4 py-3 bg-rack-darker border border-rack-primary/30 rounded-lg
+						       text-white placeholder-gray-500
 						       focus:outline-none focus:ring-2 focus:ring-rack-primary focus:border-transparent
 						       disabled:opacity-50 disabled:cursor-not-allowed
 						       {validationErrors.username ? 'border-red-500' : ''}
@@ -167,8 +167,8 @@
 						bind:value={email}
 						on:keypress={handleKeyPress}
 						disabled={isLoading}
-						class="w-full px-4 py-3 bg-rack-darker border border-rack-primary/30 rounded-lg 
-						       text-white placeholder-gray-500 
+						class="w-full px-4 py-3 bg-rack-darker border border-rack-primary/30 rounded-lg
+						       text-white placeholder-gray-500
 						       focus:outline-none focus:ring-2 focus:ring-rack-primary focus:border-transparent
 						       disabled:opacity-50 disabled:cursor-not-allowed
 						       {validationErrors.email ? 'border-red-500' : ''}
@@ -194,8 +194,8 @@
 						bind:value={password}
 						on:keypress={handleKeyPress}
 						disabled={isLoading}
-						class="w-full px-4 py-3 bg-rack-darker border border-rack-primary/30 rounded-lg 
-						       text-white placeholder-gray-500 
+						class="w-full px-4 py-3 bg-rack-darker border border-rack-primary/30 rounded-lg
+						       text-white placeholder-gray-500
 						       focus:outline-none focus:ring-2 focus:ring-rack-primary focus:border-transparent
 						       disabled:opacity-50 disabled:cursor-not-allowed
 						       {validationErrors.password ? 'border-red-500' : ''}
@@ -222,8 +222,8 @@
 						bind:value={confirmPassword}
 						on:keypress={handleKeyPress}
 						disabled={isLoading}
-						class="w-full px-4 py-3 bg-rack-darker border border-rack-primary/30 rounded-lg 
-						       text-white placeholder-gray-500 
+						class="w-full px-4 py-3 bg-rack-darker border border-rack-primary/30 rounded-lg
+						       text-white placeholder-gray-500
 						       focus:outline-none focus:ring-2 focus:ring-rack-primary focus:border-transparent
 						       disabled:opacity-50 disabled:cursor-not-allowed
 						       {validationErrors.confirmPassword ? 'border-red-500' : ''}

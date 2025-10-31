@@ -6,7 +6,6 @@ with the Django SECRET_KEY as the encryption key.
 """
 
 import base64
-import os
 from cryptography.fernet import Fernet
 from django.conf import settings
 
@@ -28,6 +27,7 @@ class EncryptionManager:
         secret_key = settings.SECRET_KEY.encode()
         # Use first 32 bytes for Fernet key (256 bits)
         import hashlib
+
         hash_digest = hashlib.sha256(secret_key).digest()[:32]
         cipher_key = base64.urlsafe_b64encode(hash_digest)
         return cipher_key
@@ -49,7 +49,7 @@ class EncryptionManager:
         cipher_key = cls._get_cipher_key()
         cipher = Fernet(cipher_key)
         encrypted = cipher.encrypt(plaintext.encode())
-        return encrypted.decode('utf-8')
+        return encrypted.decode("utf-8")
 
     @classmethod
     def decrypt(cls, ciphertext: str) -> str:
@@ -69,11 +69,12 @@ class EncryptionManager:
             cipher_key = cls._get_cipher_key()
             cipher = Fernet(cipher_key)
             decrypted = cipher.decrypt(ciphertext.encode())
-            return decrypted.decode('utf-8')
+            return decrypted.decode("utf-8")
         except Exception as e:
             # If decryption fails, it might be plaintext (for migration compatibility)
             # Log this but don't fail - it will be encrypted on next save
             import logging
+
             logger = logging.getLogger(__name__)
             logger.warning(f"Failed to decrypt value, assuming plaintext: {str(e)}")
             return ciphertext

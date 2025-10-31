@@ -19,7 +19,7 @@ This is a comprehensive audit of the Proximity backend codebase examining critic
 def get_application(request, app_id: str):
     """Get application details."""
     app = get_object_or_404(Application, id=app_id)
-    
+
     return {
         "id": app.id,
         # ... returns full app details
@@ -38,13 +38,13 @@ def get_application(request, app_id: str):
 def get_application(request, app_id: str):
     """Get application details."""
     queryset = Application.objects.all()
-    
+
     # Authorization: non-admins see only their own apps
     if request.user.is_authenticated and not request.user.is_staff:
         queryset = queryset.filter(owner=request.user)
-    
+
     app = get_object_or_404(queryset, id=app_id)
-    
+
     return {
         "id": app.id,
         # ... rest of response
@@ -64,9 +64,9 @@ def get_application(request, app_id: str):
 def app_action(request, app_id: str, payload: ApplicationAction):
     """Perform an action on an application."""
     app = get_object_or_404(Application, id=app_id)
-    
+
     action = payload.action.lower()
-    
+
     if action == 'start':
         start_app_task.delay(app_id)
         return {"success": True, "message": f"Starting {app.name}"}
@@ -86,12 +86,12 @@ def app_action(request, app_id: str, payload: ApplicationAction):
 def app_action(request, app_id: str, payload: ApplicationAction):
     """Perform an action on an application."""
     queryset = Application.objects.all()
-    
+
     if request.user.is_authenticated and not request.user.is_staff:
         queryset = queryset.filter(owner=request.user)
-    
+
     app = get_object_or_404(queryset, id=app_id)
-    
+
     action = payload.action.lower()
     # ... rest of logic
 ```
@@ -109,9 +109,9 @@ def app_action(request, app_id: str, payload: ApplicationAction):
 def clone_application(request, app_id: str, payload: ApplicationClone):
     """Clone an existing application."""
     source_app = get_object_or_404(Application, id=app_id)
-    
+
     # ... no ownership validation ...
-    
+
     clone_app_task.delay(...)
 ```
 
@@ -134,7 +134,7 @@ def clone_application(request, app_id: str, payload: ApplicationClone):
 def get_application_logs(request, app_id: str, limit: int = 50):
     """Get deployment logs for an application."""
     app = get_object_or_404(Application, id=app_id)
-    
+
     logs = DeploymentLog.objects.filter(application=app).order_by('-timestamp')[:limit]
     # ... returns logs without ownership check
 ```
@@ -177,7 +177,7 @@ def reload_catalog(request):
     """Reload the catalog from disk. Requires admin privileges."""
     if not request.auth or not request.auth.is_staff:
         raise HttpError(403, "Admin privileges required")
-    
+
     catalog_service.reload()
     stats = catalog_service.get_stats()
     return {
@@ -212,7 +212,7 @@ def list_app_backups(request, app_id: str):
     """List all backups for an application."""
     if not request.auth:
         raise HttpError(401, "Authentication required")
-    
+
     app = get_object_or_404(
         Application.objects.filter(owner=request.auth),
         id=app_id
@@ -262,13 +262,13 @@ from cryptography.fernet import Fernet
 
 class ProxmoxHost(models.Model):
     _password = models.CharField(max_length=500)
-    
+
     @property
     def password(self):
         # Decrypt before return
         cipher = Fernet(settings.PASSWORD_CIPHER_KEY)
         return cipher.decrypt(self._password).decode()
-    
+
     @password.setter
     def password(self, value):
         # Encrypt before storage
@@ -403,17 +403,17 @@ from django.db import IntegrityError
 
 for attempt in range(max_attempts):
     candidate_vmid = proxmox_service.get_next_vmid()
-    
+
     try:
         with transaction.atomic():
             # First, verify it's not already in DB under lock
             existing = Application.objects.select_for_update().filter(
                 lxc_id=candidate_vmid
             ).first()
-            
+
             if existing:
                 continue  # Already used, try next
-            
+
             # Assign now - this entire operation is atomic
             app.lxc_id = candidate_vmid
             app.save(update_fields=['lxc_id'])
@@ -468,7 +468,7 @@ internal_port = None
 
 try:
     public_port, internal_port = port_manager.allocate_ports()
-    
+
     # Create application record
     app = Application.objects.create(
         id=app_id,
@@ -476,7 +476,7 @@ try:
         internal_port=internal_port,
         # ...
     )
-    
+
     # Trigger deployment task
     try:
         transaction.on_commit(
@@ -486,7 +486,7 @@ try:
         logger.error(f"Failed to queue deployment task: {e}")
         # Ports will be released by app deletion below
         raise
-        
+
 except Exception:
     # Release allocated ports on any error
     if public_port and internal_port:
@@ -544,7 +544,7 @@ except Exception as config_error:
 except Exception as e:
     logger.error(f"[TASK FAILED] Exception Type: {type(e).__name__}")
     # ...
-    
+
     # Retry with exponential backoff
     retry_countdown = 60 * (2 ** self.request.retries)
     logger.error(f"[{app_id}] Scheduling retry in {retry_countdown} seconds...")
@@ -567,7 +567,7 @@ def deploy_app_task(self, app_id: str, ...):
         # ... main logic ...
     except Exception as e:
         logger.error(f"[TASK FAILED] Exception: {str(e)}")
-        
+
         # Check if we've exhausted retries
         if self.request.retries >= self.max_retries:
             logger.error(f"[{app_id}] Max retries ({self.max_retries}) exhausted, marking as error")
@@ -579,11 +579,11 @@ def deploy_app_task(self, app_id: str, ...):
                 pass
             # Don't retry - re-raise to let Celery log final failure
             raise
-        
+
         # Still have retries remaining
         retry_countdown = 60 * (2 ** self.request.retries)
         logger.warning(f"[{app_id}] Retrying in {retry_countdown}s (attempt {self.request.retries + 1}/{self.max_retries})")
-        
+
         # Status should be 'deploying' not 'error' during retries
         raise self.retry(exc=e, countdown=retry_countdown)
 ```
@@ -616,7 +616,7 @@ class ApplicationCreate(BaseModel):
     catalog_id: str
     hostname: str
     internal_port: Optional[int] = None
-    
+
     @validator('internal_port')
     def validate_port(cls, v):
         if v is not None and (v < 1 or v > 65535):
@@ -674,7 +674,7 @@ queryset = Application.objects.select_related('host', 'owner').all()
 with transaction.atomic():
     backup.status = 'restoring'
     backup.save()
-    
+
     app.status = 'updating'
     app.save()
 ```
@@ -688,10 +688,10 @@ with transaction.atomic():
 with transaction.atomic():
     backup = Backup.objects.select_for_update().get(id=backup_id)
     app = Application.objects.select_for_update().get(id=backup.application_id)
-    
+
     backup.status = 'restoring'
     backup.save()
-    
+
     app.status = 'updating'
     app.save()
 ```
@@ -714,17 +714,17 @@ import re
 
 class ApplicationCreate(BaseModel):
     hostname: str
-    
+
     @validator('hostname')
     def validate_hostname(cls, v):
         # RFC 1123 hostname validation
         if len(v) > 253:
             raise ValueError('Hostname too long (max 253 characters)')
-        
+
         pattern = r'^(?!-)[A-Za-z0-9-]{1,63}(?<!-)(\.[A-Za-z0-9-]{1,63})*\.?$'
         if not re.match(pattern, v):
             raise ValueError('Invalid hostname format')
-        
+
         return v
 ```
 
@@ -770,15 +770,15 @@ if port_to_expose:
 try:
     # Validate subnet CIDR
     ipaddress.IPv4Network(payload.default_subnet, strict=False)
-    
+
     # Validate gateway IP
     ipaddress.IPv4Address(payload.default_gateway)
-    
+
     # Validate DNS servers
     ipaddress.ip_address(payload.default_dns_primary)
     if payload.default_dns_secondary:
         ipaddress.ip_address(payload.default_dns_secondary)
-        
+
 except ValueError as e:
     return 400, {"error": f"Invalid IP address or CIDR notation: {str(e)}"}
 ```
@@ -792,15 +792,15 @@ except ValueError as e:
 try:
     subnet = ipaddress.IPv4Network(payload.default_subnet, strict=False)
     gateway = ipaddress.IPv4Address(payload.default_gateway)
-    
+
     # Validate gateway is in subnet
     if gateway not in subnet:
         return 400, {"error": f"Gateway {gateway} is not in subnet {subnet}"}
-    
+
     ipaddress.ip_address(payload.default_dns_primary)
     if payload.default_dns_secondary:
         ipaddress.ip_address(payload.default_dns_secondary)
-        
+
 except ValueError as e:
     return 400, {"error": f"Invalid IP address or CIDR notation: {str(e)}"}
 ```
@@ -990,7 +990,7 @@ def delete_host(request, host_id: int):
     """Delete a Proxmox host configuration. Requires admin privileges."""
     if not request.auth or not request.auth.is_staff:
         raise HttpError(403, "Admin privileges required")
-    
+
     host = get_object_or_404(ProxmoxHost, id=host_id)
     host.delete()
     return {"success": True, "message": f"Host {host.name} deleted"}
@@ -1061,7 +1061,7 @@ def get_application_logs(request, app_id: str, limit: int = 50):
     # Validate limit
     if limit < 1 or limit > 1000:
         raise HttpError(400, "limit must be between 1 and 1000")
-    
+
     logs = DeploymentLog.objects.filter(application=app).order_by('-timestamp')[:limit]
 ```
 

@@ -25,7 +25,7 @@ We have successfully refactored the entire suite of lifecycle and cleanup servic
   - Removes database record ONLY
   - Container remains untouched on Proxmox
   - Logs: `"SOFT DELETE: Removing Proximity management (container preserved)"`
-  
+
 - **Hard Delete (Native Apps):**
   - Stops container on Proxmox (with wait loop)
   - Deletes container from Proxmox
@@ -66,7 +66,7 @@ else:
   - **Expected Orphans:** Apps in `removing` or `error` state
     - Logged as INFO: `"EXPECTED ORPHAN: Container removal expected"`
     - Cleaned silently (normal operation)
-  
+
   - **Anomalous Orphans:** Apps in stable states (`running`, `stopped`, etc.)
     - Logged as CRITICAL: `"🚨 ANOMALOUS ORPHAN DETECTED: Container was MANUALLY DELETED"`
     - Sentry alert triggered with high severity

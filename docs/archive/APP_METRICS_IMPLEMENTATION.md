@@ -117,7 +117,7 @@ disk_total: Optional[int] = None
        if (!used || !total) return 0;
        return Math.round((used / total) * 100);
    }
-   
+
    function formatPercent(value) {
        if (value === undefined || value === null) return '--';
        return `${Math.round(value)}%`;

@@ -1,7 +1,7 @@
 """
 Minimal test to diagnose fixture issue
 """
-import pytest
+
 from playwright.sync_api import Page
 
 

@@ -49,23 +49,23 @@
 
 	onMount(() => {
 		logger.debug('🏁 [AppsPage] Component mounted - onMount() executing');
-		
+
 		// Set page title
 		pageTitleStore.setTitle('My Apps');
 
 		// Start polling for real-time updates
 		logger.debug('🚦 [AppsPage] Calling myAppsStore.startPolling(5000)');
 		myAppsStore.startPolling(5000);
-		
+
 		logger.debug('✅ [AppsPage] onMount() complete');
 	});
 
 	onDestroy(() => {
 		logger.debug('🛑 [AppsPage] Component unmounting - onDestroy() executing');
-		
+
 		// Stop polling when leaving the page
 		myAppsStore.stopPolling();
-		
+
 		logger.debug('✅ [AppsPage] onDestroy() complete');
 	});
 
@@ -193,7 +193,7 @@
 		<div class="px-6 pt-6">
 			<NavigationRack />
 		</div>
-		
+
 		<!-- Operational Control Panel Rack -->
 		<div class="px-6 pb-6">
 			<OperationalRack title="Application Fleet Operations">
@@ -398,7 +398,7 @@
 		</div>
 	{:else if $myAppsStore.apps.length === 0}
 		<!-- Empty State - Bare Metal Rack Card -->
-		<EmptyRackCard 
+		<EmptyRackCard
 			label="NO APPS INSTALLED"
 			buttonText="INSTALL APP"
 			buttonHref="/store"

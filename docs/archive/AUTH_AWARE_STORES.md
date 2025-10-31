@@ -81,7 +81,7 @@ interface AuthState {
 // In init() method:
 init: () => {
     // ... load from localStorage ...
-    
+
     // ALWAYS set isInitialized = true (even if no session)
     update(state => ({ ...state, isInitialized: true }));
 }
@@ -93,10 +93,10 @@ login: (token, user) => {
 
 // In logout() method:
 logout: () => {
-    set({ 
-        token: null, 
-        user: null, 
-        isAuthenticated: false, 
+    set({
+        token: null,
+        user: null,
+        isAuthenticated: false,
         isInitialized: true  // Keep true after logout
     });
 }
@@ -127,27 +127,27 @@ let authUnsubscribe: (() => void) | null = null; // Track auth subscription
 ```typescript
 function startPolling(intervalMs: number = 5000) {
     console.log('📦 [myAppsStore] startPolling() called');
-    
+
     stopPolling(); // Clear any existing interval
     isPollingActive = true;
 
     // Check if authStore is ready
     const currentAuthState = get(authStore);
-    
+
     if (!currentAuthState.isInitialized) {
         console.log('⏳ [myAppsStore] Waiting for authStore...');
-        
+
         // Subscribe and wait
         authUnsubscribe = authStore.subscribe((authState) => {
             if (authState.isInitialized && isPollingActive) {
                 console.log('✅ [myAppsStore] authStore ready!');
-                
+
                 // Clean up subscription
                 if (authUnsubscribe) {
                     authUnsubscribe();
                     authUnsubscribe = null;
                 }
-                
+
                 // Start fetching
                 fetchApps();
                 pollingInterval = setInterval(() => {
@@ -175,7 +175,7 @@ async function fetchApps() {
         console.warn('⚠️ [myAppsStore] fetchApps() called before auth ready. Skipping.');
         return;
     }
-    
+
     // ... rest of fetch logic ...
 }
 ```
@@ -184,14 +184,14 @@ async function fetchApps() {
 ```typescript
 function stopPolling() {
     console.log('🛑 [myAppsStore] stopPolling() called');
-    
+
     isPollingActive = false;
-    
+
     if (pollingInterval !== null) {
         clearInterval(pollingInterval);
         pollingInterval = null;
     }
-    
+
     // Clean up auth subscription
     if (authUnsubscribe) {
         authUnsubscribe();
@@ -332,7 +332,7 @@ docker-compose logs backend | grep "GET /api/apps/"
    ```
    [myAppsStore] Waiting for authStore to initialize...
    ```
-   
+
 2. Check if authStore actually initialized:
    ```javascript
    // In browser console:

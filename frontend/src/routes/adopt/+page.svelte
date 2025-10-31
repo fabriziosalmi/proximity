@@ -293,7 +293,7 @@
 					<Icon icon="mdi:check-decagram" class="w-32 h-32 text-success/30 mb-6" />
 					<h2 class="text-3xl font-bold mb-3">All Containers Managed!</h2>
 					<p class="text-base-content/70 mb-8 max-w-lg text-center text-lg">
-						Great news! All containers on your Proxmox nodes are already managed by Proximity, 
+						Great news! All containers on your Proxmox nodes are already managed by Proximity,
 						or there are no containers to discover.
 					</p>
 					<div class="flex gap-4">
@@ -364,7 +364,7 @@
 									</thead>
 									<tbody>
 										{#each containers as item, index}
-											<tr 
+											<tr
 												class="hover transition-colors"
 												class:bg-primary={item.selected}
 												class:bg-opacity-5={item.selected}
@@ -396,8 +396,8 @@
 															class:badge-success={item.container.status === 'running'}
 															class:badge-error={item.container.status === 'stopped'}
 														>
-															<Icon 
-																icon={item.container.status === 'running' ? 'mdi:play-circle' : 'mdi:stop-circle'} 
+															<Icon
+																icon={item.container.status === 'running' ? 'mdi:play-circle' : 'mdi:stop-circle'}
 																class="w-3 h-3 mr-1"
 															/>
 															{item.container.status}
@@ -606,7 +606,7 @@
 												<Icon icon={getAppIcon(item.suggested_type)} class="w-8 h-8" />
 											</div>
 										</div>
-										
+
 										<div class="flex-1">
 											<h3 class="font-bold text-xl mb-1">{item.container.name}</h3>
 											<div class="flex flex-wrap gap-3 text-sm text-base-content/70">
@@ -685,14 +685,14 @@
 				<Icon icon="mdi:download-circle" class="w-8 h-8 text-primary animate-pulse" />
 				Adopting Containers...
 			</h3>
-			
+
 			<div class="space-y-6">
 				<progress
 					class="progress progress-primary w-full h-4"
 					value={adoptionProgress}
 					max={adoptionTotal}
 				></progress>
-				
+
 				<div class="text-center">
 					<p class="text-3xl font-bold text-primary mb-2">
 						{adoptionProgress} / {adoptionTotal}

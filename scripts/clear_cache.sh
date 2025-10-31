@@ -73,7 +73,7 @@ if [ -n "$BACKEND_PID" ]; then
         kill $BACKEND_PID || kill -9 $BACKEND_PID
         sleep 2
         print_success "Backend server stopped"
-        
+
         read -p "Start backend server now? (y/n) " -n 1 -r
         echo ""
         if [[ $REPLY =~ ^[Yy]$ ]]; then

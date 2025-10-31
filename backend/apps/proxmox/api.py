@@ -1,6 +1,7 @@
 """
 Proxmox API endpoints - Host and node management
 """
+
 from typing import List
 from ninja import Router
 from ninja.errors import HttpError
@@ -9,8 +10,11 @@ from django.shortcuts import get_object_or_404
 from .models import ProxmoxHost, ProxmoxNode
 from .services import ProxmoxService, ProxmoxError
 from .schemas import (
-    ProxmoxHostCreate, ProxmoxHostResponse, ProxmoxHostUpdate,
-    ProxmoxNodeResponse, ConnectionTestResponse
+    ProxmoxHostCreate,
+    ProxmoxHostResponse,
+    ProxmoxHostUpdate,
+    ProxmoxNodeResponse,
+    ConnectionTestResponse,
 )
 
 router = Router()
@@ -24,16 +28,19 @@ def list_hosts(request):
         raise HttpError(403, "Admin privileges required to view Proxmox hosts")
 
     hosts = ProxmoxHost.objects.all()
-    return [{
-        "id": h.id,
-        "name": h.name,
-        "host": h.host,
-        "port": h.port,
-        "user": h.user,
-        "is_active": h.is_active,
-        "is_default": h.is_default,
-        "last_seen": h.last_seen.isoformat() if h.last_seen else None,
-    } for h in hosts]
+    return [
+        {
+            "id": h.id,
+            "name": h.name,
+            "host": h.host,
+            "port": h.port,
+            "user": h.user,
+            "is_active": h.is_active,
+            "is_default": h.is_default,
+            "last_seen": h.last_seen.isoformat() if h.last_seen else None,
+        }
+        for h in hosts
+    ]
 
 
 @router.post("/hosts", response=ProxmoxHostResponse)
@@ -52,9 +59,9 @@ def create_host(request, payload: ProxmoxHostCreate):
         password=payload.password,  # TODO: Encrypt
         verify_ssl=payload.verify_ssl,
         is_default=payload.is_default,
-        created_by=request.user if request.user.is_authenticated else None
+        created_by=request.user if request.user.is_authenticated else None,
     )
-    
+
     return {
         "id": host.id,
         "name": host.name,
@@ -95,12 +102,12 @@ def update_host(request, host_id: int, payload: ProxmoxHostUpdate):
         raise HttpError(403, "Admin privileges required to update Proxmox hosts")
 
     host = get_object_or_404(ProxmoxHost, id=host_id)
-    
+
     for field, value in payload.dict(exclude_unset=True).items():
         setattr(host, field, value)
-    
+
     host.save()
-    
+
     return {
         "id": host.id,
         "name": host.name,
@@ -137,7 +144,7 @@ def test_host_connection(request, host_id: int):
         success = service.test_connection()
         return {
             "success": success,
-            "message": "Connection successful" if success else "Connection failed"
+            "message": "Connection successful" if success else "Connection failed",
         }
     except ProxmoxError as e:
         raise HttpError(503, f"Connection to Proxmox host failed: {str(e)}")
@@ -172,15 +179,18 @@ def list_nodes(request, host_id: int = None):
         nodes = ProxmoxNode.objects.filter(host_id=host_id)
     else:
         nodes = ProxmoxNode.objects.all()
-    
-    return [{
-        "id": n.id,
-        "host_name": n.host.name,
-        "name": n.name,
-        "status": n.status,
-        "cpu_count": n.cpu_count,
-        "cpu_usage": n.cpu_usage,
-        "memory_total": n.memory_total,
-        "memory_used": n.memory_used,
-        "uptime": n.uptime,
-    } for n in nodes]
+
+    return [
+        {
+            "id": n.id,
+            "host_name": n.host.name,
+            "name": n.name,
+            "status": n.status,
+            "cpu_count": n.cpu_count,
+            "cpu_usage": n.cpu_usage,
+            "memory_total": n.memory_total,
+            "memory_used": n.memory_used,
+            "uptime": n.uptime,
+        }
+        for n in nodes
+    ]

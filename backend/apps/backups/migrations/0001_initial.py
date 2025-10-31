@@ -40,9 +40,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "size",
-                    models.BigIntegerField(
-                        blank=True, help_text="Backup size in bytes", null=True
-                    ),
+                    models.BigIntegerField(blank=True, help_text="Backup size in bytes", null=True),
                 ),
                 (
                     "backup_type",

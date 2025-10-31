@@ -1,14 +1,18 @@
 """
 Core API endpoints - Health checks, system info, and settings
 """
+
 from typing import Dict
 from ninja import Router
 from datetime import datetime
 
 from .schemas import (
-    HealthResponse, SystemInfoResponse,
-    ResourceSettingsRequest, ResourceSettingsResponse,
-    NetworkSettingsRequest, NetworkSettingsResponse
+    HealthResponse,
+    SystemInfoResponse,
+    ResourceSettingsRequest,
+    ResourceSettingsResponse,
+    NetworkSettingsRequest,
+    NetworkSettingsResponse,
 )
 from .models import SystemSettings
 
@@ -33,7 +37,7 @@ def system_info(request):
     Get system information and configuration.
     """
     settings_obj = SystemSettings.load()
-    
+
     return {
         "version": "2.0.0",
         "default_theme": settings_obj.default_theme,
@@ -53,6 +57,7 @@ def sentry_debug(request):
 
 
 # Settings Management Endpoints
+
 
 @router.get("/settings/resources", response=ResourceSettingsResponse)
 def get_resource_settings(request):
@@ -128,6 +133,7 @@ def update_network_settings(request, payload: NetworkSettingsRequest):
 
     # Additional CIDR validation
     import ipaddress
+
     try:
         # Validate subnet CIDR
         ipaddress.IPv4Network(payload.default_subnet, strict=False)

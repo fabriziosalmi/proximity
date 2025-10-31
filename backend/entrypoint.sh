@@ -29,6 +29,6 @@ echo "✨ Backend initialization complete!"
 echo "🎯 Starting application server..."
 echo "=========================================="
 
-# The CMD from docker-compose will be executed here. 
+# The CMD from docker-compose will be executed here.
 # The Dockerfile ENV PATH ensures that "python" resolves to the venv python.
 exec "$@"

@@ -13,8 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="application",
             name="state_changed_at",
-            field=models.DateTimeField(
-                db_index=True, default=django.utils.timezone.now
-            ),
+            field=models.DateTimeField(db_index=True, default=django.utils.timezone.now),
         ),
     ]

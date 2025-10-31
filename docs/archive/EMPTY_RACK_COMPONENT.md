@@ -21,7 +21,7 @@ Reusable bare metal rack card component for displaying empty states across the a
 
 ### Apps Page (No Apps)
 ```svelte
-<EmptyRackCard 
+<EmptyRackCard
   label="NO APPS INSTALLED"
   buttonText="INSTALL APP"
   buttonHref="/store"
@@ -31,7 +31,7 @@ Reusable bare metal rack card component for displaying empty states across the a
 
 ### Hosts Page (No Proxmox Hosts)
 ```svelte
-<EmptyRackCard 
+<EmptyRackCard
   label="NO PROXMOX HOSTS"
   buttonText="ADD HOST"
   buttonHref="/settings"
@@ -41,7 +41,7 @@ Reusable bare metal rack card component for displaying empty states across the a
 
 ### Custom Usage
 ```svelte
-<EmptyRackCard 
+<EmptyRackCard
   label="NO DATA FOUND"
   buttonText="REFRESH"
   buttonHref="/refresh"
@@ -55,7 +55,7 @@ Reusable bare metal rack card component for displaying empty states across the a
 - **Bare Metal Design**: Dark metallic gradient background
 - **Grid Pattern**: Subtle background grid for industrial feel
 - **Industrial Label**: Monospace font with embossed effect
-- **Animated Button**: 
+- **Animated Button**:
   - Cyan glow on hover
   - Light sweep animation on hover
   - Press-down effect on click

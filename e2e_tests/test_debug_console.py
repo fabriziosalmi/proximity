@@ -1,7 +1,7 @@
 """
 Quick debug test to capture console errors
 """
-import pytest
+
 from playwright.sync_api import Page
 
 

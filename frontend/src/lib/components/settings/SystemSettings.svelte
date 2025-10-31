@@ -118,7 +118,7 @@
 				<!-- Feature Flags -->
 				<div class="form-group col-span-2">
 					<h3 class="feature-section-title">Feature Flags</h3>
-					
+
 					<label class="form-checkbox-label">
 						<input
 							type="checkbox"

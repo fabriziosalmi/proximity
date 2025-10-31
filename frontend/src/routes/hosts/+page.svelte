@@ -148,7 +148,7 @@
 	$: totalNodes = nodes.length;
 	$: avgCpuUsage = calculateAvgCpuUsage();
 	$: avgMemoryUsage = calculateAvgMemoryUsage();
-	
+
 	function handleAddHost() {
 		goto('/settings/proxmox');
 	}
@@ -167,49 +167,49 @@
 		<div class="px-6 pt-6">
 			<NavigationRack />
 		</div>
-		
+
 		<!-- Operational Control Panel Rack -->
 		<div class="px-6 pb-6">
 			<OperationalRack title="Infrastructure Operations">
 		<!-- Stats Slot -->
 		<svelte:fragment slot="stats">
-			<StatBlock 
-				label="Total Hosts" 
-				value={totalNodes} 
+			<StatBlock
+				label="Total Hosts"
+				value={totalNodes}
 				icon={Server}
 				ledColor="var(--color-accent)"
 				borderColor="var(--color-accent)"
 			/>
-			
-			<StatBlock 
-				label="Online" 
-				value={onlineNodes} 
+
+			<StatBlock
+				label="Online"
+				value={onlineNodes}
 				icon={CheckCircle2}
 				ledColor="var(--color-led-active)"
 				borderColor="rgba(16, 185, 129, 0.3)"
 				pulse={onlineNodes > 0}
 			/>
-			
-			<StatBlock 
-				label="Offline" 
-				value={offlineNodes} 
+
+			<StatBlock
+				label="Offline"
+				value={offlineNodes}
 				icon={XCircle}
 				ledColor={offlineNodes > 0 ? "var(--color-led-danger)" : "var(--color-led-inactive)"}
 				borderColor={offlineNodes > 0 ? "rgba(239, 68, 68, 0.3)" : "var(--border-color-secondary)"}
 			/>
-			
+
 			{#if onlineNodes > 0}
-				<StatBlock 
-					label="Avg CPU" 
-					value={`${avgCpuUsage}%`} 
+				<StatBlock
+					label="Avg CPU"
+					value={`${avgCpuUsage}%`}
 					icon={Cpu}
 					ledColor="var(--color-accent)"
 					borderColor="rgba(14, 165, 233, 0.3)"
 				/>
-				
-				<StatBlock 
-					label="Avg Memory" 
-					value={`${avgMemoryUsage}%`} 
+
+				<StatBlock
+					label="Avg Memory"
+					value={`${avgMemoryUsage}%`}
 					icon={HardDrive}
 					ledColor="var(--color-accent)"
 					borderColor="rgba(14, 165, 233, 0.3)"
@@ -236,7 +236,7 @@
 					<Plus class="h-4 w-4" />
 					<span>Add Host</span>
 				</button>
-				
+
 				<!-- Refresh Button -->
 				<button
 					on:click={handleRefresh}
@@ -309,4 +309,3 @@
 	{/if}
 	</main>
 </div>
-

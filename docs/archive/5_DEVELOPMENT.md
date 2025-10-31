@@ -243,22 +243,22 @@ pytest -v --html=report.html --self-contained-html
 # e2e_tests/test_app_lifecycle.py
 def test_deploy_app(page, authenticated_user):
     """Test complete app deployment flow"""
-    
+
     # Navigate to catalog
     page.click('[data-view="catalog"]')
-    
+
     # Deploy nginx
     page.click('text=nginx >> ../.. >> button:has-text("Deploy")')
-    
+
     # Wait for modal
     page.wait_for_selector('.deploy-modal')
-    
+
     # Submit deployment
     page.click('button:has-text("Deploy Application")')
-    
+
     # Wait for completion
     page.wait_for_selector('.deployment-success', timeout=120000)
-    
+
     # Verify app appears in My Apps
     page.click('[data-view="apps"]')
     assert page.is_visible('text=nginx')
@@ -614,14 +614,14 @@ export class MyView extends Component {
 
     mount(container, state) {
         console.log('Mounting MyView');
-        
+
         container.innerHTML = this.generateHTML(state);
-        
+
         // Attach listeners
         container.querySelector('.my-button').onclick = () => {
             this.handleClick();
         };
-        
+
         return super.mount(container, state);
     }
 
@@ -740,10 +740,10 @@ Before implementing a feature, write the test:
 def test_feature_x():
     # Arrange
     setup_data()
-    
+
     # Act
     result = feature_x()
-    
+
     # Assert
     assert result == expected_value
 ```

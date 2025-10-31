@@ -1,5 +1,5 @@
 # Proximity Project - Root Dependencies
-# 
+#
 # This file contains project-wide tools and dependencies.
 # For specific subsystem dependencies, see:
 #   - backend/requirements.txt (Backend API dependencies)

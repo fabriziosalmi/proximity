@@ -142,7 +142,7 @@ export async function cloneApp(appId: string, appName: string, newHostname: stri
 
 /**
  * Deploy a new application with optimistic UI update
- * 
+ *
  * This provides instant visual feedback by adding a placeholder card
  * to the UI immediately, before the API call completes.
  */
@@ -160,7 +160,7 @@ export async function deployApp(deploymentData: {
 	try {
 		// Show toast immediately
 		toasts.info(`Deploying ${deploymentData.hostname}...`, 3000);
-		
+
 		// 🎯 OPTIMISTIC UPDATE: Add placeholder to UI immediately
 		logger.debug('🎯 [Actions] Triggering optimistic deployment update...');
 		const result = await myAppsStore.deployApp(deploymentData);

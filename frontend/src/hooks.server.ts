@@ -17,7 +17,7 @@ Sentry.init({
 	dsn: dsn || undefined,
 	environment: import.meta.env.VITE_SENTRY_ENVIRONMENT || import.meta.env.MODE || 'development',
 	tracesSampleRate: parseFloat(import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE || '1.0'),
-	
+
 	// Enable logs to be sent to Sentry
 	enableLogs: true,
 

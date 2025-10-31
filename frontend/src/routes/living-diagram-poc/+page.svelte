@@ -95,7 +95,7 @@
 
 		isDragging = true;
 		dragNodeId = nodeId;
-		
+
 		const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
 		dragOffsetX = event.clientX - rect.left - rect.width / 2;
 		dragOffsetY = event.clientY - rect.top - rect.height / 2;
@@ -111,8 +111,8 @@
 		const x = ((event.clientX - rect.left - dragOffsetX) / rect.width) * 100;
 		const y = ((event.clientY - rect.top - dragOffsetY) / rect.height) * 100;
 
-		nodes = nodes.map(n => 
-			n.id === dragNodeId 
+		nodes = nodes.map(n =>
+			n.id === dragNodeId
 				? { ...n, x: Math.max(0, Math.min(100, x)), y: Math.max(0, Math.min(100, y)) }
 				: n
 		);

@@ -57,7 +57,7 @@ function createAuthStore() {
 			Sentry.setUser(null);
 			logger.debug('🔐 [AuthStore] Session is invalid or ended. User cleared.');
 		}
-		
+
 		// ATOMIC UPDATE: Single operation, no intermediate state
 		set({ user, isInitialized });
 	};
@@ -130,15 +130,15 @@ export const authStore = createAuthStore();
 
 /**
  * DERIVED STORE: isAuthenticated
- * 
+ *
  * This is the KEY to atomic state management. Instead of storing isAuthenticated
  * as a separate piece of state, we DERIVE it from the user object.
- * 
+ *
  * This guarantees that:
  * - If isAuthenticated is true, user is ALWAYS non-null
  * - If isAuthenticated is false, user is ALWAYS null
  * - NO RACE CONDITIONS are possible
- * 
+ *
  * Components and stores should subscribe to this derived store instead of
  * checking a stored isAuthenticated flag.
  */

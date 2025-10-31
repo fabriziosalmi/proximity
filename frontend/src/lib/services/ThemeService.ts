@@ -1,9 +1,9 @@
 /**
  * ThemeService - Dynamic Theme Switching for Proximity 2.0
- * 
+ *
  * This service manages application themes dynamically by loading
  * CSS files and applying them to the document head.
- * 
+ *
  * Features:
  * - Dynamic CSS injection
  * - LocalStorage persistence
@@ -74,7 +74,7 @@ class ThemeServiceClass {
 	 */
 	async setTheme(themeId: string): Promise<void> {
 		const theme = this.themes.find(t => t.id === themeId);
-		
+
 		if (!theme) {
 			logger.error(`Theme "${themeId}" not found`);
 			return;
@@ -108,7 +108,7 @@ class ThemeServiceClass {
 
 		// Update current theme and persist
 		this.currentTheme = themeId;
-		
+
 		// Set data-theme attribute on body for theme-specific CSS
 		if (typeof window !== 'undefined') {
 			document.body.setAttribute('data-theme', themeId);
