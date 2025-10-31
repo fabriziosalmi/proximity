@@ -176,7 +176,13 @@ Before deploying to production:
 **Django Security**: Up-to-date with ALL CVE fixes
 **Next Review**: 2025-11-30
 
-**Recent CVE Fixes in Django 5.1.13**:
+**Recent CVE Fixes**:
+
+*Django 5.1.13*:
 - CVE-2025-59681: SQL injection in column aliases (5.1.13)
 - CVE-2025-57833: FilteredRelation SQL injection (5.1.12)
 - Plus all previous 5.1.x patch releases
+
+*cryptography 44.0.1*:
+- GHSA-h4gh-qq45-vh27: Vulnerable OpenSSL in wheels (now fixed)
+- Includes secure version of OpenSSL in wheel packages
