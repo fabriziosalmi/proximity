@@ -1,26 +1,7 @@
-# Proximity: Your Personal Cloud's Command Deck
+# Proximity
+Proximity is an open-source, immersive management layer for Proxmox based personal infrastructure.
 
-<p align="center">
-  <strong>Proximity is an open-source, immersive management layer for personal cloud infrastructure, starting with Proxmox VE.</strong>
-  <br />
-  It transforms server management from a chore into a delightful, "gamified" experience.
-</p>
-
-<p align="center">
-  <a href="https://github.com/fabriziosalmi/proximity/blob/main/LICENSE"><img src="https://img.shields.io/github/license/fabriziosalmi/proximity" alt="License"></a>
-  <a href="https://github.com/fabriziosalmi/proximity/releases"><img src="https://img.shields.io/github/v/release/fabriziosalmi/proximity" alt="Release"></a>
-</p>
-
----
-
-## 📊 Project Status
-
-**Current Version**: 2.0.0
-**Backend Tests**: ✅ 102/102 Passing (100%)
-**Frontend Security**: ✅ 18/18 Critical/High Issues Fixed (100%)
-**Deployment Ready**: ✅ Staging-Ready (Production within 2-3 days)
-
-See [STATUS.md](STATUS.md) for detailed project status and progress.
+> See [STATUS.md](STATUS.md) for detailed project status and progress.
 
 ---
 
