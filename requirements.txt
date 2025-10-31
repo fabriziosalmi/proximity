@@ -1,0 +1,10 @@
+# Proximity Project - Root Dependencies
+# 
+# This file contains project-wide tools and dependencies.
+# For specific subsystem dependencies, see:
+#   - backend/requirements.txt (Backend API dependencies)
+#   - tests/requirements.txt (Backend test dependencies)
+#   - e2e_tests/requirements.txt (E2E test dependencies)
+
+# Pre-commit framework for Git hooks
+pre-commit>=3.7.0

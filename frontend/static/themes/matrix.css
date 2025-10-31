@@ -1,0 +1,78 @@
+/* ============================================ */
+/* PROXIMITY 2.0 - MATRIX THEME */
+/* The hacker's dream - green phosphor terminal */
+/* ============================================ */
+
+:root {
+	/* === Command Deck Theming Contract === */
+	--bg-case: #000000;
+	--bg-rack-nav: linear-gradient(to bottom, #001a00, #000000);
+	--bg-top-bar: #001a00;
+	--border-rack: #00ff41;
+
+	/* === Core Palette === */
+	--color-text-primary: #00ff41;
+	--color-text-secondary: #00cc33;
+	--color-accent: #00ff41;
+	--color-accent-bright: #39ff14;
+
+	/* LED Status Colors */
+	--color-led-active: #00ff41;
+	--color-led-inactive: #001a00;
+	--color-led-warning: #ffff00;
+	--color-led-danger: #ff0000;
+
+	/* === Component Backgrounds === */
+	--bg-main-canvas: transparent;
+	--bg-card: #001a00;
+	--bg-card-hover: #003300;
+	--card-bg-color: #001400;
+	--card-background: #001400;
+
+	/* === Borders and Dividers === */
+	--border-color-primary: #00ff41;
+	--border-color-secondary: #00cc33;
+	--card-border-color: rgba(0, 255, 65, 0.3);
+
+	/* === Shadows and Glows === */
+	--shadow-glow-accent: 0 0 20px #00ff41;
+	--shadow-glow-led: 0 0 15px #00ff41;
+	--card-hover-shadow: 0 0 25px rgba(0, 255, 65, 0.5);
+
+	/* === Typography === */
+	--text-color-primary: #00ff41;
+	--text-color-secondary: #00cc33;
+	--card-title-color: #39ff14;
+	--card-text-color: #00ff41;
+
+	/* Legacy support */
+	--text-primary: #00ff41;
+	--text-secondary: #00cc33;
+	--glow-color: rgba(0, 255, 65, 0.5);
+	--background-color: #000000;
+}
+
+/* Matrix-specific enhancements */
+body[data-theme="matrix"] {
+	font-family: 'Courier New', 'Monaco', 'Consolas', monospace;
+	text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
+}
+
+body[data-theme="matrix"] * {
+	font-family: 'Courier New', 'Monaco', 'Consolas', monospace;
+}
+
+/* Enhanced glow for Matrix theme */
+body[data-theme="matrix"] .nav-button,
+body[data-theme="matrix"] button,
+body[data-theme="matrix"] .card {
+	border: 1px solid #00ff41;
+	box-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+}
+
+body[data-theme="matrix"] .nav-button:hover,
+body[data-theme="matrix"] button:hover,
+body[data-theme="matrix"] .card:hover {
+	box-shadow: 0 0 20px rgba(0, 255, 65, 0.6);
+	text-shadow: 0 0 8px rgba(0, 255, 65, 0.8);
+}

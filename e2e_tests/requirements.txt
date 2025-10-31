@@ -1,0 +1,9 @@
+# E2E Testing Dependencies for Proximity 2.0
+# Unpinned versions to allow pip to resolve the latest compatible packages.
+
+pytest
+playwright
+pytest-playwright
+httpx
+pytest-asyncio
+python-dotenv

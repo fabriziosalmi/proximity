@@ -1,0 +1,22 @@
+"""
+Pytest configuration for Proximity 2.0 backend tests.
+"""
+import os
+import django
+from django.conf import settings
+
+# Configure Django settings for tests
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'proximity.settings')
+django.setup()
+
+
+def pytest_configure(config):
+    """Configure pytest for Django."""
+    settings.DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': ':memory:',
+        }
+    }
+    settings.CELERY_TASK_ALWAYS_EAGER = True
+    settings.CELERY_TASK_EAGER_PROPAGATES = True

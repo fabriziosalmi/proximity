@@ -1,0 +1,11 @@
+[pytest]
+DJANGO_SETTINGS_MODULE = proximity.settings
+python_files = tests.py test_*.py *_tests.py
+python_classes = Test*
+python_functions = test_*
+addopts = 
+    --verbose
+    --tb=short
+    --strict-markers
+    --disable-warnings
+testpaths = apps

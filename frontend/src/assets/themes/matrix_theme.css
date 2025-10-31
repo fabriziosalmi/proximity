@@ -1,0 +1,49 @@
+/**
+ * Matrix Theme - Proximity 2.0
+ * Cyberpunk-inspired green-on-black theme
+ */
+
+:root {
+	/* Background Colors */
+	--bg-primary: #000000;
+	--bg-secondary: #0d0d0d;
+	--bg-card: #0d0d0d;
+	--bg-hover: #1a1a1a;
+
+	/* Text Colors */
+	--color-text-primary: #00ff00; /* Matrix green */
+	--color-text-secondary: #00cc00;
+	--color-text-tertiary: #009900;
+
+	/* Border Colors */
+	--border-color-primary: #00ff00;
+	--border-color-secondary: #00cc00;
+
+	/* Accent Colors */
+	--color-accent: #00ff00; /* Matrix green */
+	--color-accent-hover: #00cc00;
+	--color-accent-light: #33ff33;
+
+	/* Status LEDs */
+	--color-led-active: #00ff00; /* Green */
+	--color-led-warning: #ffff00; /* Yellow */
+	--color-led-danger: #ff0000; /* Red */
+	--color-led-inactive: #333333; /* Dark gray */
+
+	/* Semantic Colors */
+	--color-success: #00ff00;
+	--color-warning: #ffff00;
+	--color-error: #ff0000;
+	--color-info: #00ffff;
+
+	/* Shadows */
+	--shadow-sm: 0 0 5px rgba(0, 255, 0, 0.3);
+	--shadow-md: 0 0 10px rgba(0, 255, 0, 0.4);
+	--shadow-lg: 0 0 20px rgba(0, 255, 0, 0.5);
+	--shadow-xl: 0 0 30px rgba(0, 255, 0, 0.6);
+
+	/* Rack Card Specific */
+	--rack-bg: linear-gradient(135deg, #000000 0%, #0d0d0d 100%);
+	--rack-border: #00ff00;
+	--rack-metal: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+}

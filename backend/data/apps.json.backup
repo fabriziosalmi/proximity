@@ -1,0 +1,23 @@
+{
+  "apps": [
+    {
+      "id": "nginx-nginx-01",
+      "catalog_id": "nginx",
+      "name": "Nginx",
+      "hostname": "nginx-01",
+      "status": "running",
+      "url": "http://192.168.100.45:80",
+      "lxc_id": 105,
+      "node": "opti2",
+      "created_at": "2025-10-04 00:33:41.918809",
+      "updated_at": "2025-10-04 00:33:41.918810",
+      "config": {},
+      "ports": {
+        "80": 80,
+        "443": 443
+      },
+      "volumes": [],
+      "environment": {}
+    }
+  ]
+}

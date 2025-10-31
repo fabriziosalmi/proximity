@@ -1,0 +1,168 @@
+# Pre-commit configuration for Proximity Project
+# 
+# This file defines automated quality gates that run before each commit.
+# 
+# Installation (one-time per repository clone):
+#   pip install pre-commit
+#   pre-commit install
+#
+# Manual execution:
+#   pre-commit run --all-files
+#
+# Skip hooks (use sparingly):
+#   git commit -m "message" --no-verify
+#
+# Strategy: Gradual activation based on test suite stability
+# Phase 1: Code quality (ACTIVE)
+# Phase 2: Backend tests (READY - uncomment when tests pass 100%)
+# Phase 3: E2E tests (READY - uncomment when E2E tests pass 100%)
+
+# =============================================================================
+# PHASE 1: CODE QUALITY GUARDIANS (ACTIVE NOW)
+# =============================================================================
+
+repos:
+  # Standard pre-commit hooks for common issues
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: check-yaml
+        name: Check YAML syntax
+        description: Validates all YAML files
+        
+      - id: check-json
+        name: Check JSON syntax
+        description: Validates all JSON files
+        
+      - id: end-of-file-fixer
+        name: Fix end of files
+        description: Ensures files end with a newline
+        
+      - id: trailing-whitespace
+        name: Trim trailing whitespace
+        description: Removes trailing whitespace from lines
+        args: [--markdown-linebreak-ext=md]
+        
+      - id: check-added-large-files
+        name: Check for large files
+        description: Prevents accidentally committing large files (>500KB)
+        args: ['--maxkb=500']
+        
+      - id: check-merge-conflict
+        name: Check for merge conflicts
+        description: Detects unresolved merge conflict markers
+        
+      - id: check-case-conflict
+        name: Check for case conflicts
+        description: Prevents case-insensitive filename conflicts
+        
+      - id: mixed-line-ending
+        name: Fix mixed line endings
+        description: Ensures consistent line endings (LF)
+        args: ['--fix=lf']
+
+  # Black - Python code formatter
+  - repo: https://github.com/psf/black
+    rev: 24.4.2
+    hooks:
+      - id: black
+        name: Black - Python formatter
+        description: Auto-formats Python code to PEP 8 style
+        language_version: python3
+        args: ['--line-length=100']
+
+  # Ruff - Fast Python linter
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.4.4
+    hooks:
+      - id: ruff
+        name: Ruff - Python linter
+        description: Checks Python code for common issues
+        args: [--fix, --exit-non-zero-on-fix]
+
+# =============================================================================
+# PHASE 2: BACKEND TEST GUARDIAN (READY - UNCOMMENT WHEN READY)
+# =============================================================================
+#
+# Activate this once `pytest tests/` passes 100% reliably.
+# This prevents any commit that breaks backend unit/integration tests.
+#
+# To activate:
+# 1. Ensure all backend tests pass: pytest tests/ -v
+# 2. Uncomment the entire "local" repo section below
+# 3. Run: pre-commit run --all-files
+# 4. Commit the change to .pre-commit-config.yaml
+
+  - repo: local
+    hooks:
+      - id: pytest-backend
+        name: 🔒 Backend Test Guardian
+        description: Runs backend pytest suite - BLOCKS commit if tests fail
+        entry: bash -c 'cd tests && pytest --tb=short -q'
+        language: system
+        types: [python]
+        pass_filenames: false
+        always_run: true
+        verbose: true
+
+# =============================================================================
+# PHASE 3: E2E TEST GUARDIAN (READY - UNCOMMENT WHEN READY)
+# =============================================================================
+#
+# Activate this once `pytest e2e_tests/` passes 100% reliably.
+# This prevents any commit that breaks E2E tests.
+#
+# WARNING: E2E tests can take several minutes. Consider these strategies:
+#   - Skip occasionally with --no-verify for minor commits
+#   - Run only on pre-push hook instead of pre-commit (see docs)
+#   - Configure to run only when frontend/backend files change
+#
+# To activate:
+# 1. Ensure backend is running: cd backend && python main.py
+# 2. Ensure all E2E tests pass: cd e2e_tests && pytest --browser chromium -v
+# 3. Uncomment the hook below
+# 4. Run: pre-commit run --all-files
+# 5. Commit the change to .pre-commit-config.yaml
+
+#      - id: pytest-e2e
+#        name: 🔒 E2E Test Guardian (SLOW - may take 5-10 min)
+#        description: Runs E2E pytest-playwright suite - BLOCKS commit if tests fail
+#        entry: bash -c 'cd e2e_tests && pytest --browser chromium --tb=short -q'
+#        language: system
+#        types: [python, javascript, css]
+#        pass_filenames: false
+#        always_run: true
+#        verbose: true
+
+# =============================================================================
+# OPTIONAL: Python Import Sorting (Uncomment to activate)
+# =============================================================================
+#
+# Automatically sorts Python imports for consistency
+#
+#  - repo: https://github.com/pycqa/isort
+#    rev: 5.13.2
+#    hooks:
+#      - id: isort
+#        name: isort - Sort Python imports
+#        args: ["--profile", "black"]
+
+# =============================================================================
+# NOTES
+# =============================================================================
+#
+# Performance Tips:
+# - Code quality hooks run in ~2-5 seconds (fast!)
+# - Backend tests typically run in ~10-30 seconds
+# - E2E tests can take 5-10 minutes (use --no-verify for minor commits)
+#
+# Best Practices:
+# - Always let hooks run for significant changes
+# - Use --no-verify ONLY for trivial commits (typos, docs)
+# - Remember: CI/CD will still run all tests regardless
+#
+# Troubleshooting:
+# - If hooks fail, fix the issues and commit again
+# - To update hook versions: pre-commit autoupdate
+# - To clean cache: pre-commit clean
+# - To uninstall: pre-commit uninstall

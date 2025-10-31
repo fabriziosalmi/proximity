@@ -1,0 +1,50 @@
+/**
+ * Dark Theme - Proximity 2.0
+ * Professional dark mode with cyan accents
+ * This is the default theme
+ */
+
+:root {
+	/* Background Colors */
+	--bg-primary: #111827;
+	--bg-secondary: #1f2937;
+	--bg-card: #1f2937;
+	--bg-hover: #374151;
+
+	/* Text Colors */
+	--color-text-primary: #e5e7eb;
+	--color-text-secondary: #9ca3af;
+	--color-text-tertiary: #6b7280;
+
+	/* Border Colors */
+	--border-color-primary: #4b5563;
+	--border-color-secondary: #374151;
+
+	/* Accent Colors */
+	--color-accent: #0ea5e9; /* Cyan */
+	--color-accent-hover: #0284c7;
+	--color-accent-light: #38bdf8;
+
+	/* Status LEDs */
+	--color-led-active: #10b981; /* Green */
+	--color-led-warning: #f59e0b; /* Amber */
+	--color-led-danger: #ef4444; /* Red */
+	--color-led-inactive: #4b5563; /* Gray */
+
+	/* Semantic Colors */
+	--color-success: #10b981;
+	--color-warning: #f59e0b;
+	--color-error: #ef4444;
+	--color-info: #3b82f6;
+
+	/* Shadows */
+	--shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+	--shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+	--shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+	--shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+
+	/* Rack Card Specific */
+	--rack-bg: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+	--rack-border: #374151;
+	--rack-metal: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+}

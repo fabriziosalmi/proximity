@@ -1,0 +1,180 @@
+# Proximity 2.0 - Docker Compose Development Stack
+# Single-command startup for the entire application
+
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:16-alpine
+    container_name: proximity2_db
+    environment:
+      POSTGRES_DB: proximity
+      POSTGRES_USER: proximity
+      POSTGRES_PASSWORD: proximity_dev_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U proximity"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for Celery broker and caching
+  redis:
+    image: redis:7-alpine
+    container_name: proximity2_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Django Backend
+  backend:
+    build: ./backend
+    container_name: proximity_backend
+    command: python runserver_https.py
+    volumes:
+      - ./backend:/app
+      - ./backend/cert.pem:/app/cert.pem:ro
+      - ./backend/key.pem:/app/key.pem:ro
+      - ./catalog_data:/catalog_data:ro
+    ports:
+      - "8000:8000"
+    environment:
+      - SECRET_KEY=dev-secret-key-change-in-production
+      - DATABASE_URL=postgresql://proximity:proximity_dev_password@db:5432/proximity
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - ALLOWED_HOSTS=localhost,127.0.0.1,backend
+      - USE_MOCK_PROXMOX=1  # Hardcoded for E2E testing
+      - CORS_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173,https://localhost:5173,https://127.0.0.1:5173,http://localhost,https://localhost
+      - TESTING_MODE=False
+      - SENTRY_DSN=https://dbee00d4782d131ab54ffe60b16d969b@o149725.ingest.us.sentry.io/4510189390266368
+      - SENTRY_ENVIRONMENT=development
+      - SENTRY_TRACES_SAMPLE_RATE=0.1
+      - SENTRY_PROFILES_SAMPLE_RATE=0.05
+      - SENTRY_RELEASE=proximity@2.0.0
+      - PROXMOX_HOST=192.168.100.102
+      - PROXMOX_USER=root@pam
+      - PROXMOX_PASSWORD=invaders
+      - PROXMOX_PORT=8006
+      - PROXMOX_VERIFY_SSL=False
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-k", "-f", "https://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Celery Worker for background tasks
+  celery_worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: proximity2_celery_worker
+    command: ["python", "-m", "celery", "-A", "proximity", "worker", "-l", "info"]
+    volumes:
+      - ./backend:/app
+      - /app/venv # Preserve the venv from the image
+      - ./catalog_data:/catalog_data:ro
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=dev-secret-key-change-in-production
+      - DATABASE_URL=postgresql://proximity:proximity_dev_password@db:5432/proximity
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - TESTING_MODE=False
+      - USE_MOCK_PROXMOX=1  # Enable mock service for Celery workers
+      - CORS_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173,https://localhost:5173,https://127.0.0.1:5173,http://localhost,https://localhost
+      - SENTRY_DSN=https://dbee00d4782d131ab54ffe60b16d969b@o149725.ingest.us.sentry.io/4510189390266368
+      - SENTRY_ENVIRONMENT=development
+      - SENTRY_TRACES_SAMPLE_RATE=0.1
+      - SENTRY_PROFILES_SAMPLE_RATE=0.05
+      - SENTRY_DEBUG=True
+      - SENTRY_RELEASE=proximity@2.0.0
+      - PROXMOX_HOST=192.168.100.102
+      - PROXMOX_USER=root@pam
+      - PROXMOX_PASSWORD=invaders
+      - PROXMOX_PORT=8006
+      - PROXMOX_VERIFY_SSL=False
+    depends_on:
+      - db
+      - redis
+      - backend
+
+  # Celery Beat for scheduled tasks
+  celery_beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: proximity2_celery_beat
+    command: ["python", "-m", "celery", "-A", "proximity", "beat", "-l", "info"]
+    volumes:
+      - ./backend:/app
+      - /app/venv # Preserve the venv from the image
+      - ./catalog_data:/catalog_data:ro
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=dev-secret-key-change-in-production
+      - DATABASE_URL=postgresql://proximity:proximity_dev_password@db:5432/proximity
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - USE_MOCK_PROXMOX=1  # Enable mock service for Celery Beat
+      - CORS_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173,https://localhost:5173,https://127.0.0.1:5173,http://localhost,https://localhost
+      - SENTRY_DSN=https://dbee00d4782d131ab54ffe60b16d969b@o149725.ingest.us.sentry.io/4510189390266368
+      - SENTRY_ENVIRONMENT=development
+      - SENTRY_TRACES_SAMPLE_RATE=0.1
+      - SENTRY_PROFILES_SAMPLE_RATE=0.05
+      - SENTRY_DEBUG=True
+      - SENTRY_RELEASE=proximity@2.0.0
+    depends_on:
+      - db
+      - redis
+      - backend
+
+  # SvelteKit Frontend
+  frontend:
+    build: ./frontend
+    container_name: proximity2_frontend
+    command: npm run dev
+    volumes:
+      - ./frontend:/app
+      - ./frontend/cert.pem:/app/cert.pem:ro
+      - ./frontend/key.pem:/app/key.pem:ro
+      - /app/node_modules  # Prevent overwriting node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      - PUBLIC_API_URL=https://localhost:8000
+      - VITE_API_URL=https://backend:8000
+      - VITE_SENTRY_DSN=https://dbee00d4782d131ab54ffe60b16d969b@o149725.ingest.us.sentry.io/4510189390266368
+      - VITE_SENTRY_ENVIRONMENT=development
+      - VITE_SENTRY_TRACES_SAMPLE_RATE=1.0
+      - VITE_SENTRY_DEBUG=false
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  redis_data:
+  static_volume:
+  media_volume:
+
+networks:
+  default:
+    name: proximity2_network
