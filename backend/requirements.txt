@@ -1,12 +1,12 @@
 # Backend Python dependencies for Proximity 2.0
 
 # Django Core
-Django==5.0.1
-djangorestframework==3.15.1
+Django==5.1.13
+djangorestframework==3.15.2
 django-ninja==1.1.0
 django-cors-headers==4.3.1
 django-extensions==3.2.3
-Werkzeug==3.0.1
+Werkzeug==3.0.6
 pyOpenSSL==24.0.0
 
 # Database
@@ -16,7 +16,7 @@ dj-database-url==2.1.0
 # Authentication & Security
 dj-rest-auth==6.0.0
 django-allauth==0.61.1
-djangorestframework-simplejwt==5.3.1
+djangorestframework-simplejwt==5.5.1
 PyJWT==2.8.0
 bcrypt==4.1.2
 cryptography>=41.0.0
@@ -32,7 +32,7 @@ daphne==4.1.2
 
 # Proxmox Integration
 proxmoxer==2.0.1
-requests==2.31.0
+requests==2.32.4
 
 # Utilities
 pydantic
@@ -55,6 +55,6 @@ pytest-mock==3.12.0
 faker==22.1.0
 
 # Code Quality
-black==23.12.1
+black==24.3.0
 isort==5.13.2
 flake8==7.0.0
