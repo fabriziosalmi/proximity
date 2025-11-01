@@ -54,8 +54,9 @@ Get Proximity up and running in a few minutes.
 4.  **Initialize the database:**
     ```bash
     docker-compose exec backend python manage.py migrate
-    docker-compose exec backend python manage.py createsuperuser
     ```
+
+    **Note**: The first user registered automatically becomes admin (staff + superuser) to ease initial setup. You can create additional regular users through the UI or API.
 
 5.  **Access Proximity:**
     *   **Frontend:** `https://localhost` (via Docker reverse proxy)
@@ -170,6 +171,34 @@ proximity/
 ├── docs/               # Documentation
 ├── docker-compose.yml  # Full stack orchestration
 └── STATUS.md          # Project status and progress
+```
+
+## 👤 User Management
+
+### Automatic Admin on First Registration
+The first user registered in Proximity automatically becomes an admin (staff + superuser). This ensures the initial setup UX is smooth without requiring manual command line operations.
+
+### Managing Users with make_admin Command
+Promote existing users to staff or superuser status using the `make_admin` management command:
+
+```bash
+# Promote a user to staff (can access admin panel)
+python manage.py make_admin <username>
+
+# Promote a user to staff + superuser (full admin access)
+python manage.py make_admin <username> --superuser
+
+# Docker usage
+docker-compose exec backend python manage.py make_admin <username> --superuser
+```
+
+**Examples:**
+```bash
+# Promote user 'john' to staff
+docker-compose exec backend python manage.py make_admin john
+
+# Promote user 'jane' to superuser (full admin)
+docker-compose exec backend python manage.py make_admin jane --superuser
 ```
 
 ## 🤝 Contributing

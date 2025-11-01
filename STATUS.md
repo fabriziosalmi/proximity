@@ -125,6 +125,48 @@
 
 ---
 
+## 👤 User Admin Management - COMPLETE ✅
+
+### Features Implemented
+
+**1. Automatic First User Admin Promotion** ✅
+- **File**: `backend/apps/core/signals.py`
+- **Feature**: Automatically promotes the first registered user to staff and superuser
+- **Benefit**: Eases UX during initial setup - no manual command needed
+- **How it works**:
+  - Django signal on User creation checks if any superusers exist
+  - If none exist, new user is promoted to staff + superuser
+  - Subsequent users remain regular users
+  - Already-created users are not affected
+
+**2. `make_admin` Management Command** ✅
+- **File**: `backend/apps/core/management/commands/make_admin.py`
+- **Location**: `/apps/core/management/commands/`
+- **Usage**:
+  ```bash
+  # Promote user to staff
+  python manage.py make_admin <username>
+
+  # Promote user to staff + superuser
+  python manage.py make_admin <username> --superuser
+
+  # Docker usage
+  docker-compose exec backend python manage.py make_admin <username> --superuser
+  ```
+- **Features**:
+  - User lookup by username
+  - Optional superuser promotion with --superuser flag
+  - Clear error messages if user not found
+  - Formatted success output with confirmation
+  - Supports all Django settings (PYTHONPATH, settings override, etc.)
+
+### Signal Registration ✅
+- **File**: `backend/apps/core/apps.py`
+- **Implementation**: Added `ready()` method to CoreConfig to import signals at startup
+- **Testing**: Verified with new user creation in test database
+
+---
+
 ## 🚧 Backend Phase 2-3 - PENDING (4-5 hours each)
 
 ### Phase 2: HIGH Priority (4 issues)
@@ -247,11 +289,11 @@ cd backend && env USE_MOCK_PROXMOX=1 pytest --cov=apps --cov=tests
 ## 📝 Recent Commits
 
 ### Latest Changes
-1. `4957061` - feat: Add critical pre-launch features - log viewer and host delete (Oct 31)
-2. `a91d2d6` - docs: Add documentation consolidation summary (Oct 31)
-3. `cc0b336` - docs: Consolidate and reorganize comprehensive documentation (Oct 31)
-4. `33666df` - feat: Achieve 100% test pass rate (102/102 tests passing) ✅ (Oct 31) - VERIFIED
-5. `31b4345` - fix: Simplify backup API error assertions - 26/28 tests passing (Oct 31)
+1. **NEW** - feat: Add user admin management - auto-admin on first registration + make_admin command (Nov 1)
+2. `4957061` - feat: Add critical pre-launch features - log viewer and host delete (Oct 31)
+3. `a91d2d6` - docs: Add documentation consolidation summary (Oct 31)
+4. `cc0b336` - docs: Consolidate and reorganize comprehensive documentation (Oct 31)
+5. `33666df` - feat: Achieve 100% test pass rate (102/102 tests passing) ✅ (Oct 31) - VERIFIED
 
 ### Test Discovery Resolution
 - **Issue Reported**: Only 26 tests discoverable, 76 missing
