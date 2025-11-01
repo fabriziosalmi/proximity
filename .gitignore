@@ -63,3 +63,5 @@ celerybeat.pid
 .ruff_cache/
 .mypy_cache/
 .claude/
+
+backend/staticfiles/
