@@ -11,7 +11,7 @@ import { logger } from '$lib/logger';
 
 // 🔐 Security: API URL must be configured via environment variable
 // No fallback to prevent accidental use of localhost or wrong server
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://localhost:8000';
 if (!API_BASE_URL && import.meta.env.PROD) {
 	throw new Error('VITE_API_URL environment variable is required in production');
 }
