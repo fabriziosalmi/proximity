@@ -3,12 +3,16 @@
 	 * MasterControlRack - 2U Supreme Command Center
 	 * The ultimate navigation, status, and action control panel
 	 * Replaces TopBar and enhances NavigationRack with integrated SystemStatusLCD
+	 *
+	 * All notifications are displayed on the Master Control LCD instead of
+	 * floating toasts, preventing layout shift and maintaining design consistency.
 	 */
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { Home, Server, Store, HardDrive, Settings, Plus, User, LogOut } from 'lucide-svelte';
 	import { myAppsStore } from '$lib/stores/apps';
 	import { authStore } from '$lib/stores/auth';
+	import { toasts } from '$lib/stores/toast';
 	import { api } from '$lib/api';
 
 	const navItems = [
@@ -21,11 +25,52 @@
 
 	let showUserMenu = false;
 
+	// Notification LED state
+	let notificationLEDColor = '#374151'; // Default inactive
+	let notificationLEDGlow = false;
+
 	// System Status LCD logic (integrated from SystemStatusLCD)
 	let statusMessage = 'SYSTEM: NOMINAL';
 	let statusColor = '#4ade80';
+	let currentNotification = null;
+	let notificationTimeout = null;
 
-	$: {
+	// Subscribe to toasts and show them on LCD
+	$: if ($toasts.length > 0) {
+		const latestToast = $toasts[0];
+		currentNotification = latestToast;
+		statusMessage = latestToast.message;
+		notificationLEDGlow = true;
+
+		// Update colors based on notification type
+		const colorMap = {
+			success: { message: '#4ade80', led: '#4ade80' },
+			error: { message: '#ef4444', led: '#ef4444' },
+			info: { message: '#3b82f6', led: '#3b82f6' },
+			warning: { message: '#fbbf24', led: '#fbbf24' }
+		};
+
+		const colors = colorMap[latestToast.type] || colorMap.info;
+		statusColor = colors.message;
+		notificationLEDColor = colors.led;
+
+		// Clear previous timeout
+		if (notificationTimeout) {
+			clearTimeout(notificationTimeout);
+		}
+
+		// Auto-dismiss notification after duration
+		const duration = latestToast.duration || 5000;
+		notificationTimeout = setTimeout(() => {
+			notificationLEDGlow = false;
+			toasts.remove(latestToast.id);
+		}, duration);
+	} else {
+		// No toasts - show deployment status or nominal
+		notificationLEDColor = '#374151';
+		notificationLEDGlow = false;
+		currentNotification = null;
+
 		const deployingApps = $myAppsStore.apps.filter(
 			(app) => app.status === 'deploying' || app.status === 'cloning'
 		);
@@ -35,6 +80,8 @@
 			const action = app.status === 'deploying' ? 'DEPLOYING' : 'CLONING';
 			statusMessage = `${action}: ${app.hostname.toUpperCase()}...`;
 			statusColor = '#fbbf24';
+			notificationLEDColor = '#fbbf24';
+			notificationLEDGlow = true;
 		} else {
 			statusMessage = 'SYSTEM: NOMINAL';
 			statusColor = '#4ade80';
@@ -94,6 +141,15 @@
 			<div class="control-row control-row-top">
 				<!-- LED Status Strip -->
 				<div class="led-strip">
+					<!-- Notification LED (always first) -->
+					<div
+						class="notification-led"
+						class:active={notificationLEDGlow}
+						style="background: {notificationLEDColor}; {notificationLEDGlow ? `box-shadow: 0 0 8px ${notificationLEDColor};` : ''}"
+						title={currentNotification ? `${currentNotification.type.toUpperCase()}: ${currentNotification.message}` : 'System Ready'}
+					></div>
+
+					<!-- Navigation LEDs -->
 					{#each navItems as item}
 						<div
 							class="nav-led"
@@ -337,6 +393,30 @@
 		background: rgba(0, 0, 0, 0.3);
 		border-radius: 0.25rem;
 		border: 1px solid rgba(0, 0, 0, 0.5);
+	}
+
+	/* Notification LED - Always visible and changes based on notifications */
+	.notification-led {
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		background: var(--color-led-inactive, #374151);
+		transition: all 0.3s ease;
+		border: 1px solid rgba(255, 255, 255, 0.2);
+	}
+
+	.notification-led.active {
+		animation: pulse-notification-led 1.2s ease-in-out infinite;
+	}
+
+	@keyframes pulse-notification-led {
+		0%,
+		100% {
+			opacity: 1;
+		}
+		50% {
+			opacity: 0.5;
+		}
 	}
 
 	.nav-led {

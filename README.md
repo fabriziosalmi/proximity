@@ -11,12 +11,13 @@ Proximity is an open-source, immersive management layer for Proxmox based person
 ## ✨ Key Features
 
 *   **"Casa Digitale" (Digital Homestead):** An immersive, skeuomorphic "Command Deck" UI. We are building a virtual data center, not a web form.
-*   **"Divertimento" (Fun):** A "gamified" UX with tactile interactions, animations, and audio feedback.
+*   **"Divertimento" (Fun):** A "gamified" UX with tactile interactions, animations, and audio feedback with integrated LED notification system.
 *   **"Tranquillità by Default" (Peace of Mind):** Self-healing backend, zero-downtime operations, and safety-first design.
 *   **One-Click App Deployment:** Deploy from a curated catalog of applications in seconds.
 *   **Container Adoption:** Discover and manage existing LXC containers on your Proxmox host.
 *   **Real-time Monitoring:** Live metrics for CPU, RAM, and disk usage integrated directly into the UI.
 *   **Automated Backups:** Configure and forget with scheduled, automatic backups.
+*   **Master Control Rack:** Unified notification and status display on the 2U Master Control Rack with color-coded LED indicators.
 
 ## 🚀 Quick Start
 
@@ -171,6 +172,27 @@ proximity/
 ├── docs/               # Documentation
 ├── docker-compose.yml  # Full stack orchestration
 └── STATUS.md          # Project status and progress
+```
+
+## 🎨 Notification System - Master Control Rack
+
+All notifications are now integrated into the Master Control Rack (the 2U command center at the top of the interface) instead of floating toast boxes. This design choice:
+
+- **Prevents layout shift** - No more page jumping when notifications appear
+- **Maintains visual consistency** - Keeps the skeuomorphic data center aesthetic
+- **Provides visual feedback** - Color-coded LED indicator shows notification type:
+  - 🟢 **Green** = Success notification
+  - 🔴 **Red** = Error notification
+  - 🔵 **Blue** = Info notification
+  - 🟡 **Yellow** = Warning or deployment in progress
+
+**Example:**
+```javascript
+// These calls now display on the Master Control Rack LCD
+toasts.success('Application deployed successfully');
+toasts.error('Failed to connect to Proxmox');
+toasts.info('System maintenance scheduled');
+toasts.warning('Low disk space detected');
 ```
 
 ## 👤 User Management

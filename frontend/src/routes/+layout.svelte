@@ -28,6 +28,7 @@
 	});
 </script>
 
+<!-- ToastContainer kept for backward compatibility but hidden - notifications now display on MasterControlRack -->
 <ToastContainer />
 
 <CommandDeck>

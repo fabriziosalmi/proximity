@@ -1,6 +1,12 @@
 <script lang="ts">
 	/**
-	 * ToastContainer - Global toast notification container
+	 * ToastContainer - DEPRECATED in favor of MasterControlRack LED notifications
+	 *
+	 * All notifications are now displayed on the Master Control Rack LCD/LED system
+	 * to prevent layout shift and maintain the skeuomorphic design consistency.
+	 *
+	 * This component is kept for backward compatibility but is hidden by default.
+	 * Remove this component import from +layout.svelte when ready.
 	 */
 	import { toasts } from '$lib/stores/toast';
 	import { CheckCircle, XCircle, Info, AlertTriangle, X } from 'lucide-svelte';
@@ -27,7 +33,8 @@
 	}
 </script>
 
-<div class="toast-container fixed right-4 top-4 z-50 flex flex-col gap-2">
+<!-- HIDDEN: Notifications now show on Master Control Rack LCD -->
+<div class="toast-container fixed right-4 top-4 z-50 flex flex-col gap-2 hidden">
 	{#each $toasts as toast (toast.id)}
 		<div
 			in:fly={{ x: 300, duration: 300 }}

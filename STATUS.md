@@ -125,6 +125,44 @@
 
 ---
 
+## 🎨 UI/UX Improvements - COMPLETE ✅
+
+### Consolidated Notification System
+- **Location**: `frontend/src/lib/components/layout/MasterControlRack.svelte`
+- **Feature**: All notifications now display on the Master Control Rack LCD/LED instead of floating toast boxes
+- **Benefits**:
+  - ✅ Prevents layout shift caused by default toast notifications
+  - ✅ Maintains skeuomorphic design consistency (rack-based interface)
+  - ✅ Unified status display (notifications + deployment status on same LCD)
+  - ✅ Visual LED indicator changes color based on notification type
+  - ✅ Auto-dismisses after configured duration (default 5s)
+
+### Implementation Details
+- **Toast Store**: Unchanged - still uses simple and effective Svelte store pattern
+- **LCD Display**: Shows most recent notification with color-coded message
+- **Notification LED**:
+  - Pulsates when notification active
+  - Color changes by type:
+    - 🟢 Green (#4ade80) = Success
+    - 🔴 Red (#ef4444) = Error
+    - 🔵 Blue (#3b82f6) = Info
+    - 🟡 Yellow (#fbbf24) = Warning
+- **Fallback**: Shows "SYSTEM: NOMINAL" when no notifications and no deployments in progress
+- **Deployment Status**: Still shows deployment/cloning progress with yellow LED
+
+### Files Modified
+- `frontend/src/lib/components/layout/MasterControlRack.svelte` - Added toast subscription and LED/LCD integration
+- `frontend/src/lib/components/ToastContainer.svelte` - Hidden with `hidden` class, kept for backward compatibility
+- `frontend/src/routes/+layout.svelte` - Added documentation comment
+
+### Testing ✅
+- Frontend builds successfully with no errors
+- Notification system integrated with existing toast API
+- All existing toast calls (success, error, info, warning) work unchanged
+- LED animations and color transitions smooth and visible
+
+---
+
 ## 👤 User Admin Management - COMPLETE ✅
 
 ### Features Implemented
