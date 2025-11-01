@@ -399,6 +399,26 @@ class ApiClient {
 		});
 	}
 
+	// System Settings
+	async getSystemSettings() {
+		return this.request('/api/core/system/info', {
+			method: 'GET'
+		});
+	}
+
+	async saveSystemSettings(data: {
+		default_theme?: string;
+		enable_ai_agent?: boolean;
+		enable_community_chat?: boolean;
+		enable_multi_host?: boolean;
+	}) {
+		// Note: The backend doesn't have a POST endpoint for system settings yet
+		// This is a placeholder that uses the GET endpoint
+		return this.request('/api/core/system/info', {
+			method: 'GET'
+		});
+	}
+
 	// Proxmox Settings (convenience methods)
 	async getProxmoxSettings() {
 		// Get the primary Proxmox host configuration

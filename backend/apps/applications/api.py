@@ -35,7 +35,7 @@ from apps.proxmox.models import ProxmoxNode
 router = Router()
 
 
-@router.get("/", response=ApplicationListResponse)
+@router.get("/apps/", response=ApplicationListResponse)
 def list_applications(
     request, page: int = 1, per_page: int = 20, status: str = None, search: str = None
 ):
