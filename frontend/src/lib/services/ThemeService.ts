@@ -11,6 +11,8 @@
  * - Singleton pattern
  */
 
+import { logger } from '$lib/logger';
+
 export interface Theme {
 	id: string;
 	name: string;

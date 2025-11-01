@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Handle, Position } from '@xyflow/svelte';
+	import { logger } from '$lib/logger';
 
 	export let data: {
 		label: string;

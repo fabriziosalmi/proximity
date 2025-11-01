@@ -3,6 +3,8 @@
  * Provides subtle, futuristic sound effects for UI interactions
  */
 
+import { logger } from '$lib/logger';
+
 export type SoundType = 'click' | 'deploy-start' | 'success' | 'error' | 'flip' | 'backup-create' | 'restore';
 
 interface SoundConfig {

@@ -5,6 +5,7 @@
 	import { createEventDispatcher, onMount } from 'svelte';
 	import { X, Loader2, Server, HardDrive, Settings } from 'lucide-svelte';
 	import { api } from '$lib/api';
+	import { logger } from '$lib/logger';
 
 	const dispatch = createEventDispatcher();
 

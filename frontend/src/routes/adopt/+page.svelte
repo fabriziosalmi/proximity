@@ -8,6 +8,7 @@
 	import { api } from '$lib/api';
 	import { toasts } from '$lib/stores/toast';
 	import Icon from '@iconify/svelte';
+	import { logger } from '$lib/logger';
 
 	interface UnmanagedContainer {
 		vmid: number;

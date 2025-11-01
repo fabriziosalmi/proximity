@@ -14,6 +14,7 @@ import { myAppsStore } from './apps';
 import { toasts } from './toast';
 import { SoundService } from '$lib/services/SoundService';
 import { api } from '$lib/api';
+import { logger } from '$lib/logger';
 
 /**
  * Application Actions

@@ -11,6 +11,7 @@
 	import StatBlock from '$lib/components/dashboard/StatBlock.svelte';
 	import NavigationRack from '$lib/components/layout/NavigationRack.svelte';
 	import OperationalRack from '$lib/components/layout/OperationalRack.svelte';
+	import { logger } from '$lib/logger';
 
 	interface ProxmoxNode {
 		id: number;

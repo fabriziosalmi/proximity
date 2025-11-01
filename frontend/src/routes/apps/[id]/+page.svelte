@@ -21,6 +21,7 @@
 	import { toasts } from '$lib/stores/toast';
 	import { pageTitleStore } from '$lib/stores/pageTitle';
 	import BackupManager from '$lib/components/backups/BackupManager.svelte';
+	import { logger } from '$lib/logger';
 
 	// Get app ID from URL params
 	$: appId = $page.params.id;

@@ -28,6 +28,7 @@
 	import { pageTitleStore } from '$lib/stores/pageTitle';
 	import { toasts } from '$lib/stores/toast';
 	import { startApp, stopApp, restartApp, deleteApp, cloneApp } from '$lib/stores/actions';
+	import { logger } from '$lib/logger';
 	import RackCard from '$lib/components/RackCard.svelte';
 	import CloneModal from '$lib/components/CloneModal.svelte';
 	import LogViewerModal from '$lib/components/LogViewerModal.svelte';

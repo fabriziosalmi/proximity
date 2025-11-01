@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { ThemeService, type Theme } from '$lib/services/ThemeService';
+	import { logger } from '$lib/logger';
 
 	let themes: Theme[] = [];
 	let currentTheme: string = 'dark';
