@@ -1,6 +1,8 @@
 # Proximity
 Proximity is an open-source, immersive management layer for Proxmox based personal infrastructure.
 
+> Conside that the project is still in beta, I need to complete some features and important UI stuff. In the meanwhile you can help me to make it flawlessy UX by suggesting anything you want to be included :) Happy testing!
+
 > See [STATUS.md](STATUS.md) for detailed project status and progress.
 
 ---

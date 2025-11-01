@@ -17,6 +17,7 @@
 	} from 'lucide-svelte';
 	import { api } from '$lib/api';
 	import { createBackup as createBackupAction, restoreBackup as restoreBackupAction, deleteBackup as deleteBackupAction } from '$lib/stores/actions';
+	import { logger } from '$lib/logger';
 
 	// Props
 	export let appId: string;

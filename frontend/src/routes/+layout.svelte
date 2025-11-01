@@ -6,6 +6,7 @@
 	import MasterControlRack from '$lib/components/layout/MasterControlRack.svelte';
 	import { ThemeService } from '$lib/services/ThemeService';
 	import { authStore } from '$lib/stores/auth';
+	import { logger } from '$lib/logger';
 
 	// Initialize app on startup
 	onMount(async () => {

@@ -12,6 +12,7 @@ import { writable, derived } from 'svelte/store';
 import { browser } from '$app/environment';
 import api from '$lib/api'; // Import the api client
 import * as Sentry from '@sentry/sveltekit';
+import { logger } from '$lib/logger';
 
 export interface User {
 	id: number;

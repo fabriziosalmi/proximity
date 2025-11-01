@@ -8,6 +8,7 @@
 	import { api } from '$lib/api';
 	import { toasts } from '$lib/stores/toast';
 	import { saveProxmoxSettings as saveProxmoxSettingsAction, testProxmoxConnection as testProxmoxConnectionAction } from '$lib/stores/actions';
+	import { logger } from '$lib/logger';
 
 	let loading = true;
 	let saving = false;

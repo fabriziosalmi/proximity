@@ -9,6 +9,7 @@
 	import { toasts } from '$lib/stores/toast';
 	import { ThemeService } from '$lib/services/ThemeService';
 	import ThemeSwitcher from '$lib/components/ThemeSwitcher.svelte';
+	import { logger } from '$lib/logger';
 
 	let loading = true;
 	let saving = false;

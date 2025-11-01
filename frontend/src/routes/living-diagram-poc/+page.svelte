@@ -2,6 +2,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { pageTitleStore } from '$lib/stores/pageTitle';
+	import { logger } from '$lib/logger';
 
 	// Set page title
 	onMount(() => {

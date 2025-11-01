@@ -7,6 +7,7 @@
 	import { Loader2, Cpu, MemoryStick, HardDrive, Save } from 'lucide-svelte';
 	import { toasts } from '$lib/stores/toast';
 	import { api } from '$lib/api';
+	import { logger } from '$lib/logger';
 
 	let loading = false;
 	let saving = false;

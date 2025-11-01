@@ -46,12 +46,12 @@ export async function handle({ event, resolve }) {
 		// Production: Strict policies to prevent XSS
 		import.meta.env.DEV
 			? // Dev CSP: allows localhost for HMR
-			  "default-src 'self' http://localhost:* ws://localhost:*; " +
+			  "default-src 'self' http://localhost:* ws://localhost:* http://backend:* https://backend:*; " +
 			  "script-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:*; " +
 			  "style-src 'self' 'unsafe-inline' http://localhost:*; " +
 			  "img-src 'self' data: https:; " +
 			  "font-src 'self' data:; " +
-			  "connect-src 'self' http://localhost:* ws://localhost:* https://*.sentry.io; " +
+			  "connect-src 'self' http://localhost:* ws://localhost:* http://backend:* https://backend:* https://*.sentry.io; " +
 			  "frame-ancestors 'none'; " +
 			  "base-uri 'self'; " +
 			  "form-action 'self'"
