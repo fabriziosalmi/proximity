@@ -33,7 +33,7 @@ autobahn==24.4.2
 daphne==4.1.2
 
 # Proxmox Integration
-proxmoxer==2.1.1
+proxmoxer==2.1.0
 requests>=2.32.4
 
 # Utilities
