@@ -8,6 +8,16 @@ Proximity is an open-source, immersive management layer for Proxmox based person
 
 ---
 
+## ⚡ Recent Fixes
+
+### Apps Page Technical Specifications Now Display Correctly
+All object values (ports, environment, volumes) now properly convert to readable JSON format instead of showing `[object Object]`.
+
+### Hosts Page Now Accessible to All Authenticated Users
+Removed unnecessary staff-only restriction from viewing Proxmox hosts. All authenticated users can now view hosts, while modifications remain staff-only.
+
+---
+
 ## ✨ Key Features
 
 *   **"Casa Digitale" (Digital Homestead):** An immersive, skeuomorphic "Command Deck" UI. We are building a virtual data center, not a web form.

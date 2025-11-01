@@ -22,10 +22,14 @@ router = Router()
 
 @router.get("/hosts", response=List[ProxmoxHostResponse])
 def list_hosts(request):
-    """List all Proxmox hosts."""
-    # 🔐 Authorization: Only admins can view Proxmox hosts
-    if not request.user.is_authenticated or not request.user.is_staff:
-        raise HttpError(403, "Admin privileges required to view Proxmox hosts")
+    """List all Proxmox hosts.
+
+    Accessible to all authenticated users for viewing.
+    Host creation/modification requires staff privileges.
+    """
+    # 🔐 Authorization: Only authenticated users can view Proxmox hosts
+    if not request.user.is_authenticated:
+        raise HttpError(403, "Authentication required to view Proxmox hosts")
 
     hosts = ProxmoxHost.objects.all()
     return [
@@ -76,10 +80,13 @@ def create_host(request, payload: ProxmoxHostCreate):
 
 @router.get("/hosts/{host_id}", response=ProxmoxHostResponse)
 def get_host(request, host_id: int):
-    """Get a specific Proxmox host."""
-    # 🔐 Authorization: Only admins can view Proxmox hosts
-    if not request.user.is_authenticated or not request.user.is_staff:
-        raise HttpError(403, "Admin privileges required to view Proxmox hosts")
+    """Get a specific Proxmox host.
+
+    Accessible to all authenticated users for viewing.
+    """
+    # 🔐 Authorization: Only authenticated users can view Proxmox hosts
+    if not request.user.is_authenticated:
+        raise HttpError(403, "Authentication required to view Proxmox hosts")
 
     host = get_object_or_404(ProxmoxHost, id=host_id)
     return {

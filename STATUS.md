@@ -125,6 +125,30 @@
 
 ---
 
+## 🐛 Bug Fixes - COMPLETE ✅
+
+### Fixed [object Object] Rendering in Apps Page
+- **Issue**: Technical specifications (ports, environment, volumes) displayed as `[object Object]` when values were objects
+- **Location**: `frontend/src/lib/components/RackCard.svelte`
+- **Fix**: Added `formatValue()` helper function that properly converts objects to JSON strings
+- **Details**:
+  - Lines 329, 344, 359: Now use `formatValue(value)` instead of direct `{value}`
+  - Handles strings, numbers, booleans, and objects
+  - Objects are safely converted to JSON format for display
+
+### Fixed Admin Privileges Error in Hosts Page
+- **Issue**: "Admin privileges required to view Proxmox hosts" error for all users
+- **Location**: `backend/apps/proxmox/api.py`
+- **Fix**: Changed authorization requirement from `is_staff` to `is_authenticated` for GET endpoints
+- **Details**:
+  - `list_hosts()` endpoint (line 23): Now requires only authentication, not staff status
+  - `get_host()` endpoint (line 81): Now requires only authentication, not staff status
+  - POST/PUT/DELETE endpoints still require staff privileges (for data modification)
+  - Users can now view hosts without needing admin status
+  - Allows for better UX where all authenticated users can see infrastructure
+
+---
+
 ## 🎨 UI/UX Improvements - COMPLETE ✅
 
 ### Consolidated Notification System

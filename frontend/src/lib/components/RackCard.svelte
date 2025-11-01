@@ -64,6 +64,19 @@
 		return `${Math.round(value)}%`;
 	}
 
+	// Format config/metadata values - convert objects to JSON strings
+	function formatValue(value: any): string {
+		if (value === null || value === undefined) return '--';
+		if (typeof value === 'string' || typeof value === 'number') return String(value);
+		if (typeof value === 'boolean') return value ? 'true' : 'false';
+		// For objects/arrays, convert to JSON string
+		try {
+			return JSON.stringify(value);
+		} catch {
+			return String(value);
+		}
+	}
+
 	$: ledColor = variant === 'deployed' ? getLEDColor(app.status) : '#4b5563';
 	$: ledPulse = variant === 'deployed' ? shouldPulse(app.status) : false;
 	$: statusGlow = variant === 'deployed' ? getStatusGlow(app.status) : '';
@@ -326,7 +339,7 @@
 									{#each Object.entries(app.ports) as [key, value]}
 										<div class="mapping-item">
 											<span class="mapping-key">{key}:</span>
-											<span class="mapping-value">{value}</span>
+											<span class="mapping-value">{formatValue(value)}</span>
 										</div>
 									{/each}
 								</div>
@@ -341,7 +354,7 @@
 									{#each Object.entries(app.environment) as [key, value]}
 										<div class="mapping-item">
 											<span class="mapping-key">{key}:</span>
-											<span class="mapping-value">{value}</span>
+											<span class="mapping-value">{formatValue(value)}</span>
 										</div>
 									{/each}
 								</div>
@@ -356,7 +369,7 @@
 									{#each Object.entries(app.volumes) as [key, value]}
 										<div class="mapping-item">
 											<span class="mapping-key">{key}:</span>
-											<span class="mapping-value">{value}</span>
+											<span class="mapping-value">{formatValue(value)}</span>
 										</div>
 									{/each}
 								</div>
