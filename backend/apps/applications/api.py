@@ -119,7 +119,7 @@ def list_applications(
     }
 
 
-@router.post("/", response=ApplicationResponse)
+@router.post("/apps/", response=ApplicationResponse)
 def create_application(request, payload: ApplicationCreate):
     """
     Create and deploy a new application.
@@ -336,7 +336,7 @@ def create_application(request, payload: ApplicationCreate):
     }
 
 
-@router.get("/discover", response=List[dict])
+@router.get("/apps/discover", response=List[dict])
 def discover_unmanaged_containers(request, host_id: int = None):
     """
     Discover LXC containers that exist on Proxmox but are not managed by Proximity.
@@ -371,7 +371,7 @@ def discover_unmanaged_containers(request, host_id: int = None):
         raise HttpError(500, "Discovery operation failed. Please try again or contact support.")
 
 
-@router.post("/adopt", response={202: dict})
+@router.post("/apps/adopt", response={202: dict})
 def adopt_existing_container(request, payload: ApplicationAdopt):
     """
     Adopt an existing LXC container into Proximity management.
