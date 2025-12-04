@@ -36,7 +36,7 @@
   },
   "dependencies": {
     "@iconify/svelte": "^4.2.0",
-    "@sentry/sveltekit": "^10.20.0",
+    "@sentry/sveltekit": "^10.28.0",
     "@types/three": "^0.180.0",
     "bits-ui": "^0.14.0",
     "clsx": "^2.1.0",
