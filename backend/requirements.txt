@@ -17,7 +17,7 @@ dj-database-url==2.1.0
 
 # Authentication & Security
 dj-rest-auth==6.0.0
-django-allauth==0.62.0
+django-allauth==65.13.0
 djangorestframework-simplejwt==5.5.1
 PyJWT==2.9.0
 bcrypt==4.1.3
