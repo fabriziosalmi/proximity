@@ -1,23 +1,22 @@
 # Proximity
-Proximity is an open-source, immersive management layer for Proxmox based personal infrastructure.
+Proximity is an open-source web UI and REST API for managing LXC containers on Proxmox VE hosts.
 
 > [!WARNING]
-> Consider that the project is still in beta, I need to complete some features and important UI stuff. In the meanwhile you can help me to make it flawlessy UX by suggesting anything you want to be included :) Happy testing!
+> This project is in beta. Some features are incomplete. Contributions and bug reports are welcome.
 
 > See [STATUS.md](STATUS.md) for detailed project status and progress.
 
-## ✨ Key Features
+## Key Features
 
-*   **"Casa Digitale" (Digital Homestead):** An immersive, skeuomorphic "Command Deck" UI. We are building a virtual data center, not a web form.
-*   **"Divertimento" (Fun):** A "gamified" UX with tactile interactions, animations, and audio feedback with integrated LED notification system.
-*   **"Tranquillità by Default" (Peace of Mind):** Self-healing backend, zero-downtime operations, and safety-first design.
-*   **One-Click App Deployment:** Deploy from a curated catalog of applications in seconds.
-*   **Container Adoption:** Discover and manage existing LXC containers on your Proxmox host.
-*   **Real-time Monitoring:** Live metrics for CPU, RAM, and disk usage integrated directly into the UI.
-*   **Automated Backups:** Configure and forget with scheduled, automatic backups.
-*   **Master Control Rack:** Unified notification and status display on the 2U Master Control Rack with color-coded LED indicators.
+*   **Application Catalog:** Deploy pre-configured LXC-based applications from a curated catalog.
+*   **Container Adoption:** Discover and import existing LXC containers running on your Proxmox host.
+*   **Backup & Restore:** Create and restore backups of deployed containers via the Proxmox API.
+*   **Container Lifecycle:** Start, stop, restart, clone, and delete containers from the web UI.
+*   **Multi-host Support:** Connect and manage multiple Proxmox VE hosts.
+*   **Notification System:** Status and error notifications displayed in the Master Control Rack UI component.
+*   **REST API:** Full API with JWT authentication and auto-generated Swagger docs.
 
-## 🚀 Quick Start
+## Quick Start
 
 Get Proximity up and running in a few minutes.
 
@@ -43,7 +42,7 @@ Get Proximity up and running in a few minutes.
     Update the `.env` file with:
     - Proxmox host IP/hostname and credentials
     - A new `SECRET_KEY` (generate with: `python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"`)
-    - Database URL (defaults to SQLite, can use PostgreSQL)
+    - Database URL (defaults to SQLite; PostgreSQL is supported for production)
 
 3.  **Launch the stack:**
     ```bash
@@ -58,15 +57,15 @@ Get Proximity up and running in a few minutes.
     **Note**: The first user registered automatically becomes admin (staff + superuser) to ease initial setup. You can create additional regular users through the UI or API.
 
 5.  **Access Proximity:**
-    *   **Frontend:** `https://localhost` (via Docker reverse proxy)
-    *   **Backend API:** `http://localhost:8000/api/` (development)
+    *   **Frontend:** `http://localhost:5173` (SvelteKit dev server)
+    *   **Backend API:** `http://localhost:8000/api/` (Django backend)
     *   **API Docs:** `http://localhost:8000/api/docs` (Swagger UI)
 
 For more detailed instructions, see the [Installation Guide](docs/INSTALLATION.md).
 
-## 📚 Documentation
+## Documentation
 
-*   [**Project Status**](STATUS.md): Current progress, test results, deployment readiness
+*   [**Project Status**](STATUS.md): Current progress, test results, known limitations
 *   [**Installation Guide**](docs/INSTALLATION.md): Detailed setup and deployment instructions
 *   [**Architecture**](docs/ARCHITECTURE.md): System design and technical architecture
 *   [**API Reference**](docs/API.md): Backend API endpoints and usage
@@ -78,13 +77,9 @@ For more detailed instructions, see the [Installation Guide](docs/INSTALLATION.m
 
 See [docs/INDEX.md](docs/INDEX.md) for a complete documentation map organized by category.
 
-## 🧪 Testing
+## Testing
 
-Proximity has a comprehensive test suite with 102+ tests covering:
-- Backend models and services (100% passing)
-- API endpoints and schemas
-- Security features and authentication
-- Backup and deployment functionality
+Proximity has a backend test suite covering models, services, API endpoints, and security features.
 
 ### Running Tests Locally
 
@@ -108,7 +103,7 @@ env USE_MOCK_PROXMOX=1 pytest tests/test_models.py
 env USE_MOCK_PROXMOX=1 pytest --cov=apps --cov=tests
 ```
 
-**Important**: Always use `pytest` (not `python manage.py test`) for the full test suite. Django's test runner only discovers 26 tests, while pytest discovers all 102.
+**Important**: Always use `pytest` (not `python manage.py test`) for the full test suite. Django's test runner only discovers a subset of tests.
 
 #### Frontend Tests
 
@@ -126,13 +121,12 @@ npm run build
 
 ### Test Status
 
-- **Backend**: 102/102 tests passing ✅
-- **Frontend**: All security fixes verified ✅
-- **E2E Tests**: Ready when backend is running
+- **Backend**: 102/102 tests passing
+- **E2E Tests**: Require a running backend
 
 For more details, see [TESTING.md](docs/TESTING.md).
 
-## 💻 Development
+## Development
 
 ### Local Development Setup
 
@@ -172,31 +166,26 @@ proximity/
 └── STATUS.md          # Project status and progress
 ```
 
-## 🎨 Notification System - Master Control Rack
+## Notification System
 
-All notifications are now integrated into the Master Control Rack (the 2U command center at the top of the interface) instead of floating toast boxes. This design choice:
+All notifications are displayed in the Master Control Rack component at the top of the interface instead of floating toast boxes. Status is indicated by color-coded LED:
+- Green = Success
+- Red = Error
+- Blue = Info
+- Yellow = Warning or deployment in progress
 
-- **Prevents layout shift** - No more page jumping when notifications appear
-- **Maintains visual consistency** - Keeps the skeuomorphic data center aesthetic
-- **Provides visual feedback** - Color-coded LED indicator shows notification type:
-  - 🟢 **Green** = Success notification
-  - 🔴 **Red** = Error notification
-  - 🔵 **Blue** = Info notification
-  - 🟡 **Yellow** = Warning or deployment in progress
-
-**Example:**
 ```javascript
-// These calls now display on the Master Control Rack LCD
+// These calls display on the Master Control Rack LCD
 toasts.success('Application deployed successfully');
 toasts.error('Failed to connect to Proxmox');
 toasts.info('System maintenance scheduled');
 toasts.warning('Low disk space detected');
 ```
 
-## 👤 User Management
+## User Management
 
 ### Automatic Admin on First Registration
-The first user registered in Proximity automatically becomes an admin (staff + superuser). This ensures the initial setup UX is smooth without requiring manual command line operations.
+The first user registered in Proximity automatically becomes an admin (staff + superuser). This ensures the initial setup does not require manual command line operations.
 
 ### Managing Users with make_admin Command
 Promote existing users to staff or superuser status using the `make_admin` management command:
@@ -221,18 +210,16 @@ docker-compose exec backend python manage.py make_admin john
 docker-compose exec backend python manage.py make_admin jane --superuser
 ```
 
-## 🤝 Contributing
+## Contributing
 
-Proximity is built by the community, for the community. We welcome contributions of all kinds!
-
-Before contributing, please:
+Contributions are welcome. Before contributing, please:
 1. Read our [Contributing Guide](CONTRIBUTING.md)
 2. Check the [STATUS.md](STATUS.md) for current project state
 3. Review the [Security Summary](SECURITY_SUMMARY.md) for security guidelines
 
-## 🔒 Security
+## Security
 
-This project has undergone a comprehensive security audit with fixes for:
+This project has undergone a security audit with fixes for:
 - Command injection prevention (SSH escaping)
 - Authentication hardening (JWT + session-based)
 - Encryption (Fernet for sensitive data)
@@ -241,6 +228,6 @@ This project has undergone a comprehensive security audit with fixes for:
 
 See [SECURITY_SUMMARY.md](SECURITY_SUMMARY.md) for detailed security information.
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

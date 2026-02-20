@@ -2,7 +2,7 @@
 
 We welcome contributions to Proximity! This document provides guidelines for contributing to the project.
 
-## 🚀 Getting Started
+## Getting Started
 
 1. **Fork the repository** on GitHub
 2. **Clone your fork** locally:
@@ -15,7 +15,7 @@ We welcome contributions to Proximity! This document provides guidelines for con
    git checkout -b feature/your-feature-name
    ```
 
-## 🏗️ Development Setup
+## Development Setup
 
 ### Backend Development
 
@@ -27,20 +27,15 @@ We welcome contributions to Proximity! This document provides guidelines for con
    pip install -r requirements.txt
    ```
 
-2. **Install development dependencies**:
-   ```bash
-   pip install -r requirements-dev.txt  # When available
-   ```
-
-3. **Configure environment**:
+2. **Configure environment**:
    ```bash
    cp .env.example .env
    # Edit .env with your Proxmox details
    ```
 
-4. **Run the development server**:
+3. **Run the development server**:
    ```bash
-   uvicorn main:app --reload --host 0.0.0.0 --port 8765
+   env USE_MOCK_PROXMOX=1 python manage.py runserver
    ```
 
 ### Testing
@@ -48,27 +43,21 @@ We welcome contributions to Proximity! This document provides guidelines for con
 Run tests before submitting your changes:
 
 ```bash
-# Run all tests (backend + E2E) in one command
-./run_all_tests.sh
-
-# Or use Python version (cross-platform)
-python run_all_tests.py
-
-# Run only backend tests
-cd tests
-pytest -v
-
-# Run only E2E tests (requires backend running)
-cd e2e_tests
-pytest --browser chromium -v
+# Run backend tests (use pytest, not manage.py test)
+cd backend
+env USE_MOCK_PROXMOX=1 pytest -v
 
 # Run specific test file
-pytest tests/test_auth_service.py -v
+env USE_MOCK_PROXMOX=1 pytest tests/test_models.py
+
+# Run E2E tests (requires backend running)
+cd e2e_tests
+pytest --browser chromium -v
 ```
 
-### Pre-commit Hooks: Automated Quality Gates 🔒
+### Pre-commit Hooks
 
-**Proximity uses automated pre-commit hooks to maintain code quality and prevent broken code from being committed.**
+The repository uses pre-commit hooks to maintain code quality.
 
 #### What Are Pre-commit Hooks?
 
@@ -257,16 +246,13 @@ Pre-commit hooks are your **first line of defense**, but remember:
 - Failed tests in CI will block PR merges
 - Hooks save you time by catching issues before pushing
 
-**Think of pre-commit hooks as your personal QA assistant! 🤖**
-
-## 📝 Coding Standards
+## Coding Standards
 
 ### Python Code Style
 
 - **PEP 8**: Follow Python PEP 8 style guide
-- **Type Hints**: All functions must have type hints
+- **Type Hints**: All functions should have type hints
 - **Docstrings**: Use Google-style docstrings
-- **Async/Await**: Use async/await for all I/O operations
 - **Error Handling**: Proper exception handling with custom exceptions
 
 Example:
@@ -295,11 +281,10 @@ async def create_lxc(self, node: str, vmid: int, config: Dict[str, Any]) -> Dict
 ### Architecture Principles
 
 - **Separation of Concerns**: Keep API, business logic, and data layers separate
-- **Dependency Injection**: Use FastAPI's dependency injection system
 - **Single Responsibility**: Each class/function should have one responsibility
 - **Error Handling**: Graceful error handling with proper logging
 
-## 🐛 Bug Reports
+## Bug Reports
 
 When reporting bugs, please include:
 
@@ -309,7 +294,7 @@ When reporting bugs, please include:
 4. **Environment details** (Proxmox version, Python version, etc.)
 5. **Log files** if relevant
 
-## 💡 Feature Requests
+## Feature Requests
 
 For feature requests:
 
@@ -318,7 +303,7 @@ For feature requests:
 3. **Explain the benefit** to users
 4. **Consider implementation complexity**
 
-## 🔄 Pull Request Process
+## Pull Request Process
 
 1. **Update documentation** if needed
 2. **Add tests** for new functionality
@@ -354,7 +339,7 @@ fix(proxmox): handle connection timeout errors
 docs(readme): update installation instructions
 ```
 
-## 📋 Development Workflow
+## Development Workflow
 
 ### Feature Development
 
@@ -371,7 +356,7 @@ docs(readme): update installation instructions
 3. **Fix the bug** with tests
 4. **Submit pull request**
 
-## 🏷️ Release Process
+## Release Process
 
 Releases follow semantic versioning (MAJOR.MINOR.PATCH):
 
@@ -379,59 +364,44 @@ Releases follow semantic versioning (MAJOR.MINOR.PATCH):
 - **MINOR**: New features (backward compatible)
 - **PATCH**: Bug fixes
 
-## 📚 Documentation
+## Documentation
 
-- **API documentation**: Automatically generated from code
+- **API documentation**: Auto-generated from code (Django Ninja)
 - **User documentation**: Keep README.md updated
 - **Code comments**: Document complex logic
-- **Architecture decisions**: Document in ADR format
 
-## 🤝 Community Guidelines
+## Community Guidelines
 
-- **Be respectful** and inclusive
-- **Help others** learn and contribute
-- **Provide constructive feedback**
-- **Follow the code of conduct**
+- Be respectful and inclusive
+- Provide constructive feedback
+- Follow the code of conduct
 
-## 🔍 Code Review Guidelines
+## Code Review Guidelines
 
 ### For Authors
 
-- **Self-review** your code before submitting
-- **Write clear descriptions** of changes
-- **Respond promptly** to feedback
-- **Make requested changes** or discuss concerns
+- Self-review your code before submitting
+- Write clear descriptions of changes
+- Respond to feedback
+- Make requested changes or explain disagreements
 
 ### For Reviewers
 
-- **Be constructive** and specific
-- **Focus on code quality** and maintainability
-- **Check for security issues**
-- **Verify tests pass**
+- Be constructive and specific
+- Focus on code quality and maintainability
+- Check for security issues
+- Verify tests pass
 
-## 🏆 Recognition
-
-Contributors will be recognized in:
-
-- **README.md** contributors section
-- **Release notes** for significant contributions
-- **Hall of Fame** for major contributors
-
-## 📞 Getting Help
+## Getting Help
 
 If you need help:
 
 1. **Check the documentation**
 2. **Search existing issues**
-3. **Ask in discussions**
-4. **Join our Discord** (coming soon)
+3. **Open a new issue** on GitHub
 
-## 🚦 Project Status
+## Project Status
 
-Current development focus:
+See [STATUS.md](STATUS.md) for the current state of the project, including known gaps and planned work.
 
-- **Phase 1**: Core platform (Complete ✅)
-- **Phase 2**: Web interface (In Progress 🚧)
-- **Phase 3**: Advanced features (Planned 📋)
-
-Thank you for contributing to Proximity! 🎉
+Thank you for contributing to Proximity!
