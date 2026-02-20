@@ -402,6 +402,6 @@ If you need help:
 
 ## Project Status
 
-See [STATUS.md](../STATUS.md) for the current state of the project, including known gaps and planned work.
+See [STATUS.md](STATUS.md) for the current state of the project, including known gaps and planned work.
 
 Thank you for contributing to Proximity!
