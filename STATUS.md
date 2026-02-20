@@ -1,38 +1,33 @@
 # Proximity - Project Status & Progress
 
-**Last Updated**: 2025-10-31 (Final - Dependencies Patched)
-**Current Phase**: Production-Ready - 102/102 Tests Passing + All Vulnerabilities Patched
-**Overall Completion**: 100% Backend Tests (102/102) | 100% Frontend Security (18/18) | 100% Dependency Security (22+ vulnerabilities patched)
+**Last Updated**: 2025-10-31
+**Current Phase**: Beta - 102/102 Backend Tests Passing, Phase 2/3 Security Hardening Pending
 
 ---
 
-## 📊 Executive Summary
+## Test Status
 
-### Progress Overview
-| Component | Status | Tests Passing | Progress |
-|-----------|--------|--------------|----------|
-| **Frontend Security** | ✅ COMPLETE | Build successful | 100% |
-| **Frontend Build** | ✅ COMPLETE | All deps installed | 100% |
-| **Backend Models Tests** | ✅ COMPLETE | 28/28 passing | 100% |
-| **Backend Services Tests** | ✅ COMPLETE | 30/30 passing | 100% |
-| **Backend Catalog Tests** | ✅ COMPLETE | 25/25 passing | 100% |
-| **Backend Backup Tests** | ✅ COMPLETE | 11/11 passing | 100% |
-| **Backend Phase 1 Security** | ✅ COMPLETE | 4/4 Critical fixed | 100% |
-| **Test Infrastructure** | ✅ FIXED | 102 tests discovered, all passing | 100% |
-| **Overall Tests** | ✅ PASSING | 102/102 passing | 100% |
+### Backend Tests
+| Component | Tests Passing |
+|-----------|--------------|
+| Backend Models | 28/28 |
+| Backend Services | 30/30 |
+| Backend Catalog | 25/25 |
+| Backend Backup | 11/11 |
+| Backend Phase 1 Security | 4/4 Critical fixed |
+| **Overall** | **102/102** |
 
-### Timeline
-- **Day 1**: Frontend complete (8-10 hours) + Backend audit
-- **Day 2**: Backend Phase 1 complete (2-3 hours)
-- **Day 3 (Next)**: Backend Phase 2-3 (8-10 hours estimated)
-- **Day 4+**: Security testing & production deployment
+### Frontend
+- Frontend build: passing
+- Security fixes: applied (see SECURITY_SUMMARY.md)
+- E2E tests: require a running backend
 
 ---
 
-## 🎯 Frontend Security - 100% COMPLETE ✅
+## Frontend Security Fixes
 
 ### Status
-- **Production Ready**: All critical/high priority issues fixed
+- Critical/high priority security issues fixed
 - **Issues Fixed**: 17/18 (94%)
 - **Commits**: 6 security-focused commits
 - **Files Modified**: 50+
@@ -73,7 +68,7 @@
 
 ---
 
-## 🔒 Backend Security - Phase 1 COMPLETE ✅
+## Backend Security - Phase 1 Complete
 
 ### Phase 1: CRITICAL Vulnerabilities (4/4 Fixed - 100%)
 
@@ -125,7 +120,7 @@
 
 ---
 
-## 🐛 Bug Fixes - COMPLETE ✅
+## Bug Fixes
 
 ### Fixed [object Object] Rendering in Apps Page
 - **Issue**: Technical specifications (ports, environment, volumes) displayed as `[object Object]` when values were objects
@@ -149,99 +144,51 @@
 
 ---
 
-## 🎨 UI/UX Improvements - COMPLETE ✅
+## UI/UX Changes
 
 ### Consolidated Notification System
 - **Location**: `frontend/src/lib/components/layout/MasterControlRack.svelte`
-- **Feature**: All notifications now display on the Master Control Rack LCD/LED instead of floating toast boxes
-- **Benefits**:
-  - ✅ Prevents layout shift caused by default toast notifications
-  - ✅ Maintains skeuomorphic design consistency (rack-based interface)
-  - ✅ Unified status display (notifications + deployment status on same LCD)
-  - ✅ Visual LED indicator changes color based on notification type
-  - ✅ Auto-dismisses after configured duration (default 5s)
-
-### Implementation Details
-- **Toast Store**: Unchanged - still uses simple and effective Svelte store pattern
-- **LCD Display**: Shows most recent notification with color-coded message
-- **Notification LED**:
-  - Pulsates when notification active
-  - Color changes by type:
-    - 🟢 Green (#4ade80) = Success
-    - 🔴 Red (#ef4444) = Error
-    - 🔵 Blue (#3b82f6) = Info
-    - 🟡 Yellow (#fbbf24) = Warning
-- **Fallback**: Shows "SYSTEM: NOMINAL" when no notifications and no deployments in progress
-- **Deployment Status**: Still shows deployment/cloning progress with yellow LED
+- All notifications display on the Master Control Rack LCD/LED instead of floating toast boxes
+- LED color indicates notification type: green (success), red (error), blue (info), yellow (warning)
+- Falls back to "SYSTEM: NOMINAL" when idle
 
 ### Files Modified
-- `frontend/src/lib/components/layout/MasterControlRack.svelte` - Added toast subscription and LED/LCD integration
-- `frontend/src/lib/components/ToastContainer.svelte` - Hidden with `hidden` class, kept for backward compatibility
-- `frontend/src/routes/+layout.svelte` - Added documentation comment
-
-### Testing ✅
-- Frontend builds successfully with no errors
-- Notification system integrated with existing toast API
-- All existing toast calls (success, error, info, warning) work unchanged
-- LED animations and color transitions smooth and visible
+- `frontend/src/lib/components/layout/MasterControlRack.svelte`
+- `frontend/src/lib/components/ToastContainer.svelte` - hidden, kept for compatibility
+- `frontend/src/routes/+layout.svelte`
 
 ---
 
-## 👤 User Admin Management - COMPLETE ✅
+## User Admin Management
 
-### Features Implemented
+**1. Automatic First User Admin Promotion**
+- File: `backend/apps/core/signals.py`
+- Django signal on User creation checks if any superusers exist; if none, new user is promoted to staff + superuser
 
-**1. Automatic First User Admin Promotion** ✅
-- **File**: `backend/apps/core/signals.py`
-- **Feature**: Automatically promotes the first registered user to staff and superuser
-- **Benefit**: Eases UX during initial setup - no manual command needed
-- **How it works**:
-  - Django signal on User creation checks if any superusers exist
-  - If none exist, new user is promoted to staff + superuser
-  - Subsequent users remain regular users
-  - Already-created users are not affected
-
-**2. `make_admin` Management Command** ✅
-- **File**: `backend/apps/core/management/commands/make_admin.py`
-- **Location**: `/apps/core/management/commands/`
-- **Usage**:
+**2. `make_admin` Management Command**
+- File: `backend/apps/core/management/commands/make_admin.py`
+- Usage:
   ```bash
-  # Promote user to staff
   python manage.py make_admin <username>
-
-  # Promote user to staff + superuser
   python manage.py make_admin <username> --superuser
-
-  # Docker usage
   docker-compose exec backend python manage.py make_admin <username> --superuser
   ```
-- **Features**:
-  - User lookup by username
-  - Optional superuser promotion with --superuser flag
-  - Clear error messages if user not found
-  - Formatted success output with confirmation
-  - Supports all Django settings (PYTHONPATH, settings override, etc.)
-
-### Signal Registration ✅
-- **File**: `backend/apps/core/apps.py`
-- **Implementation**: Added `ready()` method to CoreConfig to import signals at startup
-- **Testing**: Verified with new user creation in test database
 
 ---
 
-## 🚧 Backend Phase 2-3 - PENDING (4-5 hours each)
+## Backend Phase 2-3 - Pending
 
-### Phase 2: HIGH Priority (4 issues)
+### Phase 2: HIGH Priority
 - [ ] Input validation layer (Pydantic schemas)
 - [ ] Authorization permission classes
 - [ ] Missing endpoint authorization checks
 - [ ] CORS additional hardening
 
-### Phase 3: MEDIUM Priority (2 issues)
+### Phase 3: MEDIUM Priority
 - [ ] Rate limiting (django-ratelimit)
 - [ ] Audit logging for sensitive operations
 
-### Phase 4: NICE-TO-HAVE (4 recommendations)
+### Phase 4
 - [ ] Additional security headers
 - [ ] Security event tracking
 - [ ] Enhanced monitoring
@@ -249,64 +196,44 @@
 
 ---
 
-## 📁 Documentation Structure
+## Project Structure
 
-### Root Level (Master Files Only)
-- **`STATUS.md`** - This file (consolidated project status)
-- **`SECURITY_SUMMARY.md`** - Detailed security audit & fixes
-- **`README.md`** - Project overview
-- **`CONTRIBUTING.md`** - Contribution guidelines
-
-### `/docs/` Folder (Organized by Category)
-- **`architecture/`** - System design & architecture
-- **`guides/`** - User & developer guides
-- **`api/`** - API documentation
-- **`security/`** - Security-specific documentation
-- **`archive/`** - Outdated/superseded documents
-
-### `/backend/` Folder Structure
-- `apps/` - Feature applications
-- `tests/` - Unit & integration tests
-- `proximity/` - Django settings
-- `scripts/` - Development scripts
-
-### `/frontend/` Folder Structure
-- `src/lib/` - Utilities & components
-- `src/routes/` - Page components
-- `src/styles/` - Global styling
-
-### `/e2e_tests/` Folder
-- End-to-end test suite
-- Test fixtures & helpers
+- `README.md` - Project overview
+- `STATUS.md` - This file
+- `SECURITY_SUMMARY.md` - Security audit and fixes
+- `CONTRIBUTING.md` - Contribution guidelines
+- `docs/` - Documentation (architecture, API, guides, security audit reports)
+- `backend/` - Django REST API (apps/, tests/, proximity/)
+- `frontend/` - SvelteKit UI (src/routes/, src/lib/)
+- `e2e_tests/` - End-to-end test suite
 
 ---
 
-## 🧪 Test Organization & Status
+## Test Organization & Status
 
-### Backend Tests - 100% PASSING ✅
+### Backend Tests - 102/102 Passing
 - **Location**: `/backend/tests/` and `/backend/apps/*/`
 - **Test Runner**: **pytest** (NOT `python manage.py test`)
-- **Status**: ✅ PASSING (102/102 tests - 100%)
 - **Breakdown**:
-  - `tests/test_models.py` - **28/28** ✅ (100% - all model tests passing)
-  - `tests/test_services.py` - **30/30** ✅ (100% - all service tests passing)
-  - `tests/test_utils.py` - **8/8** ✅ (100% - all utility tests)
-  - `tests/test_schemas.py` - **5/5** ✅ (100% - all schema tests)
-  - `tests/test_auth.py` - **1/1** ✅ (100%)
-  - `tests/test_sentry_integration.py` - **1/1** ✅ (100% - with warnings)
-  - `tests/test_catalog_quick.py` - **3/3** ✅ (100%)
-  - `apps/applications/tests.py` - **11/11** ✅ (100% - node selection tests)
-  - `apps/applications/test_node_selection.py` - **3/3** ✅ (100%)
-  - `apps/catalog/tests.py` - **25/25** ✅ (100% - catalog API & service tests)
-  - `apps/catalog/test_api.py` - **1/1** ✅ (100%)
-  - `apps/backups/test_api.py` - **7/7** ✅ (100% - backup API tests)
-  - `apps/backups/test_tasks.py` - **11/11** ✅ (100% - backup task tests)
+  - `tests/test_models.py` - 28/28
+  - `tests/test_services.py` - 30/30
+  - `tests/test_utils.py` - 8/8
+  - `tests/test_schemas.py` - 5/5
+  - `tests/test_auth.py` - 1/1
+  - `tests/test_sentry_integration.py` - 1/1
+  - `tests/test_catalog_quick.py` - 3/3
+  - `apps/applications/tests.py` - 11/11
+  - `apps/applications/test_node_selection.py` - 3/3
+  - `apps/catalog/tests.py` - 25/25
+  - `apps/catalog/test_api.py` - 1/1
+  - `apps/backups/test_api.py` - 7/7
+  - `apps/backups/test_tasks.py` - 11/11
 
-**Important Note**: Using `python manage.py test` only discovers 26 tests (Django's test runner doesn't find pytest tests in `/backend/tests/`). Always use `pytest` for full test coverage.
+**Note**: `python manage.py test` only discovers a subset of tests. Always use `pytest` for the full test suite.
 
 ### Frontend Tests
 - **Location**: `/e2e_tests/`
-- **Status**: ⏳ Requires running backend server
+- **Status**: Requires a running backend server
 - **Coverage**: End-to-end browser tests
 - **Types**: Login, deployment, navigation, error handling
 
@@ -343,168 +270,63 @@ cd backend && env USE_MOCK_PROXMOX=1 pytest --cov=apps --cov=tests
 **2025-10-30 - Previous Fixes**
 - ✅ Fixed Django AppRegistryNotReady error preventing test execution
 - ✅ Made catalog API endpoints public (auth=None) - fixes 401 errors
-- ✅ Removed test_ssh_pct.py (was manual script, not unit test)
-- ✅ All Phase 1 security fixes verified working in tests
+- Removed test_ssh_pct.py (was manual script, not unit test)
+- All Phase 1 security fixes verified working in tests
 
 ---
 
-## 📝 Recent Commits
+## Planned Improvements
 
-### Latest Changes
-1. **NEW** - feat: Add user admin management - auto-admin on first registration + make_admin command (Nov 1)
-2. `4957061` - feat: Add critical pre-launch features - log viewer and host delete (Oct 31)
-3. `a91d2d6` - docs: Add documentation consolidation summary (Oct 31)
-4. `cc0b336` - docs: Consolidate and reorganize comprehensive documentation (Oct 31)
-5. `33666df` - feat: Achieve 100% test pass rate (102/102 tests passing) ✅ (Oct 31) - VERIFIED
-
-### Test Discovery Resolution
-- **Issue Reported**: Only 26 tests discoverable, 76 missing
-- **Root Cause**: Was using `python manage.py test` (Django runner) instead of `pytest`
-- **Solution**: Use `pytest` command instead
-- **Status**: ✅ RESOLVED - All 102/102 tests passing with pytest
-- **Important**: pytest.ini is correctly configured, just needed proper test runner command
-
----
-
-## 🔄 Next Steps - READY FOR DEPLOYMENT
-
-### Immediate (Next 1-2 hours)
-1. **Optional: Fix frontend Sentry configuration**
-   - Currently fails during build with invalid project error
-   - Can be disabled in `vite.config.ts` if not needed
-   - Impact: None (Sentry is optional, frontend still builds with build hook error)
-
-### Short Term (Next 1-2 days) - Staging Deployment
-1. Deploy to staging environment
-2. Run manual integration tests
-3. Run security scanning tools:
-   - `bandit` for code analysis
-   - `pip-audit` for dependencies
-   - `safety check` for vulnerabilities
-4. Penetration testing (basic)
-
-### Medium Term (Week after staging)
-1. **Optional: Backend Phase 2-3 improvements**
-   - Input validation layer (Pydantic schemas)
-   - Rate limiting (django-ratelimit)
-   - Audit logging for sensitive operations
-   - These are hardening improvements, not critical
-
-2. Production deployment after staging validation
+- Frontend Sentry source map upload configuration (currently disabled due to config error; Sentry error tracking still works)
+- Backend Phase 2-3: input validation layer, rate limiting, audit logging
+- Monitoring dashboard
+- Admin panel UI
 
 ### Test Verification Commands
+
 ```bash
-# Verify all tests pass before deployment
+# Verify all tests pass
 cd backend && env USE_MOCK_PROXMOX=1 pytest --tb=short
 
-# Run security scans
+# Security scans
 bandit -r apps/ tests/
 pip-audit
-safety check
 ```
 
 ---
 
-## 📊 Security Metrics
+## Security Summary
 
 ### Frontend
-- **Type Coverage**: 100% (TypeScript)
-- **Input Validation**: RFC-compliant URLs, emails, hostnames
-- **Authentication**: JWT with HttpOnly cookies
-- **Logging**: Environment-aware (dev: console, prod: Sentry)
+- TypeScript with RFC-compliant input validation
+- JWT with HttpOnly cookies
+- Environment-aware logging (dev: console, prod: Sentry)
 
 ### Backend
-- **Authentication**: JWT + session-based
-- **Encryption**: Fernet symmetric (passwords)
-- **Authorization**: Role-based (admin/staff checks)
-- **SSH**: Key-based + password fallback
+- JWT + session-based authentication
+- Fernet symmetric encryption for passwords
+- Role-based authorization (admin/staff checks)
+- SSH key-based authentication with password fallback
+
+### Changes Applied
+**Frontend**: environment-aware logging, runtime type validation, RFC-compliant input validation, CSRF enforcement, request timeouts, exponential backoff, CSP headers, error message sanitization
+
+**Backend**: SSH command injection prevention (`shlex.quote()`), hardcoded credentials removed, SSH key-based auth, host key verification, authorization checks on endpoints, CORS hardening, DEBUG disabled, password encryption verified
 
 ---
 
-## 🎓 Key Improvements Made
+## Known Gaps
 
-### Frontend
-✅ Environment-aware logging
-✅ Runtime type validation
-✅ RFC-compliant input validation
-✅ CSRF token enforcement
-✅ Request timeouts (30s)
-✅ Exponential backoff for polling
-✅ CSP headers
-✅ Error message sanitization
-✅ Secure credential handling
-
-### Backend
-✅ SSH command injection prevention
-✅ Hardcoded credentials removal
-✅ SSH key-based authentication
-✅ Host key verification
-✅ Authorization checks on endpoints
-✅ CORS hardening
-✅ DEBUG mode disabled
-✅ Password encryption verified
+- No admin panel UI (user/role management requires Django admin or CLI)
+- Monitoring dashboard not implemented (metrics polled on-demand)
+- Scheduled automatic backups not implemented (backups are on-demand only)
+- Backend Phase 2-3 security hardening pending (input validation layer, rate limiting, audit logging)
+- Dependabot critical/high alerts addressed (see [SECURITY_UPDATES.md](SECURITY_UPDATES.md) for details)
 
 ---
 
-## 🚀 Deployment Readiness - TESTS FIXED + DEPENDENCIES PATCHED ✅
+## Support
 
-### ✅ Test Discovery FIXED
-- **Issue**: Was using `python manage.py test` (Django runner) instead of `pytest`
-- **Solution**: Use `pytest` command to run full test suite
-- **Result**: 102/102 tests discovered and passing (100%)
-- **Important**: pytest.ini correctly configured - just needed to use right test runner
-
-### ✅ Security Dependencies Updated to LATEST Versions
-- **Critical Vulnerabilities Fixed**: ✅ 7 Django SQL injection + RCE vulnerabilities patched
-- **High-Priority Vulnerabilities Fixed**: ✅ 9 additional security issues resolved
-- **Moderate Vulnerabilities Fixed**: ✅ 10 additional moderate-severity updates
-- **Total Vulnerabilities Reduced**: From 34 → **~6** (estimated after all updates)
-  - Before: 8 CRITICAL/HIGH + 26 moderate/low
-  - After: 0 CRITICAL/HIGH + ~6 remaining low-severity
-- **Latest CVE Fixes**:
-  - Django 5.1.13: CVE-2025-59681, CVE-2025-57833
-  - cryptography 44.0.1: GHSA-h4gh-qq45-vh27 (OpenSSL in wheels)
-  - vite/esbuild 5.4.21: GHSA-67mh-4wv8-2f99 (CORS source theft)
-  - bits-ui 0.14.0: CVE-2024-55565 (nanoid predictable IDs)
-  - requests 2.32.4: CVE-2024-47081 (.netrc credentials leak)
-  - black 24.3.0: CVE-2024-21503 (ReDoS in strings.py)
-- **Updated Packages**:
-  - **Backend**: Django 5.1.13, cryptography 44.0.1, requests 2.32.4, black 24.3.0, + 10 others
-  - **Frontend**: vite 5.4.21, vitest 1.6.1, bits-ui 0.14.0
-  - **Plus**: Werkzeug 3.1.3, paramiko 3.5.0+, pyOpenSSL 24.2.1, and 8+ more
-- **Status**: ✅ **NO MORE CRITICAL/HIGH ALERTS** - All Dependabot critical/high alerts eliminated. Total vulnerability count reduced ~83%. See [SECURITY_UPDATES.md](SECURITY_UPDATES.md) for complete details
-
-### ✅ Ready for Production (Core Functionality)
-- **Backend Tests**: 102/102 passing (100%) ✅ - Verified with updated dependencies
-  - Models: 28/28 passing
-  - Services: 30/30 passing
-  - Catalog: 25/25 passing
-  - Backups: 18/18 passing
-  - Applications: 14/14 passing
-  - Others: 12/12 passing
-- **Backend Phase 1 Security**: All 4/4 critical vulnerabilities patched ✅
-- **Frontend Security**: All 18 critical/high fixes complete ✅
-- **Dependency Security**: All Dependabot vulnerabilities addressed ✅
-
-### ⏳ Remaining Issues (Non-blocking)
-1. **Frontend Build**: Sentry configuration error (non-fatal, can disable uploads)
-2. **Backend Phase 2-3**: Input validation & authorization (security hardening, not critical)
-3. **Rate limiting & Audit logging**: Phase 3 improvements (optional)
-
-### Production Timeline
-- **Current Status**: Ready for Staging (102/102 tests passing, dependencies patched)
-- **Staging Deployment**: Can proceed immediately
-- **Production**: 1-2 days after staging validation
-- **Estimated**: Full production deployment by 2025-11-02
-
----
-
-## 📞 Support
-
-For detailed security analysis, see: `SECURITY_SUMMARY.md`
-For architecture details, see: `docs/architecture/`
-For API documentation, see: `docs/api/`
-
----
-
-**Status**: ✅ **PRODUCTION-READY - FULLY SECURED & TESTED** - 102/102 backend tests passing (100%), all Phase 1 security fixes verified, frontend security complete, 26+ dependency vulnerabilities patched (83% reduction). Zero CRITICAL/HIGH Dependabot alerts. Test discovery resolved. All security advisories addressed. Ready for immediate staging deployment. **STAGING-READY NOW. PRODUCTION WITHIN 24 HOURS.**
+For detailed security analysis, see: [SECURITY_SUMMARY.md](SECURITY_SUMMARY.md)
+For architecture details, see: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+For API documentation, see: [docs/API.md](docs/API.md)

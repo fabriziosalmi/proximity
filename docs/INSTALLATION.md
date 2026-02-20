@@ -5,15 +5,14 @@
 ### Minimum Requirements
 - **CPU:** 2 cores
 - **RAM:** 4 GB
-- **Disk:** 20 GB SSD
+- **Disk:** 20 GB
 - **OS:** Linux (Ubuntu 20.04+ or Debian 11+)
 - **Proxmox:** 7.0+ (for container management)
 
 ### Recommended Requirements
 - **CPU:** 4+ cores
 - **RAM:** 8+ GB
-- **Disk:** 50+ GB SSD
-- **Network:** 1 Gbps connection
+- **Disk:** 50+ GB
 
 ## Prerequisites
 
@@ -26,18 +25,13 @@ sh get-docker.sh
 # Add user to docker group
 sudo usermod -aG docker $USER
 
-# Install Docker Compose
+# Install Docker Compose plugin
 sudo apt-get install docker-compose-plugin
 
 # Verify installations
 docker --version
 docker compose version
 ```
-
-### Required Services
-- **PostgreSQL** 13+ (for data storage)
-- **Redis** 6.0+ (for caching and task queue)
-- **Proxmox** 7.0+ (infrastructure)
 
 ## Deployment Methods
 
@@ -46,7 +40,7 @@ docker compose version
 #### 1. Clone Repository
 
 ```bash
-git clone https://github.com/your-repo/proximity.git
+git clone https://github.com/fabriziosalmi/proximity.git
 cd proximity
 ```
 
@@ -54,10 +48,10 @@ cd proximity
 
 ```bash
 # Copy environment template
-cp backend/.env.example backend/.env
+cp .env.example .env
 
 # Edit environment file
-nano backend/.env
+nano .env
 ```
 
 **Key variables to set:**
@@ -66,32 +60,23 @@ DEBUG=False
 SECRET_KEY=your-secret-key-here
 ALLOWED_HOSTS=proximity.example.com,localhost
 
-# Database
-DATABASE_URL=postgresql://user:password@postgres:5432/proximity
+# Database (SQLite is used by default; for production use PostgreSQL)
+# DATABASE_URL=postgresql://user:password@postgres:5432/proximity
 
-# Redis
-REDIS_URL=redis://redis:6379/0
-
-# Email (optional)
-EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
-EMAIL_HOST=smtp.example.com
-EMAIL_PORT=587
+# Proxmox
+PROXMOX_HOST=your-proxmox-host
+PROXMOX_USER=root@pam
+PROXMOX_PASSWORD=your-password
+PROXMOX_PORT=8006
+PROXMOX_VERIFY_SSL=False
 
 # Sentry (optional)
 SENTRY_DSN=https://key@sentry.io/project
-
-# Proxmox (optional for initial setup)
-PROXMOX_DEFAULT_HOST=your-proxmox-host
-PROXMOX_DEFAULT_USER=root@pam
-PROXMOX_DEFAULT_PASSWORD=your-password
 ```
 
 #### 3. Start Services
 
 ```bash
-# Pull latest images
-docker compose pull
-
 # Start services (in background)
 docker compose up -d
 
@@ -106,26 +91,25 @@ docker compose logs -f backend
 - PostgreSQL (port 5432)
 - Redis (port 6379)
 - Backend (port 8000)
-- Frontend (port 3000)
+- Celery worker
+- Celery beat scheduler
+- Frontend (port 5173)
 
 #### 4. Initialize Database
 
 ```bash
 # Run migrations
 docker compose exec backend python manage.py migrate
-
-# Create superuser
-docker compose exec backend python manage.py createsuperuser
-
-# Load catalog data (optional)
-docker compose exec backend python manage.py shell < scripts/load_catalog.py
 ```
+
+The first registered user automatically receives admin privileges. No `createsuperuser` step is required.
 
 #### 5. Access Application
 
-- **Web UI:** http://localhost:3000
+- **Web UI:** http://localhost:5173
 - **API:** http://localhost:8000/api/
-- **Admin Panel:** http://localhost:8000/admin/
+- **API Docs:** http://localhost:8000/api/docs
+- **Django Admin:** http://localhost:8000/admin/
 
 ### Option 2: Manual Installation
 
@@ -149,7 +133,7 @@ sudo su - proximity
 
 ```bash
 # Clone repository
-git clone https://github.com/your-repo/proximity.git
+git clone https://github.com/fabriziosalmi/proximity.git
 cd proximity/backend
 
 # Create virtual environment
@@ -165,9 +149,6 @@ nano .env
 
 # Run migrations
 python manage.py migrate
-
-# Create superuser
-python manage.py createsuperuser
 
 # Collect static files
 python manage.py collectstatic --noinput
@@ -267,36 +248,11 @@ sudo systemctl start proximity-backend
 sudo systemctl status proximity-backend
 ```
 
-### Option 3: Kubernetes
-
-For production Kubernetes deployments, use the provided Helm charts:
-
-```bash
-# Add Proximity Helm repository
-helm repo add proximity https://charts.proximity.io
-
-# Install Proximity
-helm install proximity proximity/proximity \
-  --namespace proximity \
-  --create-namespace \
-  -f values.yaml
-
-# Wait for deployment
-kubectl rollout status deployment/proximity-backend \
-  -n proximity
-```
-
 ## Post-Installation
 
 ### 1. Add Proxmox Host
 
-```bash
-# Via Django admin
-# Go to http://localhost:8000/admin/
-# Add ProxmoxHost with your details
-```
-
-Or via API:
+Via API:
 
 ```bash
 curl -X POST http://localhost:8000/api/proxmox/hosts/ \
@@ -312,31 +268,13 @@ curl -X POST http://localhost:8000/api/proxmox/hosts/ \
   }'
 ```
 
+Or via Settings in the web UI.
+
 ### 2. Load Catalog
 
-```bash
-# Download or create catalog JSON files
-mkdir -p catalog_data/
-# Place application definitions in catalog_data/
+The catalog is loaded from JSON files in the `catalog_data/` directory. The backend loads catalog data automatically on startup.
 
-# Backend automatically loads from this directory
-```
-
-### 3. Configure Email (Optional)
-
-Edit `.env`:
-
-```env
-EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_HOST_USER=your-email@gmail.com
-EMAIL_HOST_PASSWORD=app-password
-EMAIL_USE_TLS=True
-DEFAULT_FROM_EMAIL=noreply@proximity.local
-```
-
-### 4. Set Up HTTPS (Recommended)
+### 3. Set Up HTTPS (Recommended)
 
 Using Let's Encrypt with Certbot:
 
@@ -349,44 +287,7 @@ sudo certbot --nginx -d proximity.example.com
 sudo systemctl enable certbot.timer
 ```
 
-Or manually:
-
-```nginx
-# /etc/nginx/sites-available/proximity
-server {
-    listen 443 ssl http2;
-    ssl_certificate /path/to/cert.pem;
-    ssl_certificate_key /path/to/key.pem;
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_ciphers HIGH:!aNULL:!MD5;
-
-    # ... rest of config ...
-}
-
-server {
-    listen 80;
-    return 301 https://$server_name$request_uri;
-}
-```
-
-### 5. Configure Backups
-
-Create backup directory:
-
-```bash
-mkdir -p /var/lib/proximity/backups
-chown -R proximity:proximity /var/lib/proximity/backups
-chmod 755 /var/lib/proximity/backups
-```
-
-Update settings:
-
-```python
-# backend/proximity/settings.py
-BACKUP_PATH = '/var/lib/proximity/backups'
-```
-
-### 6. Test Installation
+### 4. Test Installation
 
 ```bash
 # Check backend health
@@ -395,15 +296,6 @@ curl http://localhost:8000/api/health/
 # Check Proxmox connectivity
 curl http://localhost:8000/api/proxmox/hosts/ \
   -H "Authorization: Bearer YOUR_TOKEN"
-
-# Test application deployment
-curl -X POST http://localhost:8000/api/apps/ \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "catalog_id": "adminer",
-    "hostname": "test-app"
-  }'
 ```
 
 ## Troubleshooting Installation
@@ -468,9 +360,6 @@ sudo systemctl disable proximity-backend
 # Remove installation
 sudo rm -rf /home/proximity/proximity
 sudo userdel -r proximity
-
-# Clean up
-sudo apt-get autoremove
 ```
 
 ## Upgrades
@@ -512,11 +401,4 @@ npm run build
 
 1. **[First Steps Guide](./FIRST_STEPS.md)** - Deploy your first application
 2. **[API Documentation](./API.md)** - Explore the API
-3. **[Deployment Guide](./DEPLOYMENT.md)** - Production setup
-4. **[Development Guide](./DEVELOPMENT.md)** - Start contributing
 
----
-
-**Installation Version:** 2.0
-**Last Updated:** October 31, 2025
-**Status:** ✅ Current and Tested
