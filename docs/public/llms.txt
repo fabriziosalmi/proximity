@@ -1,0 +1,31 @@
+# Proximity
+
+> An immersive management layer for Proxmox based personal infrastructure.
+
+## Overview
+
+Proximity is an open-source platform created by Fabrizio Salmi (@fabriziosalmi) designed to simplify and enhance the management of personal Proxmox VE infrastructure. It features an intuitive SvelteKit user interface, an application catalog for pre-configured LXC containers, container adoption tools, backup/restore mechanisms, and an asynchronous task queue powered by Celery and Redis.
+
+## Core Features & Architecture
+
+- **Proxmox VE API Integration**: Native management of LXC containers and Proxmox cluster nodes.
+- **RESTful API**: Comprehensive Django-based API with JWT authentication and granular permissions.
+- **Application Catalog**: Pre-packaged templates ready for one-click deployment.
+- **Asynchronous Task Engine**: Background task execution with Celery for long-running container operations.
+- **Security Audited**: Built-in JWT token verification, CSRF protection, and audit reports.
+
+## Documentation Index
+
+- [Documentation Map](https://fabriziosalmi.github.io/proximity/overview): Comprehensive guide to all documentation sections.
+- [Quick Start](https://fabriziosalmi.github.io/proximity/guides/QUICK_START): Set up Proximity with Docker Compose in minutes.
+- [Installation Guide](https://fabriziosalmi.github.io/proximity/INSTALLATION): Production installation and prerequisites.
+- [First Steps](https://fabriziosalmi.github.io/proximity/FIRST_STEPS): Walkthrough of your first container deployment.
+- [System Architecture](https://fabriziosalmi.github.io/proximity/ARCHITECTURE): Component diagram, data flow, and architecture design.
+- [REST API Reference](https://fabriziosalmi.github.io/proximity/API): Complete HTTP endpoints, payloads, and responses.
+- [Backend Security Audit](https://fabriziosalmi.github.io/proximity/security/BACKEND_SECURITY_AUDIT_REPORT): Backend security findings and recommendations.
+
+## Repository & Links
+
+- Repository: https://github.com/fabriziosalmi/proximity
+- License: MIT
+- Security Policy: https://fabriziosalmi.github.io/proximity/.well-known/security.txt
