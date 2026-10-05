@@ -15,6 +15,10 @@ Test Scenario:
 Expected: System selects 'opti2' because it has the most free memory (8GB).
 """
 
+import json
+
+from rest_framework_simplejwt.tokens import AccessToken
+
 import pytest
 from django.contrib.auth import get_user_model
 
@@ -274,7 +278,20 @@ def test_node_selection_with_only_offline_nodes():
     admin = User.objects.create_superuser(
         username="admin2", email="admin2@test.com", password="test"
     )
+    # Servono entrambi, e non e' ridondanza: l'API ha
+    # auth=JWTCookieAuthenticator() a livello globale (proximity/urls.py), che
+    # legge un AccessToken dal cookie e popola request.auth; gli endpoint di
+    # apps/applications/api.py controllano invece request.user, che viene dalla
+    # sessione. Misurato su GET /api/apps/:
+    #
+    #   solo force_login   -> 401 {"detail": "Unauthorized"}          (ninja)
+    #   solo cookie JWT    -> 401 {"detail": "Authentication required..."} (endpoint)
+    #   cookie + sessione  -> 200
+    #
+    # Il test aveva solo la sessione, quindi prendeva 401 e non arrivava mai
+    # alla logica di selezione dei nodi che intendeva provare.
     client.force_login(admin)
+    client.cookies["proximity-auth-cookie"] = str(AccessToken.for_user(admin))
 
     # Create host
     host = ProxmoxHost.objects.create(
@@ -319,15 +336,24 @@ def test_node_selection_with_only_offline_nodes():
 
     response = client.post("/api/apps/", data=json.dumps(payload), content_type="application/json")
 
-    # Should fail or handle gracefully
-    # (The exact behavior depends on your API implementation)
-    # For now, we just verify it doesn't crash
-    assert response.status_code in [
-        200,
-        201,
-        400,
-        404,
-        500,
-    ], f"Unexpected status code: {response.status_code}"
+    # Con tutti i nodi offline l'API rifiuta con 503, che e' la risposta giusta:
+    # non e' un errore della richiesta (4xx) ne' un difetto del server (500),
+    # e' il servizio che non ha dove mettere l'applicazione.
+    #
+    # L'asserzione era "status in [200, 201, 400, 404, 500]" con il commento
+    # "per ora verifichiamo solo che non vada in crash": accettava anche un 200,
+    # cioe' un deploy riuscito su un nodo offline, e rifiutava il 503 corretto.
+    # Ora che il test si autentica davvero e arriva a questa logica, puo'
+    # chiedere il comportamento preciso.
+    assert response.status_code == 503, (
+        f"Atteso 503 con tutti i nodi offline, ricevuto {response.status_code}: "
+        f"{response.content[:200]}"
+    )
 
-    print(f"\n✅ TEST PASSED: No-online-nodes scenario handled (status={response.status_code})")
+    # E nessuna applicazione deve essere stata creata. Import locale come il
+    # resto del file, che importa i modelli dentro i test.
+    from apps.applications.models import Application
+
+    assert Application.objects.filter(hostname="test-no-online-nodes").count() == 0, (
+        "Nessun nodo era online, ma l'applicazione risulta creata"
+    )
