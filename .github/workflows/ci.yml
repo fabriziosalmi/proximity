@@ -1,0 +1,63 @@
+name: CI
+
+# Questo repository non aveva nessun workflow che girasse sulle pull request:
+# in .github/workflows/ c'era solo docs.yml, legato al push su main. I 16 file
+# di test del backend non venivano eseguiti da nessuna parte, e la suite era
+# arrivata a non potersi nemmeno avviare senza che se ne accorgesse nessuno.
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend-tests:
+    name: Backend tests (pytest)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      # 3.12 come backend/Dockerfile (python:3.12-slim): i test girano sulla
+      # stessa versione della produzione, non su quella che capita.
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: |
+            backend/requirements.txt
+            backend/requirements-test.txt
+
+      - name: Install dependencies
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-test.txt
+
+      # Nessun servizio di appoggio, e non e' una semplificazione: il
+      # conftest.py di backend/ sostituisce il database con SQLite in memoria e
+      # configura Celery in modo sincrono, quindi i test non vogliono ne'
+      # Postgres ne' Redis. SECRET_KEY non serve: settings.py ha un valore di
+      # sviluppo per difetto, ed e' quello che i test usano.
+      - name: Run the test suite
+        working-directory: backend
+        run: python -m pytest
+
+# Perche' non c'e' un job per il frontend: `npm run check` (svelte-check)
+# riporta 56 errori e 38 warning preesistenti su 27 file, e in frontend/ non
+# esiste nessun file che corrisponda al pattern dei test di vitest
+# ("src/**/*.{test,spec}.{js,ts}"), quindi `npm test` esce con 1 e
+# "No test files found". Un job cosi' sarebbe rosso dal primo giorno, e un
+# controllo sempre rosso insegna solo a ignorarlo. I test end-to-end di
+# Playwright in frontend/e2e/ vogliono lo stack in piedi: vanno aggiunti a
+# parte, con i servizi, non infilati qui.

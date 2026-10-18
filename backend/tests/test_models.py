@@ -16,7 +16,16 @@ class TestUserModel:
     """Test User model."""
 
     def test_create_user(self):
-        """Test creating a basic user."""
+        """Un utente creato quando un amministratore esiste gia' e' un utente normale.
+
+        apps/core/signals.py promuove di proposito il *primo* utente a staff e
+        superuser, per non costringere a un comando di gestione al primo avvio.
+        Senza un amministratore preesistente questo test asserirebbe il
+        contrario di quello che il prodotto fa, ed e' per questo che falliva.
+        """
+        User.objects.create_superuser(
+            username="root", email="root@example.com", password="root-di-prova"
+        )
         user = User.objects.create_user(
             username="john", email="john@example.com", password="secure123"
         )
